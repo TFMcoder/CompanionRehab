@@ -1,5 +1,7 @@
 # Companion Rehab — MVP product brief and proposed technical specification
 
+**Current planning authority:** This September 28 brief preserves the original user stories and background. The [implementation roadmap](ROADMAP.md), [canonical JSON](roadmap/roadmap.json) and [October 3 decisions](architecture/PRODUCT_DECISIONS_2026-10-03.md) supersede its earlier sequencing, hosting, role and model assumptions. S01–S04 prioritize Nancy's 10 AM My Day task/meal planning, actual reporting, recovery and repeated check-ins. Initial data storage is local; the four application roles and GPT-6 Sol high selection are recorded in the canonical product contract.
+
 **Status:** Draft for product review and conversion into a feature and technical roadmap  
 **Date:** 2026-09-28  
 **Audience:** Product owner, family stakeholders, engineering/Codex, and prospective care collaborators

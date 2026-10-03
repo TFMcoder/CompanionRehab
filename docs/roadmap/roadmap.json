@@ -1,0 +1,3345 @@
+{
+  "$schema": "./roadmap.schema.json",
+  "roadmap_id": "companion-rehab",
+  "schema_version": "1.3.0",
+  "updated_at": "2026-10-03",
+  "planning_status": "ready_for_implementation",
+  "implementation_status": "in_progress",
+  "source_of_truth": "docs/roadmap/roadmap.json",
+  "source_brief": "https://github.com/TFMcoder/CompanionRehab/blob/a8af9ad47e29bcdf76cf9d8ff1e1e034a1d36077/docs/MVP.md",
+  "supporting_research": "docs/architecture/TECHNICAL_RESEARCH.md",
+  "supersedes": "The 2026-09-28 separate voice-meal-log, meal-plan, tracker and recovery sequence. S01-S04 scopes are revised before implementation; S05-S12 keep their feature identities. No implementation evidence is carried forward.",
+  "user_priorities": [
+    "Deliver the first MVP as a complete 10:00 local-time check-in with Nancy: hear today's tasks, discuss meals, accept a day plan and retrieve it by voice or touch.",
+    "Develop S01-S04 as the immediate focus: plan the day, report the day, recover safely, then repeat across days with reviewed carryover.",
+    "Live provider and consented real-data tests begin in S01; two-way microphone and spoken-response testing is required.",
+    "Borrow selected Cerberus utilities, proposal validation, receipts, revision and recovery patterns; keep CompanionRehab independent.",
+    "Build complete usable features rather than separate infrastructure phases.",
+    "Delay administrator and trend dashboards while preserving queryable records, versions, permissions and projections from the first write.",
+    "Use local application compute with cloud connectivity and minimize service costs within $50/month excluding GPT backend costs.",
+    "Four user roles: administrator, clinician, family/friend and client. The project owner is administrator and technical lead.",
+    "Client My Day is narrow and conversational; shared voice/button navigation reaches tasks, daily meals, groceries and achievements as their slices ship.",
+    "Store durable data on this computer initially; retain migration portability to another local server or a cloud provider.",
+    "Use GPT-6 Sol with high reasoning for Nancy intelligence, with a separate speech input/output layer."
+  ],
+  "constraints": {
+    "budget": {
+      "monthly_limit": 50,
+      "target_ceiling": 40,
+      "currency": null,
+      "planning_currency": "CAD",
+      "currency_status": "unconfirmed",
+      "excluded": [
+        "GPT backend usage"
+      ],
+      "included": [
+        "Service subscriptions",
+        "Add-ons and metered service usage",
+        "Applicable taxes and currency conversion/card fees",
+        "Domain and backup charges; record actual annual billing as well as monthly equivalent"
+      ],
+      "strategy": "Free tiers and existing local hardware first. Paid upgrades require demonstrated need and a complete in-budget forecast. Exceeding 50 requires an explicit budget revision.",
+      "billing_monitor_status": "not_implemented"
+    },
+    "runtime": {
+      "application": "Existing local computer",
+      "worker": "Same computer when the current slice requires durable background work",
+      "database": "Local PostgreSQL on this computer initially; portable to another local server or cloud provider later. Supabase cloud is no longer an S01 prerequisite.",
+      "synthetic_database": "Separate disposable local database",
+      "ingress": "Stable HTTPS Cloudflare Tunnel using free features; verify domain/account eligibility",
+      "availability": "Supervised live tests initially; tunnel does not run the app or durably buffer requests while the computer is unavailable. Local application and data storage depend on this machine; qualify operating arrangements before daily reliance."
+    },
+    "data": {
+      "first_live_use": "A consenting participant's genuine task list, meal choices and accepted day plan during the 10:00 Nancy check-in; disposable records for destructive/provider failure tests.",
+      "care_rules": "Present and record approved instructions; do not generate or modify treatment, prescribed diet or rehab protocols autonomously.",
+      "public_repository": "Code, schemas, synthetic fixtures and sanitized evidence summaries only.",
+      "private_evidence": "Real records, transcripts, participant identifiers, credentials and full test evidence stay outside GitHub.",
+      "retention": "Collect the minimum needed for the slice; no retained audio by default. Set a retention and correction/deletion procedure before retaining participant care data."
+    }
+  },
+  "execution_policy": {
+    "selection": "Immediate delivery focus is S01-S04 in priority order. Select the earliest unfinished slice with completed dependencies. If external input blocks it, record the blocker and continue independent authorized preparation without claiming completion or advancing a dependent slice.",
+    "unit_of_delivery": "One slice is a usable feature spanning UI, voice where applicable, API, database, permissions and tests.",
+    "setup": "Research and confirm low-cost service eligibility, voice route, auth, migrations and routing inside S01. Extract only the small justified Cerberus utilities and implement care-specific contracts; do not create a separate reuse/platform milestone.",
+    "dashboard_boundary": "Client My Day tasks/meals ship in S01; grocery and achievement destinations follow S05/S09. Minimal scoped setup and role homes may precede full Support Team S10, administrator S11 and clinical/trend dashboards S12.",
+    "live_test_requirement": "Every slice requires its listed real-provider live tests. S01 includes actual two-way speech, tasks and accepted meals in one check-in. Browser-dictation mocks, screenshots, provider-call success alone and synthetic-only runs cannot satisfy a live gate. Honor test prerequisites: the S01 disposable safety/restore scenario S01-LIVE2 precedes real-data S01-LIVE1, regardless of numeric ID order.",
+    "done_rule": "All acceptance criteria are covered, all dependencies are done, required inputs are resolved/defaulted, applicable slice_completion human actions are complete, blockers are empty, implementation_revision is set, and every listed automated/live test has a passing evidence record for that revision. Use awaiting_live_test when code is ready but live evidence is missing. Apply other human-action blocking scopes to their named operation or release gate.",
+    "result_policy": "Store one current result per test. Preserve superseded evidence privately. Record failures honestly; do not prefill results or infer a pass from a successful tool invocation.",
+    "revision_policy": "Any code change relevant to a slice invalidates its prior completion evidence until affected acceptance is revalidated. Reuse a result only with documented unchanged implementation revision.",
+    "input_policy": "Use recorded defaults for reversible implementation choices. Missing credentials, target-device access or participant consent block only dependent live actions. Never substitute guessed values or mock results.",
+    "cost_policy": "Update the service ledger before each new service, plan, project or seat. Recheck provider pricing and quotas at provisioning; avoid paid trials and automatic upgrades as dependencies.",
+    "scope_policy": "Use the reuse_plan decisions and keep Companion independent. No universal agent platform, generic provider tools, speculative microservices, background schedule or dashboard UI in S01-S04.",
+    "authorization": "This artifact specifies implementation work; writing it does not mean accounts are connected, live tests passed or recurring monitoring is active."
+  },
+  "status_values": [
+    "planned",
+    "in_progress",
+    "awaiting_live_test",
+    "blocked",
+    "done"
+  ],
+  "shared_requirements": [
+    {
+      "id": "R-AUTH",
+      "introduced_in": "S01",
+      "requirement": "Server derives actor identity; enforce resource/action permissions and database grants/policies. Ordinary command handlers must not rely on privileged RLS-bypassing credentials for authorization. Implement administrator, client, family_friend and clinician roles with client/resource-scoped grants. A role-specific home or clinical archetype never substitutes for permission checks."
+    },
+    {
+      "id": "R-COMMAND",
+      "introduced_in": "S01",
+      "requirement": "Validated writes atomically update domain state, append an event and store a command receipt. Keys are scoped to actor/resource; repeated keys return the original result, changed payloads conflict, and semantic duplicates do not create duplicate effective actions."
+    },
+    {
+      "id": "R-EVENT",
+      "introduced_in": "S01",
+      "requirement": "Events include event_id, schema_version, aggregate_id/version, actor_id, source, occurred_at, recorded_at, correlation_id and idempotency_key. Protect sensitive payloads; keep audit access separate. Corrections preserve the prior action while retained."
+    },
+    {
+      "id": "R-TIME",
+      "introduced_in": "S01",
+      "requirement": "Store instants in UTC plus the participant time zone and applicable local_date. Distinguish reported occurrence time from server acknowledgement; validate backdating and ambiguous dates."
+    },
+    {
+      "id": "R-VOICE",
+      "introduced_in": "S01",
+      "requirement": "Nancy supports user-initiated two-way voice with real microphone input and spoken responses in S01. Voice and touch invoke the same authenticated typed commands. Keep credentials/tools server-owned, sessions bounded, ambiguity explicit and saved/pending/failed responses truthful. Dictated text alone is not voice acceptance. Use GPT Sol with high reasoning behind the speech layer. Client, family/friend and administrator interactions are principally voice; every role has a complete UI path as its features ship."
+    },
+    {
+      "id": "R-READMODEL",
+      "introduced_in": "S01",
+      "requirement": "Maintain simple queryable projections from transactional records/events. IDs, plan/protocol versions and consent-scoped queries support later reports without a dashboard or a separate analytics platform."
+    },
+    {
+      "id": "R-RECOVERY",
+      "introduced_in": "S01",
+      "requirement": "From S01 local database commits survive refresh/process restart, uncertain writes are reconciled by receipt, and disconnected actions never claim success. Verify encrypted backup export/restore before retaining meaningful data. S03 adds durable pending device commands, interruption recovery and revocation-safe cache handling."
+    },
+    {
+      "id": "R-TEST",
+      "introduced_in": "S01",
+      "requirement": "Automated synthetic regression and live acceptance run together. Test denial and duplicate/correction cases; log sanitized evidence IDs, revision, environment, time and observer. Keep destructive tests off active care records. Live means the actual deployed local database/auth path, real configured GPT/speech services and intended device; cloud database hosting is not required and disposable PGlite tests alone are insufficient."
+    },
+    {
+      "id": "R-PLAN",
+      "introduced_in": "S01",
+      "requirement": "Draft/proposed day and meal plans are separate from accepted immutable versions from S01. Explicit acceptance binds the exact reviewed version and current observations; later edits create revisions. Actual task/meal reports introduced in S02 remain factual history when a plan changes."
+    },
+    {
+      "id": "R-OUTBOX",
+      "introduced_in": "S06",
+      "requirement": "External completion intent and local transition commit together. Workers lease jobs, retry within bounds, reconcile unknown outcomes and expose pending/failed state. Do not promise exactly one network request."
+    },
+    {
+      "id": "R-COST",
+      "introduced_in": "S01",
+      "requirement": "Keep the service total under the confirmed budget, with GPT separately metered. A quota failure is visible and recoverable; no silent paid upgrade or deletion of required care history."
+    },
+    {
+      "id": "R-PROPOSAL",
+      "introduced_in": "S01",
+      "requirement": "Treat model output as untrusted proposed intent. Validate exact task/meal identities, allowed fields, consent and expected versions; reject unknown targets and clinical rule changes. A fluent reply or proposed completion never proves a saved plan or performed activity."
+    },
+    {
+      "id": "R-NAVIGATION",
+      "introduced_in": "S01",
+      "requirement": "Voice intent and buttons share a typed, role-authorized destination registry. Reject unknown or unauthorized targets; clearly explain features not yet available. Navigation alone cannot mutate a plan or report activity. Preserve My Day as the client home; avoid adding setup/clinical complexity to it."
+    },
+    {
+      "id": "R-TASKMODEL",
+      "introduced_in": "S01",
+      "requirement": "Tasks expose what, urgency (high/medium/low) and scheduled date/time. Meals are tasks with linked meal details, not a second competing task ledger. Persist stable occurrence IDs and date/time context from the accepted plan; S02 adds actual reports. Planning/acceptance does not mark an item completed or eaten."
+    }
+  ],
+  "operator_inputs": [
+    {
+      "id": "I-DEVICE",
+      "status": "unresolved",
+      "default": null,
+      "needed_for": "S01 live voice on the actual intended tablet/browser",
+      "question": "Identify the tablet, browser and a consenting tester with access to it.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-ACCOUNTS",
+      "status": "unresolved",
+      "default": "The project owner is the administrator and technical lead; ownership is resolved, usable provider/project access is not yet evidenced.",
+      "needed_for": "S01 actual GPT/speech API connection and any selected external routing service; no cloud database account required",
+      "question": "Reuse authorized access; complete only missing account-owner sign-in/MFA and private project/key setup. Do not put credentials in the repository.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-DOMAIN",
+      "status": "unresolved",
+      "default": "Reuse an existing suitable domain; free stable alternative only if its account limits support the test.",
+      "needed_for": "S01 HTTPS routing and auth redirects",
+      "question": "Identify an available HTTPS hostname/account for the actual device; sender setup is conditional on the chosen invitation/recovery flow.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-DATA",
+      "status": "unresolved",
+      "default": "Consenting participant uses their real tasks and ordinary meal choices; clinical instructions are used only when supplied and approved.",
+      "needed_for": "S01 real task/meal planning and any subsequent participant enrollment",
+      "question": "Record who is testing, which real data can be used, retention and who may see it in a private record.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-CURRENCY",
+      "status": "defaulted",
+      "default": "CAD; free services first.",
+      "needed_for": "Any paid commitment or budget conversion",
+      "question": "Confirm whether the $50 budget is CAD or USD.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-REGION",
+      "status": "unresolved",
+      "default": null,
+      "needed_for": "First retained participant data and remote GPT/speech processing",
+      "question": "Local primary storage on this computer is decided. Confirm the remaining remote processing, routing and backup boundaries from concrete options; no need to choose initial database hosting again.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-ASANA",
+      "status": "unresolved",
+      "default": "Asana Personal with household manager and dedicated integration identity.",
+      "needed_for": "S06 live integration; does not block S01-S05",
+      "question": "Confirm dedicated project, identity, free-plan access and OAuth consent.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-PROTOCOL",
+      "status": "unresolved",
+      "default": null,
+      "needed_for": "Clinical meal constraints or S08 approved rehab",
+      "question": "Identify the human protocol owner and supplied approved instructions.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-FAMILY",
+      "status": "unresolved",
+      "default": "In-app delivery first; generic email only to designated consenting recipients.",
+      "needed_for": "S10 family sharing and messages",
+      "question": "Record client-scoped family/friend grants, sharing consent and recipients; each recipient chooses completion/reschedule notifications and any quiet-hour preferences.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-SCORING",
+      "default": null,
+      "needed_for": "S09 live scoring and achievements",
+      "question": "Identify the scoring-rule owner and approved weights, eligibility, deferral and recalculation rules.",
+      "status": "unresolved",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-DAY-CONTENT",
+      "status": "unresolved",
+      "default": null,
+      "needed_for": "S01 useful real task list and practical meal planning",
+      "question": "Supply a small genuine task list with urgency and scheduled date/time where known, meal choices and known restrictions, and the person who maintains them; keep actual household content private.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-TIMEZONE",
+      "status": "defaulted",
+      "default": "America/Toronto for planning; confirm the participant profile during first-device setup. The check-in time is 10:00 in that configured zone.",
+      "needed_for": "S01 local day and 10:00 check-in; S04 repeated-day boundaries",
+      "question": "Confirm or correct the participant's time zone once during setup; do not reinterpret 10:00 as UTC.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-OWNERSHIP",
+      "status": "resolved",
+      "default": "The project owner is administrator and technical lead.",
+      "needed_for": "Account ownership and technical decisions",
+      "question": "Who owns provider/project and technical administration?",
+      "resolution_ref": "docs/architecture/PRODUCT_DECISIONS_2026-10-03.md"
+    },
+    {
+      "id": "I-HOSTING",
+      "status": "resolved",
+      "default": "Host data on this computer first, with later migration to another local server or cloud.",
+      "needed_for": "S01 data deployment",
+      "question": "Where should durable data be hosted initially?",
+      "resolution_ref": "docs/architecture/PRODUCT_DECISIONS_2026-10-03.md"
+    },
+    {
+      "id": "I-MODEL",
+      "status": "resolved",
+      "default": "GPT-6 Sol (gpt-6-sol) with reasoning.effort=high, explicitly selected by the project owner.",
+      "needed_for": "S01 real reasoning backend configuration",
+      "question": "Which exact Sol version and reasoning effort should Nancy use? Resolved: GPT-6 Sol — high.",
+      "resolution_ref": "docs/architecture/PRODUCT_DECISIONS_2026-10-03.md"
+    },
+    {
+      "id": "I-CLINICAL-VIEWS",
+      "status": "unresolved",
+      "default": "Diabetes, Neurorehab, Psychologist/Psychiatrist, Family doctor and OT/PSW/DSW dashboard configurations.",
+      "needed_for": "S12 clinical dashboards and data exports; does not block S01-S04",
+      "question": "Review concrete archetype measures, authorized export fields/date ranges and formats with the clinical partners when S12 is prepared.",
+      "resolution_ref": null
+    }
+  ],
+  "service_defaults": [
+    {
+      "id": "local_runtime",
+      "choice": "React/TypeScript/Vite + Node/Fastify on the existing computer",
+      "plan": "local",
+      "introduced_in": "S01",
+      "incremental_subscription": 0
+    },
+    {
+      "id": "database_auth",
+      "choice": "Local PostgreSQL with compatible local authentication; engineering qualification in S01",
+      "plan": "Existing hardware; no cloud subscription required",
+      "introduced_in": "S01",
+      "incremental_subscription": 0
+    },
+    {
+      "id": "tunnel",
+      "choice": "Cloudflare Tunnel with stable domain",
+      "plan": "Free features",
+      "introduced_in": "S01",
+      "incremental_subscription": 0
+    },
+    {
+      "id": "email",
+      "choice": "Existing suitable sender only if selected local-auth invitation/recovery or later notifications need it",
+      "plan": "Free",
+      "introduced_in": "S01",
+      "incremental_subscription": 0
+    },
+    {
+      "id": "voice",
+      "choice": "GPT-6 Sol (gpt-6-sol), high reasoning via Responses API, plus separate speech input/output qualified in S01",
+      "plan": "Metered GPT backend, separately tracked",
+      "introduced_in": "S01",
+      "incremental_subscription": null
+    },
+    {
+      "id": "domain_backups",
+      "choice": "Existing domain and appropriate backup storage; quote additions",
+      "plan": "Unconfirmed",
+      "introduced_in": "S01",
+      "incremental_subscription": null
+    },
+    {
+      "id": "asana",
+      "choice": "Direct scoped OAuth and Asana REST adapter",
+      "plan": "Personal",
+      "introduced_in": "S06",
+      "incremental_subscription": 0
+    }
+  ],
+  "slices": [
+    {
+      "id": "S01",
+      "priority": 10,
+      "title": "Plan the day with Nancy at 10 AM",
+      "status": "in_progress",
+      "depends_on": [],
+      "required_inputs": [
+        "I-DEVICE",
+        "I-ACCOUNTS",
+        "I-DOMAIN",
+        "I-DATA",
+        "I-REGION",
+        "I-DAY-CONTENT",
+        "I-TIMEZONE",
+        "I-MODEL"
+      ],
+      "outcome": "A consenting participant opens Nancy at the intended 10:00 local-time routine, hears today's actual tasks, discusses practical meals, explicitly accepts a day/meal plan and retrieves or revises it through real two-way voice or touch.",
+      "in_scope": [
+        "Narrow large-type My Day client home with Talk to Nancy, task list and daily meal view; voice navigation and matching buttons",
+        "Minimal authorized setup for real tasks, meal options/preferences and participant timezone; no full administrator dashboard",
+        "Real two-way speech with GPT Sol high reasoning, local database and authentication, four scoped roles/homes and HTTPS route within the same usable feature",
+        "Typed proposal, exact-version acceptance, correction/revision and committed-state readback",
+        "Basic refresh/restart durability, receipt reconciliation, denied access and encrypted backup/restore proof",
+        "Task urgency and scheduled date/time; meals represented as task occurrences with meal details",
+        "Minimal administrator setup and scoped Support Team / Clinician Partners landing routes; their full feature sets remain in S10/S12"
+      ],
+      "out_of_scope": [
+        "Meal intake reporting and task completion history (S02)",
+        "Durable offline queue (S03)",
+        "Recurring-day convenience and reviewed carryover (S04)",
+        "Asana, groceries, guided rehab, scoring and dashboards",
+        "Clinical dietary advice or autonomous changes to supplied care rules",
+        "Automatic outbound reminders, scheduled preparation or microphone activation"
+      ],
+      "implementation_tasks": [
+        {
+          "id": "S01-T01",
+          "description": "Reuse confirmed administrator/technical-lead ownership and local-hosting decision. Resolve actual device/private access and selected GPT-6 Sol high route; qualify local PostgreSQL/auth and speech route within budget."
+        },
+        {
+          "id": "S01-T02",
+          "description": "Adapt RU-HTTP/RU-UI into My Day and a shared typed destination registry for voice/buttons. Add role-specific landing routes and local authentication/database deployment; keep a stable HTTPS device route."
+        },
+        {
+          "id": "S01-T03",
+          "description": "Create participant/grant, task/meal-option, day-plan/version, DailyCheckIn, command-receipt and event records with denied-by-default permissions and queryable projections. Use one durable check-in identity per participant/local date from S01; S04 extends this record rather than creating a second session ledger. Replace participant/caregiver role assumptions with administrator/client/family_friend/clinician and scoped grants. Unify planned meals with task occurrence IDs; add urgency and scheduled date/time. Preserve IDs across migration."
+        },
+        {
+          "id": "S01-T04",
+          "description": "Implement get_daily_brief, propose_day_plan, accept_day_plan, revise_day_plan and get_day_plan; bind exact IDs and expected versions and keep suggestions separate from acceptance."
+        },
+        {
+          "id": "S01-T05",
+          "description": "Connect microphone/transcription and Nancy speech output through Sol high reasoning with server-owned validated tools. Provide the same authorized navigation and care commands through buttons; test cancellation, ambiguity and honest state."
+        },
+        {
+          "id": "S01-T06",
+          "description": "Exercise actual local PostgreSQL/auth plus remote GPT/speech and HTTPS; verify process/database restart, permission isolation, receipt reconciliation and encrypted isolated restore before meaningful retention. Prepare a portable local-server/cloud migration path."
+        }
+      ],
+      "contracts": {
+        "entities": [
+          "ParticipantProfile",
+          "RoleGrant",
+          "TaskDefinition",
+          "MealOption",
+          "DayPlanProposal",
+          "AcceptedDayPlanVersion",
+          "DailyCheckIn",
+          "CommandReceipt",
+          "DomainEvent",
+          "TaskOccurrence"
+        ],
+        "commands": [
+          "propose_day_plan",
+          "accept_day_plan",
+          "revise_day_plan",
+          "start_or_resume_checkin"
+        ],
+        "queries": [
+          "get_daily_brief",
+          "get_day_plan",
+          "get_next_planned_item",
+          "get_command_receipt",
+          "get_available_views"
+        ],
+        "events": [
+          "DayPlanProposed",
+          "DayPlanAccepted",
+          "DayPlanRevised",
+          "DailyCheckInStarted",
+          "DailyCheckInResumed"
+        ]
+      },
+      "acceptance_criteria": [
+        {
+          "id": "S01-AC01",
+          "assertion": "On the actual device, Nancy hears speech and replies audibly while reviewing genuine tasks and meal choices for the correct local day."
+        },
+        {
+          "id": "S01-AC02",
+          "assertion": "A proposed day/meal plan becomes accepted only through an explicit action bound to the reviewed version; unsupported or ambiguous changes require clarification."
+        },
+        {
+          "id": "S01-AC03",
+          "assertion": "Authenticated voice/touch commands save once, reject unknown targets or stale versions, enforce participant permissions and announce saved only after commit."
+        },
+        {
+          "id": "S01-AC04",
+          "assertion": "Accepted plans and revisions survive refresh and API restart with auditable history and exact readback; backup/restore scope is demonstrated on disposable records."
+        },
+        {
+          "id": "S01-AC05",
+          "assertion": "My Day exposes the same saved tasks/meals and honest failure state through voice and touch, including when speech or a remote provider is unavailable."
+        },
+        {
+          "id": "S01-AC06",
+          "assertion": "All four roles reach their appropriate scoped home. Client task/meal views can be opened by voice and buttons; unavailable, unknown and unauthorized destinations fail explicitly without changing care records."
+        },
+        {
+          "id": "S01-AC07",
+          "assertion": "Tasks show what, urgency and scheduled local date/time or an explicit unscheduled state. A planned meal has one shared task occurrence identity across task/meal views; acceptance never implies completion."
+        },
+        {
+          "id": "S01-AC08",
+          "assertion": "The live deployment stores durable care data locally on this machine and uses the selected Sol API model with high reasoning behind two-way speech. Sanitized configuration evidence identifies both the local data path and real model route."
+        }
+      ],
+      "automated_tests": [
+        {
+          "id": "S01-AUTO1",
+          "criterion_ids": [
+            "S01-AC01",
+            "S01-AC02"
+          ],
+          "scenario": "Exercise the shared voice-tool/touch command contract with genuine-structure synthetic tasks and meals, unknown IDs and ambiguous requests.",
+          "expected": "Only valid explicit acceptance commits a plan; the tested tool contract requires both voice input and spoken-output events. Actual audio remains a live check."
+        },
+        {
+          "id": "S01-AUTO2",
+          "criterion_ids": [
+            "S01-AC02",
+            "S01-AC03",
+            "S01-AC04"
+          ],
+          "scenario": "Replay identical and changed-key payloads, race stale plan revisions, try another actor, then restart and restore a disposable database.",
+          "expected": "One authorized accepted version per command, no cross-user data, stale edits refused and exact history/readback preserved."
+        },
+        {
+          "id": "S01-AUTO3",
+          "criterion_ids": [
+            "S01-AC03",
+            "S01-AC05"
+          ],
+          "scenario": "Interrupt provider/transport responses before and after commit and exercise touch plus late responses from a superseded view.",
+          "expected": "Unknown outcomes trigger receipt lookup, never false success or blind write replay; current view remains authoritative."
+        },
+        {
+          "id": "S01-AUTO4",
+          "criterion_ids": [
+            "S01-AC06",
+            "S01-AC07",
+            "S01-AC08"
+          ],
+          "scenario": "Exercise each scoped role/home and both navigation entry paths, unsupported routes, urgency/schedule validation and one meal task identity. Verify local database/auth adapter contracts and Sol high request construction with provider doubles.",
+          "expected": "Only available authorized destinations open; navigation does not write care state. Shared task/meal records agree and the reasoning adapter requests the chosen Sol ID with high effort. Actual deployment/audio still requires live evidence."
+        }
+      ],
+      "live_tests": [
+        {
+          "id": "S01-LIVE1",
+          "criterion_ids": [
+            "S01-AC01",
+            "S01-AC02",
+            "S01-AC04",
+            "S01-AC05",
+            "S01-AC06",
+            "S01-AC07",
+            "S01-AC08"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "Prerequisite: S01-LIVE2 must pass on disposable records, including encrypted export/isolated restore, before this scenario retains meaningful participant data. Numeric test IDs do not prescribe execution order.",
+            "At the intended 10:00 routine on the actual device over HTTPS, use Nancy's live voice to review supplied real tasks and choose today's meals.",
+            "Explicitly accept the reviewed plan, retrieve it by voice and touch, then revise a choice and refresh; verify local database state and participant usability.",
+            "From My Day, open task and meal views using both spoken requests and buttons; inspect urgency and local scheduled times and verify each meal is the same task in both views.",
+            "Record sanitized evidence of the actual Sol model ID/high reasoning request and speech round trip; do not retain raw audio or private transcripts in the repository."
+          ],
+          "expected": "Actual microphone and spoken-response round trips produce one accepted real plan and an auditable revision with matching readback."
+        },
+        {
+          "id": "S01-LIVE2",
+          "criterion_ids": [
+            "S01-AC02",
+            "S01-AC03",
+            "S01-AC04",
+            "S01-AC05",
+            "S01-AC06",
+            "S01-AC07",
+            "S01-AC08"
+          ],
+          "data_policy": "disposable_live",
+          "steps": [
+            "With disposable users/records in the actual local database/auth deployment, try unauthorized reads/writes, stale revisions and duplicate commands through real service paths.",
+            "Interrupt the voice/provider/API path, reconcile any uncertain save by receipt, restart and use touch.",
+            "Export encrypted disposable data and restore to an isolated target; compare retained records without touching active care history.",
+            "Sign in under each of the four roles, verify scoped landing routes and denied cross-client/role access. Check unknown/unavailable voice destinations and matching UI behavior.",
+            "Verify local database process restart and encrypted restore to an isolated local target; confirm no cloud database is silently used and validate the actual selected Sol high/speech route with disposable data."
+          ],
+          "expected": "Denial, duplicate/stale protection, honest failure and exact restore/readback hold against real services; dictation mocks do not count."
+        }
+      ],
+      "story_refs": [
+        "D01",
+        "D02",
+        "D04",
+        "D07",
+        "A01",
+        "A05",
+        "A06",
+        "A07",
+        "S01",
+        "S03",
+        "S04"
+      ],
+      "implementation_revision": null,
+      "blockers": [
+        "Implementation adaptation: September 29 code still uses Supabase cloud authentication/storage, two legacy role labels and a Realtime reasoning model. It does not yet meet the October 3 local-storage, four-role, My Day navigation, unified task/meal or Sol-high contracts.",
+        "Current-contract automated results must be run after adaptation. Historical September 29 evidence remains in docs/evidence/S01-2026-09-29.json. Publication checks passed 43 existing tests after an input-state repair (docs/evidence/SYNC-2026-10-03.json); this does not validate the revised S01 contracts or live gates.",
+        "I-ACCOUNTS/S01-H02: Administrator and technical-lead ownership is confirmed; usable private OpenAI project access is not yet evidenced. Supabase account provisioning is no longer required.",
+        "I-DOMAIN/S01-H02 and I-DEVICE/S01-H01: Actual HTTPS hostname/account and intended tablet/browser are not yet identified; genuine microphone/speaker testing has not run.",
+        "I-DATA/I-REGION/I-DAY-CONTENT/S01-H03/H06: Record consent, remaining remote processing/retention boundary, real task/meal choices and participant timezone privately. Initial local storage is already decided.",
+        "S01-LIVE2 and S01-LIVE1: Actual local deployment plus remote speech/reasoning, isolated restore and the real 10 AM planning trial have not run. Run disposable checks before retained participant use."
+      ],
+      "test_results": [],
+      "human_actions": [
+        {
+          "id": "S01-H01",
+          "title": "Make the target tablet available",
+          "owner_role": "participant_or_tester",
+          "when": "Before the first actual two-way Nancy conversation",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Identify the tablet/browser and a suitable time to use it.",
+            "Complete device microphone permission prompts and speak/listen during the test."
+          ],
+          "agent_can_do": [
+            "Check supported browser behavior and prepare the HTTPS test page.",
+            "Configure and debug microphone/audio code; provide short test prompts."
+          ],
+          "expected_evidence": "Device/browser and genuine microphone plus audible Nancy response observations linked to S01 live evidence; dictated-text mocks are insufficient.",
+          "related_input_ids": [
+            "I-DEVICE"
+          ],
+          "related_test_ids": [
+            "S01-LIVE1",
+            "S01-LIVE2"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S01-H02",
+          "title": "Complete missing private provider and HTTPS access",
+          "owner_role": "account_owner",
+          "when": "Before the agent connects the real services",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "The project owner is confirmed as administrator and technical lead. Complete only missing OpenAI project/account and HTTPS account-owner sign-in, MFA or ownership steps; no initial cloud database account is required.",
+            "Complete any MFA, account consent, domain ownership or billing-identity steps that require you; use secure credential setup, never the repository."
+          ],
+          "agent_can_do": [
+            "Prepare the exact free-plan/account setup and disclose any charges before a paid step.",
+            "Reuse authorized access; configure local database/auth, provider adapters, DNS/tunnel and private secrets. Qualify invitation/recovery delivery only if the selected identity flow requires a sender.",
+            "Configure the already selected gpt-6-sol with high reasoning; verify project availability without substituting another model silently."
+          ],
+          "expected_evidence": "Private configuration/access references; actual account checks. Reuse existing access rather than asking for it again. Ownership alone is not evidence that credentials or project access are configured.",
+          "related_input_ids": [
+            "I-ACCOUNTS",
+            "I-DOMAIN",
+            "I-MODEL"
+          ],
+          "related_test_ids": [
+            "S01-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S01-H03",
+          "title": "Agree the first real-data test boundary",
+          "owner_role": "product_owner",
+          "when": "Before retaining the participant's real task and meal-plan data",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Identify the consenting participant/tester and confirm use and visibility of their real tasks, meal choices and accepted plans.",
+            "Initial storage on this machine is decided. Review remaining remote GPT/speech processing, routing, backup and retention boundaries from concrete options; record participant consent privately."
+          ],
+          "agent_can_do": [
+            "Present the data flow, provider options and minimal retention proposal for review.",
+            "Configure the chosen boundaries and private consent record; keep public evidence sanitized."
+          ],
+          "expected_evidence": "Private tester-consent and data-handling decision references, with I-DATA and I-REGION resolved.",
+          "related_input_ids": [
+            "I-DATA",
+            "I-REGION"
+          ],
+          "related_test_ids": [
+            "S01-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S01-H04",
+          "title": "Try the real 10 AM brief and meal-planning conversation",
+          "owner_role": "participant_or_tester",
+          "when": "After S01-LIVE2's disposable safety/restore checks pass and the working S01 feature is ready",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "At the intended 10:00 local routine, hear today's actual tasks, discuss available meals with Nancy and explicitly accept the reviewed day plan.",
+            "Retrieve and revise the plan by voice/touch. Navigate from My Day to tasks/meals using both speech and buttons; assess urgency, scheduled times, speech pace, text and controls."
+          ],
+          "agent_can_do": [
+            "Prepare the working combined voice/task/meal feature before asking for a session.",
+            "Verify committed plan versions, permissions, duplicate/stale protection and restore behavior; collect sanitized technical observations."
+          ],
+          "expected_evidence": "Observed actual two-way voice, accepted plan and revision/readback evidence on the intended device; do not substitute a dictated-text mock.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S01-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S01-H05",
+          "title": "Clarify currency before paid spending",
+          "owner_role": "product_owner",
+          "when": "Only before a paid service commitment or currency-dependent forecast",
+          "blocking_scope": "paid_commitment",
+          "release_gate_id": null,
+          "requirement": "conditional",
+          "condition": "A nonzero service purchase, subscription, paid upgrade or currency-dependent budget commitment is proposed.",
+          "human_must_do": [
+            "Confirm whether the $50 service ceiling is CAD or USD.",
+            "If the complete forecast would exceed $50, choose a lower-cost option or explicitly revise the budget."
+          ],
+          "agent_can_do": [
+            "Proceed with free-tier development under the CAD planning default.",
+            "Prepare an exact total including tax, conversion, renewal timing and add-ons; keep GPT costs separate."
+          ],
+          "expected_evidence": "Recorded currency decision and in-budget cost calculation, or a documented no-paid-services reason for not applying this action.",
+          "related_input_ids": [
+            "I-CURRENCY"
+          ],
+          "related_test_ids": [],
+          "status": "not_applicable",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": "No paid subscription, upgrade, domain purchase or currency-dependent commitment was made. Free-tier/account eligibility is unverified; CAD remains the planning default. Reassess before any paid action."
+        },
+        {
+          "id": "S01-H06",
+          "title": "Supply a small real task list and practical meal choices",
+          "owner_role": "household_manager",
+          "when": "Before testing the useful combined S01 check-in",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Provide genuine tasks with urgency and scheduled date/time where known, available/preferred meals, known restrictions and who maintains these choices. Meals appear as tasks.",
+            "Confirm or correct the participant's time zone once; 10:00 refers to that local zone. Reuse choices and decisions already supplied."
+          ],
+          "agent_can_do": [
+            "Prepare minimal setup forms and a concrete task/meal proposal; do not require an administrator dashboard.",
+            "Record private input references and configure ownership, options and local-time behavior."
+          ],
+          "expected_evidence": "Private real task/meal-choice, ownership and participant-timezone references; I-DAY-CONTENT resolved and the profile's zone recorded.",
+          "related_input_ids": [
+            "I-DAY-CONTENT",
+            "I-TIMEZONE"
+          ],
+          "related_test_ids": [
+            "S01-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S01-H07",
+          "title": "Supply approved clinical dietary instructions if used",
+          "owner_role": "protocol_owner",
+          "when": "Before including clinical dietary constraints",
+          "blocking_scope": "clinical_use",
+          "release_gate_id": null,
+          "requirement": "conditional",
+          "condition": "The feature will use a prescribed diet, clinical nutrition targets or other clinical meal instructions.",
+          "human_must_do": [
+            "Provide the existing approved instructions and identify the person authorized to change them.",
+            "Resolve ambiguous clinical restrictions; the agent must not infer a treatment plan."
+          ],
+          "agent_can_do": [
+            "Prepare an accurate versioned representation for the owner to review.",
+            "Enforce supplied constraints and prevent agent edits; use ordinary meals while clinical use is out of scope."
+          ],
+          "expected_evidence": "Private approved-instruction/version reference, or explicit record that clinical meal constraints are not being used.",
+          "related_input_ids": [
+            "I-PROTOCOL"
+          ],
+          "related_test_ids": [],
+          "status": "not_applicable",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": "This implementation supports ordinary household meal choices only; no clinical nutrition targets or prescribed-diet protocol has been supplied, retained or implemented. Reassess before adding clinical constraints."
+        }
+      ],
+      "reuse_refs": [
+        "RU-HTTP",
+        "RU-PROPOSAL",
+        "RU-RECEIPT",
+        "RU-RECOVERY",
+        "RU-DAY",
+        "RU-UI",
+        "RU-ACCESS-TESTS"
+      ]
+    },
+    {
+      "id": "S02",
+      "priority": 20,
+      "title": "Track actual meals and tasks through the day",
+      "status": "planned",
+      "depends_on": [
+        "S01"
+      ],
+      "required_inputs": [],
+      "outcome": "The participant follows the accepted day, reports what was actually eaten or done, defers work, corrects mistakes and hears a factual daily summary from saved records.",
+      "in_scope": [
+        "Current/next task and meal from S01's accepted plan",
+        "Voice/touch meal reports, task completion and explicit deferral",
+        "Unplanned meal/activity reporting without inventing plan matches",
+        "Corrections, observed occurrence time and factual daily summary",
+        "Explicit task/meal rescheduling with old/new scheduled instants and versions; committed completion/reschedule events support later opt-in family notifications"
+      ],
+      "out_of_scope": [
+        "New day-plan engine or separate ledger",
+        "Asana, scoring, achievements, clinical interpretation and dashboards",
+        "Recurring template setup or automatic carryover (S04)",
+        "Offline voice processing"
+      ],
+      "implementation_tasks": [
+        {
+          "id": "S02-T01",
+          "description": "Extend the S01 My Day view with complete/defer/report/correct actions and truthful planned-versus-actual state."
+        },
+        {
+          "id": "S02-T02",
+          "description": "Implement log_meal, correct_meal_entry, report_task, correct_task_report and defer_task through shared typed commands. Add reschedule_task; changing a scheduled instant is distinct from reporting completion or merely proposing a plan."
+        },
+        {
+          "id": "S02-T03",
+          "description": "Link actual reports only to an eligible explicit planned occurrence; retain unplanned reports separately and clarify ambiguous targets or dates."
+        },
+        {
+          "id": "S02-T04",
+          "description": "Persist correction events without overwriting accepted plan history; derive current/next and factual summaries from committed projections."
+        },
+        {
+          "id": "S02-T05",
+          "description": "Adapt Cerberus duplicate/stale-target/date regression scenarios and run a genuine tracked-day trial."
+        }
+      ],
+      "contracts": {
+        "entities": [
+          "MealEntry",
+          "TaskOccurrence",
+          "TaskReport",
+          "ActivityCorrection",
+          "DaySummary"
+        ],
+        "commands": [
+          "log_meal",
+          "correct_meal_entry",
+          "report_task",
+          "correct_task_report",
+          "defer_task",
+          "reschedule_task"
+        ],
+        "queries": [
+          "get_today_tracker",
+          "get_recent_meals",
+          "get_day_summary"
+        ],
+        "events": [
+          "MealReported",
+          "MealEntryCorrected",
+          "TaskReported",
+          "TaskReportCorrected",
+          "TaskDeferred",
+          "TaskRescheduled"
+        ]
+      },
+      "acceptance_criteria": [
+        {
+          "id": "S02-AC01",
+          "assertion": "Voice and touch report actual meals and performed tasks once against the correct local day and explicitly selected occurrence, with unplanned reports kept distinct."
+        },
+        {
+          "id": "S02-AC02",
+          "assertion": "Corrections preserve prior facts and accepted plan versions while updating current readback; a plan acceptance or AI suggestion never marks an activity performed."
+        },
+        {
+          "id": "S02-AC03",
+          "assertion": "Deferral, explicit rescheduling and current/next behavior are date-aware and consistent across devices. Record old/new schedules and actor/version in an event; never reschedule a backlog silently or count the same meal twice."
+        },
+        {
+          "id": "S02-AC04",
+          "assertion": "The factual daily summary matches committed reports, deferrals and corrections and excludes unsupported clinical or scoring conclusions."
+        }
+      ],
+      "automated_tests": [
+        {
+          "id": "S02-AUTO1",
+          "criterion_ids": [
+            "S02-AC01",
+            "S02-AC02"
+          ],
+          "scenario": "Replay meal/task commands, correct a report, mismatch a planned occurrence and inspect events plus accepted plan history.",
+          "expected": "One effective report; correct ownership and links; immutable prior facts/plan versions with current corrected projection."
+        },
+        {
+          "id": "S02-AUTO2",
+          "criterion_ids": [
+            "S02-AC01",
+            "S02-AC03",
+            "S02-AC04"
+          ],
+          "scenario": "Exercise planned/unplanned activities, explicit deferral, midnight/backdated inputs and cross-user requests. Include exact-version reschedules, repeated payloads and a meal shown in both task and meal views.",
+          "expected": "Only authorized intended occurrences change; date ambiguity is clarified and summary totals reconcile. One auditable reschedule and one effective meal completion; no notification is sent before S10 enables a consented subscription."
+        },
+        {
+          "id": "S02-AUTO3",
+          "criterion_ids": [
+            "S02-AC02",
+            "S02-AC04"
+          ],
+          "scenario": "Compare independent expected daily facts with query results after corrections, refresh and API restart.",
+          "expected": "The summary reflects actual history rather than planned or model-suggested completion."
+        }
+      ],
+      "live_tests": [
+        {
+          "id": "S02-LIVE1",
+          "criterion_ids": [
+            "S02-AC01",
+            "S02-AC02",
+            "S02-AC03",
+            "S02-AC04"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "Use the S01 plan during a genuine day; actually perform selected tasks and report meals eaten through voice/touch.",
+            "Defer a real item and correct a genuine mistaken report where present; if no real correction is needed, exercise that branch in LIVE2. Exercise a genuine reschedule if appropriate; otherwise cover rescheduling using disposable records in LIVE2.",
+            "Compare the spoken/day-screen summary with the participant's actual day and database readback."
+          ],
+          "expected": "Real reporting, deferral and current/next behavior agree with committed history and the participant's observations."
+        },
+        {
+          "id": "S02-LIVE2",
+          "criterion_ids": [
+            "S02-AC01",
+            "S02-AC02",
+            "S02-AC03",
+            "S02-AC04"
+          ],
+          "data_policy": "disposable_live",
+          "steps": [
+            "Use disposable real-service records to repeat a report, correct a detail and test an ambiguous target/date and stale second-device update.",
+            "Check that revising a plan cannot rewrite intake history or imply a task was performed; restart and compare the summary.",
+            "Reschedule a disposable task and meal, replay the command and verify old/new schedule events and absence of duplicate task/meal completion."
+          ],
+          "expected": "No duplicate or unintended action; corrections, permission checks and plan-versus-actual separation hold."
+        }
+      ],
+      "story_refs": [
+        "D01",
+        "D02",
+        "D04",
+        "D05",
+        "D06",
+        "D07",
+        "A05",
+        "A06"
+      ],
+      "implementation_revision": null,
+      "blockers": [],
+      "test_results": [],
+      "human_actions": [
+        {
+          "id": "S02-H01",
+          "title": "Report a genuine day of meals and tasks",
+          "owner_role": "participant_or_tester",
+          "when": "When the S02 reporting feature is ready",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Use the accepted plan during an ordinary day and report tasks actually performed and meals actually eaten.",
+            "Defer an actual item when appropriate and distinguish unplanned activity from the original plan; no invented completion is needed for testing."
+          ],
+          "agent_can_do": [
+            "Prepare working voice/touch reporting and a short trial flow using the S01 plan.",
+            "Run duplicate, unknown-target, stale-device and unauthorized-access checks with disposable records."
+          ],
+          "expected_evidence": "Observed real-day reports and deferral/current-next evidence linked to database readback.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S02-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S02-H02",
+          "title": "Review the factual daily summary",
+          "owner_role": "participant_or_tester",
+          "when": "At the end of the real tracked day",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Compare Nancy's summary with what actually happened and identify any mistaken report.",
+            "Correct a real mistake if one exists; otherwise the agent exercises correction on disposable records."
+          ],
+          "agent_can_do": [
+            "Reconcile reports, correction history and plan versions; the human need not do database checks.",
+            "Collect concise usability observations and keep detailed evidence private."
+          ],
+          "expected_evidence": "Participant observations and factual summary readback; corrections are evidenced honestly in the appropriate live lane.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S02-LIVE1",
+            "S02-LIVE2"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        }
+      ],
+      "reuse_refs": [
+        "RU-PROPOSAL",
+        "RU-RECEIPT",
+        "RU-DAY",
+        "RU-RECOVERY"
+      ]
+    },
+    {
+      "id": "S03",
+      "priority": 30,
+      "title": "Resume check-ins and tracking after interruptions",
+      "status": "planned",
+      "depends_on": [
+        "S02"
+      ],
+      "required_inputs": [],
+      "outcome": "The participant can recognize unsaved work, recover or reconcile interrupted check-ins/reports, and return to one accurate day after connection, device or local-process failures.",
+      "in_scope": [
+        "Device-only pending typed commands with bounded retention and explicit status",
+        "Reconciliation by stable receipt key after unknown outcomes",
+        "Revision conflict review and safe recovery across refresh/restart",
+        "Clear voice-unavailable behavior while offline; touch pending input only where supported",
+        "Ownership-safe local cache, logout/revocation cleanup and isolated backup restoration"
+      ],
+      "out_of_scope": [
+        "Offline GPT conversation or speech processing",
+        "Unattended availability guarantee",
+        "Automatic retries of unknown side effects",
+        "Background reminder service or dashboards"
+      ],
+      "implementation_tasks": [
+        {
+          "id": "S03-T01",
+          "description": "Adapt Cerberus pending/uncertain receipt and late-response handling to S01/S02 care commands."
+        },
+        {
+          "id": "S03-T02",
+          "description": "Add a durable device command queue scoped to the authenticated participant with minimal retained data, retention bounds and logout/revocation cleanup."
+        },
+        {
+          "id": "S03-T03",
+          "description": "Distinguish not-submitted pending work from an unknown committed outcome; read the receipt first and resend only through idempotent current-authority commands."
+        },
+        {
+          "id": "S03-T04",
+          "description": "Require review when current server versions or actor grants changed; do not merge archive-only snapshots that retain deleted or inaccessible records."
+        },
+        {
+          "id": "S03-T05",
+          "description": "Run actual before/after-commit interruption, process restart, second-device conflict and encrypted restore drills using disposable records."
+        }
+      ],
+      "contracts": {
+        "entities": [
+          "PendingDeviceCommand",
+          "ReconciliationAttempt",
+          "ConflictReview"
+        ],
+        "commands": [
+          "reconcile_command",
+          "resolve_pending_conflict"
+        ],
+        "queries": [
+          "get_command_receipt",
+          "get_pending_sync_state"
+        ],
+        "events": [
+          "CommandReconciled",
+          "PendingConflictResolved"
+        ]
+      },
+      "acceptance_criteria": [
+        {
+          "id": "S03-AC01",
+          "assertion": "The UI and Nancy distinguish device-only pending, unknown, saved and failed states; loss of connectivity never produces a false saved or working-offline-voice claim."
+        },
+        {
+          "id": "S03-AC02",
+          "assertion": "Refresh, restart and reconnect reconcile the original command receipt and produce at most one intended effective write with explicit review of changed server versions."
+        },
+        {
+          "id": "S03-AC03",
+          "assertion": "Logout, user switch, deletion and revoked grants remove inaccessible local state and prevent old queued commands or delayed responses from affecting a new session."
+        },
+        {
+          "id": "S03-AC04",
+          "assertion": "Encrypted backup restoration and actual device/API recovery preserve authorized task/meal history and expose remaining conflicts or data gaps."
+        }
+      ],
+      "automated_tests": [
+        {
+          "id": "S03-AUTO1",
+          "criterion_ids": [
+            "S03-AC01",
+            "S03-AC02"
+          ],
+          "scenario": "Fail transport before dispatch and after commit, reload queued state and reconcile after server restart.",
+          "expected": "Stable receipt identity prevents duplicate effects; unknown outcomes remain visible until proven."
+        },
+        {
+          "id": "S03-AUTO2",
+          "criterion_ids": [
+            "S03-AC02",
+            "S03-AC03"
+          ],
+          "scenario": "Race a stale device edit, user switch, revocation and late reads with locally pending commands.",
+          "expected": "Conflicts require review, unauthorized work cannot dispatch, and stale cached data is cleared."
+        },
+        {
+          "id": "S03-AUTO3",
+          "criterion_ids": [
+            "S03-AC03",
+            "S03-AC04"
+          ],
+          "scenario": "Restore encrypted disposable records into an isolated database and compare version/event/receipt state under the restored grants.",
+          "expected": "Authorized history and receipt behavior survive; no inaccessible cache is reintroduced."
+        }
+      ],
+      "live_tests": [
+        {
+          "id": "S03-LIVE1",
+          "criterion_ids": [
+            "S03-AC01",
+            "S03-AC02",
+            "S03-AC04"
+          ],
+          "data_policy": "disposable_live",
+          "steps": [
+            "On the actual tablet with disposable provider records, disconnect before and after writes and refresh/restart the local application.",
+            "Reconnect, reconcile receipts and inspect the durable database ledger and visible status; make an intentional second-device version conflict."
+          ],
+          "expected": "One effective action, truthful state and explicit conflict review on real devices/services."
+        },
+        {
+          "id": "S03-LIVE2",
+          "criterion_ids": [
+            "S03-AC02",
+            "S03-AC03",
+            "S03-AC04"
+          ],
+          "data_policy": "disposable_live",
+          "steps": [
+            "Queue disposable work, change or revoke the designated account's access, then reconnect and check both devices.",
+            "Restore an encrypted disposable export to an isolated target and compare committed plans/reports/events/receipts."
+          ],
+          "expected": "No cross-account replay or stale protected data; restore and recovery evidence matches actual records."
+        }
+      ],
+      "story_refs": [
+        "D03",
+        "D05",
+        "S01",
+        "S04"
+      ],
+      "implementation_revision": null,
+      "blockers": [],
+      "test_results": [],
+      "human_actions": [
+        {
+          "id": "S03-H01",
+          "title": "Participate in the interruption and recovery trial",
+          "owner_role": "participant_or_tester",
+          "when": "During a prepared disposable-data S03 trial",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Make the tablet available and toggle its connection or refresh when the agent cannot do so remotely.",
+            "Confirm that pending, unknown, saved and conflict messages are understandable; complete any account/device interaction the agent cannot perform."
+          ],
+          "agent_can_do": [
+            "Prepare disposable live records and a step-by-step test before asking.",
+            "Stop/restart only task-owned services, inspect queued commands and verify recovery; avoid disrupting unrelated work."
+          ],
+          "expected_evidence": "Observed actual-device interruption, reconnect and fallback observations linked to S03 live evidence.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S03-LIVE1",
+            "S03-LIVE2"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S03-H02",
+          "title": "Choose the ongoing operating arrangement",
+          "owner_role": "product_owner",
+          "when": "Before relying on unattended daily operation",
+          "blocking_scope": "daily_reliance",
+          "release_gate_id": null,
+          "requirement": "conditional",
+          "condition": "The system is moving from supervised tests to unattended daily reliance.",
+          "human_must_do": [
+            "Name the person responsible for keeping the computer available and responding to failures.",
+            "Choose acceptable downtime/recovery and maintenance times from tested options; decide whether local hosting remains suitable within budget."
+          ],
+          "agent_can_do": [
+            "Measure interruption/recovery, explain local-host limitations and prepare startup/backup procedures.",
+            "Recommend the least-cost viable arrangement and implement it within the authorized scope."
+          ],
+          "expected_evidence": "Recorded operator role, availability/recovery targets and operating procedure for G-DAILY-RELIANCE; this conditional action does not block supervised feature trials.",
+          "related_input_ids": [],
+          "related_test_ids": [],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        }
+      ],
+      "reuse_refs": [
+        "RU-HTTP",
+        "RU-RECEIPT",
+        "RU-RECOVERY",
+        "RU-ACCESS-TESTS",
+        "RU-UI"
+      ]
+    },
+    {
+      "id": "S04",
+      "priority": 40,
+      "title": "Return to a fresh 10 AM brief each day",
+      "status": "planned",
+      "depends_on": [
+        "S03"
+      ],
+      "required_inputs": [],
+      "outcome": "Across successive days the participant returns to Nancy at 10:00 local time, hears accurate prior-day facts, reviews unfinished work and fresh meal choices, then explicitly accepts the current day's plan.",
+      "in_scope": [
+        "Reusable approved task definitions and meal choices through minimal authorized setup",
+        "One persistent check-in identity per participant/local date with same-day resume",
+        "Fresh-day proposal assembled from current facts and explicitly reviewed carryover",
+        "Yesterday/history readback, correct local dates and visible missed-day gaps",
+        "A short multi-day live trial of the first four slices"
+      ],
+      "out_of_scope": [
+        "Automatic outbound reminders, scheduled model/connector preparation and microphone activation",
+        "Automatic acceptance or completion of copied plans",
+        "Repetition of deferred tasks without participant review",
+        "Full Morning Boot guidance, clinical protocol management, Asana, scoring and dashboards"
+      ],
+      "implementation_tasks": [
+        {
+          "id": "S04-T01",
+          "description": "Add minimal reusable task/meal-choice configuration with ownership, versions and explicit selected days; reuse supplied S01 content."
+        },
+        {
+          "id": "S04-T02",
+          "description": "Extend S01's existing DailyCheckIn and start_or_resume_checkin contract for repeat-day use; retain the same participant/local-date identity and historical plans/reports instead of creating another session store."
+        },
+        {
+          "id": "S04-T03",
+          "description": "Propose unfinished work and practical meal choices for the new day while making old deferrals and missing days explicit."
+        },
+        {
+          "id": "S04-T04",
+          "description": "Require explicit acceptance of today's exact plan version and avoid inventing meal intake, task completion or missing-day history."
+        },
+        {
+          "id": "S04-T05",
+          "description": "Test timezone/DST/day boundaries synthetically and run three genuine daily check-ins plus disposable real-service same-day/second-zone checks."
+        }
+      ],
+      "contracts": {
+        "entities": [
+          "RoutineTemplateVersion",
+          "DailyCheckIn",
+          "CarryoverProposal"
+        ],
+        "commands": [
+          "configure_daily_routine",
+          "start_or_resume_checkin",
+          "propose_carryover"
+        ],
+        "queries": [
+          "get_checkin_status",
+          "get_previous_day_summary",
+          "get_routine_options"
+        ],
+        "events": [
+          "RoutineConfigured",
+          "DailyCheckInStarted",
+          "DailyCheckInResumed",
+          "CarryoverProposed"
+        ]
+      },
+      "acceptance_criteria": [
+        {
+          "id": "S04-AC01",
+          "assertion": "The 10:00 routine uses the participant profile's local time/date; reopening on the same day resumes one durable check-in and prior-day records remain separate."
+        },
+        {
+          "id": "S04-AC02",
+          "assertion": "Today's tasks/meals are fresh proposals based on current approved options and actual prior reports; unfinished work and carried items are explicitly reviewed before current-day acceptance."
+        },
+        {
+          "id": "S04-AC03",
+          "assertion": "One-day deferrals do not become permanent or silently recreate tasks, future intent remains visible, and missed days remain gaps rather than fabricated completion."
+        },
+        {
+          "id": "S04-AC04",
+          "assertion": "Three genuine daily check-ins demonstrate usable voice planning, actual reporting, repeat-day readback and recovery; time-zone boundary behavior is also checked against real-service disposable profiles."
+        }
+      ],
+      "automated_tests": [
+        {
+          "id": "S04-AUTO1",
+          "criterion_ids": [
+            "S04-AC01",
+            "S04-AC03"
+          ],
+          "scenario": "Simulate DST, UTC midnight, participant-zone differences, repeat starts and a missed local day.",
+          "expected": "One check-in per participant/local date; no time drift, duplicate occurrence or invented history."
+        },
+        {
+          "id": "S04-AUTO2",
+          "criterion_ids": [
+            "S04-AC02",
+            "S04-AC03"
+          ],
+          "scenario": "Refresh a new-day proposal after a routine edit or late prior-day correction; mix unfinished, deferred and future tasks.",
+          "expected": "Only current authorized options and explicit reviewed carryover can become today's accepted plan."
+        },
+        {
+          "id": "S04-AUTO3",
+          "criterion_ids": [
+            "S04-AC01",
+            "S04-AC02",
+            "S04-AC04"
+          ],
+          "scenario": "Exercise the S01-S03 command/query sequence across three synthetic dates, same-day resume and a reconnect.",
+          "expected": "Deterministic history, accepted versions and receipt recovery remain consistent; synthetic dates do not count as the three live days."
+        }
+      ],
+      "live_tests": [
+        {
+          "id": "S04-LIVE1",
+          "criterion_ids": [
+            "S04-AC01",
+            "S04-AC02",
+            "S04-AC03",
+            "S04-AC04"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "At the intended 10:00 routine across three genuine local dates, use Nancy to review the prior day's actuals and choose today's tasks/meals.",
+            "Review at least one real carryover or explicit decision not to carry unfinished work; report actual meals/tasks during those days.",
+            "Reopen a same-day session and review participant feedback. Use existing genuine history when suitable; do not fabricate dates or completion to meet this gate."
+          ],
+          "expected": "Three observed check-ins retain separate accurate days, explicit accepted plans and useful voice/touch behavior."
+        },
+        {
+          "id": "S04-LIVE2",
+          "criterion_ids": [
+            "S04-AC01",
+            "S04-AC02",
+            "S04-AC03",
+            "S04-AC04"
+          ],
+          "data_policy": "disposable_live",
+          "steps": [
+            "With designated disposable profiles in the actual database deployment, check repeated same-day opens, current profile time zones and a stale second-device proposal.",
+            "Use explicitly dated disposable historical records to review missed-day and future-intent behavior; label this a disposable scenario, not genuine elapsed-day use."
+          ],
+          "expected": "Real-service checks respect configured local dates, exact versions and visible history gaps without automatic scheduling."
+        }
+      ],
+      "story_refs": [
+        "D01",
+        "D02",
+        "D03",
+        "D04",
+        "D05",
+        "D06",
+        "D07",
+        "A01",
+        "A05",
+        "A07",
+        "S01",
+        "S04"
+      ],
+      "implementation_revision": null,
+      "blockers": [],
+      "test_results": [],
+      "human_actions": [
+        {
+          "id": "S04-H01",
+          "title": "Choose reusable routine content and review carryover rules",
+          "owner_role": "household_manager",
+          "when": "Before the repeated-day live trial",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Identify which existing tasks and meal choices are reusable and on which days; reuse S01 inputs rather than creating a second list.",
+            "Review the agent's concrete rule for unfinished tasks, one-day deferrals and meal-plan carryover; the participant still accepts each day's plan."
+          ],
+          "agent_can_do": [
+            "Prepare minimal versioned routine setup and clear examples using existing choices.",
+            "Implement profile-local dates, edit ownership and explicit carryover without adding a background reminder or dashboard."
+          ],
+          "expected_evidence": "Private routine version and reviewed carryover choices, with existing input/authority reused.",
+          "related_input_ids": [
+            "I-DAY-CONTENT",
+            "I-TIMEZONE"
+          ],
+          "related_test_ids": [
+            "S04-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S04-H02",
+          "title": "Use Nancy across three genuine daily check-ins",
+          "owner_role": "participant_or_tester",
+          "when": "Across three real local dates when S01-S04 are ready for the trial",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Return at the intended 10:00 routine, review actual prior-day history and explicitly choose today's tasks/meals.",
+            "Review genuine unfinished work or an explicit choice not to carry it, reopen a same-day session, and report usefulness or friction. Use existing genuine history where suitable."
+          ],
+          "agent_can_do": [
+            "Prepare the complete working loop and independently verify one check-in per local day, plan versions and report history.",
+            "Exercise synthetic DST/midnight cases and disposable service scenarios separately; never manufacture elapsed days or real-life activity."
+          ],
+          "expected_evidence": "Three real-date check-in observations, accepted plans, actual reports and participant feedback; supports G-FIRST-FOUR.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S04-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        }
+      ],
+      "reuse_refs": [
+        "RU-DAY",
+        "RU-PROPOSAL",
+        "RU-RECEIPT",
+        "RU-RECOVERY",
+        "RU-UI"
+      ]
+    },
+    {
+      "id": "S05",
+      "priority": 50,
+      "title": "Build and use groceries from the meal plan",
+      "status": "planned",
+      "depends_on": [
+        "S01",
+        "S02"
+      ],
+      "required_inputs": [],
+      "outcome": "The household turns selected meals into a reviewable grocery list, adds items by voice and marks purchases without duplicating entries.",
+      "in_scope": [
+        "Reviewable grocery suggestions from supplied meal ingredients",
+        "Voice/touch add, edit and acquired state",
+        "Authorized household sharing",
+        "Explicit units, quantities and deduplication",
+        "Client grocery-list destination is reachable from My Day through both voice requests and buttons."
+      ],
+      "out_of_scope": [
+        "Asana grocery sync",
+        "Purchasing or checkout",
+        "Dashboards"
+      ],
+      "implementation_tasks": [
+        {
+          "id": "S05-T01",
+          "description": "Add GroceryItem and optional meal/ingredient source references; make list generation a reviewed proposal."
+        },
+        {
+          "id": "S05-T02",
+          "description": "Implement add/update/acquire commands and deterministic normalization that asks about ambiguous units."
+        },
+        {
+          "id": "S05-T03",
+          "description": "Add a simple participant/household grocery view and voice tools."
+        },
+        {
+          "id": "S05-T04",
+          "description": "Test shared edits and real list usage without placing orders."
+        }
+      ],
+      "contracts": {
+        "entities": [
+          "GroceryItem",
+          "GrocerySuggestion"
+        ],
+        "commands": [
+          "add_grocery_item",
+          "accept_grocery_suggestions",
+          "update_grocery_item",
+          "mark_grocery_acquired"
+        ],
+        "queries": [
+          "get_grocery_list"
+        ],
+        "events": [
+          "GroceryItemAdded",
+          "GroceryItemUpdated",
+          "GroceryItemAcquired"
+        ]
+      },
+      "acceptance_criteria": [
+        {
+          "id": "S05-AC01",
+          "assertion": "Meal-derived suggestions require review before joining the shared grocery list."
+        },
+        {
+          "id": "S05-AC02",
+          "assertion": "Repeated voice requests do not duplicate equivalent items; quantities/units are retained or clarified."
+        },
+        {
+          "id": "S05-AC03",
+          "assertion": "Authorized household users can record acquired items; unrelated accounts cannot access the list."
+        }
+      ],
+      "automated_tests": [
+        {
+          "id": "S05-AUTO1",
+          "criterion_ids": [
+            "S05-AC01",
+            "S05-AC02"
+          ],
+          "scenario": "Generate overlapping ingredient suggestions and repeat an add with differing units. Verify matching My Day voice/button grocery navigation under the client grant.",
+          "expected": "No silent incompatible merge; review and clarification preserve quantities."
+        },
+        {
+          "id": "S05-AUTO2",
+          "criterion_ids": [
+            "S05-AC03"
+          ],
+          "scenario": "Run concurrent acquisition and unauthorized list reads.",
+          "expected": "One effective acquired state and denied unauthorized access."
+        }
+      ],
+      "live_tests": [
+        {
+          "id": "S05-LIVE1",
+          "criterion_ids": [
+            "S05-AC01",
+            "S05-AC02",
+            "S05-AC03"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "Use an actual meal plan to review and accept grocery suggestions.",
+            "Add a genuinely needed item by voice and mark an actually acquired item.",
+            "Refresh on a second authorized device/account.",
+            "Open the grocery list from My Day with speech and with its button; confirm the same current list."
+          ],
+          "expected": "The shared list reflects the real choices/purchase and correct access rules."
+        }
+      ],
+      "story_refs": [
+        "H03",
+        "D02"
+      ],
+      "implementation_revision": null,
+      "blockers": [],
+      "test_results": [],
+      "human_actions": [
+        {
+          "id": "S05-H01",
+          "title": "Review the actual shopping list",
+          "owner_role": "household_manager",
+          "when": "During the meal-to-grocery live test",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Review proposed ingredients against what is already available and what the household needs.",
+            "Resolve real-world quantity/unit choices and accept the intended shared list."
+          ],
+          "agent_can_do": [
+            "Generate a concrete proposal, normalize items and flag ambiguous units.",
+            "Test deduplication and household permissions."
+          ],
+          "expected_evidence": "Reviewed real grocery choices and accepted-list evidence.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S05-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S05-H02",
+          "title": "Report a real acquisition",
+          "owner_role": "participant_or_tester",
+          "when": "When an ordinary shopping item has actually been acquired",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Add a genuinely needed item by voice and mark an item that was actually acquired.",
+            "Use an ordinary purchase or an already acquired item; do not buy something solely to satisfy a software test."
+          ],
+          "agent_can_do": [
+            "Prepare the shared-list flow and verify the second authorized account sees the result.",
+            "Run concurrent-update and unauthorized-access tests."
+          ],
+          "expected_evidence": "Actual acquired-state report and shared-view evidence; no automated purchasing.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S05-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        }
+      ],
+      "reuse_refs": []
+    },
+    {
+      "id": "S06",
+      "priority": 60,
+      "title": "Bring Asana household tasks into the daily tracker",
+      "status": "planned",
+      "depends_on": [
+        "S02"
+      ],
+      "required_inputs": [
+        "I-ASANA"
+      ],
+      "outcome": "A household task added in the dedicated Asana project appears in the tracker and genuine completion returns to Asana with visible sync state.",
+      "in_scope": [
+        "Scoped OAuth and token refresh",
+        "Project allowlist, signed webhook import and reconciliation",
+        "Review new arrivals into the daily plan",
+        "Transactional outbound completion with retries and conflict review"
+      ],
+      "out_of_scope": [
+        "Asana-wide access",
+        "Full sync dashboard",
+        "Rewriting meal/rehab protocols from task text"
+      ],
+      "implementation_tasks": [
+        {
+          "id": "S06-T01",
+          "description": "Verify the real free account/identity/project and OAuth scopes; do not use PAT-only evidence for OAuth acceptance."
+        },
+        {
+          "id": "S06-T02",
+          "description": "Add external mappings, durable inbound jobs, sync cursors, outbox leases and restricted sync-status query."
+        },
+        {
+          "id": "S06-T03",
+          "description": "Implement webhook handshake/signature, fetch current task, membership checks, paginated reconciliation and loop suppression."
+        },
+        {
+          "id": "S06-T04",
+          "description": "Map imported tasks into tracker scheduling without silently changing the accepted plan."
+        },
+        {
+          "id": "S06-T05",
+          "description": "Add truthful pending/failed state and operator retry/conflict commands; surface externally reopened/deleted tasks for review."
+        }
+      ],
+      "contracts": {
+        "entities": [
+          "ExternalObject",
+          "InboundJob",
+          "OutboxJob",
+          "SyncCursor"
+        ],
+        "commands": [
+          "accept_imported_activity",
+          "retry_external_sync",
+          "resolve_sync_conflict"
+        ],
+        "queries": [
+          "get_asana_sync_status"
+        ],
+        "events": [
+          "AsanaTaskObserved",
+          "ExternalSyncSucceeded",
+          "ExternalSyncFailed",
+          "ExternalConflictDetected"
+        ]
+      },
+      "acceptance_criteria": [
+        {
+          "id": "S06-AC01",
+          "assertion": "An eligible live Asana task reaches the care queue once and joins the daily plan only through its acceptance policy."
+        },
+        {
+          "id": "S06-AC02",
+          "assertion": "Local completion persists immediately and eventually converges with Asana; retries and repeated webhooks do not duplicate local effects."
+        },
+        {
+          "id": "S06-AC03",
+          "assertion": "Token refresh, missed-webhook recovery, project denial and external reopen/deletion have visible validated outcomes."
+        }
+      ],
+      "automated_tests": [
+        {
+          "id": "S06-AUTO1",
+          "criterion_ids": [
+            "S06-AC01",
+            "S06-AC02"
+          ],
+          "scenario": "Replay/out-of-order webhooks, duplicate commands and a provider timeout after accepting completion.",
+          "expected": "One local effect; explicit unknown/pending state followed by reconciliation."
+        },
+        {
+          "id": "S06-AUTO2",
+          "criterion_ids": [
+            "S06-AC03"
+          ],
+          "scenario": "Exercise pagination, changed project membership, token expiry and external deletion/reopen.",
+          "expected": "Allowlist is enforced and current source state is recovered or flagged."
+        }
+      ],
+      "live_tests": [
+        {
+          "id": "S06-LIVE1",
+          "criterion_ids": [
+            "S06-AC01",
+            "S06-AC02"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "Create an actual household task in the dedicated project.",
+            "Accept it in the tracker, genuinely perform it and complete it by voice.",
+            "Verify the durable care record and Asana state."
+          ],
+          "expected": "The full real workflow converges and the UI distinguishes local commit from provider sync."
+        },
+        {
+          "id": "S06-LIVE2",
+          "criterion_ids": [
+            "S06-AC02",
+            "S06-AC03"
+          ],
+          "data_policy": "disposable_live",
+          "steps": [
+            "Using disposable live tasks, pause/resume the worker, miss one webhook and run reconciliation.",
+            "Exercise OAuth access-token renewal, a denied project and reopen/delete conflicts."
+          ],
+          "expected": "No lost committed action or duplicate score/event; recovery and denial are recorded."
+        }
+      ],
+      "story_refs": [
+        "H01",
+        "H02",
+        "S02",
+        "S04"
+      ],
+      "implementation_revision": null,
+      "blockers": [],
+      "test_results": [],
+      "human_actions": [
+        {
+          "id": "S06-H01",
+          "title": "Authorize the dedicated Asana connection",
+          "owner_role": "account_owner",
+          "when": "Before live Asana reads/writes",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Identify the dedicated household project and integration identity, with the intended two-user arrangement.",
+            "Complete interactive Asana login/MFA and scoped OAuth consent when required; do not grant unrelated workspaces to simplify setup."
+          ],
+          "agent_can_do": [
+            "Prepare exact account/project/scopes and confirm free-plan capability.",
+            "Configure mappings, allowlists, webhooks, renewal and reconciliation using existing authorized access."
+          ],
+          "expected_evidence": "Private Asana project/identity/consent references and working scoped authorization.",
+          "related_input_ids": [
+            "I-ASANA"
+          ],
+          "related_test_ids": [
+            "S06-LIVE1",
+            "S06-LIVE2"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S06-H02",
+          "title": "Use a genuine household task end to end",
+          "owner_role": "household_manager",
+          "when": "During S06 live acceptance",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Add a real household task and identify the person who will perform it.",
+            "Have that person actually complete the task and report through the companion; verify that Asana reflects the intended result."
+          ],
+          "agent_can_do": [
+            "Prepare the integration before asking for the household trial.",
+            "Verify both ledgers; run restart, missed-webhook, token-refresh and conflict drills on disposable tasks."
+          ],
+          "expected_evidence": "Observed real household-task round trip plus the agent's separate recovery evidence.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S06-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        }
+      ],
+      "reuse_refs": []
+    },
+    {
+      "id": "S07",
+      "priority": 70,
+      "title": "Follow Morning Boot one step at a time",
+      "status": "planned",
+      "depends_on": [
+        "S02",
+        "S04"
+      ],
+      "required_inputs": [],
+      "outcome": "The participant completes an approved morning sequence with resume, rest and intentional interruption, then accepts a manageable daily plan.",
+      "in_scope": [
+        "Versioned routine template and today's run",
+        "Current/next step with voice and touch",
+        "Protected scheduling and explicit interruptions",
+        "Manual appointments, capacity and planning handoff"
+      ],
+      "out_of_scope": [
+        "Automatic appointment movement",
+        "Clinical routine changes",
+        "Admin dashboard"
+      ],
+      "implementation_tasks": [
+        {
+          "id": "S07-T01",
+          "description": "Add RoutineDefinitionVersion and RoutineRun plus a minimal authorized template input."
+        },
+        {
+          "id": "S07-T02",
+          "description": "Implement step eligibility, dependencies, skip reasons and pause/resume after refresh."
+        },
+        {
+          "id": "S07-T03",
+          "description": "Add protected windows and manual appointment conflicts; later arrivals wait or are reviewed."
+        },
+        {
+          "id": "S07-T04",
+          "description": "Use reported capacity and existing meal/tasks to propose a daily plan requiring acceptance."
+        }
+      ],
+      "contracts": {
+        "entities": [
+          "RoutineDefinitionVersion",
+          "RoutineRun",
+          "ManualAppointment"
+        ],
+        "commands": [
+          "start_routine",
+          "pause_routine",
+          "resume_routine",
+          "skip_routine_step",
+          "propose_daily_plan"
+        ],
+        "queries": [
+          "get_routine_step"
+        ],
+        "events": [
+          "RoutineStarted",
+          "RoutinePaused",
+          "RoutineResumed",
+          "RoutineStepSkipped",
+          "DailyPlanProposed"
+        ]
+      },
+      "acceptance_criteria": [
+        {
+          "id": "S07-AC01",
+          "assertion": "Voice/touch follows the approved sequence and resumes the correct step after refresh."
+        },
+        {
+          "id": "S07-AC02",
+          "assertion": "Skipping or interrupting records the actor/reason and never silently erases an obligation."
+        },
+        {
+          "id": "S07-AC03",
+          "assertion": "Appointments, rest and reported capacity inform a proposed day that requires explicit acceptance."
+        }
+      ],
+      "automated_tests": [
+        {
+          "id": "S07-AUTO1",
+          "criterion_ids": [
+            "S07-AC01",
+            "S07-AC02"
+          ],
+          "scenario": "Interrupt and resume across refresh/offline with duplicate steps and dependency constraints.",
+          "expected": "The correct version/step is restored with retained history."
+        },
+        {
+          "id": "S07-AUTO2",
+          "criterion_ids": [
+            "S07-AC03"
+          ],
+          "scenario": "Introduce an appointment and new task during protected morning time.",
+          "expected": "Conflict is explained; no unapproved plan or appointment mutation."
+        }
+      ],
+      "live_tests": [
+        {
+          "id": "S07-LIVE1",
+          "criterion_ids": [
+            "S07-AC01",
+            "S07-AC02",
+            "S07-AC03"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "Follow the tester's approved ordinary morning routine on the tablet.",
+            "Intentionally pause for rest, refresh, resume and skip a disposable optional step with a reason.",
+            "Review and accept the proposed day."
+          ],
+          "expected": "The agreed sequence, interruption history and accepted day match actual choices."
+        }
+      ],
+      "story_refs": [
+        "D03",
+        "D04",
+        "D06",
+        "A01",
+        "A07"
+      ],
+      "implementation_revision": null,
+      "blockers": [],
+      "test_results": [],
+      "human_actions": [
+        {
+          "id": "S07-H01",
+          "title": "Define the morning routine and interruption choices",
+          "owner_role": "protocol_owner",
+          "when": "Before running the real Morning Boot sequence",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Supply or approve the participant's routine, rest/skip choices and who can edit it.",
+            "Provide real timing/appointment constraints and any already-approved care steps."
+          ],
+          "agent_can_do": [
+            "Prepare a concrete versioned sequence using supplied instructions.",
+            "Implement dependencies, protected windows and minimal configuration without a dashboard."
+          ],
+          "expected_evidence": "Private approved routine version and interruption policy.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S07-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S07-H02",
+          "title": "Follow the morning sequence on the device",
+          "owner_role": "participant_or_tester",
+          "when": "During a real morning or suitable supervised routine session",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Follow the ordinary approved steps, intentionally pause/rest, then resume.",
+            "Review the proposed day and accept or change it; skip only an eligible optional/test step."
+          ],
+          "agent_can_do": [
+            "Guide the usable sequence and capture resume/plan evidence.",
+            "Verify state and simulate technical conflicts with disposable data."
+          ],
+          "expected_evidence": "Observed routine/resume and accepted-day evidence reflecting real actions.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S07-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        }
+      ],
+      "reuse_refs": []
+    },
+    {
+      "id": "S08",
+      "priority": 80,
+      "title": "Follow and report an approved rehab session",
+      "status": "planned",
+      "depends_on": [
+        "S02",
+        "S07"
+      ],
+      "required_inputs": [
+        "I-PROTOCOL"
+      ],
+      "outcome": "The participant receives one approved rehab step at a time and reports completion or difficulty without the agent changing the protocol.",
+      "in_scope": [
+        "Human-approved versioned rehab protocol",
+        "Step-by-step voice/touch presentation",
+        "Session results, assistance/difficulty notes and corrections",
+        "Restricted clinical reads"
+      ],
+      "out_of_scope": [
+        "Diagnosis",
+        "Research-generated rehab",
+        "Clinician dashboard"
+      ],
+      "implementation_tasks": [
+        {
+          "id": "S08-T01",
+          "description": "Provide minimal scoped protocol entry/approval; do not wait for a dashboard."
+        },
+        {
+          "id": "S08-T02",
+          "description": "Add RehabProtocolVersion, RehabSession and step-result records with restricted notes."
+        },
+        {
+          "id": "S08-T03",
+          "description": "Implement get_approved_rehab_step and log_rehab_result under the existing tracker/command boundaries."
+        },
+        {
+          "id": "S08-T04",
+          "description": "Pin each session to its protocol version and handle superseded instructions explicitly."
+        },
+        {
+          "id": "S08-T05",
+          "description": "Verify family/unrelated access denial and a supervised session with the protocol owner."
+        }
+      ],
+      "contracts": {
+        "entities": [
+          "RehabProtocolVersion",
+          "RehabSession",
+          "RehabStepResult"
+        ],
+        "commands": [
+          "approve_rehab_protocol",
+          "log_rehab_result",
+          "correct_rehab_result"
+        ],
+        "queries": [
+          "get_approved_rehab_step"
+        ],
+        "events": [
+          "RehabProtocolApproved",
+          "RehabResultReported",
+          "RehabResultCorrected"
+        ]
+      },
+      "acceptance_criteria": [
+        {
+          "id": "S08-AC01",
+          "assertion": "The assigned session presents only its applicable approved protocol version and one step at a time."
+        },
+        {
+          "id": "S08-AC02",
+          "assertion": "Reported completion, difficulty and corrections are durable without autonomous protocol edits."
+        },
+        {
+          "id": "S08-AC03",
+          "assertion": "Restricted rehab notes are denied to ungranted users and omitted from broad family views."
+        }
+      ],
+      "automated_tests": [
+        {
+          "id": "S08-AUTO1",
+          "criterion_ids": [
+            "S08-AC01",
+            "S08-AC02"
+          ],
+          "scenario": "Change a protocol version during a session and replay/correct a step result.",
+          "expected": "No silent instruction swap; one effective report and retained correction history."
+        },
+        {
+          "id": "S08-AUTO2",
+          "criterion_ids": [
+            "S08-AC03"
+          ],
+          "scenario": "Request notes via object IDs and general progress APIs as a family viewer.",
+          "expected": "Both direct and aggregate paths deny or omit restricted content."
+        }
+      ],
+      "live_tests": [
+        {
+          "id": "S08-LIVE1",
+          "criterion_ids": [
+            "S08-AC01",
+            "S08-AC02"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "With an authorized protocol owner and consenting participant, use the tablet for an approved supervised session.",
+            "Report a permitted result/difficulty and verify retained protocol version and readback."
+          ],
+          "expected": "Reported actions match the approved instructions; no treatment changes are generated."
+        },
+        {
+          "id": "S08-LIVE2",
+          "criterion_ids": [
+            "S08-AC03"
+          ],
+          "data_policy": "disposable_live",
+          "steps": [
+            "Use a designated family test account to request restricted disposable session notes."
+          ],
+          "expected": "Access is denied without revealing the note body."
+        }
+      ],
+      "story_refs": [
+        "D07",
+        "A01",
+        "A04",
+        "A06",
+        "A07"
+      ],
+      "implementation_revision": null,
+      "blockers": [],
+      "test_results": [],
+      "human_actions": [
+        {
+          "id": "S08-H01",
+          "title": "Provide the applicable approved rehab protocol",
+          "owner_role": "protocol_owner",
+          "when": "Before presenting real rehab instructions",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Supply the current approved protocol, applicable version and any required assistance/supervision instructions.",
+            "Identify who can authorize changes and resolve any ambiguity before use."
+          ],
+          "agent_can_do": [
+            "Prepare a versioned representation and minimal authorized approval form.",
+            "Check that the app presents those instructions faithfully and denies autonomous changes."
+          ],
+          "expected_evidence": "Private protocol-owner approval and version reference; no new treatment is generated by the agent.",
+          "related_input_ids": [
+            "I-PROTOCOL"
+          ],
+          "related_test_ids": [
+            "S08-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S08-H02",
+          "title": "Participate in an approved supervised session",
+          "owner_role": "participant_or_tester",
+          "when": "When the approved S08 feature is ready",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Use the feature during an appropriate approved session with required assistance/supervision.",
+            "Report a real result/difficulty and whether spoken/touch instructions are clear."
+          ],
+          "agent_can_do": [
+            "Prepare the app and denied-access tests before the session.",
+            "Verify recorded results/version and collect evidence without changing treatment."
+          ],
+          "expected_evidence": "Consented supervised-session evidence and protocol version; restricted notes remain private.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S08-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        }
+      ],
+      "reuse_refs": []
+    },
+    {
+      "id": "S09",
+      "priority": 90,
+      "title": "See explainable daily progress and achievements",
+      "status": "planned",
+      "depends_on": [
+        "S02",
+        "S07",
+        "S08"
+      ],
+      "required_inputs": [
+        "I-SCORING"
+      ],
+      "outcome": "The participant sees supportive progress and earned achievements calculated reproducibly from the accepted plan and recorded actions.",
+      "in_scope": [
+        "Versioned scoring configuration approved by its owner",
+        "Deterministic score snapshots and deduplicated achievements",
+        "Simple participant progress board",
+        "Explainable exclusions, deferrals and corrections",
+        "Client achievement dashboard, with UI designed in this slice; My Day voice/button entry and grant-filtered reuse by Support Team in S10."
+      ],
+      "out_of_scope": [
+        "Administrator trend dashboard",
+        "Unapproved scoring thresholds"
+      ],
+      "implementation_tasks": [
+        {
+          "id": "S09-T01",
+          "description": "Define approved rules and ownership without activating illustrative clinical thresholds by default."
+        },
+        {
+          "id": "S09-T02",
+          "description": "Compute scores from accepted plan/eligible denominator and factual meal, routine, rehab and household events."
+        },
+        {
+          "id": "S09-T03",
+          "description": "Record rule/plan versions, correction/recalculation events and unique award effects."
+        },
+        {
+          "id": "S09-T04",
+          "description": "Build a concise participant progress view and get_progress voice readback."
+        }
+      ],
+      "contracts": {
+        "entities": [
+          "ScoringRuleSet",
+          "ScoreSnapshot",
+          "Achievement"
+        ],
+        "commands": [
+          "approve_scoring_rules",
+          "recalculate_score"
+        ],
+        "queries": [
+          "get_progress"
+        ],
+        "events": [
+          "ScoringRulesApproved",
+          "ScoreCalculated",
+          "ScoreRecalculated",
+          "AchievementAwarded"
+        ]
+      },
+      "acceptance_criteria": [
+        {
+          "id": "S09-AC01",
+          "assertion": "Scores identify accepted plan and rule versions and reproduce from recorded actions."
+        },
+        {
+          "id": "S09-AC02",
+          "assertion": "Duplicates do not award twice; correction/revision/approved deferral produces an explained recalculation."
+        },
+        {
+          "id": "S09-AC03",
+          "assertion": "Participant language is supportive and distinguishes daily progress from clinical outcomes."
+        }
+      ],
+      "automated_tests": [
+        {
+          "id": "S09-AUTO1",
+          "criterion_ids": [
+            "S09-AC01",
+            "S09-AC02"
+          ],
+          "scenario": "Calculate/replay scores across missing domains, unscheduled backlog, corrections and revised plans.",
+          "expected": "Stable denominator, explicit exclusions and deduplicated awards."
+        },
+        {
+          "id": "S09-AUTO2",
+          "criterion_ids": [
+            "S09-AC03"
+          ],
+          "scenario": "Validate progress response fields and configured wording.",
+          "expected": "No unapproved clinical interpretation or dense administrator analytics."
+        }
+      ],
+      "live_tests": [
+        {
+          "id": "S09-LIVE1",
+          "criterion_ids": [
+            "S09-AC01",
+            "S09-AC02",
+            "S09-AC03"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "At the end of a real tracked day, review the participant's progress and explanation.",
+            "Apply an authorized genuine correction if needed, or repeat recalculation without altering facts.",
+            "Compare the board with an independent calculation using the approved rule set.",
+            "Use both My Day voice navigation and the achievement button to reach the same permitted progress view."
+          ],
+          "expected": "Score/version/exclusions and awards match; repeated calculation does not duplicate rewards."
+        }
+      ],
+      "story_refs": [
+        "D08",
+        "A02"
+      ],
+      "implementation_revision": null,
+      "blockers": [],
+      "test_results": [],
+      "human_actions": [
+        {
+          "id": "S09-H01",
+          "title": "Set the scoring and achievement rules",
+          "owner_role": "scoring_owner",
+          "when": "Before calculating real scores",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Choose the eligible activities, weights, exclusions and treatment of deferrals/corrections.",
+            "Approve supportive achievements and wording; do not treat illustrative numbers as already-approved care targets."
+          ],
+          "agent_can_do": [
+            "Present explicit rule examples and their consequences on a sample day.",
+            "Implement deterministic calculations and independent checks against the selected rules."
+          ],
+          "expected_evidence": "Approved scoring-rule version and owner reference.",
+          "related_input_ids": [
+            "I-SCORING"
+          ],
+          "related_test_ids": [
+            "S09-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S09-H02",
+          "title": "Review progress against the real day",
+          "owner_role": "participant_or_tester",
+          "when": "During the first real progress review",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Review the board and spoken explanation against what you actually reported.",
+            "Identify missing/mistaken real-world information and whether the encouragement feels appropriate."
+          ],
+          "agent_can_do": [
+            "Calculate and cross-check the score; humans do not need to do the arithmetic.",
+            "Prepare any correction through existing validated commands and test deduplicated awards."
+          ],
+          "expected_evidence": "Participant feedback and real-day evidence alongside the independently checked score.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S09-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        }
+      ],
+      "reuse_refs": []
+    },
+    {
+      "id": "S10",
+      "priority": 100,
+      "title": "Use Support Team for shared tasks, achievements and help",
+      "status": "planned",
+      "depends_on": [
+        "S02",
+        "S09"
+      ],
+      "required_inputs": [
+        "I-FAMILY"
+      ],
+      "outcome": "Consented family/friends open Support Team to view the client task list including meals and achievements, opt into completion/reschedule notifications, acknowledge help and offer encouragement by voice or UI.",
+      "in_scope": [
+        "Scoped consent/grants and revocation",
+        "Help request, acknowledgement and resolution",
+        "Selected achievements/general progress and reactions",
+        "In-app notifications; one configured external channel if selected",
+        "Support Team home with scoped task/meal list and achievement dashboard",
+        "Per-recipient optional completion and reschedule notifications, including meal tasks",
+        "Principally voice interaction with matching buttons and controls"
+      ],
+      "out_of_scope": [
+        "Emergency response service",
+        "SMS subscription",
+        "Family analytics dashboard",
+        "Editing/rescheduling client tasks or clinical exports through the family/friend role without a separate explicitly authorized capability"
+      ],
+      "implementation_tasks": [
+        {
+          "id": "S10-T01",
+          "description": "Add Support Team queries for consented tasks including meals and achievements, plus existing help requests and bounded reactions."
+        },
+        {
+          "id": "S10-T02",
+          "description": "Implement recipient/severity/quiet-hour policy and a durable notification outbox. Store per-recipient opt-in preferences for committed TaskReported completion and TaskRescheduled events, including meal tasks; recheck sharing at delivery."
+        },
+        {
+          "id": "S10-T03",
+          "description": "Build Support Team with voice/button navigation, shared task and achievement views and notification preferences; preserve a narrow My Day client home."
+        },
+        {
+          "id": "S10-T04",
+          "description": "Use generic external notification content and only designated consented recipients."
+        },
+        {
+          "id": "S10-T05",
+          "description": "Test duplicate delivery, revocation, denied notes and acknowledgement."
+        }
+      ],
+      "contracts": {
+        "entities": [
+          "ConsentGrant",
+          "HelpRequest",
+          "FamilyReaction",
+          "Notification",
+          "NotificationPreference"
+        ],
+        "commands": [
+          "request_help",
+          "acknowledge_help",
+          "resolve_help",
+          "share_achievement",
+          "react_to_achievement",
+          "revoke_sharing",
+          "set_notification_preferences"
+        ],
+        "queries": [
+          "get_shared_progress",
+          "get_help_requests",
+          "get_shared_tasks",
+          "get_notification_preferences"
+        ],
+        "events": [
+          "HelpRequested",
+          "HelpAcknowledged",
+          "HelpResolved",
+          "AchievementShared",
+          "SharingRevoked",
+          "NotificationPreferencesChanged"
+        ]
+      },
+      "acceptance_criteria": [
+        {
+          "id": "S10-AC01",
+          "assertion": "Help reaches only configured authorized recipients and has a visible acknowledgement/resolution state."
+        },
+        {
+          "id": "S10-AC02",
+          "assertion": "Support Team exposes only consented task lists including meals and achievements through voice and UI; family/friend task editing and clinical export are denied, and revocation applies to subsequent access."
+        },
+        {
+          "id": "S10-AC03",
+          "assertion": "Recipients may independently opt in/out of task-completion and reschedule notifications. Committed changes including meal tasks produce no duplicate effective notification; grants, quiet hours and clinical-content restrictions are checked at delivery."
+        }
+      ],
+      "automated_tests": [
+        {
+          "id": "S10-AUTO1",
+          "criterion_ids": [
+            "S10-AC01",
+            "S10-AC02"
+          ],
+          "scenario": "Request help and revoke sharing while a family viewer and queued notification exist. Open task/meal and achievement views by voice/buttons; try cross-client task reads, editing and clinical export.",
+          "expected": "Recipient grants are rechecked; access and undelivered sharing respect revocation."
+        },
+        {
+          "id": "S10-AUTO2",
+          "criterion_ids": [
+            "S10-AC03"
+          ],
+          "scenario": "Retry a delivery and query general progress containing restricted notes. Exercise independent completion/reschedule preferences, meal task events, duplicate event delivery and opt-out/revocation before dispatch.",
+          "expected": "One effective notification and no restricted payload."
+        }
+      ],
+      "live_tests": [
+        {
+          "id": "S10-LIVE1",
+          "criterion_ids": [
+            "S10-AC01",
+            "S10-AC02",
+            "S10-AC03"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "Tell designated testers to expect a non-urgent live help request.",
+            "Send it, acknowledge/resolve it and share one opted-in real achievement.",
+            "Revoke sharing and verify subsequent denial.",
+            "Open Support Team by the family/friend account and review permitted tasks including meals and achievements through voice/buttons.",
+            "Opt in to completion and reschedule notifications for the consenting client, perform genuine agreed changes and verify delivery. Opt out and confirm subsequent changes do not notify; use disposable event checks for duplicate cases."
+          ],
+          "expected": "Expected people receive the request/progress; acknowledgement and revocation work without unwanted disclosure."
+        }
+      ],
+      "story_refs": [
+        "D09",
+        "H04",
+        "H05",
+        "A04"
+      ],
+      "implementation_revision": null,
+      "blockers": [],
+      "test_results": [],
+      "human_actions": [
+        {
+          "id": "S10-H01",
+          "title": "Choose what family may see and who receives help",
+          "owner_role": "participant_or_tester",
+          "when": "Before enabling actual family access or delivery",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Choose family/friend recipients and consented task/meal and achievement visibility; record client-scoped sharing consent.",
+            "Agree a non-urgent test with designated recipients and choose any quiet-hour/help routing preferences."
+          ],
+          "agent_can_do": [
+            "Prepare a concrete access/notification matrix and demonstrate its effect.",
+            "Configure grants and consent, generic message content and revocation; reuse prior valid choices."
+          ],
+          "expected_evidence": "Private participant consent, recipient/grant and notification-rule references.",
+          "related_input_ids": [
+            "I-FAMILY"
+          ],
+          "related_test_ids": [
+            "S10-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S10-H02",
+          "title": "Acknowledge the planned family test",
+          "owner_role": "family_recipient",
+          "when": "During the agreed live family test",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Expect the designated test request, acknowledge/resolve it and view the selected shared win.",
+            "Confirm that the view is appropriate and check access after the participant revokes sharing.",
+            "Use Support Team by voice and UI; choose completion/reschedule notification preferences and verify opt-in, opt-out and revoked access during the agreed test."
+          ],
+          "agent_can_do": [
+            "Have the participant initiate the agreed request in the app; do not send unsolicited messages.",
+            "Verify delivery, duplicate handling, audit state and revocation."
+          ],
+          "expected_evidence": "Observed acknowledgement and revocation evidence from the designated consenting participants.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S10-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        }
+      ],
+      "reuse_refs": []
+    },
+    {
+      "id": "S11",
+      "priority": 110,
+      "title": "Operate today's program from an administrator dashboard",
+      "status": "planned",
+      "depends_on": [
+        "S01",
+        "S02",
+        "S06",
+        "S07",
+        "S08",
+        "S10"
+      ],
+      "required_inputs": [],
+      "outcome": "An authorized program operator sees today's state, exceptions and sync health, configures approved programs and resolves issues with an audit trail.",
+      "in_scope": [
+        "Administrator Today dashboard",
+        "Consolidated meal/routine/rehab/rule configuration",
+        "Permission and consent management",
+        "Scoped timeline, sync failure review and retry"
+      ],
+      "out_of_scope": [
+        "New dashboard-owned ledger",
+        "Longitudinal analytics",
+        "Company Outlook"
+      ],
+      "implementation_tasks": [
+        {
+          "id": "S11-T01",
+          "description": "Reuse existing command/query contracts and consolidate early minimal input forms."
+        },
+        {
+          "id": "S11-T02",
+          "description": "Build permission-scoped daily projections, exception lists and integration freshness."
+        },
+        {
+          "id": "S11-T03",
+          "description": "Add audited corrections, approvals and operator retry/conflict views."
+        },
+        {
+          "id": "S11-T04",
+          "description": "Verify pagination, stale-state labels and access to sensitive audits separately."
+        }
+      ],
+      "contracts": {
+        "entities": [
+          "AdministratorTodayProjection"
+        ],
+        "commands": [],
+        "queries": [
+          "get_admin_today",
+          "get_scoped_timeline",
+          "get_sync_health"
+        ],
+        "events": []
+      },
+      "acceptance_criteria": [
+        {
+          "id": "S11-AC01",
+          "assertion": "Dashboard state is derived from existing records and shows freshness/failed sync without a second source of truth."
+        },
+        {
+          "id": "S11-AC02",
+          "assertion": "Configuration/correction uses the same validated versioned commands and separate audit permissions."
+        },
+        {
+          "id": "S11-AC03",
+          "assertion": "Operators can investigate and resolve an issue without granting family users administrative or clinical access."
+        }
+      ],
+      "automated_tests": [
+        {
+          "id": "S11-AUTO1",
+          "criterion_ids": [
+            "S11-AC01",
+            "S11-AC02"
+          ],
+          "scenario": "Rebuild projections and perform dashboard commands under different grants.",
+          "expected": "Totals match source data and all command/audit authorization remains enforced."
+        },
+        {
+          "id": "S11-AUTO2",
+          "criterion_ids": [
+            "S11-AC03"
+          ],
+          "scenario": "Inject a stale/failed disposable sync record and page through its timeline.",
+          "expected": "Visible actionable state and complete scoped history without cross-user leakage."
+        }
+      ],
+      "live_tests": [
+        {
+          "id": "S11-LIVE1",
+          "criterion_ids": [
+            "S11-AC01",
+            "S11-AC02",
+            "S11-AC03"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "An authorized operator reviews a real tracked day and its permitted history.",
+            "Use a disposable live sync failure to exercise review/retry; apply a genuine approved configuration update only if needed.",
+            "Compare dashboard state with the existing participant/provider records."
+          ],
+          "expected": "The operator can explain and resolve state without bypassing existing policies."
+        }
+      ],
+      "story_refs": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07"
+      ],
+      "implementation_revision": null,
+      "blockers": [],
+      "test_results": [],
+      "human_actions": [
+        {
+          "id": "S11-H01",
+          "title": "Identify authorized program operators",
+          "owner_role": "product_owner",
+          "when": "Before granting administrator dashboard access",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Identify which people hold program/configuration, correction, permission and sensitive-audit authority.",
+            "Confirm the actual role assignments where existing grants do not already answer this; reuse valid earlier assignments."
+          ],
+          "agent_can_do": [
+            "Prepare the smallest role/action matrix from existing protocols, consent and scoring decisions.",
+            "Implement role enforcement and configure technical MFA support; do not ask for a blanket admin grant."
+          ],
+          "expected_evidence": "Recorded operator grants with a private or sanitized authorization reference.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S11-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S11-H02",
+          "title": "Use the dashboard to investigate a real day",
+          "owner_role": "operator",
+          "when": "During S11 live acceptance",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Sign in with the intended operator account, including any human MFA prompt.",
+            "Review today's actual state and work through the prepared issue; report whether the controls support the operator's work."
+          ],
+          "agent_can_do": [
+            "Prepare a concrete reviewable dashboard and a disposable sync problem.",
+            "Reconcile totals and run access/retry checks; use an actual configuration change only when it is needed and already authorized."
+          ],
+          "expected_evidence": "Observed operator workflow and issue-resolution evidence with audited access.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S11-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        }
+      ],
+      "reuse_refs": []
+    },
+    {
+      "id": "S12",
+      "priority": 120,
+      "title": "Review trends and exports in Clinician Partners",
+      "status": "planned",
+      "depends_on": [
+        "S09",
+        "S11"
+      ],
+      "required_inputs": [
+        "I-CLINICAL-VIEWS"
+      ],
+      "outcome": "Authorized clinicians use Clinician Partners for archetype-specific dashboards and scoped data exports; operators review multi-day progress with traceable records, versions and visibility boundaries.",
+      "in_scope": [
+        "Longitudinal dashboard and filters",
+        "Plan/rule/protocol version context",
+        "Missing-data and correction indicators",
+        "Clinician Partners home, scoped data exports and custom dashboard configurations for Diabetes, Neurorehab, Psychologist/Psychiatrist, Family doctor and OT/PSW/DSW"
+      ],
+      "out_of_scope": [
+        "Predictive clinical coaching",
+        "Clinical outcome claims",
+        "Research/document indexing"
+      ],
+      "implementation_tasks": [
+        {
+          "id": "S12-T01",
+          "description": "Add indexed aggregate queries/materialized projections only where measured query cost requires them."
+        },
+        {
+          "id": "S12-T02",
+          "description": "Define every measure using eligible planned events and exclude missing data from implied failures."
+        },
+        {
+          "id": "S12-T03",
+          "description": "Link aggregates to authorized source days and correction/recalculation context."
+        },
+        {
+          "id": "S12-T04",
+          "description": "Build concise trend views and validate against independent event-derived totals."
+        },
+        {
+          "id": "S12-T05",
+          "description": "Prepare and review clinical archetype metric/configuration definitions with partners; build simplified Clinician Partners UI and auditable scoped exports with explicit fields, date range, zone, format and version context."
+        },
+        {
+          "id": "S12-T06",
+          "description": "Enforce the same client/field permissions on dashboards, aggregates, source drill-down and exports. Archetype selection confers no additional access; keep clinical thresholds human-approved."
+        }
+      ],
+      "contracts": {
+        "entities": [
+          "TrendProjection",
+          "ClinicalDashboardConfiguration",
+          "DataExportReceipt"
+        ],
+        "commands": [
+          "request_data_export"
+        ],
+        "queries": [
+          "get_adherence_trends",
+          "get_score_trends",
+          "get_clinician_dashboard"
+        ],
+        "events": [
+          "DataExportRequested"
+        ]
+      },
+      "acceptance_criteria": [
+        {
+          "id": "S12-AC01",
+          "assertion": "Trend measures reproduce from eligible plans and events with explicit time range and timezone."
+        },
+        {
+          "id": "S12-AC02",
+          "assertion": "Missing days, revised rules/protocols and corrections remain distinguishable and traceable."
+        },
+        {
+          "id": "S12-AC03",
+          "assertion": "Permission filtering applies to aggregates and drill-down; real data is not exported into public fixtures."
+        },
+        {
+          "id": "S12-AC04",
+          "assertion": "Clinician Partners provides the five specified archetype configurations and authorized data exports with explicit scope and version context. Clinical partners review measure definitions; neither archetype switching nor export bypasses client/field permissions."
+        }
+      ],
+      "automated_tests": [
+        {
+          "id": "S12-AUTO1",
+          "criterion_ids": [
+            "S12-AC01",
+            "S12-AC02"
+          ],
+          "scenario": "Calculate trends over version changes, DST, missing days and corrections.",
+          "expected": "Reproducible aggregates with visible discontinuities/missingness."
+        },
+        {
+          "id": "S12-AUTO2",
+          "criterion_ids": [
+            "S12-AC03"
+          ],
+          "scenario": "Compare views and drill-down as operator, family and unrelated users.",
+          "expected": "No unauthorized aggregate or source-record disclosure."
+        },
+        {
+          "id": "S12-AUTO3",
+          "criterion_ids": [
+            "S12-AC03",
+            "S12-AC04"
+          ],
+          "scenario": "Exercise all five archetype configurations and export boundaries across authorized clinician, family/friend, client and unrelated identities; compare exported values with independent permitted source projections.",
+          "expected": "Configured views and scoped exports agree with permitted source data, preserve missingness/version context and log an export receipt; unauthorized fields/clients remain inaccessible."
+        }
+      ],
+      "live_tests": [
+        {
+          "id": "S12-LIVE1",
+          "criterion_ids": [
+            "S12-AC01",
+            "S12-AC02",
+            "S12-AC03",
+            "S12-AC04"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "After several genuine tracked days exist, inspect trends as an authorized operator.",
+            "Compare selected days and totals with retained source records and a manual calculation.",
+            "Check the same view using restricted test accounts.",
+            "Review the five clinical archetype configurations with the clinical partners, using authorized actual records where available and identifying missing data honestly. Export a privately retained permitted range and compare it with the source; verify restricted-role export denial on disposable accounts."
+          ],
+          "expected": "Every displayed measure and access decision is explainable from recorded evidence."
+        }
+      ],
+      "story_refs": [
+        "A03",
+        "A05"
+      ],
+      "implementation_revision": null,
+      "blockers": [],
+      "test_results": [],
+      "human_actions": [
+        {
+          "id": "S12-H01",
+          "title": "Provide genuine multi-day history and context",
+          "owner_role": "participant_or_tester",
+          "when": "Before the live trend review",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Continue ordinary tracking until several real days are available, or identify already-recorded days that satisfy the test.",
+            "Identify known missing or mistaken reports without inventing history for the chart."
+          ],
+          "agent_can_do": [
+            "Reuse existing consented records and prepare the trend view.",
+            "Check aggregates, permissions and missing-data/version handling independently; do not require a new data-entry exercise if history already exists."
+          ],
+          "expected_evidence": "Private genuine-history range and relevant real-world context for S12-LIVE1.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S12-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S12-H02",
+          "title": "Review whether the trend view answers the operator's questions",
+          "owner_role": "operator",
+          "when": "During S12 live acceptance",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Review the selected real period and its missing-data/correction indicators.",
+            "Report discrepancies or unclear interpretation; only review information within existing grants."
+          ],
+          "agent_can_do": [
+            "Prepare concise metrics and drill-down, calculate independent totals and demonstrate access boundaries.",
+            "Reuse established reporting scope rather than requesting new blanket permission."
+          ],
+          "expected_evidence": "Authorized operator feedback on actual multi-day results, linked to technical verification.",
+          "related_input_ids": [],
+          "related_test_ids": [
+            "S12-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S12-H03",
+          "title": "Complete and assess the full observed pilot",
+          "owner_role": "product_owner",
+          "when": "Before declaring the full MVP pilot successful",
+          "blocking_scope": "release_gate",
+          "release_gate_id": "G-FULL-MVP",
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Arrange the seven-day observed pilot with the participant/household and appropriate care support.",
+            "Review usability, actual failures/repairs and the proposed usable-day target, then decide whether to continue or change the pilot."
+          ],
+          "agent_can_do": [
+            "Prepare the complete working loop and a concrete evidence report.",
+            "Run authorized technical recovery checks, summarize costs and unresolved issues; do not equate a schema pass with pilot success."
+          ],
+          "expected_evidence": "Private pilot observation record and product-owner decision grounded in real evidence.",
+          "related_input_ids": [],
+          "related_test_ids": [],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S12-H04",
+          "title": "Review clinical dashboard definitions and export scope",
+          "owner_role": "protocol_owner",
+          "when": "When S12 supplies concrete configurations and before its live acceptance",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Clinical partners review the proposed measures and presentation for Diabetes, Neurorehab, Psychologist/Psychiatrist, Family doctor and OT/PSW/DSW; resolve domain ambiguities without inventing data or clinical targets.",
+            "Review permitted export fields, date ranges and formats and inspect actual authorized dashboard/export results during the trial."
+          ],
+          "agent_can_do": [
+            "Prepare concrete definitions, representative views and export samples for review; implement queries, access controls, formatting and audit records.",
+            "Verify aggregates and exports against source records and keep real data and clinical review evidence private."
+          ],
+          "expected_evidence": "Private clinical-partner review and selected export-scope references, with observed S12-LIVE1 results and I-CLINICAL-VIEWS resolved.",
+          "related_input_ids": [
+            "I-CLINICAL-VIEWS"
+          ],
+          "related_test_ids": [
+            "S12-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        }
+      ],
+      "reuse_refs": []
+    }
+  ],
+  "release_gates": [
+    {
+      "id": "G-EARLY-USE",
+      "required_slices": [
+        "S01"
+      ],
+      "requirement": "One useful real-device 10:00 Nancy check-in combines actual two-way voice, a genuine task list, meal discussion, explicit accepted-plan save and revision/readback. No Asana or dashboard dependency; this gate does not claim a completed tracked day."
+    },
+    {
+      "id": "G-FIRST-FOUR",
+      "required_slices": [
+        "S01",
+        "S02",
+        "S03",
+        "S04"
+      ],
+      "requirement": "All four feature slices pass their automated and prescribed live checks, including a genuine tracked day, actual-device recovery/isolated restore and three real-date check-ins with useful history and explicitly reviewed carryover. No automatic reminder or unattended-availability claim."
+    },
+    {
+      "id": "G-DAILY-RELIANCE",
+      "required_slices": [
+        "S01",
+        "S02",
+        "S03",
+        "S04"
+      ],
+      "requirement": "After S01-S04, before unattended daily reliance, complete applicable S03-H02: name the operator and agree tested availability/recovery targets. Verify backup restoration, device conflicts, consent/retention and cost decisions. A working tunnel or supervised three-day trial is not an uptime guarantee."
+    },
+    {
+      "id": "G-FULL-MVP",
+      "required_slices": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "S11",
+        "S12"
+      ],
+      "requirement": "Observe the complete original daily loop across a seven-day pilot, including genuine failures, outage recovery, permissions and restoration. Review the brief's proposed 5-of-7 usable days with stakeholders; do not infer production readiness from connectivity alone."
+    }
+  ],
+  "deferred": [
+    {
+      "id": "D-OUTLOOK",
+      "reason": "Outside MVP; company IT consent and mailbox-scope test required before connection."
+    },
+    {
+      "id": "D-CLINICAL-DOCS",
+      "reason": "Clinical document indexing, research and coaching are separately scoped after the daily loop."
+    },
+    {
+      "id": "D-SENSORS",
+      "reason": "Wearables, passive sensors and glucose integrations are outside initial scope."
+    },
+    {
+      "id": "D-HOSTED-COMPUTE",
+      "reason": "No paid cloud application hosting by default; reconsider only for a measured availability need inside the budget."
+    },
+    {
+      "id": "D-AUTOMATIC-CHECKIN",
+      "reason": "Automatic reminders, outbound calls, automatic microphone activation and scheduled background preparation are outside S01-S04. The 10:00 routine is user initiated. Cerberus M53 is a planned design, not an installed scheduler; any selected scheduling feature needs its own complete slice and missed-run/live acceptance."
+    }
+  ],
+  "human_action_policy": {
+    "source": "Each slice's human_actions array is authoritative; docs/HUMAN_ACTIONS.md is its generated reading view.",
+    "agent_responsibility": "Build, configure, debug, migrate, test and prepare concrete reviewable outputs within existing authorization. Do not turn routine technical work into human chores.",
+    "carry_forward": "Reuse existing access, consent, decisions and valid evidence. Never request the same authorization again merely because another slice needs it.",
+    "timing": "Ask only when the action is needed; continue independent authorized work while waiting. A list entry is a future requirement, not an immediate request.",
+    "conditional_actions": "Apply a conditional item only when its condition is true. Record not_applicable with a specific reason when false; an agent may establish this from evidence without asking the user. Reassess the status when the trigger changes.",
+    "completion": "A slice cannot be done while an applicable slice_completion human action is unfinished. Paid-commitment, daily-reliance, clinical-use and release-gate items block only that named operation/gate, not unrelated free or supervised feature work.",
+    "evidence": "Done requires an actual completion reference and timestamp; record private or sanitized references, not names, credentials, clinical records or invented signoffs.",
+    "roles": "Human-action owner labels describe responsibilities, not application permissions. The application has exactly four roles: administrator, client, family/friend and clinician. One person may hold several responsibilities; the project owner is confirmed as both administrator and technical lead. Keep account identities private.",
+    "deferred": "Company Outlook/IT consent is required only for the deferred Outlook integration; it is not a prerequisite for these MVP slices."
+  },
+  "delivery_focus": {
+    "slice_ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04"
+    ],
+    "assistant_name": "Nancy",
+    "daily_checkin_local_time": "10:00",
+    "entry_mode": "user_initiated",
+    "timezone_source": "participant_profile",
+    "timezone_input_id": "I-TIMEZONE",
+    "outcome": "A client opens My Day, plans tasks and meals with Nancy by voice or buttons, reports actual activity, resumes after interruptions and returns to a fresh day with accurate history and reviewed carryover.",
+    "completion_gate_id": "G-FIRST-FOUR",
+    "scope_boundary": "No automatic outbound reminder, background connector scan or automatic microphone activation is implied by the 10:00 routine. Core local-date semantics exist in S01; repeat-day convenience ships in S04."
+  },
+  "reuse_plan": {
+    "assessment_ref": "docs/architecture/CERBERUS_REUSE_ASSESSMENT.md",
+    "source_repository": "TFMcoder/CerberusLifeCore",
+    "source_revision": "e605a660c745f610a477ab45bbfcc53ca9fdcbfc",
+    "verification": "Source and test inspection only; no extracted code or Cerberus test result counts as Companion implementation/live evidence. Record provenance and freshly test any extracted or ported code.",
+    "architecture": "Retain React/TypeScript/Vite, Node/Fastify, PostgreSQL and the independent care service. Adapt initial deployment to local database/auth and HTTPS, with GPT-6 Sol high reasoning and separate speech. Reuse does not import Cerberus services, runtime data or account grants.",
+    "excluded": [
+      "Cerberus monorepo and business dashboard",
+      "General OpenClaw orchestration and Notion/Gmail/Calendar workflows",
+      "Private LifeCore store, production credentials and personal data",
+      "Shared-password login as participant/family authorization",
+      "Offline-only launcher and Render paid-hosting manifest",
+      "Browser dictation as proof of two-way Nancy voice",
+      "Planned M53 morning preparation as an implemented scheduler"
+    ],
+    "components": [
+      {
+        "id": "RU-HTTP",
+        "decision": "extract_adapt",
+        "source_paths": [
+          "apps/web/components/dashboard/requests.ts"
+        ],
+        "application": "Adapt bounded request/error handling to Companion authentication and response validation; unknown writes are reconciled by receipt rather than blindly retried.",
+        "limits": "Do not import business UI types or treat a timeout as proof that a write failed."
+      },
+      {
+        "id": "RU-PROPOSAL",
+        "decision": "port_pattern",
+        "source_paths": [
+          "services/api/cerberus_api/daily_brief_assessment.py",
+          "services/api/cerberus_api/daily_brief_contracts.py"
+        ],
+        "application": "Use small server-validated task/meal proposals with exact target IDs, current observations and explicit acceptance of the reviewed plan version.",
+        "limits": "Do not copy the five-stage business workflow, clinical authority, Notion IDs or provider runtime."
+      },
+      {
+        "id": "RU-RECEIPT",
+        "decision": "port_pattern",
+        "source_paths": [
+          "services/api/cerberus_api/mission_control/board.py",
+          "services/api/cerberus_api/daily_brief_workflow.py"
+        ],
+        "application": "Atomically persist domain state, event and command receipt; reject changed payloads for a reused key and stale revisions; scope keys to actor/resource.",
+        "limits": "Create Companion's PostgreSQL tables, roles and row policies; a generic board record is not a care-data model."
+      },
+      {
+        "id": "RU-RECOVERY",
+        "decision": "port_pattern",
+        "source_paths": [
+          "services/api/cerberus_api/daily_brief_recovery.py",
+          "services/api/cerberus_api/daily_brief_workflow.py",
+          "apps/web/components/dashboard/board.ts",
+          "apps/web/components/dashboard/dailyBrief.ts"
+        ],
+        "application": "Read retained receipts after interruptions, preserve unresolved intent and reject late responses that belong to an old screen, revision or identity.",
+        "limits": "Do not replay uncertain side effects or copy archive-only snapshot merging; deletions, logout and revoked grants must remove stale client data."
+      },
+      {
+        "id": "RU-DAY",
+        "decision": "port_pattern",
+        "source_paths": [
+          "services/api/cerberus_api/daily_brief_workflow.py",
+          "services/api/tests/test_daily_brief_workflow.py"
+        ],
+        "application": "Use configured local-day context, bounded current facts and explicit reviewed carryover; adapt date-boundary and temporary-deferral tests.",
+        "limits": "Do not hardcode the source user's timezone or claim that Cerberus's planned 08:00 job supplies a running scheduler."
+      },
+      {
+        "id": "RU-UI",
+        "decision": "extract_adapt",
+        "source_paths": [
+          "apps/web/components/dashboard/Dashboard.tsx"
+        ],
+        "application": "Borrow selected focus, Escape, status-announcement and fallback behaviors for a large-type My Day screen.",
+        "limits": "Build the participant UI afresh. Browser dictation is optional fallback only; actual Nancy voice input and audio output remain required."
+      },
+      {
+        "id": "RU-ACCESS-TESTS",
+        "decision": "reference_tests",
+        "source_paths": [
+          "services/api/cerberus_api/http_authority.py",
+          "services/api/tests/test_dashboard_access.py",
+          "services/api/tests/test_browser_login.py"
+        ],
+        "application": "Adapt origin/host, denied-access, timeout and session-boundary tests to dedicated administrator/client/family_friend/clinician authentication with client-scoped grants.",
+        "limits": "Do not import the single shared-password boundary or infer cross-user database protection from browser login."
+      }
+    ]
+  },
+  "product_contract": {
+    "decision_ref": "docs/architecture/PRODUCT_DECISIONS_2026-10-03.md",
+    "administrator_owner": "project_owner",
+    "technical_lead_owner": "project_owner",
+    "roles": [
+      {
+        "id": "administrator",
+        "home": "Administrator setup (working label)",
+        "home_introduced_in": "S01",
+        "primary_interaction": "voice",
+        "ui_required": true,
+        "capabilities": [
+          "Manage scoped accounts, grants and task/meal setup from S01.",
+          "Full operations dashboard in S11. Administration does not authorize changing human-approved clinical protocols."
+        ]
+      },
+      {
+        "id": "client",
+        "home": "My Day",
+        "home_introduced_in": "S01",
+        "primary_interaction": "voice",
+        "ui_required": true,
+        "capabilities": [
+          "View own task list and daily meals, plan with Nancy and explicitly accept reviewed plans in S01.",
+          "Report actual activity in S02; use grocery list in S05 and achievement view in S09."
+        ]
+      },
+      {
+        "id": "family_friend",
+        "home": "Support Team",
+        "home_introduced_in": "S01",
+        "primary_interaction": "voice",
+        "ui_required": true,
+        "capabilities": [
+          "Scoped home and permission boundary in S01; family features ship in S10.",
+          "View consented client task lists including meals and achievement dashboard.",
+          "Opt into notifications for task completion and rescheduling; manage own preferences.",
+          "Existing help/encouragement features remain in S10. No client task-editing or clinical-export grant is implied."
+        ]
+      },
+      {
+        "id": "clinician",
+        "home": "Clinician Partners",
+        "home_introduced_in": "S01",
+        "primary_interaction": "ui",
+        "ui_required": true,
+        "capabilities": [
+          "Scoped home and permission boundary in S01; exports and clinical dashboards ship in S12.",
+          "Read and export only explicitly authorized client records.",
+          "Clinical archetypes select dashboard content and never grant access by themselves."
+        ]
+      }
+    ],
+    "client_navigation": [
+      {
+        "id": "tasks",
+        "label": "Task list",
+        "introduced_in": "S01"
+      },
+      {
+        "id": "meals",
+        "label": "Meals today",
+        "introduced_in": "S01"
+      },
+      {
+        "id": "groceries",
+        "label": "Grocery list",
+        "introduced_in": "S05"
+      },
+      {
+        "id": "achievements",
+        "label": "Achievement dashboard",
+        "introduced_in": "S09"
+      }
+    ],
+    "navigation_policy": "Voice intent and buttons share a typed, role-authorized destination registry. Reject unknown or unauthorized targets; clearly explain features not yet available. Navigation alone cannot mutate a plan or report activity. Preserve My Day as the client home; avoid adding setup/clinical complexity to it.",
+    "task_model": {
+      "user_facing_fields": [
+        "what",
+        "urgency",
+        "scheduled_date_time"
+      ],
+      "urgency_values": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "schedule_policy": "Persist the scheduled instant with participant time zone/local date; display the date/time in that zone. An unknown time is explicitly unscheduled until supplied, never invented. S02 rescheduling preserves old/new values, actor, versions and an event.",
+      "meals_are_tasks": true,
+      "meal_policy": "A planned meal has one task occurrence identity and meal-specific details. Task list and meal view project the same record; accepting a meal plan does not mean eaten, and one meal report must not double count completion.",
+      "internal_metadata": "Stable IDs, kind, participant, versions, source and audit fields remain internal; keep the client-facing form simple."
+    },
+    "family_notification_events": [
+      "task_completed",
+      "task_rescheduled"
+    ],
+    "family_notification_policy": "Per-recipient opt-in and client-scoped sharing grants, including meal tasks. Notify only committed activity or schedule changes; recheck grants at delivery, suppress effective duplicates and honor revocation. No notification is sent merely because Nancy suggested a plan.",
+    "clinical_archetypes": [
+      "Diabetes",
+      "Neurorehab",
+      "Psychologist / Psychiatrist",
+      "Family doctor",
+      "OT / PSW / DSW"
+    ],
+    "clinical_dashboard_policy": "S12 supplies archetype-specific configurations and authorized data exports. Prepare reviewable metric/export definitions with clinical partners before enabling them; do not infer treatment targets or diagnoses. Achievement UI design remains later in S09.",
+    "data_hosting": {
+      "initial": "Existing local computer",
+      "database_target": "Local PostgreSQL; qualify deployment and compatible local authentication within S01.",
+      "migration_targets": [
+        "Another local server",
+        "Cloud provider"
+      ],
+      "migration_policy": "Versioned schema migrations and encrypted, tested export/restore preserve IDs, grants, plans, reports, events and receipts. Durable state stays in the care service; do not couple identity/domain commands to one hosting vendor.",
+      "cloud_processing": "GPT inference and any selected speech provider remain remote; local durable storage does not make processing local."
+    },
+    "ai_backend": {
+      "requested_family": "GPT Sol",
+      "reasoning_effort": "high",
+      "api_model_id": "gpt-6-sol",
+      "model_input_id": "I-MODEL",
+      "api": "Responses API for reasoning and server-owned tool calls",
+      "speech_policy": "Use a separate speech input/output layer with Sol high as the reasoning backend. Qualify latency, interruption behavior and costs through real voice testing. Do not substitute a Realtime audio model for the requested Sol brain or assign an unsupported Sol ID to an audio endpoint.",
+      "source_refs": [
+        "https://developers.openai.com/api/docs/models/gpt-6-sol",
+        "https://developers.openai.com/api/docs/models/gpt-6.1-sol"
+      ]
+    }
+  }
+}

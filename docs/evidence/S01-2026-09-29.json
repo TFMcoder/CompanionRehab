@@ -1,0 +1,54 @@
+{
+  "slice_id": "S01",
+  "assistant_name": "Nancy",
+  "implementation_revision": "sha256:b39ee5b0e75f0af99b5dcf354b658ffe6b150e96737cbb2822bcdf5ad4b44865",
+  "revision_method": "npx tsx scripts/implementation-revision.ts; hash of sorted implementation/test/migration/script/dependency/config paths and bytes, excluding private configuration and documentation",
+  "verified_at": "2026-09-29T23:22:51+00:00",
+  "environment": "Windows local Node 24.16; Vitest 4.1.11; PGlite 0.3.14",
+  "data_origin": "synthetic",
+  "automated": {
+    "command": "npm run check",
+    "exit_code": 0,
+    "test_files": 6,
+    "tests_passed": 43,
+    "tests_failed": 0,
+    "typecheck": "pass",
+    "production_build": "pass",
+    "suites": {
+      "database.test.ts": 7,
+      "server.test.ts": 7,
+      "voice-tools.test.ts": 13,
+      "voice-server.test.ts": 3,
+      "client-app.test.tsx": 11,
+      "client-voice.test.ts": 2
+    }
+  },
+  "dependency_audit": {
+    "command": "npm audit --json",
+    "known_vulnerabilities": 0,
+    "note": "No dependency changes after this audit; reports reflect advisory data available at execution.",
+    "checked_on": "2026-09-29"
+  },
+  "local_smoke": {
+    "http_origin": "http://localhost:8787",
+    "observed": "Built app opens in Codex in-app browser and shows honest missing-cloud-configuration readiness state. No participant data or microphone was used."
+  },
+  "service_connections": {
+    "supabase": "not_configured",
+    "openai": "not_configured",
+    "public_https_route": "not_configured",
+    "paid_commitments": []
+  },
+  "live_tests": {
+    "S01-LIVE2": "not_run",
+    "S01-LIVE1": "not_run"
+  },
+  "limitations": [
+    "Synthetic provider/browser events are not actual audio, network or intended-device observations.",
+    "Embedded PostgreSQL validates SQL/data behavior but does not prove deployed Supabase roles, network routing or cloud multi-session contention.",
+    "Backup covers the nine care tables; provider Auth users/settings, secrets and local session revocations require separate recovery.",
+    "UI/voice pending state is in memory; persistent offline recovery is S03.",
+    "No real care/household data, transcripts, provider credentials or private evidence is included."
+  ],
+  "test_run_started_at": "2026-09-29T23:21:48Z"
+}

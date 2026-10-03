@@ -1,0 +1,26 @@
+# Companion Rehab agent guide
+
+Read `docs/ROADMAP.md`, then `docs/roadmap/roadmap.json`, before implementation.
+The JSON is the authoritative feature order, scope, dependency graph and acceptance contract.
+Read the selected slice's `human_actions`; `docs/HUMAN_ACTIONS.md` is the generated human reading view.
+Current user instructions override this roadmap; reflect agreed changes in the JSON.
+
+- Deliver complete feature slices. Immediate focus: S01 the 10 AM Nancy voice daily brief and accepted task/meal plan; S02 actual meal/task reporting; S03 interruption recovery; S04 repeated daily check-ins with reviewed carryover. S01 includes two-way speech and both tasks and meals.
+- The 10 AM routine is user initiated in the participant's configured time zone. Automatic reminders, background preparation and microphone activation are deferred; do not assume a scheduler exists.
+- Include minimum auth, database, routing and test infrastructure within S01's working feature. Do not create a separate infrastructure/reuse milestone or require Asana or dashboards before S01-S04.
+- Apply the canonical reuse_plan and each slice's reuse_refs. Read docs/architecture/CERBERUS_REUSE_ASSESSMENT.md for source evidence. Adapt small utilities, validated proposals, receipts, version/recovery behavior and tests; retain the independent care service and selected stack. Cerberus dictation is not two-way Nancy voice, and its planned morning job is not an implemented scheduler.
+- Administrator and trend dashboards wait for S11/S12. Preserve queryable records, events, plan/protocol versions, corrections and permissions from the first write. Minimal scoped setup forms and diagnostic endpoints can ship earlier.
+- Run the application locally with cloud connectivity by default. Keep services at or below $50/month excluding GPT backend usage; currency is unconfirmed, so plan in CAD. Prefer free tiers and existing resources; include taxes, conversion and add-ons when evaluating paid choices.
+- Initial durable data is hosted on this computer, with migration later to another local server or cloud. Qualify local PostgreSQL/auth within S01; older Supabase cloud setup instructions are historical. Nancy's selected reasoning model is `gpt-6-sol` with `reasoning.effort: high`, using a separate speech input/output layer.
+- Follow `product_contract` for the four application roles: administrator, client (My Day), family/friend (Support Team) and clinician (Clinician Partners). Voice navigation and buttons share authorized destinations. Tasks expose what, urgency and scheduled date/time; meals are tasks. Full family features and clinical dashboards/exports remain in their assigned later slices.
+- Every slice requires automated tests and actual live acceptance. Follow its data policy, record evidence honestly and use `awaiting_live_test` if the live test has not run. Never mark a feature done based only on mocks.
+- Real care/household records, transcripts, credentials and full private test evidence do not belong in this public repository. Store only sanitized evidence references here.
+- The care service owns durable state. Voice and touch use the same authenticated typed commands. Human-approved protocols cannot be silently changed by the model.
+- Separate proposed and accepted plan versions from actual meal/task reports. Unknown model targets, stale versions and duplicate command payloads must be handled explicitly; a suggestion or accepted plan never implies a performed activity.
+- Update slice status, blockers, input resolutions and current-revision test results during implementation. Do not populate fictional pass results.
+- Human actions have owner roles, timing and blocking scopes. Prepare concrete reviewable work before asking for a decision; do not assign routine engineering tasks to humans. Reuse existing authorization, decisions and access without asking again.
+- A completed slice requires its applicable `slice_completion` human actions to be complete with real evidence. Other scopes block only the named paid commitment, clinical use, daily reliance or release gate. Use `not_applicable` only for a conditional action with a recorded reason, and reassess when its trigger changes.
+- Update human-action status in the JSON and regenerate `docs/HUMAN_ACTIONS.md` with `pwsh -NoProfile -File ./scripts/render-human-actions.ps1`. Verify the generated view with the same command plus `-Check`.
+- Validate changes with `pwsh -NoProfile -File ./scripts/validate-roadmap.ps1` before handoff. Validation checks roadmap consistency, not real application behavior.
+
+`docs/architecture/TECHNICAL_RESEARCH.md` preserves provider and cost rationale. Its background does not override the feature sequence in the canonical JSON.

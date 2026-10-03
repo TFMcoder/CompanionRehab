@@ -1,0 +1,72 @@
+{
+  "purpose": "Repository synchronization and existing implementation regression verification; not revised S01 feature acceptance",
+  "recorded_at": "2026-10-03T23:31:26.625908+00:00",
+  "implementation_revision": "sha256:ddaa6621a36c5d3ff5747b2544101060db4338fab24374f41e5b66a310db1f0e",
+  "repository_base_commit": "80bc833",
+  "environment": "Local Windows; Node and Vitest; synthetic fixtures and provider doubles",
+  "data_origin": "synthetic",
+  "observed_by": "Codex orchestrator",
+  "roadmap_validation": "pass",
+  "generated_human_actions_check": "pass",
+  "design_contract_checks": {
+    "four_roles": true,
+    "named_homes": true,
+    "voice_and_ui": true,
+    "client_destinations": true,
+    "simple_task_fields": true,
+    "meals_are_tasks": true,
+    "family_notifications": true,
+    "five_clinical_archetypes": true,
+    "initial_local_storage": true,
+    "gpt_6_sol_high": true,
+    "first_four_sequence_preserved": true
+  },
+  "application_check": {
+    "command": "npm run check",
+    "exit_code": 0,
+    "typecheck": "pass",
+    "test_files": 6,
+    "tests_passed": 43,
+    "tests_failed": 0,
+    "production_build": "pass"
+  },
+  "earlier_attempts": [
+    {
+      "command": "npm run check",
+      "outcome": "fail",
+      "tests_passed": 42,
+      "tests_failed": 1,
+      "failure": "Client proposal-review test: meal selection state left the review button disabled."
+    },
+    {
+      "command": "Targeted proposal-review test",
+      "outcome": "pass",
+      "tests_passed": 1,
+      "note": "The isolated pass did not establish full-suite stability."
+    },
+    {
+      "command": "npm run check",
+      "outcome": "fail",
+      "tests_passed": 42,
+      "tests_failed": 1,
+      "failure": "Client unknown-save/receipt test: meal selection state left the review button disabled."
+    }
+  ],
+  "repair": "Capture task checkbox and meal select values in event handlers before queued functional state updates; avoid reading a mutable DOM target inside the updater.",
+  "preserved_remote_references": [
+    "docs/MVP.md",
+    "docs/nutrition/meal-library.md",
+    "docs/nutrition/research-knowledge-base.md"
+  ],
+  "publication_exclusions": [
+    "Private environment files",
+    "Local records and encryption material",
+    "Installed dependencies",
+    "Built assets"
+  ],
+  "limitations": [
+    "No live voice, provider or real-device acceptance was performed.",
+    "The revised S01 local database/authentication, four roles, navigation, unified meal/task and Sol reasoning contracts remain implementation work.",
+    "Passing baseline regressions do not mark the new S01 acceptance groups or the slice complete."
+  ]
+}

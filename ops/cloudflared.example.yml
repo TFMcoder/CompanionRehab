@@ -1,0 +1,10 @@
+# Copy into .local (ignored), then replace placeholders after domain/account setup.
+# Run the built app bound to 127.0.0.1:8787. Set PUBLIC_ORIGIN=https://the-same-hostname.
+tunnel: REPLACE_WITH_TUNNEL_UUID
+credentials-file: C:/REPLACE_WITH_PRIVATE_PATH/tunnel-credentials.json
+ingress:
+  - hostname: nancy.example.com
+    service: http://127.0.0.1:8787
+    originRequest:
+      httpHostHeader: nancy.example.com
+  - service: http_status:404
