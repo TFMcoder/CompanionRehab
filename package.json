@@ -14,6 +14,7 @@
     "test": "vitest run --configLoader runner",
     "check": "npm run typecheck && npm test && npm run build",
     "readiness": "tsx scripts/readiness.ts",
+    "readiness:openai": "tsx scripts/check-openai.ts",
     "backup": "tsx scripts/backup.ts"
   },
   "dependencies": {

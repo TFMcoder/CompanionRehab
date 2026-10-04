@@ -2,7 +2,7 @@
   "$schema": "./roadmap.schema.json",
   "roadmap_id": "companion-rehab",
   "schema_version": "1.3.0",
-  "updated_at": "2026-10-03",
+  "updated_at": "2026-10-04",
   "planning_status": "ready_for_implementation",
   "implementation_status": "in_progress",
   "source_of_truth": "docs/roadmap/roadmap.json",
@@ -20,7 +20,8 @@
     "Four user roles: administrator, clinician, family/friend and client. The project owner is administrator and technical lead.",
     "Client My Day is narrow and conversational; shared voice/button navigation reaches tasks, daily meals, groceries and achievements as their slices ship.",
     "Store durable data on this computer initially; retain migration portability to another local server or a cloud provider.",
-    "Use GPT-6 Sol with high reasoning for Nancy intelligence, with a separate speech input/output layer."
+    "Use GPT-6 Sol with high reasoning for Nancy intelligence, with a separate speech input/output layer.",
+    "Target a supervised Nancy voice, meal/day planning and tracking pilot on 2026-10-05 (S01 then S02). This is a stretch target, not a waiver of live acceptance or a claim of completion."
   ],
   "constraints": {
     "budget": {
@@ -564,7 +565,8 @@
         "I-ACCOUNTS/S01-H02: Administrator and technical-lead ownership is confirmed; usable private OpenAI project access is not yet evidenced. Supabase account provisioning is no longer required.",
         "I-DOMAIN/S01-H02 and I-DEVICE/S01-H01: Actual HTTPS hostname/account and intended tablet/browser are not yet identified; genuine microphone/speaker testing has not run.",
         "I-DATA/I-REGION/I-DAY-CONTENT/S01-H03/H06: Record consent, remaining remote processing/retention boundary, real task/meal choices and participant timezone privately. Initial local storage is already decided.",
-        "S01-LIVE2 and S01-LIVE1: Actual local deployment plus remote speech/reasoning, isolated restore and the real 10 AM planning trial have not run. Run disposable checks before retained participant use."
+        "S01-LIVE2 and S01-LIVE1: Actual local deployment plus remote speech/reasoning, isolated restore and the real 10 AM planning trial have not run. Run disposable checks before retained participant use.",
+        "2026-10-04 connection preparation: private key setup instructions and a read-only OpenAI model-visibility probe are ready. The local presence check reports missing_key; no API inference, speech or live acceptance has run in this step."
       ],
       "test_results": [],
       "human_actions": [
@@ -614,7 +616,8 @@
           "agent_can_do": [
             "Prepare the exact free-plan/account setup and disclose any charges before a paid step.",
             "Reuse authorized access; configure local database/auth, provider adapters, DNS/tunnel and private secrets. Qualify invitation/recovery delivery only if the selected identity flow requires a sender.",
-            "Configure the already selected gpt-6-sol with high reasoning; verify project availability without substituting another model silently."
+            "Configure the already selected gpt-6-sol with high reasoning; verify project availability without substituting another model silently.",
+            "Guide the owner through docs/S01_FIRST_CONNECTION.md; use readiness:openai for secret-safe presence/model-visibility checks before bounded real inference and speech tests."
           ],
           "expected_evidence": "Private configuration/access references; actual account checks. Reuse existing access rather than asking for it again. Ownership alone is not evidence that credentials or project access are configured.",
           "related_input_ids": [
@@ -625,7 +628,7 @@
           "related_test_ids": [
             "S01-LIVE1"
           ],
-          "status": "pending",
+          "status": "in_progress",
           "completion_ref": null,
           "completed_at": null,
           "not_applicable_reason": null

@@ -13,6 +13,7 @@ npm start
 Open `http://localhost:8787` to inspect the baseline. Its configuration still expects Supabase and Realtime; `.env.example` and readiness checks describe that baseline, not the revised local-data/Sol deployment. Keep real credentials and records in ignored private storage. Do not provision a cloud database just to satisfy the old readiness check.
 
 - [Current product and technical decisions](docs/architecture/PRODUCT_DECISIONS_2026-10-03.md)
+- [First connection: private OpenAI setup](docs/S01_FIRST_CONNECTION.md)
 - [Baseline setup reference, pending local-data adaptation](docs/S01_SETUP.md)
 - [Live-test runbook, pending revised deployment](docs/S01_LIVE_TEST.md)
 - [Implementation roadmap](docs/ROADMAP.md) and [authoritative JSON](docs/roadmap/roadmap.json)

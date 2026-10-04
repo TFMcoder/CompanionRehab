@@ -1,6 +1,6 @@
 # Human actions by implementation stage
 
-Updated: 2026-10-03. Generated from the canonical roadmap; all statuses below come from that file.
+Updated: 2026-10-04. Generated from the canonical roadmap; all statuses below come from that file.
 
 Source: [roadmap.json](roadmap/roadmap.json), in each slice's human_actions array. Edit the JSON, then run the renderer; do not maintain a separate checklist here. See [ROADMAP.md](ROADMAP.md) for feature scope and live tests.
 
@@ -69,7 +69,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
 - [ ] **S01-H02: Complete missing private provider and HTTPS access**
 
-  Owner: **account_owner**. Status: **pending**. Requirement: **required**.
+  Owner: **account_owner**. Status: **in_progress**. Requirement: **required**.
 
   **When:** Before the agent connects the real services.
   **Blocks:** Completing this feature slice.
@@ -79,7 +79,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
   - The project owner is confirmed as administrator and technical lead. Complete only missing OpenAI project/account and HTTPS account-owner sign-in, MFA or ownership steps; no initial cloud database account is required.
   - Complete any MFA, account consent, domain ownership or billing-identity steps that require you; use secure credential setup, never the repository.
 
-  **Agent prepares or handles:** Prepare the exact free-plan/account setup and disclose any charges before a paid step. Reuse authorized access; configure local database/auth, provider adapters, DNS/tunnel and private secrets. Qualify invitation/recovery delivery only if the selected identity flow requires a sender. Configure the already selected gpt-6-sol with high reasoning; verify project availability without substituting another model silently.
+  **Agent prepares or handles:** Prepare the exact free-plan/account setup and disclose any charges before a paid step. Reuse authorized access; configure local database/auth, provider adapters, DNS/tunnel and private secrets. Qualify invitation/recovery delivery only if the selected identity flow requires a sender. Configure the already selected gpt-6-sol with high reasoning; verify project availability without substituting another model silently. Guide the owner through docs/S01_FIRST_CONNECTION.md; use readiness:openai for secret-safe presence/model-visibility checks before bounded real inference and speech tests.
 
   **Completion evidence:** Private configuration/access references; actual account checks. Reuse existing access rather than asking for it again. Ownership alone is not evidence that credentials or project access are configured.
 

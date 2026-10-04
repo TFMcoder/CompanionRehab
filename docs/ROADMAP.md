@@ -1,8 +1,10 @@
 # Companion Rehab: agent implementation roadmap
 
-Updated: 2026-10-03. **S01 is in progress: adapt the existing baseline to local data hosting, four roles, My Day navigation, meals as tasks and GPT-6 Sol high reasoning. Historical automated checks do not establish acceptance of this revised scope; no live acceptance has run.**
+Updated: 2026-10-04. **S01 is in progress: adapt the existing baseline to local data hosting, four roles, My Day navigation, meals as tasks and GPT-6 Sol high reasoning. Historical automated checks do not establish acceptance of this revised scope; no live acceptance has run.**
 
 The canonical [roadmap.json](roadmap/roadmap.json), schema version 1.3.0, defines feature order, product contracts, scope, dependencies, human actions and acceptance. [HUMAN_ACTIONS.md](HUMAN_ACTIONS.md) is generated from its human-action records. Current user instructions take precedence; reflect agreed changes in the JSON. The [October 3 decisions](architecture/PRODUCT_DECISIONS_2026-10-03.md) record the clarified roles, hosting and exact model selection.
+
+Current account-setup step: [private OpenAI connection](S01_FIRST_CONNECTION.md). The requested October 5 supervised S01/S02 pilot is a stretch target; current acceptance gates still apply.
 
 ## Immediate delivery goal: S01-S04
 

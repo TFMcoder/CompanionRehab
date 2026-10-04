@@ -1,0 +1,40 @@
+{
+  "purpose": "S01 connection preparation; utility verification only, not feature or live acceptance",
+  "recorded_at": "2026-10-04T22:01:23.964177+00:00",
+  "implementation_revision": "sha256:98cfccb007b779fbd19f840e8c1f080d99c922f3bd49483200c74e0969fd2dfd",
+  "data_origin": "synthetic",
+  "observed_by": "Codex orchestrator",
+  "checks": [
+    {
+      "command": "npm run typecheck",
+      "outcome": "pass"
+    },
+    {
+      "command": "npm test -- tests/openai-readiness.test.ts",
+      "outcome": "pass",
+      "test_files": 1,
+      "tests_passed": 4
+    },
+    {
+      "command": "npm run readiness:openai",
+      "outcome": "missing_key",
+      "exit_code": 1,
+      "note": "Expected readiness failure with absent credential; no network call was made."
+    },
+    {
+      "command": "pwsh -NoProfile -File ./scripts/validate-roadmap.ps1",
+      "outcome": "pass"
+    },
+    {
+      "command": "pwsh -NoProfile -File ./scripts/render-human-actions.ps1 -Check",
+      "outcome": "pass"
+    }
+  ],
+  "live_requests": 0,
+  "inference_tested": false,
+  "speech_tested": false,
+  "limitations": [
+    "The four tests validate the diagnostic utility with provider doubles, not the revised S01 acceptance contract.",
+    "Actual model visibility, inference, billing, device audio and local database/authentication remain unverified."
+  ]
+}
