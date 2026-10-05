@@ -32,7 +32,8 @@
     "After actual reports begin in S02, maintain a factual ongoing ledger; in S04 review unfinished yesterday tasks explicitly so they cannot disappear, and add opt-in scheduled meal/appointment prompts with honest browser availability limits.",
     "Keep local calendar context in S01; connect an authorized external calendar and Asana in S06 after provider selection and scoped consent.",
     "Owner confirmed iPhone with Safari and Outlook calendar on 2026-10-05. Reuse these selections; account type, calendar authorization and actual iPhone audio/wake behavior remain separate qualifications.",
-    "The owner rejected robotic device TTS on 2026-10-05. Natural intonation, phrasing, pacing, inflection and responsive turn-taking are required for Nancy voice acceptance, while retaining the free-first speech constraint."
+    "The owner rejected robotic device TTS on 2026-10-05. Natural intonation, phrasing, pacing, inflection and responsive turn-taking are required for Nancy voice acceptance, while retaining the free-first speech constraint.",
+    "Use Pocket TTS English 2026-09 with the Alba embedding as the provisional free local engineering voice, retaining Kokoro Heart as the listening baseline. Participant voice selection and integrated iPhone/Safari acceptance remain open; free cloud speech may be considered only after its access, quota, latency and privacy path is qualified."
   ],
   "constraints": {
     "budget": {
@@ -280,7 +281,7 @@
       "status": "resolved",
       "default": "GPT-6 Sol (gpt-6-sol) with reasoning.effort=high, explicitly selected by the project owner.",
       "needed_for": "S01 real reasoning backend configuration",
-      "question": "Which exact Sol version and reasoning effort should Nancy use? Resolved: GPT-6 Sol — high.",
+      "question": "Which exact Sol version and reasoning effort should Nancy use? Resolved: GPT-6 Sol â€” high.",
       "resolution_ref": "docs/architecture/PRODUCT_DECISIONS_2026-10-03.md"
     },
     {
@@ -294,10 +295,10 @@
     {
       "id": "I-VOICE-CHOICE",
       "status": "unresolved",
-      "default": "Owner rejected installed-browser/fixed-Windows voices, then auditioned Kokoro and reported on 2026-10-05: Its better, but still a tad robotic. Owner identified Heart (af_heart) as the closest candidate and baseline for further comparison. Naturalness, participant acceptance and integrated conversational quality remain unresolved; this is not production voice approval or a paid-route selection.",
+      "default": "Owner rejected installed-browser/fixed-Windows voices, then found Kokoro Heart (af_heart) better but still somewhat robotic. Pocket TTS 3.3 English 2026-09 with Alba is the provisional free local engineering configuration; Heart remains the listening baseline. Neither voice has participant production acceptance. Naturalness on varied prompts, preference, actual iPhone/Safari audio and integrated conversational quality remain unresolved.",
       "needed_for": "S01 preferred audible Nancy voice and genuine phone conversation",
-      "question": "Prepare improved neural voice samples and an actual conversational trial; evaluate natural intonation, phrasing, pauses, warmth, latency and interruption on iPhone/Safari. Do not ask the owner to select the rejected device samples again.",
-      "resolution_ref": "docs/architecture/VOICE_AND_DAILY_COMPANION_2026-10-05.md#owner-quality-feedback-current-samples-rejected"
+      "question": "Compare the prepared Pocket Alba and Kokoro Heart samples, then qualify preferred-voice intonation, phrasing, pauses, warmth, latency and interruption during an actual iPhone/Safari conversation. Do not treat a local audition or public-browser playback as participant production acceptance.",
+      "resolution_ref": "docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md"
     },
     {
       "id": "I-WAKE-CONSENT",
@@ -377,8 +378,8 @@
     },
     {
       "id": "voice",
-      "choice": "Independent speech input/output around gpt-6-sol high; compare supported local speech and low-cost hosted speech on the intended device, then qualify actual audio",
-      "plan": "Unselected; ChatGPT-plan reasoning does not establish speech coverage. Track any GPT speech separately and include other speech costs in the service ceiling.",
+      "choice": "Independent speech input/output around gpt-6-sol high; provisional local output is Pocket TTS 3.3 English 2026-09 with Alba, pending participant and actual-device acceptance",
+      "plan": "Provisional local Pocket speech output has no recurring speech API charge. ChatGPT-plan reasoning does not establish speech coverage. Free cloud candidates remain unselected until access, quota, latency, privacy and actual-device audio are qualified; disclose any paid route before commitment.",
       "introduced_in": "S01",
       "incremental_subscription": null
     },
@@ -452,7 +453,7 @@
         },
         {
           "id": "S01-T08",
-          "description": "Select and qualify speech independently using small live synthetic audio tests and the actual target microphone/speaker. Compare available local and low-cost hosted choices for latency, clarity, interruptions and costs; the ChatGPT-plan flow does not include audio/transcription. Preserve Sol high reasoning, no retained audio by default and touch fallback. No final speech model is selected by the prior rejected probe."
+          "description": "Qualify speech independently using synthetic audio and the actual target microphone/speaker. The provisional free output adapter is pinned Pocket TTS 3.3 English 2026-09 with Alba on local CPU; input/ASR remains separately qualified. Compare actual latency, clarity, interruption, privacy and cost on iPhone/Safari. ChatGPT-plan reasoning includes no audio/transcription entitlement. Preserve Sol high, no retained audio by default and touch fallback. The participant has not selected a final voice."
         },
         {
           "id": "S01-T02",
@@ -480,7 +481,7 @@
         },
         {
           "id": "S01-T10",
-          "description": "Qualify free speech voices and their model/engine licensing, produce short participant audition samples, save a scoped voice preference and live-test preferred voice quality on the selected phone. Start with local PC synthesis candidates; browser system voices are device-dependent. No new paid speech service is selected. Owner rejected current device voices for robotic prosody. Qualify improved neural samples before another preference request; assess varied utterances and contextual conversation separately. A rate slider or successful playback is insufficient."
+          "description": "Qualify free voice licensing and produce participant auditions. Use pinned local Pocket TTS English 2026-09 Alba as the provisional engineering voice and Kokoro Heart as the owner's comparison baseline; save a scoped preference only after actual choice. Test varied utterances and contextual conversation on iPhone/Safari, including first audible response, interruption and natural prosody. A warm same-origin WebSocket carrying native audio chunks with a 160 ms initial buffer is the provisional delivery path, not a completed live result. Qwen's free official demo supplied quality samples only; Azure F0 Jenny is an untested recurring-free candidate. No paid speech service is selected."
         },
         {
           "id": "S01-T11",
@@ -739,7 +740,8 @@
         "S01-LIVE2 and S01-LIVE1: Actual local deployment plus remote reasoning and the selected speech path, isolated restore and the real 10 AM planning trial have not run. Run disposable checks before retained participant use.",
         "2026-10-04 actual connection checks are recorded in docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. These synthetic provider probes are not S01 live acceptance. The MCP tunnel transports local tool calls; it does not establish Nancy model access, voice, per-client authorization or a public My Day web route.",
         "2026-10-04 connection progress: the app-specific OAuth/Responses helper completed text and fixed read-only tool probes using gpt-6-sol/high. The adapter now replays finalized streamed items when terminal output is empty, and verifies the returned fixture value in the completed answer. Separate Windows voice generation and local faster-whisper recognition passed on synthetic audio; genuine microphone/audible conversation is still untested. See docs/evidence/S01-CHATGPT-PLAN-CONNECTION-2026-10-04.json. Existing Tailscale/MCP services remain unchanged; a new tool tunnel is unnecessary for these local probes.",
-        "2026-10-05 Kokoro trial: nine pinned samples are deployed; docs/evidence/S01-KOKORO-AUDITION-2026-10-05.json records 92 passing tests, actual CPU synthesis, ASR checks and public desktop-browser playback. Owner reports better but still somewhat robotic, with Heart as the closest candidate and comparison baseline. Naturalness and genuine back-and-forth remain unqualified. Assess phrasing/prosody and an expressive local alternative before production selection. No paid service or production approval is implied."
+        "2026-10-05 Kokoro trial: nine pinned samples are deployed; docs/evidence/S01-KOKORO-AUDITION-2026-10-05.json records 92 passing tests, actual CPU synthesis, ASR checks and public desktop-browser playback. Owner reports better but still somewhat robotic, with Heart as the closest candidate and comparison baseline. Naturalness and genuine back-and-forth remain unqualified. No paid service or production approval is implied.",
+        "2026-10-05 voice evaluation: docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md records provisional Pocket TTS 3.3 English 2026-09 Alba on local fp32 CPU (2 intraop/1 interop threads, temperature 0.3, 1 decode step) with pinned CC BY 4.0 checkpoint revision e7205b6ee50e654a5ea19f0e9df2b0813b05e921 and Alba embedding revision 4e1e0a3e611c51c0b4ed8174fc10f32a54644303. Native audio chunks over warm same-origin WebSocket with a 160 ms initial buffer are implemented in the fixed synthetic audition. The official Qwen3-TTS 1.7B Serena demo produced two matched quality clips but does not qualify production latency or access; Azure F0 Jenny is an untested free-tier candidate. Synthetic gpt-6-sol/high first-sentence times were 3.5852, 3.8602 and 4.2776 seconds, without integrated ASR/TTS. Participant voice choice, actual iPhone audio, microphone, interruption and S01 live gates remain open. Actual public WSS desktop tests now show first rendered audio proxy 251.8-449.3 ms across six completed short/long repeats with zero underruns, Stop-to-zero-quantum acknowledgement 15.9 ms, and independent worker-cancel acknowledgement 71.88 ms. 102 tests/typecheck/build pass at source revision sha256:53eeba88e2fb352b68d9c66a6766fee1232dfdad9f48d3021a1f7f2fe95bcd69 (docs/evidence/S01-VOICE-MODEL-EVALUATION-2026-10-05.json; partial regression/voice evaluation only). These are synthetic desktop checks; integrated speech and actual iPhone acceptance remain pending."
       ],
       "test_results": [],
       "human_actions": [
@@ -962,11 +964,11 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-        "Kokoro feedback is improved but still somewhat robotic; Heart is already identified as the closest candidate. Compare a materially improved sample or expressive alternative against Heart when prepared. Production voice acceptance and integrated conversation responsiveness remain separate decisions.",
+            "Compare the prepared Pocket Alba voice with Kokoro Heart, the owner's closest previous candidate, and choose a preferred voice only after listening and an actual iPhone/Safari conversational trial. Report whether phrasing, warmth and responsiveness are acceptable; production voice acceptance and integrated conversation remain open until observed.",
             "Decide whether to enable foreground Hey Nancy while My Day is open after seeing the microphone indicator, stop control and disclosed processing location."
           ],
           "agent_can_do": [
-            "Replace rejected device samples as primary candidates with licensed neural speech auditions; test intonation, phrasing, pauses and emphasis on varied utterances, then real turn timing, interruption, wake false positives and fallback button entry. Keep paid alternatives separately costed and unselected.",
+            "Prepare the licensed Pocket Alba and Kokoro Heart neural auditions, implement the provisional warm local audio-stream path, and test intonation, phrasing, pauses and emphasis on varied utterances. Then measure real iPhone turn timing, interruption, wake false positives and fallback button entry. Keep cloud and paid alternatives separately qualified and unselected.",
             "Save only the selected preference and consent state; keep raw samples/audio private or synthetic."
           ],
           "expected_evidence": "Private selected-voice and wake-consent references plus actual-device observations; interface visual approval alone is insufficient.",
@@ -3745,7 +3747,7 @@
       "api_model_id": "gpt-6-sol",
       "model_input_id": "I-MODEL",
       "api": "Responses-based gpt-6-sol high reasoning through a supported ChatGPT-plan adapter, preferably minimal local Codex app-server where qualified; care service owns tool execution. API-key billing is an explicitly selected fallback.",
-      "speech_policy": "Qualify speech input/output independently around Sol high. The documented ChatGPT-plan flow excludes audio input/transcription; MCP transport grants no speech coverage. Compare supported local and low-cost hosted choices and test actual device audio, latency, interruption, privacy and costs. Never replace the selected Sol brain with a speech model; do not retain raw audio by default. Free participant-selectable voice auditions are required; compare licensed local Kokoro, Piper per-voice model terms and browser speechSynthesis where available. Natural turn taking requires explicit state/timing contracts and live device testing; foreground wake processing may stream to the local server, not necessarily run on the phone. See docs/architecture/VOICE_AND_DAILY_COMPANION_2026-10-05.md.",
+      "speech_policy": "Qualify speech input/output independently around Sol high. The documented ChatGPT-plan flow excludes audio input/transcription; MCP transport grants no speech coverage. Provisional free local output is Pocket TTS 3.3 English 2026-09 Alba, with pinned CC BY 4.0 checkpoint/embedding, fp32 CPU (2 intraop/1 interop threads, temperature 0.3, 1 decode step) and warm same-origin WebSocket native chunks with a 160 ms initial audio buffer. Kokoro Heart remains the owner's comparison baseline; neither is a participant-approved final voice. Speech input/ASR and actual iPhone/Safari audio, latency, interruption, privacy and naturalness need separate qualification. Free cloud demos are quality references, not dependable production endpoints without verified access, quota and latency; Azure F0 Jenny's recurring free tier remains untested. Never replace Sol reasoning with a speech model or retain raw audio by default. Foreground wake may stream to the local server and requires consent and live testing. See docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md and docs/architecture/VOICE_AND_DAILY_COMPANION_2026-10-05.md.",
       "source_refs": [
         "https://developers.openai.com/api/docs/models/gpt-6-sol",
         "https://developers.openai.com/api/docs/guides/secure-mcp-tunnels",

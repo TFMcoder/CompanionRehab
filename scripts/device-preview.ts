@@ -15,6 +15,12 @@ const app = await createDevicePreview({
   sampleSha256: process.env.PREVIEW_SAMPLE_SHA256,
   kokoroManifestPath: process.env.PREVIEW_KOKORO_MANIFEST_SHA256 ? '.local/probes/kokoro/manifest.json' : undefined,
   kokoroManifestSha256: process.env.PREVIEW_KOKORO_MANIFEST_SHA256,
+  evaluationManifestPath: process.env.PREVIEW_EVALUATION_SHA256 ? '.local/probes/voice-eval/manifest.json' : undefined,
+  evaluationManifestSha256: process.env.PREVIEW_EVALUATION_SHA256,
+  voiceStream: process.env.PREVIEW_POCKET_STREAM === '1' ? {
+    python: '.local/speech/pocket-eval/Scripts/python.exe',
+    allowedOrigins: [`http://127.0.0.1:${port}`, `http://localhost:${port}`, ...(process.env.PREVIEW_PUBLIC_ORIGIN ? [process.env.PREVIEW_PUBLIC_ORIGIN] : [])],
+  } : undefined,
 });
 await app.listen({ host: '127.0.0.1', port });
 console.log(`Nancy device preview is running on http://127.0.0.1:${port}/preview`);

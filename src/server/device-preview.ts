@@ -3,6 +3,8 @@ import { readFile, readdir, realpath, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { dirname, resolve, sep } from 'node:path';
 import { kokoroSamples, kokoroVoices } from '../shared/kokoro-samples.js';
+import evaluation from '../shared/voice-evaluation.json';
+import { attachPreviewVoiceStream, type VoiceStreamOptions } from './preview-voice-stream.js';
 
 export interface PreviewOptions {
   staticRoot?: string;
@@ -11,6 +13,9 @@ export interface PreviewOptions {
   sampleSha256?: string;
   kokoroManifestPath?: string;
   kokoroManifestSha256?: string;
+  evaluationManifestPath?: string;
+  evaluationManifestSha256?: string;
+  voiceStream?: Omit<VoiceStreamOptions, 'allowedHosts'>;
 }
 
 const sha256 = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex');
@@ -94,16 +99,55 @@ export async function createDevicePreview(options: PreviewOptions) {
     if (expected.size !== 0) throw new Error('Preview Kokoro manifest is missing samples.');
   }
   const app = Fastify({ logger: false, trustProxy: false, bodyLimit: 1024, requestTimeout: 10000 });
+  const evaluationAudio = new Map<string, Buffer>();
+  if (options.evaluationManifestPath || options.evaluationManifestSha256) {
+    if (!options.evaluationManifestPath || !/^[a-f0-9]{64}$/.test(options.evaluationManifestSha256 || '')) throw new Error('Evaluation manifest must be pinned.');
+    const manifestPath = await realpath(options.evaluationManifestPath);
+    if ((await stat(manifestPath)).size > 65_536) throw new Error('Evaluation manifest too large.');
+    const bytes = await readFile(manifestPath);
+    if (sha256(bytes) !== options.evaluationManifestSha256) throw new Error('Evaluation manifest digest mismatch.');
+    const manifest = JSON.parse(bytes.toString('utf8'));
+    if (manifest.schema_version !== 1 || !Array.isArray(manifest.samples) || manifest.samples.length > 55) throw new Error('Invalid evaluation manifest.');
+    let total = 0;
+    for (const item of manifest.samples) {
+      const key = `${item.model}/${item.voice}/${item.sample}`;
+      const knownVoice = (item.model === 'pocket' && ['alba', 'anna'].includes(item.voice)) ||
+        (item.model === 'kokoro' && item.voice === 'af_heart') || (item.model === 'nano' && item.voice === 'alba') ||
+        (item.model === 'qwen' && item.voice === 'serena' && ['water', 'long'].includes(item.sample));
+      if (!knownVoice || !evaluation.samples.some(s => s.id === item.sample) || evaluationAudio.has(key) ||
+        typeof item.file_name !== 'string' || !/^[a-z0-9_/-]+\.wav$/.test(item.file_name) || !/^[a-f0-9]{64}$/.test(item.sha256)) throw new Error('Invalid evaluation sample.');
+      const path = await realpath(resolve(dirname(manifestPath), item.file_name));
+      if (!path.startsWith(dirname(manifestPath) + sep) || (await stat(path)).size > 8_000_000) throw new Error('Evaluation audio exceeds its boundary.');
+      const audio = await readFile(path);
+      total += audio.length;
+      if (total > 128_000_000 || !isWav(audio) || sha256(audio) !== item.sha256) throw new Error('Evaluation audio digest mismatch.');
+      evaluationAudio.set(key, audio);
+    }
+  }
+  const stream = options.voiceStream ? attachPreviewVoiceStream(app.server, { ...options.voiceStream, allowedHosts: options.allowedHosts }) : undefined;
+  if (stream) app.addHook('onClose', async () => stream.close());
+  const connectPolicy = stream ? "'self' " + options.voiceStream!.allowedOrigins.map(origin => {
+    const url = new URL(origin);
+    if (!['http:', 'https:'].includes(url.protocol) || url.origin !== origin) throw new Error('Invalid stream origin.');
+    return origin.replace(/^http/, 'ws');
+  }).join(' ') : "'none'";
   app.addHook('onRequest', async (request, reply) => {
     reply.header('Cache-Control', 'no-store').header('X-Content-Type-Options', 'nosniff')
       .header('Referrer-Policy', 'no-referrer').header('X-Robots-Tag', 'noindex, nofollow')
       .header('Permissions-Policy', 'microphone=(self), camera=(), geolocation=()')
-      .header('Content-Security-Policy', "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'none'; font-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
+      .header('Content-Security-Policy', `default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src ${connectPolicy}; font-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`);
     if (!options.allowedHosts.includes(request.headers.host || '')) return reply.code(403).send('This preview address is not enabled.');
     if (!['GET', 'HEAD'].includes(request.method)) return reply.code(405).header('Allow', 'GET, HEAD').send('This preview is read-only.');
   });
   for (const path of ['/', '/preview', '/preview/']) app.get(path, async (_request, reply) => reply.type('text/html; charset=utf-8').send(html));
-  app.get('/health', async () => ({ ok: true, mode: 'device_preview', real_care_data: false, live_conversation: false }));
+  app.get('/health', async () => ({ ok: true, mode: 'device_preview', real_care_data: false, live_conversation: false,
+    synthetic_stream_ready: stream?.isReady() ?? false, synthetic_stream_startup: stream?.startup() }));
+  app.get('/preview/voice-eval/:model/:voice/:sample.wav', async (request, reply) => {
+    const { model, voice, sample } = request.params as { model: string; voice: string; sample: string };
+    const bytes = evaluationAudio.get(`${model}/${voice}/${sample}`);
+    if (!bytes) return reply.code(404).send('Synthetic sample unavailable.');
+    return sendWav(request, reply, bytes);
+  });
   app.get('/preview/voice-sample.wav', async (request, reply) => {
     if (!sample) return reply.code(503).send('The synthetic voice sample is unavailable.');
     return sendWav(request, reply, sample);

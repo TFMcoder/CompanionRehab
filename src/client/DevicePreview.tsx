@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { kokoroSampleUrl, kokoroSamples, kokoroVoices } from "../shared/kokoro-samples";
+import { StreamingAudition } from "./StreamingAudition";
 import "./device-preview.css";
 
 type View = "home" | "tasks" | "meals";
@@ -191,6 +192,7 @@ export function DevicePreview() {
   };
 
   const hearNancy = async () => {
+    window.dispatchEvent(new CustomEvent("nancy:preview-stop-stream"));
     const audio = sampleAudio.current;
     if (!audio) return;
     const epoch = ++sampleEpoch.current;
@@ -216,6 +218,7 @@ export function DevicePreview() {
   };
 
   const playKokoro = async () => {
+    window.dispatchEvent(new CustomEvent("nancy:preview-stop-stream"));
     if (kokoroState !== "idle") {
       stopKokoro();
       return;
@@ -248,6 +251,7 @@ export function DevicePreview() {
   };
 
   const playLocalVoice = () => {
+    window.dispatchEvent(new CustomEvent("nancy:preview-stop-stream"));
     if (voicePlaying) {
       stopVoice();
       return;
@@ -311,6 +315,7 @@ export function DevicePreview() {
   };
 
   const startMicrophone = async () => {
+    window.dispatchEvent(new CustomEvent("nancy:preview-stop-stream"));
     stopVoice();
     stopKokoro();
     sampleEpoch.current += 1;
@@ -392,6 +397,7 @@ export function DevicePreview() {
       <div className="dp-content">
         <p className="dp-date">{date}</p>
         {view === "home" ? <>
+          <StreamingAudition onPlaybackStart={() => { stopVoice(); stopKokoro(); stopAudio(); stopMicrophone(false); }} />
           <section className="dp-hero" aria-labelledby="dp-home-title">
             <span className="dp-sun" aria-hidden="true">✳</span>
             <p className="dp-eyebrow">Try a warmer voice</p>
@@ -447,7 +453,7 @@ export function DevicePreview() {
               {micState === "recording" && <span className="dp-recording"><span aria-hidden="true" />Recording… 10 sec max</span>}
             </div>
             {micMessage && <p className={micState === "ready" ? "dp-inline-info" : "dp-inline-error"} role={micState === "ready" ? "status" : "alert"}>{micMessage}</p>}
-            {recordingUrl && <audio ref={node => { if (node) recordingAudio.current = node; }} controls src={recordingUrl} aria-label="Play your microphone check recording" onPlay={() => { stopVoice(); stopKokoro(); sampleEpoch.current += 1; sampleAudio.current?.pause(); setSamplePlaying(false); }} />}
+            {recordingUrl && <audio ref={node => { if (node) recordingAudio.current = node; }} controls src={recordingUrl} aria-label="Play your microphone check recording" onPlay={() => { window.dispatchEvent(new CustomEvent("nancy:preview-stop-stream")); stopVoice(); stopKokoro(); sampleEpoch.current += 1; sampleAudio.current?.pause(); setSamplePlaying(false); }} />}
           </section>
 
           <section className="dp-overview" aria-labelledby="dp-overview-title">

@@ -194,10 +194,10 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Kokoro feedback is improved but still somewhat robotic; Heart is already identified as the closest candidate. Compare a materially improved sample or expressive alternative against Heart when prepared. Production voice acceptance and integrated conversation responsiveness remain separate decisions.
+  - Compare the prepared Pocket Alba voice with Kokoro Heart, the owner's closest previous candidate, and choose a preferred voice only after listening and an actual iPhone/Safari conversational trial. Report whether phrasing, warmth and responsiveness are acceptable; production voice acceptance and integrated conversation remain open until observed.
   - Decide whether to enable foreground Hey Nancy while My Day is open after seeing the microphone indicator, stop control and disclosed processing location.
 
-  **Agent prepares or handles:** Replace rejected device samples as primary candidates with licensed neural speech auditions; test intonation, phrasing, pauses and emphasis on varied utterances, then real turn timing, interruption, wake false positives and fallback button entry. Keep paid alternatives separately costed and unselected. Save only the selected preference and consent state; keep raw samples/audio private or synthetic.
+  **Agent prepares or handles:** Prepare the licensed Pocket Alba and Kokoro Heart neural auditions, implement the provisional warm local audio-stream path, and test intonation, phrasing, pauses and emphasis on varied utterances. Then measure real iPhone turn timing, interruption, wake false positives and fallback button entry. Keep cloud and paid alternatives separately qualified and unselected. Save only the selected preference and consent state; keep raw samples/audio private or synthetic.
 
   **Completion evidence:** Private selected-voice and wake-consent references plus actual-device observations; interface visual approval alone is insufficient.
 

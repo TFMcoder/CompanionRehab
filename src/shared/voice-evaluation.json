@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "data_origin": "Fixed synthetic voice evaluation; no participant data",
+  "samples": [
+    {"id":"water","label":"Yes/no question","text":"Would you like some water?"},
+    {"id":"feeling","label":"Open question","text":"How are you feeling this morning?"},
+    {"id":"important","label":"Reflective question","text":"Does that still feel important to you?"},
+    {"id":"choice","label":"Activity choice","text":"Would you rather take a short walk, or call a friend?"},
+    {"id":"break","label":"Reassurance","text":"That’s okay. We can take a break."},
+    {"id":"instruction","label":"Practical instruction","text":"Put the cup on the table, then sit down when you are ready."},
+    {"id":"numbers","label":"Dates and numbers","text":"Your appointment is on October seventh, at 2:30 PM. Let’s leave at 1:45. Bring two bottles of water."},
+    {"id":"long","label":"Longer conversation","text":"Good morning. How are you feeling this morning? We can take today one step at a time. Would you rather start with breakfast, or look at your plans? There is an appointment this afternoon, so we have time for a short walk first. If that feels like too much, that’s okay. We can take a break, and decide together what matters most today."},
+    {"id":"morning","label":"Plan the day","text":"Good morning. How are you feeling today? We have a few things to plan, but there is no rush. Would you like to start with breakfast, or look at what is coming up?"},
+    {"id":"meals","label":"Choose a meal","text":"We could make an omelette, or have some soup with toast. Do either of those sound good? If not, tell me what you feel like, and we can find another idea together."},
+    {"id":"carryover","label":"Revisit a task","text":"We left organizing the room for another day. Does that still feel important to you? We could start with one small part, change the plan, or ask someone to help."}
+  ]
+}

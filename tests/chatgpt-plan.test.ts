@@ -4,7 +4,7 @@ import { readFile, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { beginAuthorization, jwksEndpoint, readCallback, validateIdToken } from '../src/server/chatgpt-plan/oauth.js';
 import { PlanStore, type PlanCredential } from '../src/server/chatgpt-plan/storage.js';
-import { PlanRequestError, probeSolHigh } from '../src/server/chatgpt-plan/inference.js';
+import { PlanRequestError, probeSolHigh, probeSolHighFirstSpeakable } from '../src/server/chatgpt-plan/inference.js';
 import { startPlanSetup } from '../src/server/chatgpt-plan/local.js';
 
 const clientId = 'oaiapp_test123';
@@ -114,6 +114,46 @@ describe('synthetic Sol-high probe', () => {
   it('preserves status and request id while suppressing unknown provider error text', async () => {
     const fetcher = vi.fn(async () => new Response(JSON.stringify({ error: { code: 'raw_secret', message: 'sensitive provider text' } }), { status: 403, headers: { 'x-request-id': 'req-test' } })) as unknown as typeof fetch;
     await expect(probeSolHigh(credential, fetcher)).rejects.toMatchObject({ status: 403, code: 'http_403', requestId: 'req-test' } satisfies Partial<PlanRequestError>);
+  });
+  it('records only monotonic timings for three fixed synthetic Sol-high prompts', async () => {
+    const outputs = ['Good morning. Would you like breakfast or tasks?', 'Toast and yogurt are two breakfast choices.', 'Would you like to revisit one unfinished task?'];
+    let callIndex = 0;
+    const fetcher = vi.fn(async (_url: string, init: RequestInit) => {
+      const body = JSON.parse(String(init.body));
+      expect(body).toMatchObject({ model: 'gpt-6-sol', reasoning: { effort: 'high' }, store: false, stream: true });
+      expect(body.input).toHaveLength(1);
+      expect(body.input[0].content).toContain('Synthetic latency benchmark.');
+      const answer = outputs[callIndex++]!;
+      return stream([JSON.stringify({ type: 'response.output_text.delta', delta: answer.slice(0, answer.indexOf('.') + 1) }),
+        JSON.stringify({ type: 'response.output_text.delta', delta: answer.slice(answer.indexOf('.') + 1) }),
+        JSON.stringify({ type: 'response.completed', response: { status: 'completed', model: 'gpt-6-sol', usage: { input_tokens: 12, output_tokens: 9 } } })]);
+    }) as unknown as typeof fetch;
+    const result = await probeSolHighFirstSpeakable(credential, fetcher);
+    expect(fetcher).toHaveBeenCalledTimes(3);
+    expect(result).toMatchObject({ completed: true, model: 'gpt-6-sol', effort: 'high', samples: [
+      { promptId: 'morning', status: 'completed', usage: { inputTokens: 12, outputTokens: 9 } },
+      { promptId: 'meal_choice', status: 'completed' },
+      { promptId: 'task_carryover', status: 'completed' },
+    ] });
+    for (const sample of result.samples) {
+      expect(sample.firstTextDeltaMs).toEqual(expect.any(Number));
+      expect(sample.firstSpeakableMs).toEqual(expect.any(Number));
+      expect(sample.completedMs).toEqual(expect.any(Number));
+      expect(sample.firstTextDeltaMs).toBeLessThanOrEqual(sample.firstSpeakableMs!);
+      expect(sample.firstSpeakableMs).toBeLessThanOrEqual(sample.completedMs!);
+      expect(JSON.stringify(sample)).not.toContain(outputs.join(' '));
+    }
+  });
+  it('stops after the first failed timing request and marks remaining fixed prompts not_run', async () => {
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({ error: { code: 'subscription_sharing_usage_limit_exceeded' } }), { status: 429 })) as unknown as typeof fetch;
+    const result = await probeSolHighFirstSpeakable(credential, fetcher);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({ completed: false, samples: [
+      { promptId: 'morning', status: 'failed', error: { status: 429, code: 'subscription_sharing_usage_limit_exceeded' } },
+      { promptId: 'meal_choice', status: 'not_run' },
+      { promptId: 'task_carryover', status: 'not_run' },
+    ] });
+    expect(JSON.stringify(result)).not.toContain('fake-access');
   });
 });
 

@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { accountKey, type PlanCredential, type PlanState, PlanStore } from './storage.js';
 import { beginAuthorization, exchangeCode, readCallback, requiredScope, validateIdToken, issuer, type Attempt } from './oauth.js';
-import { probeSolHigh, probeSolHighTools, refreshCredential, type ProbeResult } from './inference.js';
+import { probeSolHigh, probeSolHighFirstSpeakable, probeSolHighTools, refreshCredential, type ProbeResult, type SolHighTimingProbeResult } from './inference.js';
 import { PlanRequestError, ToolProbeError } from './inference.js';
 
 const host = '127.0.0.1';
@@ -56,6 +56,7 @@ export async function startPlanSetup(store: PlanStore, fetcher: typeof fetch = f
   let attempt: Attempt | undefined;
   let notice = '';
   let result: ProbeResult | undefined;
+  let timingResult: SolHighTimingProbeResult | undefined;
   let csrf = randomBytes(32).toString('base64url');
   let browserBinding: string | undefined;
   let working = false;
@@ -95,14 +96,15 @@ export async function startPlanSetup(store: PlanStore, fetcher: typeof fetch = f
         const current = active(state);
         const connected = current?.accessToken && current.scopes.includes(requiredScope);
         const info = current ? `<p>Selected ChatGPT account: ${connected ? 'plan usage connected' : 'sign-in required or plan permission missing'}.</p>` : '<p>No ChatGPT account is connected.</p>';
-        const probe = connected ? `<form method="post" action="/probe"><input type="hidden" name="csrf" value="${csrf}"><button>Run synthetic GPT-6 Sol high test</button></form><form method="post" action="/tools-probe"><input type="hidden" name="csrf" value="${csrf}"><button>Run synthetic tool round trip</button></form>` : '';
+        const probe = connected ? `<form method="post" action="/probe"><input type="hidden" name="csrf" value="${csrf}"><button>Run synthetic GPT-6 Sol high test</button></form><form method="post" action="/tools-probe"><input type="hidden" name="csrf" value="${csrf}"><button>Run synthetic tool round trip</button></form><form method="post" action="/first-speakable-probe"><input type="hidden" name="csrf" value="${csrf}"><button>Run three-prompt first-speakable timing probe</button></form>` : '';
         const previous = result ? `<p>Completed: ${result.model}, effort ${result.effort}. Input tokens: ${result.usage?.inputTokens ?? 'unknown'}; output tokens: ${result.usage?.outputTokens ?? 'unknown'}.</p>` : '';
+        const timing = timingResult ? `<section><h2>First-speakable timing (synthetic prompts)</h2><p>Model: ${timingResult.model}; effort: ${timingResult.effort}; batch: ${timingResult.completed ? 'completed' : 'incomplete'}.</p><table><thead><tr><th>Prompt</th><th>Status</th><th>First text delta (ms)</th><th>First sentence boundary (ms)</th><th>Completed (ms)</th></tr></thead><tbody>${timingResult.samples.map(sample => `<tr><td>${escape(sample.promptId)}</td><td>${escape(sample.status)}${sample.error ? ` (${escape(sample.error.code)}${sample.error.status ? `, HTTP ${sample.error.status}` : ''})` : ''}</td><td>${sample.firstTextDeltaMs ?? '—'}</td><td>${sample.firstSpeakableMs ?? '—'}</td><td>${sample.completedMs ?? '—'}</td></tr>`).join('')}</tbody></table><p>Sentence-boundary timing is a text-stream proxy; this probe does not synthesize or play speech.</p></section>` : '';
         const choices = Object.entries(state.accounts).map(([key], index) => `<form method="post" action="/select"><input type="hidden" name="csrf" value="${csrf}"><input type="hidden" name="account" value="${escape(key)}"><button>Select account ${index + 1}</button></form>`).join('');
         const disconnect = current?.refreshToken ? `<form method="post" action="/disconnect"><input type="hidden" name="csrf" value="${csrf}"><button>Disconnect selected account</button></form>` : '';
-        send(res, 200, render(`${info}<p role="status">${escape(notice)}</p>${previous}${probe}${choices}${disconnect}`, csrf),
+        send(res, 200, render(`${info}<p role="status">${escape(notice)}</p>${previous}${probe}${timing}${choices}${disconnect}`, csrf),
           `plan_setup_csrf=${csrf}; HttpOnly; SameSite=Lax; Path=/`); return;
       }
-      if (req.method !== 'POST' || !['/start', '/new', '/select', '/probe', '/tools-probe', '/disconnect'].includes(path.pathname)) { send(res, 404, 'Not found.'); return; }
+      if (req.method !== 'POST' || !['/start', '/new', '/select', '/probe', '/tools-probe', '/first-speakable-probe', '/disconnect'].includes(path.pathname)) { send(res, 404, 'Not found.'); return; }
       if (req.headers.origin !== origin || !cookieIs(req, 'plan_setup_csrf', csrf)) { send(res, 403, 'Forbidden'); return; }
       const fields = await form(req);
       if (fields.get('csrf') !== csrf || fields.getAll('csrf').length !== 1) { send(res, 403, 'Forbidden'); return; }
@@ -128,16 +130,30 @@ export async function startPlanSetup(store: PlanStore, fetcher: typeof fetch = f
       try {
         const current = active(state);
         if (!current) { send(res, 400, 'No account selected.'); return; }
-        if (path.pathname === '/probe' || path.pathname === '/tools-probe') {
+        if (path.pathname === '/probe' || path.pathname === '/tools-probe' || path.pathname === '/first-speakable-probe') {
           if (!current.scopes.includes(requiredScope)) throw new Error('ChatGPT plan permission is missing.');
           let usable = current;
           if (current.expiresAt - Date.now() < 60_000) {
             usable = await refreshCredential(current, fetcher);
             state.accounts[accountKey(usable)] = usable; await store.save(state);
           }
-          result = path.pathname === '/tools-probe' ? await probeSolHighTools(usable, fetcher) : await probeSolHigh(usable, fetcher);
-          notice = path.pathname === '/tools-probe' ? 'Synthetic tool round trip verified through the ChatGPT plan route. No care records were accessed.'
-            : 'Synthetic text reasoning completed through the ChatGPT plan route.';
+          if (path.pathname === '/first-speakable-probe') {
+            result = undefined;
+            timingResult = await probeSolHighFirstSpeakable(usable, fetcher);
+            await mkdir('.local/probes', { recursive: true });
+            await writeFile('.local/probes/sol-high-first-speakable.json', JSON.stringify({
+              observedAt: new Date().toISOString(), route: 'existing app-specific ChatGPT plan OAuth / Responses adapter',
+              model: timingResult.model, effort: timingResult.effort, completed: timingResult.completed, samples: timingResult.samples,
+              timing_definition: 'Elapsed monotonic milliseconds from request dispatch to first response text delta, first complete sentence-boundary heuristic, and response.completed. Synthetic fixed prompts only; no audio synthesis or playback.',
+            }, null, 2), { mode: 0o600 });
+            notice = timingResult.completed ? 'Three synthetic timing prompts completed. Sanitized timings were saved privately.'
+              : 'The synthetic timing batch stopped early. Sanitized timings and status were saved privately.';
+          } else {
+            timingResult = undefined;
+            result = path.pathname === '/tools-probe' ? await probeSolHighTools(usable, fetcher) : await probeSolHigh(usable, fetcher);
+            notice = path.pathname === '/tools-probe' ? 'Synthetic tool round trip verified through the ChatGPT plan route. No care records were accessed.'
+              : 'Synthetic text reasoning completed through the ChatGPT plan route.';
+          }
         } else {
           let revoked = false;
           try {

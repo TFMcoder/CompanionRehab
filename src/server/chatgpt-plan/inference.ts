@@ -47,9 +47,35 @@ function responseError(payload: unknown, status: number, requestId?: string): Pl
 }
 type OutputItem = Record<string, unknown>;
 interface CompletedTurn extends ProbeResult { output: OutputItem[] }
+export interface SolHighTimingSample {
+  promptId: 'morning' | 'meal_choice' | 'task_carryover';
+  status: 'completed' | 'failed' | 'not_run';
+  firstTextDeltaMs?: number;
+  firstSpeakableMs?: number;
+  completedMs?: number;
+  usage?: ProbeResult['usage'];
+  error?: { status?: number; code: string };
+}
+export interface SolHighTimingProbeResult {
+  completed: boolean;
+  model: typeof selectedModel;
+  effort: typeof selectedEffort;
+  samples: SolHighTimingSample[];
+}
+interface StreamTimingObserver {
+  firstTextDelta?: (elapsedMs: number) => void;
+  firstSpeakable?: (elapsedMs: number) => void;
+  completed?: (elapsedMs: number, usage: ProbeResult['usage']) => void;
+}
 async function requestSolHigh(account: PlanCredential, input: OutputItem[],
-  options: { tools?: OutputItem[]; tool_choice?: 'required' | 'none' } = {}, fetcher: typeof fetch = fetch): Promise<CompletedTurn> {
+  options: { tools?: OutputItem[]; tool_choice?: 'required' | 'none' } = {}, fetcher: typeof fetch = fetch,
+  timing?: StreamTimingObserver): Promise<CompletedTurn> {
   if (!account.scopes.includes(requiredScope)) throw new Error('ChatGPT plan use was not granted for this connection.');
+  const started = performance.now();
+  let observedText = '';
+  let firstDeltaSeen = false;
+  let firstSpeakableSeen = false;
+  const findSpeakableBoundary = () => /[.!?]["'”’)]*(?:\s|$)/u.test(observedText.trimEnd());
   const response = await fetcher(responsesEndpoint, {
     method: 'POST', redirect: 'error',
     headers: { Authorization: `Bearer ${account.accessToken}`, 'Content-Type': 'application/json' },
@@ -84,7 +110,17 @@ async function requestSolHigh(account: PlanCredential, input: OutputItem[],
         if (!data || data === '[DONE]') continue;
         let item: Record<string, unknown>;
         try { item = JSON.parse(data) as Record<string, unknown>; } catch { throw new Error('Invalid ChatGPT response stream.'); }
-        if (item.type === 'response.output_text.delta' && typeof item.delta === 'string') text = (text + item.delta).slice(0, 2000);
+        if (item.type === 'response.output_text.delta' && typeof item.delta === 'string') {
+          text = (text + item.delta).slice(0, 2000);
+          if (timing && item.delta.length > 0) {
+            observedText = (observedText + item.delta).slice(-2000);
+            if (!firstDeltaSeen) { firstDeltaSeen = true; timing.firstTextDelta?.(performance.now() - started); }
+            // A sentence boundary is the earliest conservative unit suitable for speech.
+            if (!firstSpeakableSeen && observedText.trim().length >= 8 && findSpeakableBoundary()) {
+              firstSpeakableSeen = true; timing.firstSpeakable?.(performance.now() - started);
+            }
+          }
+        }
         if (item.type === 'response.output_item.done') {
           const index = item.output_index;
           if (typeof index !== 'number' || !Number.isInteger(index) || index < 0 || index > 100 || finalizedItems.has(index) ||
@@ -108,6 +144,10 @@ async function requestSolHigh(account: PlanCredential, input: OutputItem[],
           if (indexes.some((index, position) => index !== position)) throw new Error('Invalid ChatGPT response items.');
           const output = Array.isArray(result.output) && result.output.length ? result.output : indexes.map(index => finalizedItems.get(index)!);
           if (output.some(item => !item || typeof item !== 'object' || Array.isArray(item))) throw new Error('Invalid ChatGPT response items.');
+          if (timing && !firstSpeakableSeen && observedText.trim().length >= 8 && /[.!?]["'”’)]*$/u.test(observedText.trim())) {
+            firstSpeakableSeen = true; timing.firstSpeakable?.(performance.now() - started);
+          }
+          timing?.completed?.(performance.now() - started, usage);
           completed = { completed: true, model: selectedModel, effort: selectedEffort, text, usage, requestId, output };
           break;
         }
@@ -117,6 +157,40 @@ async function requestSolHigh(account: PlanCredential, input: OutputItem[],
   } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
   if (!completed) throw new Error('ChatGPT stream ended without response.completed.');
   return completed;
+}
+
+const timingPrompts = [
+  { id: 'morning', text: 'Synthetic latency benchmark. In one short, speakable sentence, greet Nancy’s listener and ask whether they want to plan breakfast or tasks.' },
+  { id: 'meal_choice', text: 'Synthetic latency benchmark. In one short, speakable sentence, offer a choice between toast and yogurt for breakfast.' },
+  { id: 'task_carryover', text: 'Synthetic latency benchmark. In one short, speakable sentence, gently ask whether the listener wants to revisit one unfinished task.' },
+] as const;
+
+/** Three fixed synthetic requests through the existing app-authenticated Sol/high route. */
+export async function probeSolHighFirstSpeakable(account: PlanCredential, fetcher: typeof fetch = fetch): Promise<SolHighTimingProbeResult> {
+  const samples: SolHighTimingSample[] = [];
+  for (let index = 0; index < timingPrompts.length; index++) {
+    const prompt = timingPrompts[index]!;
+    const sample: SolHighTimingSample = { promptId: prompt.id, status: 'failed' };
+    try {
+      const turn = await requestSolHigh(account, [{ role: 'user', content: prompt.text }], {}, fetcher, {
+        firstTextDelta: elapsedMs => { sample.firstTextDeltaMs = Number(elapsedMs.toFixed(1)); },
+        firstSpeakable: elapsedMs => { sample.firstSpeakableMs = Number(elapsedMs.toFixed(1)); },
+        completed: (elapsedMs, usage) => { sample.completedMs = Number(elapsedMs.toFixed(1)); sample.usage = usage; },
+      });
+      sample.status = 'completed';
+      samples.push(sample);
+      if (!turn.completed) break;
+    } catch (error) {
+      sample.error = error instanceof PlanRequestError
+        ? { status: error.status, code: error.code }
+        : { code: error instanceof Error && error.message === 'ChatGPT response was incomplete.' ? 'incomplete' : 'request_failed' };
+      samples.push(sample);
+      for (const remaining of timingPrompts.slice(index + 1)) samples.push({ promptId: remaining.id, status: 'not_run' });
+      break;
+    }
+  }
+  return { completed: samples.length === timingPrompts.length && samples.every(sample => sample.status === 'completed'),
+    model: selectedModel, effort: selectedEffort, samples };
 }
 
 export async function probeSolHigh(account: PlanCredential, fetcher: typeof fetch = fetch): Promise<ProbeResult> {
