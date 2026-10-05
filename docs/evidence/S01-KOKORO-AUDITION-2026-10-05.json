@@ -1,0 +1,327 @@
+{
+  "purpose": "Actual local Kokoro synthetic voice audition; not full S01 or participant acceptance",
+  "executed_at": "2026-10-05T17:56:00.4845156Z",
+  "base_git_revision": "1134a8b5a8589880d9e86c495981ed0c051ecd43",
+  "implementation_revision": "sha256:0053510107c555a99eca30d0510f88ec19db8122258671295f01884b7e25af24",
+  "observed_by": "Codex orchestrator with delegated preview UI and server implementation",
+  "data_origin": "Fixed synthetic catalogue only; no care records, microphone input or credentials",
+  "owner_decision": "Requested Kokoro trial after rejecting installed browser and Windows voices; preferred voice still pending",
+  "synthesis": {
+    "status": "passed",
+    "engine": "kokoro-js",
+    "runtime_versions": {
+      "kokoro-js": "1.2.1",
+      "@huggingface/transformers": "3.8.1",
+      "phonemizer": "1.2.1",
+      "onnxruntime-node": "1.21.0"
+    },
+    "runtime_lock_sha256": "a87c57dc4df73f78d7afd420f122f5ece5831e7f621d4ef11dbf780fb04fcadb",
+    "model_id": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "model_revision": "1939ad2a8e416c0acfeecc08a694d14ef25f2231",
+    "dtype": "fp32",
+    "device": "cpu",
+    "threads": {
+      "intra_op": 4,
+      "inter_op": 1
+    },
+    "speed": 1,
+    "cached_load_ms": 1670,
+    "node_version": "v24.16.0",
+    "cpu": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+    "model_files": [
+      {
+        "file": "config.json",
+        "bytes": 44,
+        "sha256": "df34b4f930b23447cd4dc410fabfb42eb3f24e803e6c3f97d618fb359380a36f"
+      },
+      {
+        "file": "tokenizer_config.json",
+        "bytes": 113,
+        "sha256": "be1cb066d6ef6b074b3f15e6a6dd21ac88ff3cdaedf325f0aaed686c70f75d20"
+      },
+      {
+        "file": "tokenizer.json",
+        "bytes": 3497,
+        "sha256": "77a02c8e164413299b4b4c403b14f8e0e1c1b727db4d46a09d6327b861060a34"
+      },
+      {
+        "file": "onnx/model.onnx",
+        "bytes": 325532232,
+        "sha256": "8fbea51ea711f2af382e88c833d9e288c6dc82ce5e98421ea61c058ce21a34cb"
+      }
+    ],
+    "voice_sha256": {
+      "af_heart": "d583ccff3cdca2f7fae535cb998ac07e9fcb90f09737b9a41fa2734ec44a8f0b",
+      "af_bella": "f69d836209b78eb8c66e75e3cda491e26ea838a3674257e9d4e5703cbaf55c8b",
+      "bf_emma": "669fe0647f9dd04fcab92f1439a40eeb4c8b4ab1f82e4996fe3d918ce4a63b73"
+    },
+    "manifest_sha256": "eb3584027e85106184a5eaf6e29dfb82435356b3c2b1d8bfdb1c39a50cd46f94",
+    "samples": [
+      {
+        "voice_id": "af_heart",
+        "sample_id": "morning",
+        "file_name": "af_heart-morning.wav",
+        "text": "Good morning. How are you feeling today? We have a few things to plan, but there is no rush. Would you like to start with breakfast, or look at what is coming up?",
+        "sha256": "21333c0607139be4182f1cd4339b4b58054f1d67d954b5909cff51a1dcdedf8f",
+        "bytes": 890444,
+        "sampling_rate": 24000,
+        "duration_seconds": 9.275,
+        "generation_ms": 4065,
+        "real_time_factor": 0.438,
+        "raw_rms": 0.07528,
+        "raw_peak": 0.72763,
+        "output_gain": 1
+      },
+      {
+        "voice_id": "af_heart",
+        "sample_id": "meals",
+        "file_name": "af_heart-meals.wav",
+        "text": "We could make an omelette, or have some soup with toast. Do either of those sound good? If not, tell me what you feel like, and we can find another idea together.",
+        "sha256": "1cccbe461a59c9b29f634c589a4c62e1589d9d2ca43005e60d25eac98c9704d6",
+        "bytes": 919244,
+        "sampling_rate": 24000,
+        "duration_seconds": 9.575,
+        "generation_ms": 3874,
+        "real_time_factor": 0.405,
+        "raw_rms": 0.07618,
+        "raw_peak": 0.59568,
+        "output_gain": 1
+      },
+      {
+        "voice_id": "af_heart",
+        "sample_id": "carryover",
+        "file_name": "af_heart-carryover.wav",
+        "text": "We left organizing the room for another day. Does that still feel important to you? We could start with one small part, change the plan, or ask someone to help.",
+        "sha256": "897a2952b8f207910bb94175414718d5d66ea01b7259a41904031a7fb6324ed7",
+        "bytes": 945644,
+        "sampling_rate": 24000,
+        "duration_seconds": 9.85,
+        "generation_ms": 3889,
+        "real_time_factor": 0.395,
+        "raw_rms": 0.07544,
+        "raw_peak": 1.02912,
+        "output_gain": 0.961983
+      },
+      {
+        "voice_id": "af_bella",
+        "sample_id": "morning",
+        "file_name": "af_bella-morning.wav",
+        "text": "Good morning. How are you feeling today? We have a few things to plan, but there is no rush. Would you like to start with breakfast, or look at what is coming up?",
+        "sha256": "3d924a465575912362728a56196f9f9583b2655c7e1b0d0164adcfda7d78e19e",
+        "bytes": 931244,
+        "sampling_rate": 24000,
+        "duration_seconds": 9.7,
+        "generation_ms": 3925,
+        "real_time_factor": 0.405,
+        "raw_rms": 0.08713,
+        "raw_peak": 0.69873,
+        "output_gain": 1
+      },
+      {
+        "voice_id": "af_bella",
+        "sample_id": "meals",
+        "file_name": "af_bella-meals.wav",
+        "text": "We could make an omelette, or have some soup with toast. Do either of those sound good? If not, tell me what you feel like, and we can find another idea together.",
+        "sha256": "ac51b04424c959d74e64084b756ed77e40f8e22eaacaa9e36f648f3876e0981a",
+        "bytes": 984044,
+        "sampling_rate": 24000,
+        "duration_seconds": 10.25,
+        "generation_ms": 4056,
+        "real_time_factor": 0.396,
+        "raw_rms": 0.08854,
+        "raw_peak": 0.58705,
+        "output_gain": 1
+      },
+      {
+        "voice_id": "af_bella",
+        "sample_id": "carryover",
+        "file_name": "af_bella-carryover.wav",
+        "text": "We left organizing the room for another day. Does that still feel important to you? We could start with one small part, change the plan, or ask someone to help.",
+        "sha256": "7d7e1da2aef52cda2bd09be8f0a5ba1cef75f6048a304bd82f729ee811bf046e",
+        "bytes": 1000844,
+        "sampling_rate": 24000,
+        "duration_seconds": 10.425,
+        "generation_ms": 4179,
+        "real_time_factor": 0.401,
+        "raw_rms": 0.08766,
+        "raw_peak": 1.06534,
+        "output_gain": 0.929279
+      },
+      {
+        "voice_id": "bf_emma",
+        "sample_id": "morning",
+        "file_name": "bf_emma-morning.wav",
+        "text": "Good morning. How are you feeling today? We have a few things to plan, but there is no rush. Would you like to start with breakfast, or look at what is coming up?",
+        "sha256": "1e69d5d4063c5978bb2c3037ce42f1aeb02b11bb3cad1150645938524957f772",
+        "bytes": 849644,
+        "sampling_rate": 24000,
+        "duration_seconds": 8.85,
+        "generation_ms": 3655,
+        "real_time_factor": 0.413,
+        "raw_rms": 0.08857,
+        "raw_peak": 0.67358,
+        "output_gain": 1
+      },
+      {
+        "voice_id": "bf_emma",
+        "sample_id": "meals",
+        "file_name": "bf_emma-meals.wav",
+        "text": "We could make an omelette, or have some soup with toast. Do either of those sound good? If not, tell me what you feel like, and we can find another idea together.",
+        "sha256": "3fc0a24e10a912d4a19f569d05a95d695372e7a4c3b576feecad2e7a9a4a2b33",
+        "bytes": 890444,
+        "sampling_rate": 24000,
+        "duration_seconds": 9.275,
+        "generation_ms": 3538,
+        "real_time_factor": 0.381,
+        "raw_rms": 0.08613,
+        "raw_peak": 0.82292,
+        "output_gain": 1
+      },
+      {
+        "voice_id": "bf_emma",
+        "sample_id": "carryover",
+        "file_name": "bf_emma-carryover.wav",
+        "text": "We left organizing the room for another day. Does that still feel important to you? We could start with one small part, change the plan, or ask someone to help.",
+        "sha256": "0d58d30c7028855c2cea63069ce796780db022bec8b123b7289567ddbe1daf23",
+        "bytes": 919244,
+        "sampling_rate": 24000,
+        "duration_seconds": 9.575,
+        "generation_ms": 3973,
+        "real_time_factor": 0.415,
+        "raw_rms": 0.0892,
+        "raw_peak": 0.93521,
+        "output_gain": 1
+      }
+    ],
+    "validation": "All nine WAVs have finite non-silent 24 kHz waveforms, bounded durations and verified digests. Uniform gain reduction applied only where peaks would exceed the output range.",
+    "prior_attempt": "Initial strict peak check rejected the third sample when neural output slightly exceeded PCM range. Generator now applies uniform gain reduction before writing, with raw peak and gain recorded. Complete successful rerun supplied this manifest."
+  },
+  "automated_checks": {
+    "command": "npm run check",
+    "outcome": "passed",
+    "tests_passed": 92,
+    "test_files": 11,
+    "typecheck": "passed",
+    "production_build": "passed",
+    "preview_ui_tests": 15,
+    "preview_server_tests": 7,
+    "roadmap_validation": "passed",
+    "generated_human_actions_check": "passed"
+  },
+  "actual_asr_sanity": {
+    "route": "Existing local faster-whisper-small.en CPU int8; no network inference",
+    "samples_checked": 9,
+    "exact_after_punctuation_and_case_normalization": 7,
+    "remaining_differences": "Two meal clips transcribed omelet rather than omelette; all script content recovered.",
+    "naturalness_or_human_acceptance_proved": false,
+    "private_receipt_ref": "local:.local/probes/kokoro/asr-check.json"
+  },
+  "https_checks": {
+    "checked_at": "2026-10-05T17:56:00.4845156Z",
+    "samples": [
+      {
+        "route": "/preview/kokoro/af_heart/morning.wav",
+        "status": 200,
+        "sha256_match": true,
+        "bytes": 890444
+      },
+      {
+        "route": "/preview/kokoro/af_heart/meals.wav",
+        "status": 200,
+        "sha256_match": true,
+        "bytes": 919244
+      },
+      {
+        "route": "/preview/kokoro/af_heart/carryover.wav",
+        "status": 200,
+        "sha256_match": true,
+        "bytes": 945644
+      },
+      {
+        "route": "/preview/kokoro/af_bella/morning.wav",
+        "status": 200,
+        "sha256_match": true,
+        "bytes": 931244
+      },
+      {
+        "route": "/preview/kokoro/af_bella/meals.wav",
+        "status": 200,
+        "sha256_match": true,
+        "bytes": 984044
+      },
+      {
+        "route": "/preview/kokoro/af_bella/carryover.wav",
+        "status": 200,
+        "sha256_match": true,
+        "bytes": 1000844
+      },
+      {
+        "route": "/preview/kokoro/bf_emma/morning.wav",
+        "status": 200,
+        "sha256_match": true,
+        "bytes": 849644
+      },
+      {
+        "route": "/preview/kokoro/bf_emma/meals.wav",
+        "status": 200,
+        "sha256_match": true,
+        "bytes": 890444
+      },
+      {
+        "route": "/preview/kokoro/bf_emma/carryover.wav",
+        "status": 200,
+        "sha256_match": true,
+        "bytes": 919244
+      }
+    ],
+    "byte_range_status": 206,
+    "content_range": [
+      "bytes 0-11/890444"
+    ]
+  },
+  "browser_observations": {
+    "environment": "Codex in-app desktop browser using existing public HTTPS link",
+    "decoded_samples": [
+      "af_heart/morning",
+      "af_bella/meals",
+      "bf_emma/carryover"
+    ],
+    "actual_durations_seconds": [
+      9.275,
+      10.25,
+      9.575
+    ],
+    "playback_not_paused": true,
+    "media_errors": false,
+    "selector_changes_stop_playback": true,
+    "requested_viewport": {
+      "height": 844,
+      "width": 390
+    },
+    "document_client_width": 375,
+    "document_scroll_width": 375,
+    "horizontal_overflow": false,
+    "viewport_override_reset": true,
+    "microphone_opened": false,
+    "human_audibility_verified": false,
+    "iphone_safari_test": "awaiting participant listening",
+    "private_screenshot_ref": "local:.local/probes/nancy-kokoro-preview.jpg"
+  },
+  "deployment": {
+    "preview_server_restarted": true,
+    "existing_tunnel_retained": true,
+    "read_only": true,
+    "exactly_nine_pinned_samples": true,
+    "live_synthesis_endpoint": false,
+    "care_or_provider_endpoints_exposed": false,
+    "speech_api_cost": 0,
+    "new_paid_service": false,
+    "runtime_private_ref": "local:.local/runtime/device-preview.json"
+  },
+  "limitations": [
+    "Pre-generated clips audition sound only; no live conversation or chosen production voice.",
+    "Desktop browser playback is not actual iPhone/Safari audibility or naturalness acceptance.",
+    "Full-clip synthesis time excludes ASR, Sol/high reasoning, care tools, network transit and streaming.",
+    "Local authentication/database integration, continuous turn-taking, interruption, Hey Nancy and S01 live gates remain unqualified."
+  ]
+}

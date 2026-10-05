@@ -9,7 +9,13 @@ if (process.env.PREVIEW_PUBLIC_ORIGIN) {
   if (origin.protocol !== 'https:' || origin.origin !== process.env.PREVIEW_PUBLIC_ORIGIN || origin.username || origin.password) throw new Error('Preview public address must be an HTTPS origin.');
   allowedHosts.push(origin.host);
 }
-const app = await createDevicePreview({ allowedHosts, samplePath: '.local/probes/nancy-local-voice.wav', sampleSha256: process.env.PREVIEW_SAMPLE_SHA256 });
+const app = await createDevicePreview({
+  allowedHosts,
+  samplePath: '.local/probes/nancy-local-voice.wav',
+  sampleSha256: process.env.PREVIEW_SAMPLE_SHA256,
+  kokoroManifestPath: process.env.PREVIEW_KOKORO_MANIFEST_SHA256 ? '.local/probes/kokoro/manifest.json' : undefined,
+  kokoroManifestSha256: process.env.PREVIEW_KOKORO_MANIFEST_SHA256,
+});
 await app.listen({ host: '127.0.0.1', port });
 console.log(`Nancy device preview is running on http://127.0.0.1:${port}/preview`);
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => { void app.close().then(() => process.exit(0)); });

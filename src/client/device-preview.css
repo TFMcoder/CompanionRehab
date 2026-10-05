@@ -34,6 +34,16 @@ html, body, #root { margin: 0; min-height: 100%; }
 .dp-hero::after { content: ""; position: absolute; width: 255px; height: 255px; border-radius: 50%; right: -115px; top: -110px; border: 40px solid #ffffff8c; pointer-events: none; }
 .dp-sun { display: inline-grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; margin-bottom: 30px; background: #f9d38b; color: #8d5419; font-size: 26px; }
 .dp-hero > p:not(.dp-eyebrow):not(.dp-hint):not(.dp-inline-error) { max-width: 500px; margin: 0 0 24px; color: #3e5861; font-size: 20px; line-height: 1.42; }
+.dp-kokoro-controls { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; max-width: 640px; margin: 0 0 18px; }
+.dp-kokoro-controls label { display: grid; gap: 5px; color: #315860; font-size: 15px; font-weight: 750; }
+.dp-kokoro-controls select { width: 100%; min-height: 52px; border: 1px solid #87a9a5; border-radius: 11px; padding: 9px 11px; background: #fffdfa; color: #183044; font: inherit; font-size: 16px; }
+.dp-hero > .dp-sample-script { position: relative; max-width: 640px !important; padding: 15px 17px; border-radius: 12px; background: #ffffffc9; color: #31525a !important; font-size: 16px !important; line-height: 1.55 !important; }
+.dp-hero > .dp-sample-script strong { display: block; margin-bottom: 4px; color: #145c63; }
+.dp-hero > .dp-primary, .dp-hero > .dp-hint, .dp-hero > .dp-inline-error { position: relative; }
+.dp-older-voices { margin-top: 20px; }
+.dp-older-voices > summary { min-height: 48px; width: fit-content; padding: 10px 2px; color: #315c63; font-size: 15px; font-weight: 700; cursor: pointer; }
+.dp-older-voices > summary:focus-visible { outline: 3px solid #096b71; outline-offset: 3px; }
+.dp-older-voices .dp-voice-card { margin-top: 12px; }
 .dp-primary, .dp-secondary { min-height: 54px; border-radius: 14px; padding: 12px 21px; font-weight: 750 !important; }
 .dp-primary { border: 2px solid #145c63; background: #145c63; color: white; }
 .dp-primary:hover { background: #0f494f; }
@@ -95,6 +105,7 @@ html, body, #root { margin: 0; min-height: 100%; }
   .dp-hero { padding: 25px 22px 28px; border-radius: 21px; }
   .dp-sun { margin-bottom: 23px; }
   .dp-hero > p:not(.dp-eyebrow):not(.dp-hint):not(.dp-inline-error) { font-size: 18px; }
+  .dp-kokoro-controls { grid-template-columns: 1fr; }
   .dp-primary, .dp-secondary { width: 100%; }
   .dp-mic-card { padding: 23px 20px; }
   .dp-voice-card { padding: 23px 20px; }

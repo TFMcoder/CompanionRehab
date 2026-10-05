@@ -14,7 +14,7 @@ The owner has selected Outlook, not completed its OAuth connection. S01 can stil
 
 ### Owner quality feedback: current samples rejected
 
-After auditioning the preview, the owner reported robotic delivery with inadequate intonation, pacing and inflection, and set natural, responsive conversation comparable in feel to ChatGPT voice as the target. The rejection applies to the current installed-browser/fixed-Windows samples. Kokoro, Piper and an expressive hosted speech model have not been auditioned in this app. Do not ask the owner to accept the same device voices as Nancy's production voice or mistake successful playback for quality acceptance.
+After auditioning the preview, the owner reported robotic delivery with inadequate intonation, pacing and inflection, and set natural, responsive conversation comparable in feel to ChatGPT voice as the target. The rejection applies to the installed-browser/fixed-Windows samples. The owner then requested a Kokoro trial; its three voices are now prepared for listening as described below. Piper and expressive hosted speech remain untested here. Do not ask the owner to accept the rejected device voices as Nancy's production voice or mistake successful playback for quality acceptance.
 
 Source inspection confirms the preview uses a fixed `SpeechSynthesisUtterance` with a selected installed voice and a rate setting, plus a fixed Windows Zira WAV. It has no contextual expressive speech instructions or live conversation pipeline. Changing rate alone cannot establish the requested quality. Production acceptance must separately assess voice naturalness (intonation, appropriate pauses, emphasis and respectful warmth) and interaction quality (reply latency, turn endings, interruption and contextual response). Test several new utterances and a real back-and-forth, not only a rehearsed greeting. Keep Sol/high as the selected reasoning model.
 
@@ -24,7 +24,7 @@ Use speech independently of the selected GPT-6 Sol/high reasoning route. Free he
 
 | Option | Recommendation | Cost and qualification |
 |---|---|---|
-| Kokoro-82M on the existing PC | First candidate for Nancy's consistent voice across phones. Audition `af_heart`, `af_bella` and `bf_emma`, then let the client choose. | Apache-2.0 model weights. No voice-service charge for local inference. Installation, runtime dependencies, real latency and the client's listening preference remain unqualified. |
+| Kokoro-82M on the existing PC | First candidate for Nancy's consistent voice across phones. Audition `af_heart`, `af_bella` and `bf_emma`, then let the client choose. | Apache-2.0 model weights. Local installation and nine synthetic fp32 CPU clips are verified. No voice-service charge. Participant listening preference and end-to-end conversational latency remain unqualified. |
 | Installed phone/browser voices | Immediate, simple voice audition and possible fallback. Display actual available English voices and allow a slower pace. | Restrict the chooser to voices that the browser reports as `localService: true`. Availability and quality differ by phone; do not silently select a remote voice when a local choice is absent. |
 | Piper on the existing PC | Alternative to benchmark for efficient local speech. | Current engine is GPL-3.0; voice model cards carry their own terms. Check the exact chosen model before distribution. No hosted service is required. |
 
@@ -33,6 +33,14 @@ Kokoro's published catalogue lists American and British voices and explicitly tr
 Piper describes a local neural engine and links model-specific voice information: [engine](https://github.com/OHF-Voice/piper1-gpl), [voice terms](https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/VOICES.md). Browser voice locality is available through the [Web Speech localService property](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisVoice/localService).
 
 The preview's Windows Zira WAV remains a fixed synthetic sample, not the selected production voice. A local browser chooser auditions the same neutral, encouraging sentence without sending care text to a speech provider. Production preferences must eventually be stored per authorized client and include voice ID/provider, pace and conversational pacing. A voice cannot be classified as suitable without the client's feedback.
+
+### Kokoro trial prepared
+
+On October 5 the owner said “Lets test out Kokoro.” The agent installed isolated `kokoro-js` 1.2.1 and pinned the ONNX model revision, preserving the existing ASR and reasoning runtimes. The public preview now leads with Heart, Bella and Emma, each reading identical morning, meal-choice and carryover scripts. Rejected device voices remain collapsed for optional comparison. Exact scripts are visible, and no participant data is used or uploaded.
+
+Actual fp32 CPU synthesis produced nine 24 kHz clips lasting 8.85–10.425 seconds, each generated in 3.538–4.179 seconds after model load. These are full-clip synthesis measurements, not time to first streamed audio or end-to-end reply latency. A cached model load took 1.670 seconds. Local ASR recovered all nine scripts; seven matched after punctuation/case normalization and two differed only in the spelling “omelet” versus “omelette.” That checks content, not naturalness. Public desktop-browser playback decoded one sample per voice without a media error; actual iPhone/Safari audibility and participant preference are still pending.
+
+See [reproduction steps](../DEVICE_PREVIEW.md#local-kokoro-audition) and [sanitized evidence](../evidence/S01-KOKORO-AUDITION-2026-10-05.json). Samples are generated ahead of time and served as pinned WAVs; no live synthesis endpoint, paid speech service, production voice preference, turn-taking or wake listener is enabled by this trial. Next assess the client's listening feedback, then integrate the chosen speech output with the authorized Sol/high conversation and measure real response timing and interruption.
 
 Encouragement is also conversational behavior: one question at a time, brief replies, adult and respectful wording, no guilt about missed tasks, and room to think or disagree. Do not substitute exaggerated cheerfulness for listening.
 

@@ -44,7 +44,7 @@ describe("phone device preview", () => {
   it("plays fixed text at the chosen pace and cancels on navigation", () => {
     const speech = installSpeech([localVoice, otherLocalVoice, remoteVoice]);
     render(<DevicePreview />);
-    fireEvent.change(screen.getByLabelText("Voice"), { target: { value: "local-steady" } });
+    fireEvent.change(screen.getByLabelText("Installed voice"), { target: { value: "local-steady" } });
     fireEvent.change(screen.getByLabelText("Pace"), { target: { value: "0.85" } });
     fireEvent.click(screen.getByRole("button", { name: "Preview selected voice" }));
     const utterance = speech.speak.mock.calls[0]?.[0] as SpeechSynthesisUtterance;
@@ -74,7 +74,7 @@ describe("phone device preview", () => {
   it("refuses a voice removed from the live local inventory", () => {
     const speech = installSpeech([localVoice, otherLocalVoice]);
     render(<DevicePreview />);
-    fireEvent.change(screen.getByLabelText("Voice"), { target: { value: "local-steady" } });
+    fireEvent.change(screen.getByLabelText("Installed voice"), { target: { value: "local-steady" } });
     act(() => speech.setVoices([localVoice]));
     fireEvent.click(screen.getByRole("button", { name: "Preview selected voice" }));
     expect(speech.speak).not.toHaveBeenCalled();
@@ -104,6 +104,105 @@ describe("phone device preview", () => {
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("could not play"));
     expect(play).toHaveBeenCalledTimes(1);
     expect(screen.getAllByText(/not a live conversation/)).toHaveLength(2);
+  });
+
+  it("plays the exact Kokoro voice and utterance selected, with the script visible", async () => {
+    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
+    const { container } = render(<DevicePreview />);
+    const kokoroAudio = container.querySelector<HTMLAudioElement>('audio[src^="/preview/kokoro/"]')!;
+    expect(kokoroAudio).toHaveAttribute("preload", "none");
+    expect(kokoroAudio).toHaveAttribute("src", "/preview/kokoro/af_heart/morning.wav");
+    fireEvent.change(screen.getByLabelText("Kokoro voice"), { target: { value: "bf_emma" } });
+    fireEvent.change(screen.getByLabelText("Kokoro sample"), { target: { value: "meals" } });
+    expect(screen.getByText(/Emma says:/).closest(".dp-sample-script")).toHaveTextContent("We could make an omelette");
+    const selectedAudio = container.querySelector<HTMLAudioElement>('audio[src^="/preview/kokoro/"]')!;
+    expect(selectedAudio).toHaveAttribute("src", "/preview/kokoro/bf_emma/meals.wav");
+    fireEvent.click(screen.getByRole("button", { name: "Play Kokoro sample" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Stop Kokoro sample" })).toBeInTheDocument());
+    expect(play).toHaveBeenCalledTimes(1);
+    fireEvent.ended(selectedAudio);
+    expect(screen.getByRole("button", { name: "Play Kokoro sample" })).toBeInTheDocument();
+  });
+
+  it("stops pending Kokoro playback on selection and ignores its late completion", async () => {
+    let resolvePlay!: () => void;
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(() => new Promise<void>(resolve => { resolvePlay = resolve; }));
+    const pause = vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => undefined);
+    render(<DevicePreview />);
+    fireEvent.click(screen.getByRole("button", { name: "Play Kokoro sample" }));
+    expect(screen.getByRole("button", { name: "Stop Kokoro sample" })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Kokoro sample"), { target: { value: "carryover" } });
+    expect(screen.getByRole("button", { name: "Play Kokoro sample" })).toBeInTheDocument();
+    await act(async () => resolvePlay());
+    expect(screen.getByRole("button", { name: "Play Kokoro sample" })).toBeInTheDocument();
+    expect(pause).toHaveBeenCalled();
+  });
+
+  it("does not stop a newer Kokoro clip when an older play promise resolves", async () => {
+    const resolves: Array<() => void> = [];
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(() => new Promise<void>(resolve => { resolves.push(resolve); }));
+    const pause = vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => undefined);
+    const { container } = render(<DevicePreview />);
+    const firstAudio = container.querySelector<HTMLAudioElement>('audio[src^="/preview/kokoro/"]')!;
+    fireEvent.click(screen.getByRole("button", { name: "Play Kokoro sample" }));
+    fireEvent.change(screen.getByLabelText("Kokoro voice"), { target: { value: "af_bella" } });
+    const secondAudio = container.querySelector<HTMLAudioElement>('audio[src^="/preview/kokoro/"]')!;
+    fireEvent.click(screen.getByRole("button", { name: "Play Kokoro sample" }));
+    await act(async () => resolves[0]());
+    expect(screen.getByRole("button", { name: "Stop Kokoro sample" })).toBeInTheDocument();
+    expect(pause.mock.instances).toContain(firstAudio);
+    expect(pause.mock.instances).not.toContain(secondAudio);
+    await act(async () => resolves[1]());
+    expect(screen.getByRole("button", { name: "Stop Kokoro sample" })).toBeInTheDocument();
+  });
+
+  it("pauses a late same-clip play completion after Stop", async () => {
+    let resolvePlay!: () => void;
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(() => new Promise<void>(resolve => { resolvePlay = resolve; }));
+    const pause = vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => undefined);
+    render(<DevicePreview />);
+    fireEvent.click(screen.getByRole("button", { name: "Play Kokoro sample" }));
+    fireEvent.click(screen.getByRole("button", { name: "Stop Kokoro sample" }));
+    const afterStop = pause.mock.calls.length;
+    await act(async () => resolvePlay());
+    expect(pause.mock.calls.length).toBeGreaterThan(afterStop);
+    expect(screen.getByRole("button", { name: "Play Kokoro sample" })).toBeInTheDocument();
+  });
+
+  it("reports missing Kokoro audio and cancels playback when microphone checking begins", async () => {
+    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockRejectedValueOnce(new Error("missing")).mockResolvedValue();
+    render(<DevicePreview />);
+    fireEvent.click(screen.getByRole("button", { name: "Play Kokoro sample" }));
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("could not play"));
+    fireEvent.click(screen.getByRole("button", { name: "Play Kokoro sample" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Stop Kokoro sample" })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Check microphone" }));
+    expect(screen.getByRole("button", { name: "Play Kokoro sample" })).toBeInTheDocument();
+    expect(play).toHaveBeenCalledTimes(2);
+    expect(screen.getByText(/Nothing is uploaded or saved/)).toBeInTheDocument();
+  });
+
+  it("stops Kokoro on navigation, page hide and unmount", async () => {
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
+    const pause = vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => undefined);
+    const rendered = render(<DevicePreview />);
+    fireEvent.click(screen.getByRole("button", { name: "Play Kokoro sample" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Stop Kokoro sample" })).toBeInTheDocument());
+    const beforeNavigate = pause.mock.calls.length;
+    fireEvent.click(screen.getByRole("button", { name: "Tasks" }));
+    expect(pause.mock.calls.length).toBeGreaterThan(beforeNavigate);
+    fireEvent.click(screen.getByRole("button", { name: "Home" }));
+    fireEvent.click(screen.getByRole("button", { name: "Play Kokoro sample" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Stop Kokoro sample" })).toBeInTheDocument());
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    fireEvent(document, new Event("visibilitychange"));
+    expect(screen.getByRole("button", { name: "Play Kokoro sample" })).toBeInTheDocument();
+    visibility.mockRestore();
+    fireEvent.click(screen.getByRole("button", { name: "Play Kokoro sample" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Stop Kokoro sample" })).toBeInTheDocument());
+    const beforeUnmount = pause.mock.calls.length;
+    rendered.unmount();
+    expect(pause.mock.calls.length).toBeGreaterThan(beforeUnmount);
   });
 
   it("reports unsupported microphone access without requesting or saving anything", () => {

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { kokoroSampleUrl, kokoroSamples, kokoroVoices } from "../shared/kokoro-samples";
 import "./device-preview.css";
 
 type View = "home" | "tasks" | "meals";
@@ -44,6 +45,10 @@ function TaskCard({ task, date }: { task: SampleTask; date: string }) {
 
 export function DevicePreview() {
   const [view, setView] = useState<View>("home");
+  const [kokoroVoice, setKokoroVoice] = useState<(typeof kokoroVoices)[number]["id"]>(kokoroVoices[0].id);
+  const [kokoroSample, setKokoroSample] = useState<(typeof kokoroSamples)[number]["id"]>(kokoroSamples[0].id);
+  const [kokoroState, setKokoroState] = useState<"idle" | "loading" | "playing">("idle");
+  const [kokoroMessage, setKokoroMessage] = useState("");
   const [sampleMessage, setSampleMessage] = useState("");
   const [samplePlaying, setSamplePlaying] = useState(false);
   const [localVoices, setLocalVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -55,6 +60,7 @@ export function DevicePreview() {
   const [micMessage, setMicMessage] = useState("");
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const sampleAudio = useRef<HTMLAudioElement>(null);
+  const kokoroAudio = useRef<HTMLAudioElement>(null);
   const recordingAudio = useRef<HTMLAudioElement>(null);
   const recording = useRef<{ recorder: MediaRecorder; stream: MediaStream; chunks: Blob[] } | null>(null);
   const recordingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -62,10 +68,22 @@ export function DevicePreview() {
   const micEpoch = useRef(0);
   const micRequested = useRef(false);
   const sampleEpoch = useRef(0);
+  const kokoroEpoch = useRef(0);
+  const kokoroPlaybackOwner = useRef<number | null>(null);
   const voiceEpoch = useRef(0);
   const voiceUtterance = useRef<SpeechSynthesisUtterance | null>(null);
   const mounted = useRef(true);
   const date = localDate();
+  const selectedKokoroSample = kokoroSamples.find(sample => sample.id === kokoroSample)!;
+  const selectedKokoroVoice = kokoroVoices.find(voice => voice.id === kokoroVoice)!;
+
+  const stopKokoro = () => {
+    kokoroEpoch.current += 1;
+    kokoroPlaybackOwner.current = null;
+    kokoroAudio.current?.pause();
+    if (kokoroAudio.current) kokoroAudio.current.currentTime = 0;
+    if (mounted.current) setKokoroState("idle");
+  };
 
   const clearRecordingUrl = () => {
     recordingAudio.current?.pause();
@@ -129,6 +147,7 @@ export function DevicePreview() {
       sampleEpoch.current += 1;
       stopAudio();
       stopVoice();
+      stopKokoro();
       if (wasChecking) setMicMessage("Microphone check stopped when this page was left. Tap to try again.");
     };
     const onVisibility = () => { if (document.visibilityState === "hidden") suspend(); };
@@ -140,6 +159,8 @@ export function DevicePreview() {
       mounted.current = false;
       micEpoch.current += 1;
       sampleEpoch.current += 1;
+      kokoroEpoch.current += 1;
+      kokoroPlaybackOwner.current = null;
       if (recordingTimer.current) clearTimeout(recordingTimer.current);
       const current = recording.current;
       recording.current = null;
@@ -149,6 +170,7 @@ export function DevicePreview() {
         current.stream.getTracks().forEach(track => track.stop());
       }
       sampleAudio.current?.pause();
+      kokoroAudio.current?.pause();
       if ("speechSynthesis" in window) window.speechSynthesis.cancel();
       recordingAudio.current?.pause();
       if (recordingUrlRef.current) URL.revokeObjectURL(recordingUrlRef.current);
@@ -161,6 +183,7 @@ export function DevicePreview() {
     sampleEpoch.current += 1;
     stopAudio();
     stopVoice();
+    stopKokoro();
     setMicMessage("");
     setSampleMessage("");
     setView(destination);
@@ -173,6 +196,7 @@ export function DevicePreview() {
     const epoch = ++sampleEpoch.current;
     setSampleMessage("");
     stopVoice();
+    stopKokoro();
     stopMicrophone(false);
     if (samplePlaying) {
       audio.pause();
@@ -188,6 +212,38 @@ export function DevicePreview() {
       if (!mounted.current || epoch !== sampleEpoch.current) return;
       setSamplePlaying(false);
       setSampleMessage("Nancy’s sample voice could not play on this device. Check the sound and try again.");
+    }
+  };
+
+  const playKokoro = async () => {
+    if (kokoroState !== "idle") {
+      stopKokoro();
+      return;
+    }
+    const audio = kokoroAudio.current;
+    if (!audio) return;
+    stopVoice();
+    sampleEpoch.current += 1;
+    stopAudio();
+    stopMicrophone(false);
+    const epoch = ++kokoroEpoch.current;
+    kokoroPlaybackOwner.current = epoch;
+    setKokoroMessage("");
+    setKokoroState("loading");
+    try {
+      audio.currentTime = 0;
+      await audio.play();
+      if (epoch !== kokoroEpoch.current || !mounted.current) {
+        if (audio !== kokoroAudio.current || kokoroPlaybackOwner.current === null || !mounted.current) audio.pause();
+        return;
+      }
+      setKokoroState("playing");
+    } catch {
+      if (epoch !== kokoroEpoch.current || !mounted.current) return;
+      audio.pause();
+      kokoroPlaybackOwner.current = null;
+      setKokoroState("idle");
+      setKokoroMessage("This Kokoro sample could not play on this device. Check the connection and sound, then try again.");
     }
   };
 
@@ -217,6 +273,7 @@ export function DevicePreview() {
     }
     sampleEpoch.current += 1;
     stopAudio();
+    stopKokoro();
     stopMicrophone(false);
     stopVoice();
     setVoiceMessage("");
@@ -255,6 +312,7 @@ export function DevicePreview() {
 
   const startMicrophone = async () => {
     stopVoice();
+    stopKokoro();
     sampleEpoch.current += 1;
     stopAudio();
     setMicMessage("");
@@ -336,21 +394,31 @@ export function DevicePreview() {
         {view === "home" ? <>
           <section className="dp-hero" aria-labelledby="dp-home-title">
             <span className="dp-sun" aria-hidden="true">✳</span>
-            <p className="dp-eyebrow">A gentler way into the day</p>
-            <h1 id="dp-home-title">Good morning.</h1>
-            <p>Start with a short conversation, then see what is coming up today.</p>
-            <button type="button" className="dp-primary" onClick={() => void hearNancy()}>{samplePlaying ? "Stop sample voice" : "Hear Nancy’s sample voice"}</button>
-            <audio ref={sampleAudio} preload="none" src="/preview/voice-sample.wav" onEnded={() => setSamplePlaying(false)} onError={() => { setSamplePlaying(false); setSampleMessage("Nancy’s sample voice is unavailable right now. Please try again later."); }} />
-            {sampleMessage && <p className="dp-inline-error" role="alert">{sampleMessage}</p>}
-            <p className="dp-hint">Fixed Windows Zira sample. It is not a live conversation.</p>
+            <p className="dp-eyebrow">Try a warmer voice</p>
+            <h1 id="dp-home-title">Hear Kokoro for Nancy.</h1>
+            <p>Compare three free neural voices across a morning greeting, meal choices and a gentle follow-up.</p>
+            <div className="dp-kokoro-controls">
+              <label>Voice<select value={kokoroVoice} aria-label="Kokoro voice" onChange={event => { stopKokoro(); setKokoroVoice(event.target.value as typeof kokoroVoice); setKokoroMessage(""); }}>
+                {kokoroVoices.map(voice => <option key={voice.id} value={voice.id}>{voice.label} · {voice.accent}</option>)}
+              </select></label>
+              <label>What Nancy says<select value={kokoroSample} aria-label="Kokoro sample" onChange={event => { stopKokoro(); setKokoroSample(event.target.value as typeof kokoroSample); setKokoroMessage(""); }}>
+                {kokoroSamples.map(sample => <option key={sample.id} value={sample.id}>{sample.label}</option>)}
+              </select></label>
+            </div>
+            <p className="dp-sample-script"><strong>{selectedKokoroVoice.label} says:</strong> “{selectedKokoroSample.text}”</p>
+            <button type="button" className="dp-primary" onClick={() => void playKokoro()}>{kokoroState === "idle" ? "Play Kokoro sample" : "Stop Kokoro sample"}</button>
+            <audio key={kokoroSampleUrl(kokoroVoice, kokoroSample)} ref={node => { if (node) kokoroAudio.current = node; }} preload="none" src={kokoroSampleUrl(kokoroVoice, kokoroSample)} onEnded={() => { kokoroPlaybackOwner.current = null; setKokoroState("idle"); }} onError={() => { if (kokoroState === "idle") return; stopKokoro(); setKokoroMessage("This Kokoro sample is unavailable right now. Please try another clip."); }} />
+            {kokoroMessage && <p className="dp-inline-error" role="alert">{kokoroMessage}</p>}
+            <p className="dp-hint">Pre-generated synthetic samples. This is an audition, not a live conversation or a saved voice choice.</p>
           </section>
 
+          <details className="dp-older-voices"><summary>Compare older device voice samples</summary>
           <section className="dp-voice-card" aria-labelledby="dp-voice-title">
             <div className="dp-section-top"><span className="dp-icon" aria-hidden="true">♫</span><div><p className="dp-eyebrow">Listen and choose</p><h2 id="dp-voice-title">Voice for this preview</h2></div></div>
-            <p>Try English voices this browser reports as installed on your device. The same short sentence plays each time. Your choice applies only to this preview.</p>
+            <p>These installed browser voices were judged too robotic. They remain here for comparison with the neural samples.</p>
             {localVoices.length > 0 ? <>
               <div className="dp-voice-controls">
-                <label>Voice<select value={selectedVoice || activeVoice?.voiceURI || ""} onChange={event => { stopVoice(); setSelectedVoice(event.target.value); setVoiceMessage(""); }}>
+                <label>Installed voice<select value={selectedVoice || activeVoice?.voiceURI || ""} onChange={event => { stopVoice(); setSelectedVoice(event.target.value); setVoiceMessage(""); }}>
                   {selectedVoice && !localVoices.some(voice => voice.voiceURI === selectedVoice) && <option value={selectedVoice}>Previously selected voice is unavailable</option>}
                   {localVoices.map(voice => <option key={`${voice.voiceURI}-${voice.name}`} value={voice.voiceURI}>{voice.name} ({voice.lang})</option>)}
                 </select></label>
@@ -363,6 +431,13 @@ export function DevicePreview() {
             {voiceMessage && <p className="dp-inline-error" role="alert">{voiceMessage}</p>}
             <p className="dp-hint">This is a fixed sample, not a live conversation or a saved Nancy voice preference.</p>
           </section>
+          <section className="dp-voice-card" aria-label="Earlier fixed sample">
+            <p>Earlier fixed Windows Zira sample</p>
+            <button type="button" className="dp-secondary" onClick={() => void hearNancy()}>{samplePlaying ? "Stop sample voice" : "Hear Nancy’s sample voice"}</button>
+            <audio ref={node => { if (node) sampleAudio.current = node; }} preload="none" src="/preview/voice-sample.wav" onEnded={() => setSamplePlaying(false)} onError={() => { setSamplePlaying(false); setSampleMessage("Nancy’s sample voice is unavailable right now. Please try again later."); }} />
+            {sampleMessage && <p className="dp-inline-error" role="alert">{sampleMessage}</p>}
+          </section>
+          </details>
 
           <section className="dp-mic-card" aria-labelledby="dp-mic-title">
             <div className="dp-section-top"><span className="dp-icon" aria-hidden="true">●</span><div><p className="dp-eyebrow">Try your device</p><h2 id="dp-mic-title">Microphone check</h2></div></div>
@@ -372,7 +447,7 @@ export function DevicePreview() {
               {micState === "recording" && <span className="dp-recording"><span aria-hidden="true" />Recording… 10 sec max</span>}
             </div>
             {micMessage && <p className={micState === "ready" ? "dp-inline-info" : "dp-inline-error"} role={micState === "ready" ? "status" : "alert"}>{micMessage}</p>}
-            {recordingUrl && <audio ref={recordingAudio} controls src={recordingUrl} aria-label="Play your microphone check recording" onPlay={() => { stopVoice(); sampleEpoch.current += 1; sampleAudio.current?.pause(); setSamplePlaying(false); }} />}
+            {recordingUrl && <audio ref={node => { if (node) recordingAudio.current = node; }} controls src={recordingUrl} aria-label="Play your microphone check recording" onPlay={() => { stopVoice(); stopKokoro(); sampleEpoch.current += 1; sampleAudio.current?.pause(); setSamplePlaying(false); }} />}
           </section>
 
           <section className="dp-overview" aria-labelledby="dp-overview-title">

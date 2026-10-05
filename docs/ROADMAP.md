@@ -16,6 +16,8 @@ The public preview now exposes a **browser-local voice chooser** and sample audi
 
 ## Immediate delivery goal: S01-S04
 
+The owner then requested a **Kokoro trial**. Nine synthetic local neural samples—Heart, Bella and Emma across morning planning, meal choice and task carryover—are available in the same public preview. [Kokoro evidence](evidence/S01-KOKORO-AUDITION-2026-10-05.json) records 92 passing tests, real CPU synthesis and public desktop-browser playback. Participant voice choice and iPhone/Safari acceptance remain pending. This trial has no speech API cost and does not complete live conversation or either S01 gate.
+
 The first MVP is the participant's **user-initiated 10:00 local-time check-in with Nancy** within a preferred 09:00-11:00 window, combining a daily task brief and meal planning through actual two-way voice. **Let's Plan the Day** and **Let's Plan Today** open the same current-day flow at any time. The first four slices make that experience useful through a real day, resilient to interruptions and repeatable across days.
 
 | Slice | Completed feature | What the participant can do | Dependencies |

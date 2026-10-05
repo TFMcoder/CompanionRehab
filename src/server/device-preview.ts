@@ -1,13 +1,34 @@
-import Fastify from 'fastify';
-import { readFile, readdir, realpath } from 'node:fs/promises';
+import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
+import { readFile, readdir, realpath, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { resolve, sep } from 'node:path';
+import { dirname, resolve, sep } from 'node:path';
+import { kokoroSamples, kokoroVoices } from '../shared/kokoro-samples.js';
 
 export interface PreviewOptions {
   staticRoot?: string;
   allowedHosts: string[];
   samplePath?: string;
   sampleSha256?: string;
+  kokoroManifestPath?: string;
+  kokoroManifestSha256?: string;
+}
+
+const sha256 = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex');
+const isWav = (bytes: Buffer) => bytes.length >= 12 && bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WAVE';
+
+function sendWav(request: FastifyRequest, reply: FastifyReply, bytes: Buffer) {
+  reply.header('Accept-Ranges', 'bytes').type('audio/wav');
+  const range = request.headers.range;
+  if (!range) return reply.send(bytes);
+  const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+  const invalid = () => reply.code(416).header('Content-Range', `bytes */${bytes.length}`).send();
+  if (!match || (!match[1] && !match[2])) return invalid();
+  if ((match[1] && !Number.isSafeInteger(Number(match[1]))) || (match[2] && !Number.isSafeInteger(Number(match[2])))) return invalid();
+  const suffix = !match[1];
+  const start = suffix ? bytes.length - Math.min(bytes.length, Number(match[2])) : Number(match[1]);
+  const end = suffix || !match[2] ? bytes.length - 1 : Math.min(Number(match[2]), bytes.length - 1);
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || start > end || start >= bytes.length) return invalid();
+  return reply.code(206).header('Content-Range', `bytes ${start}-${end}/${bytes.length}`).send(bytes.subarray(start, end + 1));
 }
 
 /** Public-safe, read-only device preview. Deliberately imports no care/auth/provider runtime. */
@@ -28,9 +49,49 @@ export async function createDevicePreview(options: PreviewOptions) {
   let sample: Buffer | undefined;
   if (options.samplePath && options.sampleSha256 && /^[a-f0-9]{64}$/.test(options.sampleSha256)) {
     const bytes = await readFile(options.samplePath);
-    if (bytes.length > 2_000_000 || bytes.toString('ascii', 0, 4) !== 'RIFF' || bytes.toString('ascii', 8, 12) !== 'WAVE' ||
-      createHash('sha256').update(bytes).digest('hex') !== options.sampleSha256) throw new Error('Preview sample did not match the pinned synthetic WAV.');
+    if (bytes.length > 2_000_000 || !isWav(bytes) || sha256(bytes) !== options.sampleSha256) throw new Error('Preview sample did not match the pinned synthetic WAV.');
     sample = bytes;
+  }
+  const kokoro = new Map<string, Buffer>();
+  if (options.kokoroManifestPath || options.kokoroManifestSha256) {
+    if (!options.kokoroManifestPath || !options.kokoroManifestSha256 || !/^[a-f0-9]{64}$/.test(options.kokoroManifestSha256)) {
+      throw new Error('Preview Kokoro manifest requires a path and pinned SHA-256.');
+    }
+    const manifestPath = await realpath(options.kokoroManifestPath);
+    const manifestDir = dirname(manifestPath);
+    if ((await stat(manifestPath)).size > 16_384) throw new Error('Preview Kokoro manifest exceeds its size limit.');
+    const manifestBytes = await readFile(manifestPath);
+    if (manifestBytes.length > 16_384 || sha256(manifestBytes) !== options.kokoroManifestSha256) {
+      throw new Error('Preview Kokoro manifest did not match its pinned SHA-256.');
+    }
+    let manifest: unknown;
+    try { manifest = JSON.parse(manifestBytes.toString('utf8')); }
+    catch { throw new Error('Preview Kokoro manifest is invalid JSON.'); }
+    const expected = new Set(kokoroVoices.flatMap((voice) => kokoroSamples.map((entry) => `${voice.id}/${entry.id}`)));
+    if (!manifest || typeof manifest !== 'object' ||
+      (manifest as any).schema_version !== 1 || (manifest as any).model !== 'Kokoro-82M' || (manifest as any).engine !== 'kokoro-js' ||
+      !Array.isArray((manifest as any).samples) || (manifest as any).samples.length !== expected.size) {
+      throw new Error('Preview Kokoro manifest has an unsupported catalogue.');
+    }
+    let totalBytes = 0;
+    for (const item of (manifest as any).samples) {
+      if (!item || typeof item !== 'object' || typeof item.voice_id !== 'string' || typeof item.sample_id !== 'string' ||
+        typeof item.file_name !== 'string' || typeof item.sha256 !== 'string') throw new Error('Preview Kokoro manifest has an invalid sample.');
+      const key = `${item.voice_id}/${item.sample_id}`;
+      if (!expected.delete(key) || item.file_name !== `${item.voice_id}-${item.sample_id}.wav` || !/^[a-f0-9]{64}$/.test(item.sha256)) {
+        throw new Error('Preview Kokoro manifest has an unknown or duplicate sample.');
+      }
+      const path = await realpath(resolve(manifestDir, item.file_name));
+      if (!path.startsWith(manifestDir + sep)) throw new Error('Preview Kokoro sample escaped its manifest directory.');
+      if ((await stat(path)).size > 8_000_000) throw new Error('Preview Kokoro sample exceeds its size limit.');
+      const bytes = await readFile(path);
+      totalBytes += bytes.length;
+      if (bytes.length > 8_000_000 || totalBytes > 72_000_000 || !isWav(bytes) || sha256(bytes) !== item.sha256) {
+        throw new Error('Preview Kokoro sample did not match its pinned synthetic WAV.');
+      }
+      kokoro.set(key, bytes);
+    }
+    if (expected.size !== 0) throw new Error('Preview Kokoro manifest is missing samples.');
   }
   const app = Fastify({ logger: false, trustProxy: false, bodyLimit: 1024, requestTimeout: 10000 });
   app.addHook('onRequest', async (request, reply) => {
@@ -45,16 +106,17 @@ export async function createDevicePreview(options: PreviewOptions) {
   app.get('/health', async () => ({ ok: true, mode: 'device_preview', real_care_data: false, live_conversation: false }));
   app.get('/preview/voice-sample.wav', async (request, reply) => {
     if (!sample) return reply.code(503).send('The synthetic voice sample is unavailable.');
-    reply.header('Accept-Ranges', 'bytes').type('audio/wav');
-    const range = request.headers.range;
-    if (!range) return reply.send(sample);
-    const match = /^bytes=(\d*)-(\d*)$/.exec(range);
-    const invalid = () => reply.code(416).header('Content-Range', `bytes */${sample!.length}`).send();
-    if (!match || (!match[1] && !match[2])) return invalid();
-    const start = match[1] ? Number(match[1]) : Math.max(0, sample.length - Number(match[2]));
-    const end = match[1] && match[2] ? Math.min(Number(match[2]), sample.length - 1) : sample.length - 1;
-    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start > end || start >= sample.length) return invalid();
-    return reply.code(206).header('Content-Range', `bytes ${start}-${end}/${sample.length}`).send(sample.subarray(start, end + 1));
+    return sendWav(request, reply, sample);
+  });
+  app.get('/preview/kokoro/:voice/:sample.wav', async (request, reply) => {
+    const { voice, sample: sampleId } = request.params as { voice: string; sample: string };
+    const key = `${voice}/${sampleId}`;
+    if (!kokoroVoices.some((entry) => entry.id === voice) || !kokoroSamples.some((entry) => entry.id === sampleId)) {
+      return reply.code(404).send('Not found.');
+    }
+    const bytes = kokoro.get(key);
+    if (!bytes) return reply.code(503).send('The synthetic Kokoro sample is unavailable.');
+    return sendWav(request, reply, bytes);
   });
   app.get('/assets/:name', async (request, reply) => {
     const asset = files.get(`/assets/${(request.params as { name: string }).name}`);
