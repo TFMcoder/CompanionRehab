@@ -12,6 +12,14 @@ The owner has selected Outlook, not completed its OAuth connection. S01 can stil
 
 ## Free voice choices
 
+### Owner quality feedback: current samples rejected
+
+After auditioning the preview, the owner reported robotic delivery with inadequate intonation, pacing and inflection, and set natural, responsive conversation comparable in feel to ChatGPT voice as the target. The rejection applies to the current installed-browser/fixed-Windows samples. Kokoro, Piper and an expressive hosted speech model have not been auditioned in this app. Do not ask the owner to accept the same device voices as Nancy's production voice or mistake successful playback for quality acceptance.
+
+Source inspection confirms the preview uses a fixed `SpeechSynthesisUtterance` with a selected installed voice and a rate setting, plus a fixed Windows Zira WAV. It has no contextual expressive speech instructions or live conversation pipeline. Changing rate alone cannot establish the requested quality. Production acceptance must separately assess voice naturalness (intonation, appropriate pauses, emphasis and respectful warmth) and interaction quality (reply latency, turn endings, interruption and contextual response). Test several new utterances and a real back-and-forth, not only a rehearsed greeting. Keep Sol/high as the selected reasoning model.
+
+Next free qualification is a bounded local neural-voice audition on the same iPhone/Safari path, with Kokoro as the first existing candidate; no ChatGPT-quality equivalence is assumed. As a separately costed comparison, OpenAI `gpt-4o-mini-tts` supports instructions for intonation, tone and emotional range, and recommends `marin` or `cedar` for quality. Its Realtime API offers direct speech-to-speech handling with access to input tone/inflection and lower-latency interaction. These are different integration choices: expressive TTS can retain the existing Sol reasoning boundary, while a native speech-to-speech conversational model needs an explicit architecture decision. Neither is automatically a free speech benefit of the existing ChatGPT-plan adapter. No paid service, model switch or funding is authorized by this quality feedback. Sources: [expressive TTS](https://developers.openai.com/api/docs/guides/text-to-speech), [Realtime conversation](https://developers.openai.com/api/docs/guides/realtime-conversations), [plan-route limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations).
+
 Use speech independently of the selected GPT-6 Sol/high reasoning route. Free here means no additional voice service subscription or per-character API charge on existing hardware; electricity, hardware capacity and the separately qualified GPT allowance still matter.
 
 | Option | Recommendation | Cost and qualification |

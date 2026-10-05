@@ -187,17 +187,17 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
 - [ ] **S01-H08: Choose Nancy voice and foreground wake preference**
 
-  Owner: **participant_or_tester**. Status: **pending**. Requirement: **required**.
+  Owner: **participant_or_tester**. Status: **in_progress**. Requirement: **required**.
 
   **When:** Before S01 actual-device voice acceptance.
   **Blocks:** Completing this feature slice.
 
   **Human action:**
 
-  - Hear several free samples on the intended device and choose a natural, encouraging voice or ask for another candidate.
+  - Current device voices were auditioned and rejected as robotic. Once improved neural samples are ready, compare naturalness and then conversation responsiveness on iPhone/Safari; choose a suitable voice or reject the candidates.
   - Decide whether to enable foreground Hey Nancy while My Day is open after seeing the microphone indicator, stop control and disclosed processing location.
 
-  **Agent prepares or handles:** Prepare licensed sample choices and test phone playback, latency, wake false positives and fallback button entry. Save only the selected preference and consent state; keep raw samples/audio private or synthetic.
+  **Agent prepares or handles:** Replace rejected device samples as primary candidates with licensed neural speech auditions; test intonation, phrasing, pauses and emphasis on varied utterances, then real turn timing, interruption, wake false positives and fallback button entry. Keep paid alternatives separately costed and unselected. Save only the selected preference and consent state; keep raw samples/audio private or synthetic.
 
   **Completion evidence:** Private selected-voice and wake-consent references plus actual-device observations; interface visual approval alone is insufficient.
 

@@ -31,7 +31,8 @@
     "Offer several practical meal choices, alternatives and portion-aware discussion from supplied preferences and ingredients; capture a confirmed missing ingredient into a minimal grocery list in S01, with full grocery management in S05.",
     "After actual reports begin in S02, maintain a factual ongoing ledger; in S04 review unfinished yesterday tasks explicitly so they cannot disappear, and add opt-in scheduled meal/appointment prompts with honest browser availability limits.",
     "Keep local calendar context in S01; connect an authorized external calendar and Asana in S06 after provider selection and scoped consent.",
-    "Owner confirmed iPhone with Safari and Outlook calendar on 2026-10-05. Reuse these selections; account type, calendar authorization and actual iPhone audio/wake behavior remain separate qualifications."
+    "Owner confirmed iPhone with Safari and Outlook calendar on 2026-10-05. Reuse these selections; account type, calendar authorization and actual iPhone audio/wake behavior remain separate qualifications.",
+    "The owner rejected robotic device TTS on 2026-10-05. Natural intonation, phrasing, pacing, inflection and responsive turn-taking are required for Nancy voice acceptance, while retaining the free-first speech constraint."
   ],
   "constraints": {
     "budget": {
@@ -293,10 +294,10 @@
     {
       "id": "I-VOICE-CHOICE",
       "status": "unresolved",
-      "default": "Simple smartphone interface approved by the owner on 2026-10-05; voice quality and preferred voice are not yet approved. Prepare free voices for audition, with licensing and device path verified.",
+      "default": "Owner rejected current installed-browser/fixed-Windows preview voices on 2026-10-05 as robotic, with insufficient intonation, pacing and inflection. Natural responsive conversation is the quality target. Kokoro and other neural providers have not been auditioned here; no production voice or paid route is selected.",
       "needed_for": "S01 preferred audible Nancy voice and genuine phone conversation",
-      "question": "Have the participant or designated tester hear several free Nancy samples on the intended device and choose the most natural and encouraging voice, or request another candidate. Record choice privately without raw voice recordings in the public repo.",
-      "resolution_ref": null
+      "question": "Prepare improved neural voice samples and an actual conversational trial; evaluate natural intonation, phrasing, pauses, warmth, latency and interruption on iPhone/Safari. Do not ask the owner to select the rejected device samples again.",
+      "resolution_ref": "docs/architecture/VOICE_AND_DAILY_COMPANION_2026-10-05.md#owner-quality-feedback-current-samples-rejected"
     },
     {
       "id": "I-WAKE-CONSENT",
@@ -479,7 +480,7 @@
         },
         {
           "id": "S01-T10",
-          "description": "Qualify free speech voices and their model/engine licensing, produce short participant audition samples, save a scoped voice preference and live-test preferred voice quality on the selected phone. Start with local PC synthesis candidates; browser system voices are device-dependent. No new paid speech service is selected."
+          "description": "Qualify free speech voices and their model/engine licensing, produce short participant audition samples, save a scoped voice preference and live-test preferred voice quality on the selected phone. Start with local PC synthesis candidates; browser system voices are device-dependent. No new paid speech service is selected. Owner rejected current device voices for robotic prosody. Qualify improved neural samples before another preference request; assess varied utterances and contextual conversation separately. A rate slider or successful playback is insufficient."
         },
         {
           "id": "S01-T11",
@@ -587,7 +588,7 @@
         },
         {
           "id": "S01-AC10",
-          "assertion": "The participant can audition free voices and select a preferred voice on the intended device. With explicit consent, foreground Hey Nancy starts the same authorized conversation, shows listening state and stops cleanly; button entry remains available if wake listening is unavailable. No background phone or on-device-only wake claim is made. A consenting tester must demonstrate the foreground wake path on a qualified intended route; if the selected phone cannot support it, the wake criterion remains open until a supported path or explicit owner scope change. Button fallback does not count as a passed wake test."
+          "assertion": "The participant can audition free voices and select a preferred voice on the intended device. With explicit consent, foreground Hey Nancy starts the same authorized conversation, shows listening state and stops cleanly; button entry remains available if wake listening is unavailable. No background phone or on-device-only wake claim is made. A consenting tester must demonstrate the foreground wake path on a qualified intended route; if the selected phone cannot support it, the wake criterion remains open until a supported path or explicit owner scope change. Button fallback does not count as a passed wake test. Voice acceptance includes satisfactory intonation, phrasing, pauses, emphasis and warmth on varied utterances; audible playback alone cannot pass the naturalness gate."
         },
         {
           "id": "S01-AC11",
@@ -681,7 +682,8 @@
             "Record sanitized evidence of the actual gpt-6-sol/high runtime and selected subscription/API route, intended-user eligibility, separate speech round trip and My Day web origin. Confirm Dad can use the normal My Day voice/touch interface. Do not retain raw audio or private transcripts in the repository.",
             "On the actual smartphone, choose among free voice samples; open by button, converse across several turns, pause and observe the closure grace, then use End. If the qualified foreground Hey Nancy path is enabled with consent, invoke it and verify the visible listener and stop control; note browser lock/background limits honestly.",
             "At 09:00-11:00 say Lets Plan the Day and Lets Plan Today in separate starts; discuss a real upcoming appointment, task duration/urgency/placement, several meal choices and a confirmed missing ingredient. Verify the saved plan and minimal grocery list without claiming a meal was eaten.",
-            "Record whether a consenting tester actually invoked Hey Nancy on the intended route; if the browser cannot support it, record the blocker rather than treating button operation as wake acceptance."
+            "Record whether a consenting tester actually invoked Hey Nancy on the intended route; if the browser cannot support it, record the blocker rather than treating button operation as wake acceptance.",
+            "After the owner rejection of device TTS, compare improved neural delivery on several unrehearsed ordinary prompts and a real exchange; record naturalness and conversational timing feedback separately from successful audio playback. Do not pass voice quality without participant/tester acceptance."
           ],
           "expected": "Actual microphone and spoken-response round trips produce one accepted real plan and an auditable revision with matching readback."
         },
@@ -736,7 +738,8 @@
         "I-DATA/I-REGION/I-DAY-CONTENT/S01-H03/H06: Record consent, remaining remote processing/retention boundary, real task/meal choices and participant timezone privately. Initial local storage is already decided.",
         "S01-LIVE2 and S01-LIVE1: Actual local deployment plus remote reasoning and the selected speech path, isolated restore and the real 10 AM planning trial have not run. Run disposable checks before retained participant use.",
         "2026-10-04 actual connection checks are recorded in docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. These synthetic provider probes are not S01 live acceptance. The MCP tunnel transports local tool calls; it does not establish Nancy model access, voice, per-client authorization or a public My Day web route.",
-        "2026-10-04 connection progress: the app-specific OAuth/Responses helper completed text and fixed read-only tool probes using gpt-6-sol/high. The adapter now replays finalized streamed items when terminal output is empty, and verifies the returned fixture value in the completed answer. Separate Windows voice generation and local faster-whisper recognition passed on synthetic audio; genuine microphone/audible conversation is still untested. See docs/evidence/S01-CHATGPT-PLAN-CONNECTION-2026-10-04.json. Existing Tailscale/MCP services remain unchanged; a new tool tunnel is unnecessary for these local probes."
+        "2026-10-04 connection progress: the app-specific OAuth/Responses helper completed text and fixed read-only tool probes using gpt-6-sol/high. The adapter now replays finalized streamed items when terminal output is empty, and verifies the returned fixture value in the completed answer. Separate Windows voice generation and local faster-whisper recognition passed on synthetic audio; genuine microphone/audible conversation is still untested. See docs/evidence/S01-CHATGPT-PLAN-CONNECTION-2026-10-04.json. Existing Tailscale/MCP services remain unchanged; a new tool tunnel is unnecessary for these local probes.",
+        "2026-10-05 quality feedback: installed-browser/fixed-Windows preview voices were rejected as robotic. Improved neural speech audition and real conversational quality remain unqualified; neither a new voice provider nor a paid speech route is selected."
       ],
       "test_results": [],
       "human_actions": [
@@ -959,11 +962,11 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Hear several free samples on the intended device and choose a natural, encouraging voice or ask for another candidate.",
+            "Current device voices were auditioned and rejected as robotic. Once improved neural samples are ready, compare naturalness and then conversation responsiveness on iPhone/Safari; choose a suitable voice or reject the candidates.",
             "Decide whether to enable foreground Hey Nancy while My Day is open after seeing the microphone indicator, stop control and disclosed processing location."
           ],
           "agent_can_do": [
-            "Prepare licensed sample choices and test phone playback, latency, wake false positives and fallback button entry.",
+            "Replace rejected device samples as primary candidates with licensed neural speech auditions; test intonation, phrasing, pauses and emphasis on varied utterances, then real turn timing, interruption, wake false positives and fallback button entry. Keep paid alternatives separately costed and unselected.",
             "Save only the selected preference and consent state; keep raw samples/audio private or synthetic."
           ],
           "expected_evidence": "Private selected-voice and wake-consent references plus actual-device observations; interface visual approval alone is insufficient.",
@@ -975,7 +978,7 @@
             "S01-LIVE1",
             "S01-LIVE2"
           ],
-          "status": "pending",
+          "status": "in_progress",
           "completion_ref": null,
           "completed_at": null,
           "not_applicable_reason": null
