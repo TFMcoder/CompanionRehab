@@ -1,0 +1,94 @@
+{
+  "slice_id": "S01",
+  "status": "partial_implementation_verified",
+  "observed_at": "2026-10-05T20:46:58.964Z",
+  "implementation_revision": "sha256:7c14045dffe597f905212ce515780dc4988d303288d2812422031420f229d738",
+  "data_policy": "Synthetic practice records only; no household facts, participant microphone recordings or retained transcripts.",
+  "runtime": {
+    "care_database": "Actual PostgreSQL 17.11, loopback on the owner's computer",
+    "authentication": "Local salted password hashes, revocable database sessions and scoped role grants",
+    "reasoning": "Owner-bound app-specific ChatGPT-plan adapter, completed gpt-6-sol with high effort, no API/model fallback",
+    "speech_input": "Local faster-whisper small.en, CPU int8",
+    "speech_output": "Warm local Kokoro af_heart, CPU fp32, coherent chunks with one-chunk prefetch",
+    "browser_route": "Authenticated localhost application; public tunnel pending specific owner approval after automatic approval review rejection",
+    "incremental_paid_service_commitment": "None"
+  },
+  "implemented": [
+    "Master Talk to Nancy entry and independent My Day, task, meal and grocery views; changing views preserves the conversation.",
+    "Open question with fresh participant-local time, appointment and task context; 08:00-11:00 morning suggestions distinguish unknown breakfast from actual reports.",
+    "Task urgency, scheduled time and duration; existing meal options; proposed plan, exact review and explicit acceptance kept separate from actual activity.",
+    "Confirmed grocery capture and local appointment entry, including explicit rejection of ambiguous/nonexistent daylight-saving times.",
+    "Shared typed care commands, durable receipts, plan versions and events in local PostgreSQL; authorized readback after sign-out/sign-in.",
+    "Continuous half-duplex speech turns, delayed idle close, explicit End, page-hide cleanup and cancellation of late results. No wake listener or background listening is claimed."
+  ],
+  "automated": {
+    "command": "npm run check",
+    "test_files_passed": 22,
+    "tests_passed": 142,
+    "tests_skipped": 1,
+    "skip_reason": "The opt-in actual-PostgreSQL scenario was run separately and passed.",
+    "typecheck": "passed",
+    "production_build": "passed",
+    "local_adapter_targeted_run": {
+      "tests_passed": 4,
+      "pglite_scenarios": 3,
+      "actual_postgresql_scenarios": 1,
+      "completed_at": "2026-10-05T20:44:06Z"
+    }
+  },
+  "actual_service_checks": {
+    "integrated_http_script": "scripts/check-my-day-live.ts",
+    "result": "passed",
+    "checks": [
+      "Authenticated conversation starts without writing a check-in and generates a Heart greeting.",
+      "Direct meal navigation opens the authorized view without inference or a care write.",
+      "Actual Sol-high inference creates a proposal from supplied task and meal IDs without accepting it.",
+      "Heart generates the exact proposal review in coherent chunks; the script acknowledges playback synthetically.",
+      "Generated synthetic acceptance audio passes through actual local ASR and commits the reviewed proposal once.",
+      "Repeating the same audio turn returns the same accepted result without a second commit.",
+      "Accepted version remains readable after logout and login."
+    ],
+    "timings_ms": {
+      "greeting_first_audio_http": 2638,
+      "direct_meal_navigation": 9,
+      "planning_turn_http": 10967,
+      "plan_first_audio_http": 2821
+    },
+    "timing_limit": "Single warm local engineering run, not iPhone microphone-to-ear latency or human listening acceptance.",
+    "encrypted_restore": {
+      "script": "scripts/local-care-restore-probe.ts",
+      "result": "passed",
+      "source_and_target": "Distinct disposable databases on actual local PostgreSQL 17.11",
+      "format": 2,
+      "encryption": "AES-256-GCM round trip with an ephemeral key",
+      "assertions_passed": 8,
+      "scope": "Synthetic accounts, care records, accepted versions and receipts restored; active session tokens excluded.",
+      "limit": "A disposable restore check is not an operational backup schedule or a daily-reliance recovery arrangement."
+    }
+  },
+  "browser_checks": {
+    "environment": "Actual desktop in-app browser, including a 390x844 responsive viewport",
+    "passed": [
+      "Task view accessible before beginning a check-in.",
+      "Touch meal selection, proposal review and explicit acceptance display a saved plan.",
+      "Refresh retains the accepted plan.",
+      "Phone-width layout keeps the master Talk to Nancy control and all four view buttons available."
+    ],
+    "limit": "No physical iPhone/Safari microphone, audible conversation, wake phrase or participant acceptance test was run."
+  },
+  "remaining": [
+    "S01-LIVE2 is partial: remaining provider loss/revocation/allowance, device and full-role checks are not passed.",
+    "S01-LIVE1 has not run. Consented real participant tasks, meals, content restrictions and actual iPhone conversation remain required.",
+    "Intended-participant account/deployment eligibility is not established by the owner's completed synthetic inference.",
+    "Automatic approval review blocked the new authenticated public tunnel; the earlier isolated sample preview remains unchanged.",
+    "Foreground Hey Nancy, four role landing experiences, shared meal/task occurrence identity and richer pantry/portion/alternative-meal behavior remain unfinished S01 work.",
+    "Actual completion, meal intake, delays and corrections belong to S02; accepting this plan records no performed activity.",
+    "External Outlook/Asana sync remains S06; the current calendar entry is local."
+  ],
+  "private_evidence_refs": [
+    ".local/probes/my-day-live.json",
+    ".local/probes/local-care-live.json",
+    ".local/probes/my-day-mobile-layout.png"
+  ],
+  "slice_completion_claimed": false
+}

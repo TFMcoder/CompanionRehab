@@ -177,7 +177,7 @@
     {
       "id": "I-ACCOUNTS",
       "status": "unresolved",
-      "default": "The owner approved Nancy's app-specific OAuth connection. Actual gpt-6-sol/high text inference and a fixed read-only function round trip succeeded through the owner's ChatGPT plan (docs/evidence/S01-CHATGPT-PLAN-CONNECTION-2026-10-04.json). Local Windows speech generation and faster-whisper recognition of the synthetic sample also succeeded. Intended-user/deployment eligibility, live credential lifecycle, genuine device conversation and external routing remain unresolved. Earlier API-key reasoning/speech probes returned HTTP 429; no API fallback was activated.",
+      "default": "The owner's app-specific OAuth and gpt-6-sol/high route now complete authorized My Day plan proposals and acceptance through the separate local care service. Actual local Heart and faster-whisper are integrated. docs/evidence/S01-MY-DAY-2026-10-05.json records synthetic real-service success. Intended-participant/deployment eligibility, remaining live credential lifecycle/allowance behavior and actual iPhone conversation remain unresolved. No API fallback is enabled.",
       "needed_for": "S01 selected ChatGPT-plan reasoning qualification, independent speech and any required routing service; an API billing top-up is not the default prerequisite",
       "question": "Reuse saved private access. After the agent prepares a concrete supported route, complete only missing account-owner sign-in/consent or workspace access. Review a separately billed API fallback only if qualification findings require it; do not assume one account can serve every role/client.",
       "resolution_ref": null
@@ -185,7 +185,7 @@
     {
       "id": "I-DOMAIN",
       "status": "unresolved",
-      "default": "Temporary Cloudflare Quick Tunnel HTTPS is verified for the isolated synthetic device preview only. Keep the active hostname and process record in ignored local runtime storage. Existing Tailscale/MCP routes are preserved. A stable authenticated My Day deployment and its auth redirects remain unqualified; this preview does not select the production ingress.",
+      "default": "The authenticated My Day app runs locally with synthetic owner-pilot data. A new temporary Cloudflare HTTPS tunnel was rejected by automatic approval review pending specific owner authorization of the authenticated care routes. The earlier isolated public device preview and existing Tailscale/MCP routes are unchanged. Stable authenticated deployment and intended-phone behavior remain unqualified.",
       "needed_for": "S01 HTTPS routing and auth redirects",
       "question": "Identify an available HTTPS hostname/account for the actual device; sender setup is conditional on the chosen invitation/recovery flow.",
       "resolution_ref": null
@@ -734,21 +734,40 @@
         "S03",
         "S04"
       ],
-      "implementation_revision": null,
+      "implementation_revision": "sha256:7c14045dffe597f905212ce515780dc4988d303288d2812422031420f229d738",
       "blockers": [
-        "Implementation adaptation: September 29 code still uses Supabase cloud authentication/storage, two legacy role labels and a Realtime reasoning model. It does not yet meet the October 3 local-storage, four-role, My Day navigation, unified task/meal or Sol-high contracts.",
-        "Current-contract automated results must be run after adaptation. Historical September 29 evidence remains in docs/evidence/S01-2026-09-29.json. Publication checks passed 43 existing tests after an input-state repair (docs/evidence/SYNC-2026-10-03.json); this does not validate the revised S01 contracts or live gates.",
-        "I-ACCOUNTS/S01-H02: Owner OAuth consent, actual Sol-high plan inference and a synthetic function round trip passed. Remaining qualification includes the intended participant/account/deployment, real care-command authorization, live renewal/revocation/allowance behavior and integrated speech. This does not establish shared subscription entitlement or select a paid fallback.",
-        "I-DOMAIN/S01-H02 and I-DEVICE/S01-H01: iPhone/Safari is confirmed. A temporary public HTTPS sample interface loads and serves voice playback, with no care/auth/provider endpoints. Actual iOS version, microphone/audible results and the stable authenticated My Day route still need qualification.",
-        "I-DATA/I-REGION/I-DAY-CONTENT/S01-H03/H06: Record consent, remaining remote processing/retention boundary, real task/meal choices and participant timezone privately. Initial local storage is already decided.",
-        "S01-LIVE2 and S01-LIVE1: Actual local deployment plus remote reasoning and the selected speech path, isolated restore and the real 10 AM planning trial have not run. Run disposable checks before retained participant use.",
-        "2026-10-04 actual connection checks are recorded in docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. These synthetic provider probes are not S01 live acceptance. The MCP tunnel transports local tool calls; it does not establish Nancy model access, voice, per-client authorization or a public My Day web route.",
-        "2026-10-04 connection progress: the app-specific OAuth/Responses helper completed text and fixed read-only tool probes using gpt-6-sol/high. The adapter now replays finalized streamed items when terminal output is empty, and verifies the returned fixture value in the completed answer. Separate Windows voice generation and local faster-whisper recognition passed on synthetic audio; genuine microphone/audible conversation is still untested. See docs/evidence/S01-CHATGPT-PLAN-CONNECTION-2026-10-04.json. Existing Tailscale/MCP services remain unchanged; a new tool tunnel is unnecessary for these local probes.",
-        "2026-10-05 Kokoro trial: nine pinned samples are deployed; docs/evidence/S01-KOKORO-AUDITION-2026-10-05.json records 92 passing tests, actual CPU synthesis, ASR checks and public desktop-browser playback. Owner reports better but still somewhat robotic, with Heart as the closest candidate and comparison baseline. The owner has now selected Heart and closed voice choice; integrated back-and-forth remains unqualified. No paid service or production approval is implied.",
-        "2026-10-05 voice evaluation: docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md records provisional Pocket TTS 3.3 English 2026-09 Alba on local fp32 CPU (2 intraop/1 interop threads, temperature 0.3, 1 decode step) with pinned CC BY 4.0 checkpoint revision e7205b6ee50e654a5ea19f0e9df2b0813b05e921 and Alba embedding revision 4e1e0a3e611c51c0b4ed8174fc10f32a54644303. Native audio chunks over warm same-origin WebSocket with a 160 ms initial buffer are implemented in the fixed synthetic audition. The official Qwen3-TTS 1.7B Serena demo produced two matched quality clips but does not qualify production latency or access; Azure F0 Jenny is an untested free-tier candidate. Synthetic gpt-6-sol/high first-sentence times were 3.5852, 3.8602 and 4.2776 seconds, without integrated ASR/TTS. Historical comparison is superseded by the final owner Heart selection. Actual iPhone audio, microphone, interruption and S01 live gates remain open. Pocket timings are not Heart timings. Actual public WSS desktop tests now show first rendered audio proxy 251.8-449.3 ms across six completed short/long repeats with zero underruns, Stop-to-zero-quantum acknowledgement 15.9 ms, and independent worker-cancel acknowledgement 71.88 ms. 102 tests/typecheck/build pass at source revision sha256:53eeba88e2fb352b68d9c66a6766fee1232dfdad9f48d3021a1f7f2fe95bcd69 (docs/evidence/S01-VOICE-MODEL-EVALUATION-2026-10-05.json; partial regression/voice evaluation only). These are synthetic desktop checks; integrated speech and actual iPhone acceptance remain pending.",
-        "Latest owner UX direction is recorded: one primary Talk to Nancy conversation, independent My Day/task/meal/grocery paths and an 08:00-11:00 time-aware morning context. Implementation and actual-device acceptance for this updated contract remain outstanding; no new live pass is claimed."
+        "The local My Day increment is implemented and verified with synthetic records against actual PostgreSQL, owner-bound Sol-high inference, Heart synthesis and local ASR. Evidence: docs/evidence/S01-MY-DAY-2026-10-05.json. This does not complete either live acceptance gate.",
+        "S01-LIVE2 is partial: encrypted restore and integrated planning passed, but the complete provider-loss/revocation/allowance, device and full-role scenario remains open. S01-LIVE1 has not run on the consenting participant's iPhone/Safari with genuine tasks/meals.",
+        "The new authenticated My Day public tunnel was blocked by automatic approval review pending specific owner approval of those care routes. The existing sample preview is unchanged. Stable HTTPS operation remains unqualified.",
+        "The intended participant account/deployment eligibility and live credential lifecycle are not established by owner-only synthetic inference. No paid API/model fallback is enabled.",
+        "Participant consent, care-data retention/region, real day content, approved restrictions and timezone confirmation remain prerequisites for genuine care use.",
+        "Remaining S01 engineering includes foreground Hey Nancy qualification, the other three scoped role landing experiences, shared meal/task occurrence identity and richer pantry/portion/alternative-meal behavior. Current navigation and manual appointment entry do not imply Outlook/Asana sync.",
+        "Actual task completion and meal reporting are S02; accepting a plan records intentions only. Daily reliance, operational recovery and background reminders remain gated."
       ],
-      "test_results": [],
+      "test_results": [
+        {
+          "test_id": "S01-AUTO1",
+          "outcome": "pass",
+          "implementation_revision": "sha256:7c14045dffe597f905212ce515780dc4988d303288d2812422031420f229d738",
+          "executed_at": "2026-10-05T20:46:58.964Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex automated engineering checks",
+          "evidence_ref": "docs/evidence/S01-MY-DAY-2026-10-05.json",
+          "notes": "Shared voice/touch proposal and explicit exact-review acceptance contract tests passed, including played-event gating, interrupted review, unknown/invalid targets and replay. The complete suite passed 142 tests; one opt-in actual-PostgreSQL scenario passed separately. Actual human audio acceptance remains a live gate."
+        },
+        {
+          "test_id": "S01-LIVE2",
+          "outcome": "blocked",
+          "implementation_revision": "sha256:7c14045dffe597f905212ce515780dc4988d303288d2812422031420f229d738",
+          "executed_at": "2026-10-05T20:46:58.964Z",
+          "environment": "live_real_services",
+          "data_origin": "disposable_live",
+          "observed_by": "Codex engineering checks using synthetic practice records and generated audio",
+          "evidence_ref": "docs/evidence/S01-MY-DAY-2026-10-05.json",
+          "notes": "Partial live-service check passed: actual PostgreSQL auth/plan durability, encrypted disposable restore, exact Sol-high planning, Heart chunks, synthetic audio through ASR and one-commit acceptance replay. Playback acknowledgements were scripted; no human microphone/listening claim. Full provider-loss/revocation/allowance, role/device and HTTPS qualification remains open; this is not a passed LIVE2 gate."
+        }
+      ],
       "human_actions": [
         {
           "id": "S01-H01",
@@ -793,7 +812,8 @@
           "human_must_do": [
             "Private OpenAI project/key setup, ownership and the owner's Nancy OAuth/ChatGPT-plan consent are complete. Identify the intended participant account/device and complete only additional sign-in or ownership steps required for that deployment. Do not recreate keys or repeat the completed owner consent, and do not assume the administrator subscription covers every client.",
             "Review an explicit API fallback/cost proposal only if subscription qualification fails or the selected speech path needs separately billed GPT access. Funding remains an owner choice, not an automatic prerequisite or silent fallback.",
-            "Complete only missing HTTPS/domain ownership and, if actually selected, Secure MCP Tunnel workspace/access steps. Keep credentials private; routine installation/configuration is agent work."
+            "Complete only missing HTTPS/domain ownership and, if actually selected, Secure MCP Tunnel workspace/access steps. Keep credentials private; routine installation/configuration is agent work.",
+            "Approve public exposure of the new password-protected sample-data My Day app for a supervised phone test if desired. Automatic approval review rejected creating this tunnel because the earlier preview authorization did not specifically cover the authenticated care routes; no tunnel workaround is authorized by elapsed time."
           ],
           "agent_can_do": [
             "First prepare and qualify the lowest-cost supported ChatGPT-plan adapter for exact gpt-6-sol high, with app-specific auth, allowance/error handling and actual completed inference evidence. Preserve independent care-service authorization and user/account boundaries.",
@@ -801,7 +821,7 @@
             "Configure local database/auth, shared care commands and My Day HTTPS. Add local MCP or Secure MCP Tunnel only for a concrete supported caller; preserve per-client grants and test revocation.",
             "Reuse docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json and the saved key. Prepare a concrete fallback proposal if needed; no repeated sign-in, key setup or funding requests without a remaining technical need."
           ],
-          "expected_evidence": "Partial API-key and preparation records remain historical. docs/evidence/S01-CHATGPT-PLAN-CONNECTION-2026-10-04.json records completed owner OAuth consent, exact Sol-high plan inference, a fixed synthetic tool round trip and separate local speech probes. Completion still needs intended-user/deployment eligibility, live credential lifecycle/allowance behavior, authorized care-tool integration and genuine two-way speech/HTTPS evidence, plus conditional tunnel access. Keep credentials and full account evidence private; these probes do not complete S01-H02 or either live gate.",
+          "expected_evidence": "Owner app-specific OAuth consent and exact Sol-high inference remain evidenced by the October 4 connection record. docs/evidence/S01-MY-DAY-2026-10-05.json adds actual owner-bound authorized care planning, local PostgreSQL/auth, encrypted disposable restore, Heart and ASR integration using synthetic records. Completion still needs intended-user/deployment eligibility, remaining live credential lifecycle/allowance checks, the actual device conversation and HTTPS route. Specific approval for the new authenticated test tunnel is pending after automatic approval review rejection. Credentials and private evidence remain local; S01-H02 and both full live gates remain incomplete.",
           "related_input_ids": [
             "I-ACCOUNTS",
             "I-DOMAIN",

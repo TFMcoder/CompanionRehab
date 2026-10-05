@@ -1,8 +1,8 @@
 # Companion Rehab · Nancy
 
-Nancy helps a participant plan the day through a user-initiated 10 AM voice check-in and a simple touch interface. S01 combines real task choices, meal options, reviewed proposals, explicit acceptance and durable plan history. Actual meal/task reporting follows in S02.
+Nancy helps a participant plan the day through one **Talk to Nancy** button and independent My Day, task, meal and grocery views. The 08:00–11:00 local morning routine includes breakfast, day planning and existing exercise/rehab tasks; the preferred 10 AM check-in is never an access restriction. Actual meal/task reporting follows in S02.
 
-**Current status:** S01 adaptation in progress. The October 3 requirements specify local data storage, four roles, My Day voice/button navigation, meals as tasks, and GPT-6 Sol with high reasoning. The existing September 29 implementation is a baseline using Supabase and Realtime; it has not yet been adapted or live accepted under the new requirements. No paid service activation is claimed.
+**Current status:** a local My Day development pilot now combines PostgreSQL/auth, GPT-6 Sol high, local transcription, Kokoro Heart speech and versioned plan acceptance. Live synthetic planning, generated-audio acceptance, replay, sign-in readback and encrypted restore have run against real services. S01 remains in progress: actual iPhone/participant acceptance and the remaining roadmap contracts are not complete. No paid service was activated. See the [local My Day runbook](docs/LOCAL_MY_DAY.md).
 
 **Smartphone interface preview:** a separate My Day page now supports sample task/meal navigation, Nancy's fixed voice sample and an in-browser microphone/playback check. Use the temporary HTTPS link provided privately in the active conversation. It does not save plans or run live Nancy reasoning. See [device preview and operating notes](docs/DEVICE_PREVIEW.md).
 
@@ -12,7 +12,7 @@ npm run check
 npm start
 ```
 
-Open `http://localhost:8787` to inspect the baseline. Its configuration still expects Supabase and Realtime; `.env.example` and readiness checks describe that baseline, not the revised local-data/Sol deployment. Keep real credentials and records in ignored private storage. Do not provision a cloud database just to satisfy the old readiness check.
+Open `http://localhost:8787` after configuring the local runtime in the runbook. The application reads `.env.local` and ignored `.local/runtime/local-care.env`; old Supabase/Realtime scripts remain historical references, not a runtime fallback. Keep credentials and records in ignored private storage. The existing public sample preview is separate from the authenticated app; public exposure of the new care routes requires the specific owner approval recorded in the roadmap.
 
 Run `npm run connect:chatgpt` for the separate local ChatGPT-plan qualification helper. It opens no public port and uses an app-specific OAuth connection, encrypted local credentials and fixed synthetic GPT-6 Sol high text/tool tests. The owner's real connection and synthetic tool round trip succeeded on October 4; local speech generation and recognition also passed separate probes. Its printed loopback address is for this computer only; it is not My Day and must not be published through a tunnel. See the first-connection guide for evidence, usage limits and the remaining qualification gates.
 
@@ -23,9 +23,9 @@ Run `npm run connect:chatgpt` for the separate local ChatGPT-plan qualification 
 - [Live-test runbook, pending revised deployment](docs/S01_LIVE_TEST.md)
 - [Implementation roadmap](docs/ROADMAP.md) and [authoritative JSON](docs/roadmap/roadmap.json)
 - [Human-required actions by slice](docs/HUMAN_ACTIONS.md)
-- [Database migration](db/001_s01.sql)
+- [Local database schema](db/002_local_care.sql) and [historical Supabase migration](db/001_s01.sql)
 
-The target Node/Fastify service serves the React client and owns durable care state in local PostgreSQL, with compatible local authentication and later migration to another server or cloud. Complete GPT-6 Sol high qualification for the intended user's account and deployment, then integrate the separate speech layer, authorized care tools and My Day HTTPS. A Secure MCP Tunnel is optional tool transport. API-key billing is an explicit fallback decision. The service budget is $50/month excluding GPT, with CAD as the unconfirmed planning default and existing resources first. Successful connection probes do not establish an integrated Nancy conversation or accepted care plan.
+The Node/Fastify service serves the React client and owns durable care state in local PostgreSQL. GPT-6 Sol high is linked to one explicitly bound owner care account for the synthetic pilot; the intended participant's eligibility, sign-in and deployment still require qualification. A Secure MCP Tunnel is optional tool transport. API-key billing is an explicit fallback decision. The service budget is $50/month excluding GPT, with CAD as the unconfirmed planning default and existing resources first.
 
 Automated tests use synthetic data, a disposable PGlite PostgreSQL engine, browser DOM tests and provider doubles. They do not substitute for actual local database/auth deployment, GPT/speech, HTTPS, isolated restore or participant acceptance. Client **My Day**, family/friend **Support Team**, clinician **Clinician Partners** and administrator access are scoped separately. Full dashboards and recurring reminder automation remain outside S01.
 

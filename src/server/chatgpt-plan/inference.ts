@@ -45,8 +45,8 @@ function responseError(payload: unknown, status: number, requestId?: string): Pl
   const label = (value: unknown) => typeof value === 'string' && /^[a-z][a-z0-9_]{0,100}$/.test(value) ? value : null;
   return new PlanRequestError(status, code, requestId, { providerCode: label(nested.code), providerType: label(nested.type) });
 }
-type OutputItem = Record<string, unknown>;
-interface CompletedTurn extends ProbeResult { output: OutputItem[] }
+export type OutputItem = Record<string, unknown>;
+export interface CompletedTurn extends ProbeResult { output: OutputItem[] }
 export interface SolHighTimingSample {
   promptId: 'morning' | 'meal_choice' | 'task_carryover';
   status: 'completed' | 'failed' | 'not_run';
@@ -67,8 +67,8 @@ interface StreamTimingObserver {
   firstSpeakable?: (elapsedMs: number) => void;
   completed?: (elapsedMs: number, usage: ProbeResult['usage']) => void;
 }
-async function requestSolHigh(account: PlanCredential, input: OutputItem[],
-  options: { tools?: OutputItem[]; tool_choice?: 'required' | 'none' } = {}, fetcher: typeof fetch = fetch,
+export async function requestSolHigh(account: PlanCredential, input: OutputItem[],
+  options: { tools?: OutputItem[]; tool_choice?: 'required' | 'none' | 'auto'; instructions?: string } = {}, fetcher: typeof fetch = fetch,
   timing?: StreamTimingObserver): Promise<CompletedTurn> {
   if (!account.scopes.includes(requiredScope)) throw new Error('ChatGPT plan use was not granted for this connection.');
   const started = performance.now();

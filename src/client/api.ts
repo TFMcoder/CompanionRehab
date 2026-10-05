@@ -1,4 +1,4 @@
-import type { AppConfig, CareCommand, Receipt, SetupInput, Today } from "../shared/contracts";
+import type { AppConfig, CareCommand, GroceryItem, Receipt, SetupInput, Today } from "../shared/contracts";
 
 export class ApiError extends Error {
   constructor(
@@ -13,15 +13,15 @@ export class ApiError extends Error {
 
 type ErrorBody = { error?: { code?: string; message?: string } };
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, timeoutMs?: number): Promise<T> {
   const isWrite = (init?.method ?? "GET").toUpperCase() !== "GET";
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), isWrite ? 15_000 : 12_000);
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs ?? (isWrite ? 15_000 : 12_000));
   try {
     const response = await fetch(path, {
       credentials: "same-origin",
       ...init,
-      signal: controller.signal,
+      signal: init?.signal ? AbortSignal.any([controller.signal, init.signal]) : controller.signal,
       headers: { Accept: "application/json", ...(init?.body ? { "Content-Type": "application/json" } : {}), ...init?.headers },
     });
     if (isWrite && response.status >= 500) throw new ApiError(response.status, "connection_unconfirmed", "Save unconfirmed. Check saved plan.");
@@ -45,6 +45,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 }
 
+export interface ConversationReply { text: string; reply_id: string; navigate?: string; changed?: boolean; transcript?: string; speech_parts?: number }
+export interface ConversationStart extends ConversationReply { session_id: string }
+export interface GroceryInput { name: string; quantity?: string; idempotency_key: string }
+
 export const api = {
   config: () => request<AppConfig>("/api/config"),
   session: () => request<{ authenticated: true }>("/api/auth/session"),
@@ -54,4 +58,12 @@ export const api = {
   setup: (input: SetupInput) => request<Today>("/api/setup", { method: "POST", body: JSON.stringify(input) }),
   command: (command: CareCommand) => request<Receipt>("/api/commands", { method: "POST", body: JSON.stringify(command) }),
   receipt: (key: string) => request<Receipt>(`/api/receipts/${encodeURIComponent(key)}`),
+  groceries: () => request<{ items: GroceryItem[] } | GroceryItem[]>("/api/groceries"),
+  addGrocery: (input: GroceryInput) => request<GroceryItem>("/api/groceries", { method: "POST", body: JSON.stringify(input) }),
+  addAppointment: (input: { title: string; starts_at: string; idempotency_key: string }) => request<{ appointment: { id: string; title: string; starts_at: string } }>("/api/appointments", { method: "POST", body: JSON.stringify(input) }),
+  conversationStart: (signal?: AbortSignal) => request<ConversationStart>("/api/conversation", { method: "POST", body: "{}", signal }, 90_000),
+  conversationTurn: (id: string, text: string, turnId: string, signal?: AbortSignal) => request<ConversationReply>(`/api/conversation/${encodeURIComponent(id)}/turn`, { method: "POST", body: JSON.stringify({ text, turn_id: turnId }), signal }, 90_000),
+  conversationAudio: (id: string, wav: string, turnId: string, signal?: AbortSignal) => request<ConversationReply>(`/api/conversation/${encodeURIComponent(id)}/audio`, { method: "POST", body: JSON.stringify({ wav, turn_id: turnId }), signal }, 90_000),
+  conversationPlayed: (id: string, replyId: string, signal?: AbortSignal) => request<{ ok: true }>(`/api/conversation/${encodeURIComponent(id)}/played`, { method: "POST", body: JSON.stringify({ reply_id: replyId }), signal }),
+  conversationEnd: (id: string) => request<{ ok: true }>(`/api/conversation/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };

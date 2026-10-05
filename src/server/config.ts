@@ -3,11 +3,13 @@ import { z } from 'zod';
 
 export function loadEnvironment() {
   if (existsSync('.env.local')) process.loadEnvFile('.env.local');
+  if (existsSync('.local/runtime/local-care.env')) process.loadEnvFile('.local/runtime/local-care.env');
 }
 export interface Config {
   origin: string; port: number; supabaseUrl?: string; supabaseKey?: string;
   sessionKey?: Buffer; openaiKey?: string; voiceModel: string;
   voiceMinutes: number; voiceDailyMinutes: number;
+  databaseUrl?: string; voiceTransport?: 'local' | 'legacy'; planUserId?: string; synthetic?: boolean;
 }
 export function configFromEnv(env: NodeJS.ProcessEnv = process.env): Config {
   const origin = new URL(env.PUBLIC_ORIGIN || 'http://localhost:8787');
@@ -35,8 +37,13 @@ export function configFromEnv(env: NodeJS.ProcessEnv = process.env): Config {
     voiceModel: env.OPENAI_REALTIME_MODEL || 'gpt-realtime-mini',
     voiceMinutes: z.coerce.number().min(1).max(20).parse(env.VOICE_SESSION_MINUTES || 10),
     voiceDailyMinutes: z.coerce.number().min(1).max(60).parse(env.VOICE_DAILY_MINUTES || 20),
+    databaseUrl: env.DATABASE_URL || undefined,
+    voiceTransport: env.NANCY_VOICE_TRANSPORT === 'legacy' ? 'legacy' : 'local',
+    planUserId: env.NANCY_PLAN_USER_ID ? z.string().uuid().parse(env.NANCY_PLAN_USER_ID) : undefined,
+    synthetic: env.NANCY_SYNTHETIC === '1',
   };
 }
 export function missingConfig(c: Config) {
+  if (c.databaseUrl) return [!c.sessionKey && 'SESSION_KEY'].filter(Boolean) as string[];
   return [!c.supabaseUrl && 'SUPABASE_URL', !c.supabaseKey && 'SUPABASE_PUBLISHABLE_KEY', !c.sessionKey && 'SESSION_KEY'].filter(Boolean) as string[];
 }

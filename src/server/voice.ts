@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import WebSocket from 'ws';
 import type { Config } from './config.js';
 import type { Session } from './session.js';
-import type { Supabase } from './supabase.js';
+import type { CareService } from './care-access.js';
 import { VoiceTools, voiceToolDefinitions } from './voice-tools.js';
 import { ApiError } from './errors.js';
 
@@ -15,7 +15,7 @@ export class VoiceService {
   private starting = new Set<string>();
   // Conservative reservation, not a billing meter. Actual account spending is checked at the provider.
   private reservations = new Map<string, number>();
-  constructor(private config: Config, private care: Supabase, private fetcher: typeof fetch = fetch,
+  constructor(private config: Config, private care: CareService, private fetcher: typeof fetch = fetch,
     private connect: (url: string, options: WebSocket.ClientOptions) => WebSocket = (url, options) => new WebSocket(url, options)) {}
   async start(original: Session, sdp: string) {
     if (!this.config.openaiKey) throw new ApiError(503, 'voice_unavailable', 'Voice has not been connected. You can use touch.');
