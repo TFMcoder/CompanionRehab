@@ -164,7 +164,7 @@
     {
       "id": "I-ACCOUNTS",
       "status": "unresolved",
-      "default": "Private OpenAI key and model visibility are confirmed; API-key reasoning/speech probes returned HTTP 429 (docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json). The selected next step is ChatGPT-plan qualification under docs/architecture/PRODUCT_DECISIONS_2026-10-04.md. Actual plan entitlement, intended-user/deployment eligibility, inference, speech and external routing remain unresolved.",
+      "default": "Private OpenAI key and model visibility are confirmed; API-key reasoning/speech probes returned HTTP 429 (docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json). The app-specific local OAuth/Responses helper has reached the final OpenAI consent screen, with approval and actual inference pending (docs/evidence/S01-CHATGPT-PLAN-PREP-2026-10-04.json). A separate Windows voice probe generated synthetic audio only. Actual plan entitlement, intended-user/deployment eligibility, complete speech and external routing remain unresolved.",
       "needed_for": "S01 selected ChatGPT-plan reasoning qualification, independent speech and any required routing service; an API billing top-up is not the default prerequisite",
       "question": "Reuse saved private access. After the agent prepares a concrete supported route, complete only missing account-owner sign-in/consent or workspace access. Review a separately billed API fallback only if qualification findings require it; do not assume one account can serve every role/client.",
       "resolution_ref": null
@@ -597,7 +597,7 @@
         "I-DATA/I-REGION/I-DAY-CONTENT/S01-H03/H06: Record consent, remaining remote processing/retention boundary, real task/meal choices and participant timezone privately. Initial local storage is already decided.",
         "S01-LIVE2 and S01-LIVE1: Actual local deployment plus remote reasoning and the selected speech path, isolated restore and the real 10 AM planning trial have not run. Run disposable checks before retained participant use.",
         "2026-10-04 actual connection checks are recorded in docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. These synthetic provider probes are not S01 live acceptance. The MCP tunnel transports local tool calls; it does not establish Nancy model access, voice, per-client authorization or a public My Day web route.",
-        "2026-10-04 route decision: subscription-first qualification is selected, not implemented. MCP/local function tools, optional Secure MCP Tunnel and My Day HTTPS must be evaluated separately; no generic orchestration or new infrastructure milestone is required."
+        "2026-10-04 connection implementation: the app-specific OAuth/Responses helper and its security tests are implemented; browser setup reached final OpenAI consent, awaiting owner approval. Completed Sol-high inference, tool round trips and live renewal/revocation remain untested. A separate Windows voice probe generated valid synthetic PCM; this is not two-way voice or a final speech selection. See docs/evidence/S01-CHATGPT-PLAN-PREP-2026-10-04.json. Preserve the existing Tailscale/MCP services; a new tool tunnel is unnecessary for this local probe."
       ],
       "test_results": [],
       "human_actions": [
@@ -651,7 +651,7 @@
             "Configure local database/auth, shared care commands and My Day HTTPS. Add local MCP or Secure MCP Tunnel only for a concrete supported caller; preserve per-client grants and test revocation.",
             "Reuse docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json and the saved key. Prepare a concrete fallback proposal if needed; no repeated sign-in, key setup or funding requests without a remaining technical need."
           ],
-          "expected_evidence": "Partial API-key evidence is retained in docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. Completion needs actual selected-route eligibility/auth/model/usage and independent speech/HTTPS evidence, plus conditional tunnel access. Keep credentials and full account evidence private; an account catalog or successful metadata call is insufficient.",
+          "expected_evidence": "Partial API-key evidence is retained in docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. The prepared local OAuth flow, pending final consent and generated local voice sample are recorded in docs/evidence/S01-CHATGPT-PLAN-PREP-2026-10-04.json. Completion still needs actual selected-route eligibility/auth/model/usage and independent two-way speech/HTTPS evidence, plus conditional tunnel access. Keep credentials and full account evidence private; preparation, a voice file, an account catalog or successful metadata call is insufficient.",
           "related_input_ids": [
             "I-ACCOUNTS",
             "I-DOMAIN",

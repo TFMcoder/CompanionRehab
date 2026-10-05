@@ -1,0 +1,71 @@
+{
+  "purpose": "Local OAuth/Responses qualification helper and synthetic local speech-output preparation; not S01 live acceptance",
+  "recorded_at": "2026-10-05T01:15:30Z",
+  "local_date": "2026-10-04",
+  "base_git_revision": "8bb938e3ae45ecc246b47e82fae309b4afee390a",
+  "implementation_revision": "sha256:90fbfdacf0a4ca0292c67c3732e0bd3c6a705288707da867a4d3804b86dcf7e1",
+  "observed_by": "Codex orchestrator with delegated implementation and local speech probe",
+  "environment": "Local Windows host, real browser, official OpenAI OAuth discovery and consent pages, installed Windows speech engine",
+  "data_origin": "Fixed synthetic probe content only; no participant care records",
+  "automated_checks": {
+    "command": "npm run check",
+    "outcome": "passed",
+    "test_files": 8,
+    "tests_passed": 56,
+    "typecheck": "passed",
+    "production_build": "passed",
+    "follow_up": "The 9 ChatGPT-plan tests also passed after adding a regression assertion for the browser-tested same-origin Referrer-Policy. The only subsequent implementation change made the speech probe's en-US voice filter mandatory; the final script was rerun successfully."
+  },
+  "oauth": {
+    "route": "app-specific dynamic OAuth client with direct public Responses endpoint",
+    "requested_model": "gpt-6-sol",
+    "reasoning_effort": "high",
+    "discovery_http_status": 200,
+    "browser_state": "final_consent_pending_owner_approval",
+    "consent_granted": false,
+    "inference_attempted": false,
+    "completed_inference": false,
+    "private_credentials": "Encrypted under ignored .local/runtime using the private SESSION_KEY; no existing Codex or Cerberus credentials copied",
+    "private_screenshot_ref": "local:.local/probes/nancy-chatgpt-consent.jpg",
+    "probe_limits": "Fixed tiny prompt, 45-second local timeout, 1 MB response limit; max_output_tokens is unsupported by the plan preview, so this is not a hard token/spend cap",
+    "browser_findings": [
+      "Initial local form POST was denied. Changing the page's Referrer-Policy from no-referrer to same-origin allowed the actual browser to supply the required Origin while preserving cross-origin referrer suppression. Exact Origin and CSRF checks remain enforced.",
+      "OpenAI account selection initially returned HTTP 400 Invalid content type. The normal Try again action and automatic security verification recovered; the account-selection flow then reached final consent. No CAPTCHA was solved and no security control was bypassed."
+    ]
+  },
+  "local_speech_output": {
+    "command": "powershell.exe -NoProfile -File ./scripts/check-local-speech.ps1",
+    "executed_at": "2026-10-05T01:15:29.6849530Z",
+    "outcome": "generated",
+    "backend": "Windows System.Speech / SAPI",
+    "voice": "Microsoft Zira Desktop - English (United States)",
+    "duration_seconds": 6.939,
+    "generation_latency_ms": 53.9,
+    "format": "22050 Hz mono 16-bit PCM WAV",
+    "pcm_data_bytes": 305988,
+    "valid_header_and_nonzero_pcm": true,
+    "audible_verified": false,
+    "microphone_tested": false,
+    "device_conversation_verified": false,
+    "remote_service_used": false,
+    "incremental_service_cost": 0,
+    "private_result_ref": "local:.local/probes/local-speech-result.json",
+    "private_audio_ref": "local:.local/probes/nancy-local-voice.wav",
+    "note": "Sandbox attempts could not access SAPI; the approved run succeeded without changing Windows security settings. This is a candidate output engine, not a final speech selection."
+  },
+  "routing": {
+    "existing_openai_tunnel_observed": true,
+    "existing_tailscale_connection_and_https_config_observed": true,
+    "new_tunnel_created": false,
+    "existing_routing_modified": false,
+    "nancy_device_route_qualified": false
+  },
+  "limitations": [
+    "Final OAuth consent remains an owner decision at the actual permission screen. No subscription inference, active production route or selected model entitlement is claimed.",
+    "The helper is local operator setup only, not My Day. Never publish this helper through a tunnel.",
+    "Intended-user/deployment eligibility, typed care tools, live refresh/revocation/quota behavior and usage limits still need qualification.",
+    "Local PostgreSQL/auth, four roles, task/meal adaptations, speech recognition, device HTTPS and integrated application acceptance remain outstanding.",
+    "S01-LIVE2 and S01-LIVE1 have not run. No canonical acceptance test group is marked passed by these partial connection checks.",
+    "No new paid service, API funding or silent billing/model fallback was enabled. Credentials, account identifiers and private screenshots/audio remain outside Git."
+  ]
+}

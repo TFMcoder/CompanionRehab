@@ -12,6 +12,8 @@ npm start
 
 Open `http://localhost:8787` to inspect the baseline. Its configuration still expects Supabase and Realtime; `.env.example` and readiness checks describe that baseline, not the revised local-data/Sol deployment. Keep real credentials and records in ignored private storage. Do not provision a cloud database just to satisfy the old readiness check.
 
+Run `npm run connect:chatgpt` for the separate local ChatGPT-plan qualification helper. It opens no public port and uses an app-specific OAuth connection, encrypted local credentials and a fixed synthetic GPT-6 Sol high test. Its printed loopback address is for this computer only; it is not My Day and must not be published through a tunnel. See the first-connection guide for consent, usage limits and the remaining qualification gates.
+
 - [Current product and technical decisions](docs/architecture/PRODUCT_DECISIONS_2026-10-03.md)
 - [First connection: ChatGPT-plan qualification](docs/S01_FIRST_CONNECTION.md)
 - [October 4 connectivity and subscription decision](docs/architecture/PRODUCT_DECISIONS_2026-10-04.md)

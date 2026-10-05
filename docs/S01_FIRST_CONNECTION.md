@@ -6,7 +6,7 @@ Updated: 2026-10-04. Follow the [selected connectivity direction](architecture/P
 
 The owner created the CompanionRehab project and saved a restricted pilot key privately. The actual model metadata check passed for `gpt-6-sol`; bounded Responses-high and speech requests returned HTTP 429. See the [sanitized connection record](evidence/S01-OPENAI-CONNECTION-2026-10-04.json). No successful inference, audio, device conversation or S01 live acceptance is claimed.
 
-Do not repeat key setup. Subscription qualification is now the selected next step under the [Cerberus addendum](architecture/CERBERUS_REUSE_ASSESSMENT.md#october-4-addendum-mcp-tunnel-and-subscription-reasoning). The tunnel carries tool calls; supported ChatGPT-plan inference has separate account, model, deployment and usage limits. No Nancy subscription runtime has yet been implemented or qualified.
+Do not repeat key setup. Subscription qualification is now the selected next step under the [Cerberus addendum](architecture/CERBERUS_REUSE_ASSESSMENT.md#october-4-addendum-mcp-tunnel-and-subscription-reasoning). The tunnel carries tool calls; supported ChatGPT-plan inference has separate account, model, deployment and usage limits. The local OAuth/Responses qualification helper is implemented and has reached OpenAI's final permission screen; consent and actual subscription inference remain pending. This helper is not the integrated Nancy runtime. See the [preparation evidence](evidence/S01-CHATGPT-PLAN-PREP-2026-10-04.json).
 
 ## Agent-owned next steps
 
@@ -41,3 +41,21 @@ The app's older `npm run readiness` command describes the Supabase baseline. Do 
 - Microphone/speaker participation and the real daily planning/reporting trial.
 
 Database installation, application changes, authentication, commands, backup/restore, technical tests and deployment are engineering tasks. The account owner is not responsible for coding or manually running database migrations.
+
+## Local ChatGPT connection helper
+
+`npm run connect:chatgpt` starts the local, operator-only connection helper and prints its loopback address. Open that address on this computer, choose **Continue with ChatGPT**, and review OpenAI's actual account/plan consent screen. The callback uses `127.0.0.1`; a public tunnel is unnecessary for this sign-in. The helper is separate from My Day and must not be exposed through Tailscale, Cloudflare or an MCP tunnel.
+
+This qualification uses the documented public-client OAuth flow and Responses endpoint. It requests identity and explicit ChatGPT-plan usage, keeps app-specific credentials encrypted under ignored `.local/` using the existing `SESSION_KEY`, and never borrows Cerberus or Codex credentials. Protect both the encrypted file and `.env.local`; encryption does not make a publicly readable key safe.
+
+After sign-in, run the fixed synthetic **Sol-high connection test** from the helper. It uses `gpt-6-sol`, high effort and `store: false`, with one tiny fixed prompt, a 45-second local timeout and a response-size limit. The current plan preview does not support `max_output_tokens`: these safeguards are not a hard token/spend cap, and closing a connection does not prove that remote work stopped. Review allowance in ChatGPT usage settings. It has no care tools or real participant inputs. Successful sign-in alone does not establish model access. Only a validated completed response counts as this connection probe; interrupted, incomplete, quota-denied and wrong-model results remain failures. This does not select the production route or satisfy either S01 live scenario.
+
+The helper does not enable the existing Realtime/Supabase application as the revised MVP. Remaining integration includes typed care tools, per-client account binding, independent speech, local PostgreSQL/authentication and the actual device's HTTPS route. Keep `reasoning_route.active_route` unset until the qualification contract is met.
+
+Read-only routing inspection found an existing Tailscale connection and HTTPS configuration on this computer. This is a candidate for private device access, not a chosen or tested Nancy route. Preserve its existing services; identify the intended device and access scope before adding a route. No additional OpenAI MCP tunnel is required for the direct local OAuth/Responses probe.
+
+## Local speech-output probe
+
+`powershell.exe -NoProfile -File ./scripts/check-local-speech.ps1` generates a fixed synthetic Nancy sample using an installed Windows voice and writes a receipt plus WAV under ignored `.local/probes/`. The final October 4 authorized local run generated valid nonzero PCM using Zira: 6.939 seconds of audio in 53.9 ms of synthesis time. The initial sandboxed attempt was denied; no Windows security setting was changed to obtain the successful run.
+
+This is a $0 incremental speech-output candidate, not a final voice selection or a conversation test. It opens no microphone and calls no remote speech service. Audible playback, the intended device, recognition accuracy, response latency and interruption behavior still need live qualification. Keep the WAV and full local receipt private; the public evidence contains only sanitized technical observations.
