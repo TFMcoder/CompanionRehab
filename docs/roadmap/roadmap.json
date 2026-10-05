@@ -163,9 +163,9 @@
     {
       "id": "I-ACCOUNTS",
       "status": "unresolved",
-      "default": "The project owner is the administrator and technical lead; ownership is resolved, usable provider/project access is not yet evidenced.",
+      "default": "Administrator/technical-lead ownership and private OpenAI project-key setup are confirmed. Actual model visibility returned HTTP 200; bounded Responses and speech requests returned HTTP 429. See docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. Qualify the existing-subscription alternative before requesting API funding; usable inference/speech and external routing remain unresolved.",
       "needed_for": "S01 actual GPT/speech API connection and any selected external routing service; no cloud database account required",
-      "question": "Reuse authorized access; complete only missing account-owner sign-in/MFA and private project/key setup. Do not put credentials in the repository.",
+      "question": "Reuse the saved private key and existing authorized subscription access. Complete only owner steps needed by the qualified route; do not repeat project/key creation or assume a funding decision. Keep credentials out of the repository.",
       "resolution_ref": null
     },
     {
@@ -562,11 +562,11 @@
       "blockers": [
         "Implementation adaptation: September 29 code still uses Supabase cloud authentication/storage, two legacy role labels and a Realtime reasoning model. It does not yet meet the October 3 local-storage, four-role, My Day navigation, unified task/meal or Sol-high contracts.",
         "Current-contract automated results must be run after adaptation. Historical September 29 evidence remains in docs/evidence/S01-2026-09-29.json. Publication checks passed 43 existing tests after an input-state repair (docs/evidence/SYNC-2026-10-03.json); this does not validate the revised S01 contracts or live gates.",
-        "I-ACCOUNTS/S01-H02: Administrator and technical-lead ownership is confirmed; usable private OpenAI project access is not yet evidenced. Supabase account provisioning is no longer required.",
+        "I-ACCOUNTS/S01-H02: Private OpenAI key setup and gpt-6-sol model visibility are confirmed. Actual Responses-high and speech probes returned HTTP 429. The API-key route needs account billing attention; Cerberus's separate subscription-backed reasoning adapter must be assessed before requesting funding. No Nancy inference or speech success is established.",
         "I-DOMAIN/S01-H02 and I-DEVICE/S01-H01: Actual HTTPS hostname/account and intended tablet/browser are not yet identified; genuine microphone/speaker testing has not run.",
         "I-DATA/I-REGION/I-DAY-CONTENT/S01-H03/H06: Record consent, remaining remote processing/retention boundary, real task/meal choices and participant timezone privately. Initial local storage is already decided.",
         "S01-LIVE2 and S01-LIVE1: Actual local deployment plus remote speech/reasoning, isolated restore and the real 10 AM planning trial have not run. Run disposable checks before retained participant use.",
-        "2026-10-04 connection preparation: private key setup instructions and a read-only OpenAI model-visibility probe are ready. The local presence check reports missing_key; no API inference, speech or live acceptance has run in this step."
+        "2026-10-04 actual connection checks are recorded in docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. These synthetic provider probes are not S01 live acceptance. The MCP tunnel transports local tool calls; it does not establish Nancy model access, voice, per-client authorization or a public My Day web route."
       ],
       "test_results": [],
       "human_actions": [
@@ -610,7 +610,7 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "The project owner is confirmed as administrator and technical lead. Complete only missing OpenAI project/account and HTTPS account-owner sign-in, MFA or ownership steps; no initial cloud database account is required.",
+            "Administrator/technical-lead ownership and private OpenAI project-key creation are complete. After the agent qualifies the lowest-cost supported model route, complete only remaining owner sign-in/consent or billing steps for that route and missing HTTPS ownership steps. No initial cloud database account is required.",
             "Complete any MFA, account consent, domain ownership or billing-identity steps that require you; use secure credential setup, never the repository."
           ],
           "agent_can_do": [
@@ -619,7 +619,7 @@
             "Configure the already selected gpt-6-sol with high reasoning; verify project availability without substituting another model silently.",
             "Guide the owner through docs/S01_FIRST_CONNECTION.md; use readiness:openai for secret-safe presence/model-visibility checks before bounded real inference and speech tests."
           ],
-          "expected_evidence": "Private configuration/access references; actual account checks. Reuse existing access rather than asking for it again. Ownership alone is not evidence that credentials or project access are configured.",
+          "expected_evidence": "Partial access evidence: docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json records model visibility success and rejected inference/speech probes. Completion still requires actual usable model/speech and routing access, with private configuration references. Reuse the saved key and existing authorized access.",
           "related_input_ids": [
             "I-ACCOUNTS",
             "I-DOMAIN",

@@ -2,6 +2,12 @@
 
 Updated: 2026-10-04. This is the current first account-setup step for S01. It does not require a cloud database, and it does not make the older Supabase deployment runbook current. The revised local database/authentication and speech implementation remains in progress.
 
+## Current result
+
+The owner created the CompanionRehab project and saved a restricted pilot key privately. The actual model metadata check passed for `gpt-6-sol`; bounded Responses-high and speech requests returned HTTP 429. See the [sanitized connection record](evidence/S01-OPENAI-CONNECTION-2026-10-04.json). No successful inference, audio, device conversation or S01 live acceptance is claimed.
+
+Do not repeat key setup. Before requesting API funding, qualify the subscription-backed reasoning option identified in the [Cerberus addendum](architecture/CERBERUS_REUSE_ASSESSMENT.md#october-4-addendum-mcp-tunnel-and-subscription-reasoning). The tunnel itself carries tool calls. A supported ChatGPT-plan inference integration is a separate mechanism, with its own account, model, deployment and voice limits. This review has not changed the selected model or implemented another runtime.
+
 ## Account-owner steps
 
 1. Sign in to [OpenAI Platform](https://platform.openai.com/) and select the existing CompanionRehab project, or create a dedicated project if none exists.

@@ -4,6 +4,22 @@
 
 Date: 2026-09-29. Decision: borrow selected utilities, validation patterns and regression scenarios; keep CompanionRehab an independent application.
 
+## October 4 addendum: MCP tunnel and subscription reasoning
+
+The original scan did not adequately distinguish two reusable connection patterns. A focused October 4 source review found:
+
+- `docs/lifecore-chatgpt.md` defines ChatGPT as the LifeCore conversation surface and Secure MCP Tunnel as transport to the local protected stdio MCP server. This is a local-tool/data connection. No protected data, credentials or runtime configuration were opened or copied.
+- `services/api/cerberus_api/mission_control/planning_provider.py::CodexPlanningProvider` implements a separate `codex-app-server/chatgpt` reasoning route. It requires ChatGPT authentication, verifies the selected model/runtime, disables inherited tools, bounds work and reports `separately_billed_api: false`. `docs/director-execution.md` records historical completed subscription-backed requests. Those results do not establish current Nancy access.
+- The inspected October 4 Cerberus handoff retains an unqualified current native Daily Brief pilot. Reusing a pattern is not evidence that the current runtime, Nancy's selected `gpt-6-sol` high, remote client access or two-way speech already works.
+
+[Official Secure MCP Tunnel documentation](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) describes outbound local MCP transport to supported OpenAI products. It does not provide a general public web origin for My Day or turn an API-key inference request into subscription usage.
+
+[Official ChatGPT plan integration documentation](https://developers.openai.com/cookbook/articles/sign-in-with-chatgpt) describes eligible plan usage for local open-source/personal tools, with separate access requirements for paid or remotely hosted apps. [Codex app-server integration](https://developers.openai.com/siwc/token-sharing-open-source/codex-app-server) requires the app's own authorized token/session flow and actual completed inference to prove model access. Do not copy Cerberus credentials or infer unlimited/shared multi-user entitlement.
+
+Next qualification: evaluate a small supported subscription reasoning adapter for the local pilot before asking for API funding; preserve the exact Sol-high selection, independent care service, four roles and typed commands. Separately qualify speech, account ownership for each intended user and the intended local/remote deployment. This is a research candidate, not an adopted change to the canonical runtime contract or a completed live gate.
+
+The current [ChatGPT plan preview limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations) exclude audio/video input, transcription and hosted Responses MCP/connectors. Local MCP and function tools through app-server are a separate supported mechanism. Therefore an MCP tunnel plus plan usage must not be represented as a complete Nancy voice integration; the speech path remains an independent qualification.
+
 ## Scope and evidence
 
 The target first MVP is a participant's daily 10:00 check-in with Nancy: hear a brief, review real tasks, discuss and accept meals, and retrieve the saved day by voice or touch. This takes precedence over the older roadmap sequence that separates meal logging, planning and the tracker.

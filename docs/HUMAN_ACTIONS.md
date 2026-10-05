@@ -76,12 +76,12 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - The project owner is confirmed as administrator and technical lead. Complete only missing OpenAI project/account and HTTPS account-owner sign-in, MFA or ownership steps; no initial cloud database account is required.
+  - Administrator/technical-lead ownership and private OpenAI project-key creation are complete. After the agent qualifies the lowest-cost supported model route, complete only remaining owner sign-in/consent or billing steps for that route and missing HTTPS ownership steps. No initial cloud database account is required.
   - Complete any MFA, account consent, domain ownership or billing-identity steps that require you; use secure credential setup, never the repository.
 
   **Agent prepares or handles:** Prepare the exact free-plan/account setup and disclose any charges before a paid step. Reuse authorized access; configure local database/auth, provider adapters, DNS/tunnel and private secrets. Qualify invitation/recovery delivery only if the selected identity flow requires a sender. Configure the already selected gpt-6-sol with high reasoning; verify project availability without substituting another model silently. Guide the owner through docs/S01_FIRST_CONNECTION.md; use readiness:openai for secret-safe presence/model-visibility checks before bounded real inference and speech tests.
 
-  **Completion evidence:** Private configuration/access references; actual account checks. Reuse existing access rather than asking for it again. Ownership alone is not evidence that credentials or project access are configured.
+  **Completion evidence:** Partial access evidence: docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json records model visibility success and rejected inference/speech probes. Completion still requires actual usable model/speech and routing access, with private configuration references. Reuse the saved key and existing authorized access.
 
   **Linked inputs/tests:** I-ACCOUNTS, I-DOMAIN, I-MODEL, S01-LIVE1.
 

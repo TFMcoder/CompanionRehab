@@ -1,0 +1,52 @@
+{
+  "purpose": "Actual provider connection checks using synthetic input; not S01 live acceptance",
+  "recorded_at": "2026-10-05T00:03:08Z",
+  "local_date": "2026-10-04",
+  "application_git_revision": "48b8a57",
+  "implementation_revision": "sha256:98cfccb007b779fbd19f840e8c1f080d99c922f3bd49483200c74e0969fd2dfd",
+  "observed_by": "Codex orchestrator",
+  "environment": "Local Windows host with real OpenAI endpoints; network sandbox bypass approved for bounded checks",
+  "data_origin": "fixed synthetic connection phrases",
+  "care_data_sent": false,
+  "checks": [
+    {
+      "command": "npm run readiness:openai -- --connect",
+      "outcome": "model_visible",
+      "http_status": 200,
+      "model": "gpt-6-sol",
+      "note": "Initial sandbox attempt reported connection_failed; the permitted network attempt succeeded. Model visibility does not establish inference entitlement or billing."
+    },
+    {
+      "endpoint": "POST /v1/responses",
+      "executed_at": "2026-10-05T00:01:50.823Z",
+      "requested_model": "gpt-6-sol",
+      "reasoning_effort": "high",
+      "store": false,
+      "max_output_tokens": 512,
+      "outcome": "provider_rejected",
+      "http_status": 429,
+      "completed_inference": false
+    },
+    {
+      "endpoint": "POST /v1/audio/speech",
+      "requested_model": "gpt-4o-mini-tts",
+      "voice": "coral",
+      "outcome": "provider_rejected",
+      "http_status": 429,
+      "audio_received": false,
+      "note": "Connectivity probe only; this does not select the final production speech model."
+    }
+  ],
+  "requests_with_http_responses": 3,
+  "transcription_requested": false,
+  "microphone_tested": false,
+  "speaker_tested": false,
+  "app_integration_tested": false,
+  "private_evidence_ref": "local:.local/probes/openai-smoke-result.json",
+  "limitations": [
+    "The private key is configured and ignored by Git. Its value and account identifiers are omitted.",
+    "Account billing requires attention for the API-key route; financial account details remain private. No payment or billing setting was changed.",
+    "The user raised Cerberus's existing MCP tunnel. Its separate subscription-backed reasoning adapter is a reuse candidate to qualify before requesting API funding; neither route is implemented or live-qualified for Nancy.",
+    "Local database/authentication, role/task adaptations, speech integration and S01-LIVE1/S01-LIVE2 remain outstanding."
+  ]
+}
