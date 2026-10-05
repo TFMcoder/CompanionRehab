@@ -46,7 +46,7 @@ function TaskCard({ task, date }: { task: SampleTask; date: string }) {
 
 export function DevicePreview() {
   const [view, setView] = useState<View>("home");
-  const [kokoroVoice, setKokoroVoice] = useState<(typeof kokoroVoices)[number]["id"]>(kokoroVoices[0].id);
+  const [kokoroVoice, setKokoroVoice] = useState<(typeof kokoroVoices)[number]["id"]>("af_heart");
   const [kokoroSample, setKokoroSample] = useState<(typeof kokoroSamples)[number]["id"]>(kokoroSamples[0].id);
   const [kokoroState, setKokoroState] = useState<"idle" | "loading" | "playing">("idle");
   const [kokoroMessage, setKokoroMessage] = useState("");
@@ -397,12 +397,11 @@ export function DevicePreview() {
       <div className="dp-content">
         <p className="dp-date">{date}</p>
         {view === "home" ? <>
-          <StreamingAudition onPlaybackStart={() => { stopVoice(); stopKokoro(); stopAudio(); stopMicrophone(false); }} />
           <section className="dp-hero" aria-labelledby="dp-home-title">
             <span className="dp-sun" aria-hidden="true">✳</span>
-            <p className="dp-eyebrow">Try a warmer voice</p>
-            <h1 id="dp-home-title">Hear Kokoro for Nancy.</h1>
-            <p>Compare three free neural voices across a morning greeting, meal choices and a gentle follow-up.</p>
+            <p className="dp-eyebrow">Selected voice · Heart</p>
+            <h1 id="dp-home-title">Hear Nancy’s voice.</h1>
+            <p>Heart is Nancy’s selected voice. Preview a morning greeting, meal choices or a gentle follow-up.</p>
             <div className="dp-kokoro-controls">
               <label>Voice<select value={kokoroVoice} aria-label="Kokoro voice" onChange={event => { stopKokoro(); setKokoroVoice(event.target.value as typeof kokoroVoice); setKokoroMessage(""); }}>
                 {kokoroVoices.map(voice => <option key={voice.id} value={voice.id}>{voice.label} · {voice.accent}</option>)}
@@ -415,8 +414,12 @@ export function DevicePreview() {
             <button type="button" className="dp-primary" onClick={() => void playKokoro()}>{kokoroState === "idle" ? "Play Kokoro sample" : "Stop Kokoro sample"}</button>
             <audio key={kokoroSampleUrl(kokoroVoice, kokoroSample)} ref={node => { if (node) kokoroAudio.current = node; }} preload="none" src={kokoroSampleUrl(kokoroVoice, kokoroSample)} onEnded={() => { kokoroPlaybackOwner.current = null; setKokoroState("idle"); }} onError={() => { if (kokoroState === "idle") return; stopKokoro(); setKokoroMessage("This Kokoro sample is unavailable right now. Please try another clip."); }} />
             {kokoroMessage && <p className="dp-inline-error" role="alert">{kokoroMessage}</p>}
-            <p className="dp-hint">Pre-generated synthetic samples. This is an audition, not a live conversation or a saved voice choice.</p>
+            <p className="dp-hint">Heart is selected for implementation. These are pre-generated synthetic samples, not a live conversation. The planning conversation is still being connected. Previewing another recording does not change the decision.</p>
           </section>
+
+          <details className="dp-older-voices"><summary>Previous voice evaluation</summary>
+            <StreamingAudition onPlaybackStart={() => { stopVoice(); stopKokoro(); stopAudio(); stopMicrophone(false); }} />
+          </details>
 
           <details className="dp-older-voices"><summary>Compare older device voice samples</summary>
           <section className="dp-voice-card" aria-labelledby="dp-voice-title">

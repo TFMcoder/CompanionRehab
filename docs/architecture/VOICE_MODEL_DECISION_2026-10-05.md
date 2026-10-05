@@ -1,5 +1,13 @@
 # Nancy voice model decision — October 5, 2026
 
+## Final owner decision: Heart
+
+The owner explicitly selected **Kokoro Heart (`af_heart`)** and closed the voice comparison: “Fine lets just go with heart, this is taking too long. Consider the decision made”. This decision supersedes the provisional Pocket recommendation below. Female voices remain the constraint. Do not ask for another audition or expand the shortlist unless the owner reopens the decision.
+
+Implement Heart using the existing pinned Kokoro-82M ONNX checkpoint `1939ad2a8e416c0acfeecc08a694d14ef25f2231`, `kokoro-js` 1.2.1, CPU fp32 and normal speed. Keep the model loaded; synthesize coherent sentences as they become available and support explicit cancellation. Pocket streaming measurements do not transfer to Heart. Proceed with the daily planner/nutrition conversation around GPT-6 Sol/high and authenticated care commands. Actual iPhone delivery and integrated-conversation tests remain engineering acceptance work, not an unresolved voice preference.
+
+## Historical evaluation and provisional recommendation
+
 **Recommend Pocket TTS, English 2026-09, Alba, running warm on this PC with native audio chunks over WebSocket.** This is a provisional engineering selection for integration and human audition. We have not established that Alba is the most natural voice to the participant, or accepted it as the production voice. Keep Heart as the listening baseline. Do not change GPT-6 Sol/high or silently enable paid speech.
 
 **Subsequent owner listening direction:** female voices only, with Kokoro Heart still preferred so far. The next matched alternatives are Pocket Anna and Qwen Serena. The Alba selection above records the engineering evaluation, not participant voice acceptance; it does not override this preference. Serena remains a hosted-demo audition with unqualified live latency.

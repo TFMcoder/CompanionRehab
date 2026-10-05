@@ -1,6 +1,6 @@
 # Voice evaluation runbook
 
-This runbook generates a repeatable set of synthetic speech examples for local audition and latency screening. The only text inputs are the 11 fixtures in [`src/shared/voice-evaluation.json`](../src/shared/voice-evaluation.json). Do not add participant speech, care details, or transcripts. We have not accepted a production voice, and the S01 live gate has not passed.
+This is the historical voice-evaluation runbook. **The owner has selected Kokoro Heart (`af_heart`) and closed further voice comparison.** Keep these experiments reproducible; do not rerun or extend the shortlist unless requested. The only text inputs are the 11 fixtures in [`src/shared/voice-evaluation.json`](../src/shared/voice-evaluation.json). Do not add participant speech, care details, or transcripts. The voice decision is complete; integrated Heart delivery and S01 live gates remain pending.
 
 Run only one model at a time. The host has 16 GB RAM, an AMD Ryzen 7 8845HS, and an RTX 4050 with 6 GB VRAM. Cold loading, model download and generation compete for memory and CPU. Keep each model's output directory and manifest; do not compare a cached repeat against another model's cold start. The commands below use the portable Python 3.11.17 and `uv` copies under ignored `.local/`; they do not change system Python or global packages.
 

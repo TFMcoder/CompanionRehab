@@ -25,7 +25,7 @@
     "Qualify existing ChatGPT subscription usage for Nancy reasoning before requesting API funding. Adapt the small Cerberus subscription adapter pattern; treat MCP transport, inference billing, speech and browser HTTPS as separate concerns.",
     "On 2026-10-05, provide a smartphone-accessible web interface URL for immediate device feedback. Keep the sample preview explicit and isolated while completing S01 live conversation and durable planning.",
     "Use the approved simple smartphone My Day interface for a natural Nancy conversation: one tap opens it, continuous turns continue with a configurable end-of-turn pause and delayed session closure, and an explicit End control closes immediately.",
-    "Offer the participant a free, auditioned choice of encouraging voices; qualify licensing, actual device playback and perceived naturalness before recording a selected voice.",
+    "The owner selected Kokoro Heart (af_heart). Honor that completed voice decision; qualify licensing and actual-device conversational delivery without another voice comparison.",
     "Support an opt-in foreground Hey Nancy wake phrase where the intended browser/device route permits it; do not imply background listening, on-phone-only processing or microphone activation without explicit consent.",
     "At each conversation start, prioritize current local calendar appointments, scheduled tasks, meal windows, actual reports and unresolved work; the 09:00-11:00 morning intent Lets Plan the Day/Lets Plan Today remains user initiated, with 10:00 preferred.",
     "Offer several practical meal choices, alternatives and portion-aware discussion from supplied preferences and ingredients; capture a confirmed missing ingredient into a minimal grocery list in S01, with full grocery management in S05.",
@@ -33,7 +33,7 @@
     "Keep local calendar context in S01; connect an authorized external calendar and Asana in S06 after provider selection and scoped consent.",
     "Owner confirmed iPhone with Safari and Outlook calendar on 2026-10-05. Reuse these selections; account type, calendar authorization and actual iPhone audio/wake behavior remain separate qualifications.",
     "The owner rejected robotic device TTS on 2026-10-05. Natural intonation, phrasing, pacing, inflection and responsive turn-taking are required for Nancy voice acceptance, while retaining the free-first speech constraint.",
-    "Use Pocket TTS English 2026-09 with the Alba embedding as the provisional free local engineering voice, retaining Kokoro Heart as the listening baseline. Participant voice selection and integrated iPhone/Safari acceptance remain open; free cloud speech may be considered only after its access, quota, latency and privacy path is qualified."
+    "Final owner selection: use Kokoro Heart (af_heart), female, for Nancy. Voice comparison is closed. Keep synthesis warm and deliver coherent sentence audio without waiting for the entire response where feasible; measure actual Heart latency independently of Pocket benchmarks. Actual-device conversation acceptance remains required, but voice selection must not be reopened without an owner request."
   ],
   "constraints": {
     "budget": {
@@ -294,11 +294,11 @@
     },
     {
       "id": "I-VOICE-CHOICE",
-      "status": "unresolved",
-      "default": "Latest owner direction: female voices only; Kokoro Heart remains the preferred listening candidate so far. Offer Pocket Anna and Qwen Serena as matched female alternatives. Pocket Alba remains the prior engineering performance reference, not an accepted production voice. Final participant preference, actual iPhone/Safari audio and integrated conversational quality remain unresolved.",
+      "status": "resolved",
+      "default": "Final owner decision: Kokoro Heart (af_heart), female voice, selected for Nancy. The voice comparison is closed; do not request another audition or propose another voice unless the owner reopens the decision. Integrate Heart with GPT-6 Sol/high and the care service. Actual-device conversation checks validate delivery, not voice choice.",
       "needed_for": "S01 preferred audible Nancy voice and genuine phone conversation",
-      "question": "Compare Kokoro Heart with the prepared female alternatives Pocket Anna and Qwen Serena, then qualify preferred-voice intonation, phrasing, pauses, warmth, latency and interruption during an actual iPhone/Safari conversation. Serena is a hosted-demo sample, not a qualified live service. Do not treat synthetic playback as participant production acceptance.",
-      "resolution_ref": "docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md"
+      "question": "Resolved by the owner: use Heart. No further voice selection action is required.",
+      "resolution_ref": "docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart"
     },
     {
       "id": "I-WAKE-CONSENT",
@@ -378,10 +378,10 @@
     },
     {
       "id": "voice",
-      "choice": "Independent speech input/output around gpt-6-sol high; provisional local output is Pocket TTS 3.3 English 2026-09 with Alba, pending participant and actual-device acceptance",
-      "plan": "Provisional local Pocket speech output has no recurring speech API charge. ChatGPT-plan reasoning does not establish speech coverage. Free cloud candidates remain unselected until access, quota, latency, privacy and actual-device audio are qualified; disclose any paid route before commitment.",
+      "choice": "Owner-selected Kokoro-82M Heart (af_heart) speech output, kokoro-js 1.2.1, pinned ONNX model 1939ad2a8e416c0acfeecc08a694d14ef25f2231, CPU fp32, normal speed; independent local speech input around GPT-6 Sol/high",
+      "plan": "No additional speech subscription or metered TTS API on existing hardware. Keep Heart warm; integrate coherent sentence playback and explicit cancellation. Complete actual-device conversation qualification. Alternative voice evaluation is closed.",
       "introduced_in": "S01",
-      "incremental_subscription": null
+      "incremental_subscription": 0
     },
     {
       "id": "domain_backups",
@@ -681,7 +681,7 @@
             "Explicitly accept the reviewed plan, retrieve it by voice and touch, then revise a choice and refresh; verify local database state and participant usability.",
             "From My Day, open task and meal views using both spoken requests and buttons; inspect urgency and local scheduled times and verify each meal is the same task in both views.",
             "Record sanitized evidence of the actual gpt-6-sol/high runtime and selected subscription/API route, intended-user eligibility, separate speech round trip and My Day web origin. Confirm Dad can use the normal My Day voice/touch interface. Do not retain raw audio or private transcripts in the repository.",
-            "On the actual smartphone, choose among free voice samples; open by button, converse across several turns, pause and observe the closure grace, then use End. If the qualified foreground Hey Nancy path is enabled with consent, invoke it and verify the visible listener and stop control; note browser lock/background limits honestly.",
+            "On the actual smartphone, use the owner-selected Heart voice; open by button, converse across several turns, pause and observe the closure grace, then use End. If the qualified foreground Hey Nancy path is enabled with consent, invoke it and verify the visible listener and stop control; note browser lock/background limits honestly.",
             "At 09:00-11:00 say Lets Plan the Day and Lets Plan Today in separate starts; discuss a real upcoming appointment, task duration/urgency/placement, several meal choices and a confirmed missing ingredient. Verify the saved plan and minimal grocery list without claiming a meal was eaten.",
             "Record whether a consenting tester actually invoked Hey Nancy on the intended route; if the browser cannot support it, record the blocker rather than treating button operation as wake acceptance.",
             "After the owner rejection of device TTS, compare improved neural delivery on several unrehearsed ordinary prompts and a real exchange; record naturalness and conversational timing feedback separately from successful audio playback. Do not pass voice quality without participant/tester acceptance."
@@ -740,8 +740,8 @@
         "S01-LIVE2 and S01-LIVE1: Actual local deployment plus remote reasoning and the selected speech path, isolated restore and the real 10 AM planning trial have not run. Run disposable checks before retained participant use.",
         "2026-10-04 actual connection checks are recorded in docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. These synthetic provider probes are not S01 live acceptance. The MCP tunnel transports local tool calls; it does not establish Nancy model access, voice, per-client authorization or a public My Day web route.",
         "2026-10-04 connection progress: the app-specific OAuth/Responses helper completed text and fixed read-only tool probes using gpt-6-sol/high. The adapter now replays finalized streamed items when terminal output is empty, and verifies the returned fixture value in the completed answer. Separate Windows voice generation and local faster-whisper recognition passed on synthetic audio; genuine microphone/audible conversation is still untested. See docs/evidence/S01-CHATGPT-PLAN-CONNECTION-2026-10-04.json. Existing Tailscale/MCP services remain unchanged; a new tool tunnel is unnecessary for these local probes.",
-        "2026-10-05 Kokoro trial: nine pinned samples are deployed; docs/evidence/S01-KOKORO-AUDITION-2026-10-05.json records 92 passing tests, actual CPU synthesis, ASR checks and public desktop-browser playback. Owner reports better but still somewhat robotic, with Heart as the closest candidate and comparison baseline. Naturalness and genuine back-and-forth remain unqualified. No paid service or production approval is implied.",
-        "2026-10-05 voice evaluation: docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md records provisional Pocket TTS 3.3 English 2026-09 Alba on local fp32 CPU (2 intraop/1 interop threads, temperature 0.3, 1 decode step) with pinned CC BY 4.0 checkpoint revision e7205b6ee50e654a5ea19f0e9df2b0813b05e921 and Alba embedding revision 4e1e0a3e611c51c0b4ed8174fc10f32a54644303. Native audio chunks over warm same-origin WebSocket with a 160 ms initial buffer are implemented in the fixed synthetic audition. The official Qwen3-TTS 1.7B Serena demo produced two matched quality clips but does not qualify production latency or access; Azure F0 Jenny is an untested free-tier candidate. Synthetic gpt-6-sol/high first-sentence times were 3.5852, 3.8602 and 4.2776 seconds, without integrated ASR/TTS. Participant voice choice, actual iPhone audio, microphone, interruption and S01 live gates remain open. Actual public WSS desktop tests now show first rendered audio proxy 251.8-449.3 ms across six completed short/long repeats with zero underruns, Stop-to-zero-quantum acknowledgement 15.9 ms, and independent worker-cancel acknowledgement 71.88 ms. 102 tests/typecheck/build pass at source revision sha256:53eeba88e2fb352b68d9c66a6766fee1232dfdad9f48d3021a1f7f2fe95bcd69 (docs/evidence/S01-VOICE-MODEL-EVALUATION-2026-10-05.json; partial regression/voice evaluation only). These are synthetic desktop checks; integrated speech and actual iPhone acceptance remain pending."
+        "2026-10-05 Kokoro trial: nine pinned samples are deployed; docs/evidence/S01-KOKORO-AUDITION-2026-10-05.json records 92 passing tests, actual CPU synthesis, ASR checks and public desktop-browser playback. Owner reports better but still somewhat robotic, with Heart as the closest candidate and comparison baseline. The owner has now selected Heart and closed voice choice; integrated back-and-forth remains unqualified. No paid service or production approval is implied.",
+        "2026-10-05 voice evaluation: docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md records provisional Pocket TTS 3.3 English 2026-09 Alba on local fp32 CPU (2 intraop/1 interop threads, temperature 0.3, 1 decode step) with pinned CC BY 4.0 checkpoint revision e7205b6ee50e654a5ea19f0e9df2b0813b05e921 and Alba embedding revision 4e1e0a3e611c51c0b4ed8174fc10f32a54644303. Native audio chunks over warm same-origin WebSocket with a 160 ms initial buffer are implemented in the fixed synthetic audition. The official Qwen3-TTS 1.7B Serena demo produced two matched quality clips but does not qualify production latency or access; Azure F0 Jenny is an untested free-tier candidate. Synthetic gpt-6-sol/high first-sentence times were 3.5852, 3.8602 and 4.2776 seconds, without integrated ASR/TTS. Historical comparison is superseded by the final owner Heart selection. Actual iPhone audio, microphone, interruption and S01 live gates remain open. Pocket timings are not Heart timings. Actual public WSS desktop tests now show first rendered audio proxy 251.8-449.3 ms across six completed short/long repeats with zero underruns, Stop-to-zero-quantum acknowledgement 15.9 ms, and independent worker-cancel acknowledgement 71.88 ms. 102 tests/typecheck/build pass at source revision sha256:53eeba88e2fb352b68d9c66a6766fee1232dfdad9f48d3021a1f7f2fe95bcd69 (docs/evidence/S01-VOICE-MODEL-EVALUATION-2026-10-05.json; partial regression/voice evaluation only). These are synthetic desktop checks; integrated speech and actual iPhone acceptance remain pending."
       ],
       "test_results": [],
       "human_actions": [
@@ -757,7 +757,7 @@
           "human_must_do": [
             "iPhone/Safari is confirmed. Open the supplied HTTPS preview on that device, check audible samples and microphone playback, and record the iOS version during the trial. Interface layout feedback is already approved.",
             "When ready, complete the smartphone browser microphone prompt and speak/listen during the local playback check. The integrated two-way Nancy conversation still needs a later actual-device trial.",
-            "The interface layout was approved by the owner on 2026-10-05; separately audition the actual preferred voice and rate phone conversation timing, interruption and wake behavior when integrated. Do not infer voice approval from the interface comment."
+            "The owner separately approved the interface layout and selected Kokoro Heart. Check phone conversation timing, interruption and wake behavior when integrated; do not request another voice choice."
           ],
           "agent_can_do": [
             "Prepare and test the HTTPS page for iPhone/Safari; separately qualify Safari tab and Home Screen web-app audio/lifecycle behavior before relying on either.",
@@ -956,7 +956,7 @@
         },
         {
           "id": "S01-H08",
-          "title": "Choose Nancy voice and foreground wake preference",
+          "title": "Verify selected Heart delivery and foreground wake preference",
           "owner_role": "participant_or_tester",
           "when": "Before S01 actual-device voice acceptance",
           "blocking_scope": "slice_completion",
@@ -964,14 +964,14 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Female voices only, per the owner. Heart is still the preferred candidate. Compare matched Pocket Anna and Qwen Serena samples with Heart, then choose only after listening and an actual iPhone/Safari conversational trial. Report phrasing, warmth and responsiveness; production voice acceptance and integrated conversation remain open.",
+            "Voice selection is complete: the owner chose Kokoro Heart (af_heart) and closed comparison. When the integrated conversation is ready, check audible delivery and usability on iPhone/Safari; no further audition or preferred-voice decision is required.",
             "Decide whether to enable foreground Hey Nancy while My Day is open after seeing the microphone indicator, stop control and disclosed processing location."
           ],
           "agent_can_do": [
-            "Present matched female voice auditions with Heart as the owner-preferred baseline; keep the completed Pocket streaming performance evidence separate from voice preference. Qualify the chosen runtime, then measure real iPhone turn timing, interruption, wake false positives and fallback button entry. Qwen hosted demo and cloud alternatives remain separately qualified and unselected.",
+            "Integrate the selected Heart voice with warm local synthesis, coherent sentence delivery, cancellation and the Sol-high/care-command flow. Finish the working day-planning and nutrition conversation before asking for its actual-device trial. Archive alternative-model experiments; do not extend the voice search.",
             "Save only the selected preference and consent state; keep raw samples/audio private or synthetic."
           ],
-          "expected_evidence": "Private selected-voice and wake-consent references plus actual-device observations; interface visual approval alone is insufficient.",
+          "expected_evidence": "Owner Heart-selection decision is recorded at docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart. Remaining evidence: actual-device conversation delivery and foreground-wake consent references; neither is a new voice-choice gate.",
           "related_input_ids": [
             "I-VOICE-CHOICE",
             "I-WAKE-CONSENT"
@@ -3747,7 +3747,7 @@
       "api_model_id": "gpt-6-sol",
       "model_input_id": "I-MODEL",
       "api": "Responses-based gpt-6-sol high reasoning through a supported ChatGPT-plan adapter, preferably minimal local Codex app-server where qualified; care service owns tool execution. API-key billing is an explicitly selected fallback.",
-      "speech_policy": "Qualify speech input/output independently around Sol high. The documented ChatGPT-plan flow excludes audio input/transcription; MCP transport grants no speech coverage. Provisional free local output is Pocket TTS 3.3 English 2026-09 Alba, with pinned CC BY 4.0 checkpoint/embedding, fp32 CPU (2 intraop/1 interop threads, temperature 0.3, 1 decode step) and warm same-origin WebSocket native chunks with a 160 ms initial audio buffer. Kokoro Heart remains the owner's comparison baseline; neither is a participant-approved final voice. Speech input/ASR and actual iPhone/Safari audio, latency, interruption, privacy and naturalness need separate qualification. Free cloud demos are quality references, not dependable production endpoints without verified access, quota and latency; Azure F0 Jenny's recurring free tier remains untested. Never replace Sol reasoning with a speech model or retain raw audio by default. Foreground wake may stream to the local server and requires consent and live testing. See docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md and docs/architecture/VOICE_AND_DAILY_COMPANION_2026-10-05.md.",
+      "speech_policy": "Use owner-selected Kokoro Heart (af_heart), female, as Nancy speech output. The owner explicitly closed voice selection; no additional comparison or voice-choice approval is required. Retain kokoro-js 1.2.1, pinned ONNX checkpoint 1939ad2a8e416c0acfeecc08a694d14ef25f2231, CPU fp32 and normal speed. Keep the model warm and synthesize coherent phrases/sentences as Sol text becomes available; Kokoro returns each full waveform, so Pocket native-chunk timing is not Heart performance evidence. Integrate local speech input, Heart playback/cancellation, GPT-6 Sol high and authorized care commands. Actual iPhone/Safari conversation timing, interruptions, privacy and foreground wake consent still require qualification. Never silently change voice, model or billing. See docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart.",
       "source_refs": [
         "https://developers.openai.com/api/docs/models/gpt-6-sol",
         "https://developers.openai.com/api/docs/guides/secure-mcp-tunnels",

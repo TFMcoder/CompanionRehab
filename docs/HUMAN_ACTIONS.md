@@ -60,7 +60,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   - iPhone/Safari is confirmed. Open the supplied HTTPS preview on that device, check audible samples and microphone playback, and record the iOS version during the trial. Interface layout feedback is already approved.
   - When ready, complete the smartphone browser microphone prompt and speak/listen during the local playback check. The integrated two-way Nancy conversation still needs a later actual-device trial.
-  - The interface layout was approved by the owner on 2026-10-05; separately audition the actual preferred voice and rate phone conversation timing, interruption and wake behavior when integrated. Do not infer voice approval from the interface comment.
+  - The owner separately approved the interface layout and selected Kokoro Heart. Check phone conversation timing, interruption and wake behavior when integrated; do not request another voice choice.
 
   **Agent prepares or handles:** Prepare and test the HTTPS page for iPhone/Safari; separately qualify Safari tab and Home Screen web-app audio/lifecycle behavior before relying on either. Configure and debug microphone/audio code; provide short test prompts.
 
@@ -185,7 +185,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Not applicable because:** This implementation supports ordinary household meal choices only; no clinical nutrition targets or prescribed-diet protocol has been supplied, retained or implemented. Reassess before adding clinical constraints.
 
-- [ ] **S01-H08: Choose Nancy voice and foreground wake preference**
+- [ ] **S01-H08: Verify selected Heart delivery and foreground wake preference**
 
   Owner: **participant_or_tester**. Status: **in_progress**. Requirement: **required**.
 
@@ -194,12 +194,12 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Female voices only, per the owner. Heart is still the preferred candidate. Compare matched Pocket Anna and Qwen Serena samples with Heart, then choose only after listening and an actual iPhone/Safari conversational trial. Report phrasing, warmth and responsiveness; production voice acceptance and integrated conversation remain open.
+  - Voice selection is complete: the owner chose Kokoro Heart (af_heart) and closed comparison. When the integrated conversation is ready, check audible delivery and usability on iPhone/Safari; no further audition or preferred-voice decision is required.
   - Decide whether to enable foreground Hey Nancy while My Day is open after seeing the microphone indicator, stop control and disclosed processing location.
 
-  **Agent prepares or handles:** Present matched female voice auditions with Heart as the owner-preferred baseline; keep the completed Pocket streaming performance evidence separate from voice preference. Qualify the chosen runtime, then measure real iPhone turn timing, interruption, wake false positives and fallback button entry. Qwen hosted demo and cloud alternatives remain separately qualified and unselected. Save only the selected preference and consent state; keep raw samples/audio private or synthetic.
+  **Agent prepares or handles:** Integrate the selected Heart voice with warm local synthesis, coherent sentence delivery, cancellation and the Sol-high/care-command flow. Finish the working day-planning and nutrition conversation before asking for its actual-device trial. Archive alternative-model experiments; do not extend the voice search. Save only the selected preference and consent state; keep raw samples/audio private or synthetic.
 
-  **Completion evidence:** Private selected-voice and wake-consent references plus actual-device observations; interface visual approval alone is insufficient.
+  **Completion evidence:** Owner Heart-selection decision is recorded at docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart. Remaining evidence: actual-device conversation delivery and foreground-wake consent references; neither is a new voice-choice gate.
 
   **Linked inputs/tests:** I-VOICE-CHOICE, I-WAKE-CONSENT, S01-LIVE1, S01-LIVE2.
 
