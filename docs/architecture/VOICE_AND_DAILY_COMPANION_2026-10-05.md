@@ -46,7 +46,7 @@ Encouragement is also conversational behavior: one question at a time, brief rep
 
 ### Kokoro listening feedback: improved, still robotic
 
-After the prepared samples were delivered, the owner reported: “Its better, but still a tad robotic.” This is actual owner listening feedback, not production approval or proof of a completed iPhone conversation. The specific preferred voice and the participant's own assessment remain unresolved. Preserve the original generation/test receipt as historical evidence.
+After the prepared samples were delivered, the owner reported: “Its better, but still a tad robotic.” The owner then identified **Heart (`af_heart`)** as the closest candidate; use it as the baseline for subsequent comparisons without asking again. This is actual owner listening feedback and a comparative preference, not production approval or proof of a completed iPhone conversation. The participant's own acceptance and sufficient naturalness remain unresolved. Preserve the original generation/test receipt as historical evidence.
 
 The installed `kokoro-js` 1.2.1 `GenerateOptions` exposes voice and speed, with no natural-language delivery instruction or explicit emotion control. The audition already uses fp32 and normal speed. Shorter spoken turns, conversational wording and deliberate punctuation are reasonable low-cost experiments, but their improvement must be heard; slowing the entire clip cannot establish expressive intonation. The likely remaining issue is speech prosody rather than Sol reasoning, since these fixed clips contain no live reasoning call.
 
