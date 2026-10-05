@@ -2,6 +2,14 @@
 
 Decision date: 2026-10-05. The owner approved the smartphone preview's interface and requested the expanded behavior below. These are implementation requirements, not evidence that live conversation, wake-word detection, reminders or connectors are running. The canonical [roadmap](../roadmap/roadmap.json) assigns delivery and acceptance. This decision supersedes the earlier blanket deferral of wake-word listening and proactive reminders; it does not enable a microphone or a schedule by itself.
 
+## Confirmed device and calendar
+
+The owner subsequently confirmed **iPhone**, **Safari** and **Outlook calendar** in the October 5 conversation. These selections are resolved and must not be requested again. The iOS version, audible/microphone trial, preferred voice and live wake behavior remain unqualified. Safari-tab and installed Home Screen web-app behavior need separate real-device testing. A stable authenticated origin is required before relying on a Home Screen installation or push subscriptions; the temporary public preview is not that deployment.
+
+For the Outlook connection, confirm whether the calendar belongs to a personal Microsoft account or a work/school account and identify the intended calendar privately. Microsoft Graph is the proposed route once hosting is verified. Start with delegated `Calendars.ReadBasic` and bounded `calendarView` reads, which include recurring occurrences and exceptions. This scope omits event bodies, attachments and extensions; collect only needed appointment fields. It is listed for personal and work/school delegated access. Broader calendar access is conditional on a demonstrated requirement, and organizational approval depends on the actual tenant. No email access, writeback or invitations are selected. Sources: [Graph calendarView](https://learn.microsoft.com/en-us/graph/api/calendar-list-calendarview?view=graph-rest-1.0), [permission reference](https://learn.microsoft.com/en-us/graph/permissions-reference#calendarsreadbasic).
+
+The owner has selected Outlook, not completed its OAuth connection. S01 can still use explicitly entered local appointments; S06 supplies the external Outlook/Asana connections. The older deferred Outlook item now applies to email ingestion, invitations and writeback, not the selected read-only calendar work. No service purchase or calendar access occurred when recording this decision.
+
 ## Free voice choices
 
 Use speech independently of the selected GPT-6 Sol/high reasoning route. Free here means no additional voice service subscription or per-character API charge on existing hardware; electricity, hardware capacity and the separately qualified GPT allowance still matter.

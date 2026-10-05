@@ -39,7 +39,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 | S03 | Resume check-ins and tracking after interruptions | S03-H01, S03-H02 |
 | S04 | Return to a fresh day with reviewed carryover and timely prompts | S04-H01, S04-H02, S04-H03 |
 | S05 | Build and use groceries from the meal plan | S05-H01, S05-H02 |
-| S06 | Connect Asana tasks and the selected external calendar | S06-H01, S06-H02, S06-H03 |
+| S06 | Connect Asana tasks and the Outlook calendar | S06-H01, S06-H02, S06-H03 |
 | S07 | Follow Morning Boot one step at a time | S07-H01, S07-H02 |
 | S08 | Follow and report an approved rehab session | S08-H01, S08-H02 |
 | S09 | See explainable daily progress and achievements | S09-H01, S09-H02 |
@@ -58,11 +58,11 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Smartphone testing is selected. Identify its OS/browser, open the supplied HTTPS preview and check task/meal navigation and audible sample playback.
+  - iPhone/Safari is confirmed. Open the supplied HTTPS preview on that device, check audible samples and microphone playback, and record the iOS version during the trial. Interface layout feedback is already approved.
   - When ready, complete the smartphone browser microphone prompt and speak/listen during the local playback check. The integrated two-way Nancy conversation still needs a later actual-device trial.
   - The interface layout was approved by the owner on 2026-10-05; separately audition the actual preferred voice and rate phone conversation timing, interruption and wake behavior when integrated. Do not infer voice approval from the interface comment.
 
-  **Agent prepares or handles:** Check supported browser behavior and prepare the HTTPS test page. Configure and debug microphone/audio code; provide short test prompts.
+  **Agent prepares or handles:** Prepare and test the HTTPS page for iPhone/Safari; separately qualify Safari tab and Home Screen web-app audio/lifecycle behavior before relying on either. Configure and debug microphone/audio code; provide short test prompts.
 
   **Completion evidence:** Device/browser and actual microphone plus audible observations, first for the sample device preview and then linked to the integrated S01 live evidence. A desktop phone-sized viewport, generated audio or dictated-text mock is insufficient.
 
@@ -374,7 +374,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Linked inputs/tests:** S05-LIVE1.
 
-## S06: Connect Asana tasks and the selected external calendar
+## S06: Connect Asana tasks and the Outlook calendar
 
 - [ ] **S06-H01: Authorize the dedicated Asana connection**
 
@@ -412,7 +412,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Linked inputs/tests:** S06-LIVE1.
 
-- [ ] **S06-H03: Authorize the selected calendar account**
+- [ ] **S06-H03: Authorize the selected Outlook calendar account**
 
   Owner: **account_owner**. Status: **pending**. Requirement: **required**.
 
@@ -421,10 +421,10 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Choose the intended calendar provider/account and approve only the concrete read scope needed for appointment context.
+  - Outlook is already selected. Confirm personal Microsoft or work/school account, identify the intended calendar privately, and approve only the prepared calendar read scope; organization approval is conditional on the actual tenant policy.
   - Complete any required sign-in/MFA or consent; review which participant appointments may be visible to Nancy.
 
-  **Agent prepares or handles:** Prepare the provider-specific scope and minimal read-only connector, with costs and retention documented. Test stale, deleted and denied events on disposable appointments before the genuine trial.
+  **Agent prepares or handles:** Prepare Microsoft Graph delegated Calendars.ReadBasic and bounded calendarView reads first; validate the required fields, account support, costs and retention before asking for sign-in or consent. Test stale, deleted and denied events on disposable appointments before the genuine trial.
 
   **Completion evidence:** Private scoped calendar authorization reference and one genuine appointment context observation.
 

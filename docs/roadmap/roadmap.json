@@ -30,7 +30,8 @@
     "At each conversation start, prioritize current local calendar appointments, scheduled tasks, meal windows, actual reports and unresolved work; the 09:00-11:00 morning intent Lets Plan the Day/Lets Plan Today remains user initiated, with 10:00 preferred.",
     "Offer several practical meal choices, alternatives and portion-aware discussion from supplied preferences and ingredients; capture a confirmed missing ingredient into a minimal grocery list in S01, with full grocery management in S05.",
     "After actual reports begin in S02, maintain a factual ongoing ledger; in S04 review unfinished yesterday tasks explicitly so they cannot disappear, and add opt-in scheduled meal/appointment prompts with honest browser availability limits.",
-    "Keep local calendar context in S01; connect an authorized external calendar and Asana in S06 after provider selection and scoped consent."
+    "Keep local calendar context in S01; connect an authorized external calendar and Asana in S06 after provider selection and scoped consent.",
+    "Owner confirmed iPhone with Safari and Outlook calendar on 2026-10-05. Reuse these selections; account type, calendar authorization and actual iPhone audio/wake behavior remain separate qualifications."
   ],
   "constraints": {
     "budget": {
@@ -163,11 +164,11 @@
   "operator_inputs": [
     {
       "id": "I-DEVICE",
-      "status": "unresolved",
-      "default": "Owner selected a smartphone browser and requested an immediately usable web-interface URL on 2026-10-05. A public-safe synthetic My Day/device preview is available; the exact phone OS/browser and actual microphone/audible playback observations remain pending. See docs/DEVICE_PREVIEW.md.",
-      "needed_for": "S01 live voice on the actual intended smartphone/browser, followed by the participant device where different",
-      "question": "Confirm smartphone OS/browser and use the supplied preview link to test navigation, audible sample playback and microphone playback. Reuse the selected smartphone direction; no tablet is required for this first test.",
-      "resolution_ref": null
+      "status": "resolved",
+      "default": "Owner confirmed iPhone with Safari on 2026-10-05. Target selection is resolved; iOS version, actual microphone/playback, voice preference and integrated conversation acceptance remain to be observed under S01-H01.",
+      "needed_for": "S01 intended device/browser selection; live acceptance is tracked separately by S01-H01 and the live tests",
+      "question": "Reuse the confirmed iPhone/Safari target. During the actual device trial record the iOS version and audio results; do not ask the owner to select a device/browser again.",
+      "resolution_ref": "docs/architecture/VOICE_AND_DAILY_COMPANION_2026-10-05.md#confirmed-device-and-calendar"
     },
     {
       "id": "I-ACCOUNTS",
@@ -324,10 +325,10 @@
     {
       "id": "I-CALENDAR-EXTERNAL",
       "status": "unresolved",
-      "default": "No external calendar provider/account selected. S01 local appointments remain usable without this input; S06 chooses and qualifies the least-privilege external connection.",
+      "default": "Outlook is selected by the owner on 2026-10-05. Account type, selected calendar, underlying Microsoft calendar hosting and scoped authorization remain unqualified. Qualify Microsoft Graph delegated Calendars.ReadBasic first for appointment context; request broader permission only for an evidenced need. S01 local appointments remain usable without external OAuth.",
       "needed_for": "S06 scoped external calendar connector and live integration",
-      "question": "Choose the intended external calendar account/provider and approve the proposed read scope and participant visibility before S06 live access.",
-      "resolution_ref": null
+      "question": "Reuse Outlook as the selected calendar. Confirm personal Microsoft versus work/school account, identify the intended calendar privately and complete the prepared scoped authorization when ready; do not ask for the provider again.",
+      "resolution_ref": "docs/architecture/VOICE_AND_DAILY_COMPANION_2026-10-05.md#confirmed-device-and-calendar"
     }
   ],
   "service_defaults": [
@@ -749,12 +750,12 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Smartphone testing is selected. Identify its OS/browser, open the supplied HTTPS preview and check task/meal navigation and audible sample playback.",
+            "iPhone/Safari is confirmed. Open the supplied HTTPS preview on that device, check audible samples and microphone playback, and record the iOS version during the trial. Interface layout feedback is already approved.",
             "When ready, complete the smartphone browser microphone prompt and speak/listen during the local playback check. The integrated two-way Nancy conversation still needs a later actual-device trial.",
             "The interface layout was approved by the owner on 2026-10-05; separately audition the actual preferred voice and rate phone conversation timing, interruption and wake behavior when integrated. Do not infer voice approval from the interface comment."
           ],
           "agent_can_do": [
-            "Check supported browser behavior and prepare the HTTPS test page.",
+            "Prepare and test the HTTPS page for iPhone/Safari; separately qualify Safari tab and Home Screen web-app audio/lifecycle behavior before relying on either.",
             "Configure and debug microphone/audio code; provide short test prompts."
           ],
           "expected_evidence": "Device/browser and actual microphone plus audible observations, first for the sample device preview and then linked to the integrated S01 live evidence. A desktop phone-sized viewport, generated audio or dictated-text mock is insufficient.",
@@ -1949,7 +1950,7 @@
     {
       "id": "S06",
       "priority": 60,
-      "title": "Connect Asana tasks and the selected external calendar",
+      "title": "Connect Asana tasks and the Outlook calendar",
       "status": "planned",
       "depends_on": [
         "S02"
@@ -1996,7 +1997,7 @@
         },
         {
           "id": "S06-T06",
-          "description": "After owner selects an external calendar provider, qualify least-privilege consent and read-only calendar sync. Map appointment IDs/timezones and freshness into S01 local calendar context, reconcile updates/deletes and provider outages, and never silently move accepted care tasks."
+          "description": "Outlook is selected. Confirm account/calendar hosting and qualify Microsoft Graph delegated Calendars.ReadBasic for bounded calendarView reads of occurrences and exceptions. Keep credentials server-owned; persist only required appointment fields and selected calendar mappings. Qualify recurrence, timezones, pagination, updates/deletes, auth renewal/revocation and stale/outage behavior. Broader calendar permissions need an evidenced field/API requirement; do not request mail access or calendar writeback. Integrate current appointment context without silently moving accepted tasks."
         }
       ],
       "contracts": {
@@ -2184,7 +2185,7 @@
         },
         {
           "id": "S06-H03",
-          "title": "Authorize the selected calendar account",
+          "title": "Authorize the selected Outlook calendar account",
           "owner_role": "account_owner",
           "when": "Before live external calendar reads",
           "blocking_scope": "slice_completion",
@@ -2192,11 +2193,11 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Choose the intended calendar provider/account and approve only the concrete read scope needed for appointment context.",
+            "Outlook is already selected. Confirm personal Microsoft or work/school account, identify the intended calendar privately, and approve only the prepared calendar read scope; organization approval is conditional on the actual tenant policy.",
             "Complete any required sign-in/MFA or consent; review which participant appointments may be visible to Nancy."
           ],
           "agent_can_do": [
-            "Prepare the provider-specific scope and minimal read-only connector, with costs and retention documented.",
+            "Prepare Microsoft Graph delegated Calendars.ReadBasic and bounded calendarView reads first; validate the required fields, account support, costs and retention before asking for sign-in or consent.",
             "Test stale, deleted and denied events on disposable appointments before the genuine trial."
           ],
           "expected_evidence": "Private scoped calendar authorization reference and one genuine appointment context observation.",
@@ -3455,7 +3456,7 @@
   "deferred": [
     {
       "id": "D-OUTLOOK",
-      "reason": "Outside MVP; company IT consent and mailbox-scope test required before connection."
+      "reason": "Broad Outlook email ingestion, appointment extraction from messages, invitations and writeback remain deferred. The selected Outlook calendar read integration is now in S06; company IT consent applies only if the actual work/school account policy requires it. Do not treat all Outlook calendar access as outside MVP."
     },
     {
       "id": "D-CLINICAL-DOCS",
