@@ -19,6 +19,7 @@ import { groceryInput } from '../shared/contracts.js';
 import { priorityContext } from '../shared/priority-context.js';
 import { createHash } from 'node:crypto';
 import { splitSpeechParts } from '../shared/speech-parts.js';
+import { activityCommandSchema, activityDate } from '../shared/activity-contracts.js';
 
 export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; staticRoot?: string; revocations?: SessionRevocations } = {}) {
   const app = Fastify({ logger: false, bodyLimit: 100000, trustProxy: false, requestTimeout: 120000 });
@@ -93,6 +94,23 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   });
   app.get('/api/today', async request => { const today = await care.today(sessions.get(request)!); return today.profile ? { ...today, priority_context: priorityContext(today) } : today; });
   app.get('/api/priority-context', async request => priorityContext(await care.today(sessions.get(request)!)));
+  app.get('/api/activity',async request=>{
+    if(!care.ledger)throw new ApiError(503,'ledger_unavailable','The activity ledger is unavailable.');
+    const {date}=z.object({date:activityDate.optional()}).strict().parse(request.query);
+    return care.ledger(sessions.get(request)!,date);
+  });
+  app.post('/api/activity/commands',async request=>{
+    if(!care.activityCommand)throw new ApiError(503,'ledger_unavailable','The activity ledger is unavailable.');
+    limit(request,`activity:${sessions.get(request)!.user_id}`,30);
+    return care.activityCommand(sessions.get(request)!,activityCommandSchema.parse(request.body));
+  });
+  app.get('/api/activity/receipts/:key',async request=>{
+    if(!care.activityReceipt)throw new ApiError(503,'ledger_unavailable','The activity ledger is unavailable.');
+    const key=uuid.parse((request.params as {key:string}).key);
+    const receipt=await care.activityReceipt(sessions.get(request)!,key);
+    if(!receipt)throw new ApiError(404,'not_found','No saved activity receipt is available yet.');
+    return receipt;
+  });
   app.get('/api/groceries', async request => care.groceries ? care.groceries(sessions.get(request)!) : { items: [] });
   app.post('/api/groceries', async request => {
     if (!care.addGrocery) throw new ApiError(503, 'groceries_unavailable', 'The grocery list has not been connected.');

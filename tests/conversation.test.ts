@@ -27,12 +27,14 @@ describe('Nancy conversation orchestration', () => {
     ['Please, Nancy, show me my groceries.', 'groceries'],
     ['Take me to My Day.', 'my_day'],
     ['Can we look at the grocery list?', 'groceries'],
+    ['Show my activity.', 'activity'],
+    ['Open my ledger.', 'activity'],
   ] as const)('routes a complete navigation request: %s', (utterance, view) => {
     expect(navigationIntent(utterance)).toBe(view);
   });
-  it('uses fixed non-personal acknowledgments for the four supported views', () => {
-    expect(['my_day', 'tasks', 'meals', 'groceries'].map(view => navigationReply(view as 'my_day' | 'tasks' | 'meals' | 'groceries'))).toEqual([
-      'Here is My Day.', 'Here are your tasks.', 'Here are your meals.', 'Here is your grocery list.',
+  it('uses fixed non-personal acknowledgments for the five supported views', () => {
+    expect((['my_day', 'tasks', 'meals', 'groceries', 'activity'] as const).map(navigationReply)).toEqual([
+      'Here is My Day.', 'Here are your tasks.', 'Here are your meals.', 'Here is your grocery list.', 'Here is your activity.',
     ]);
   });
   it.each([

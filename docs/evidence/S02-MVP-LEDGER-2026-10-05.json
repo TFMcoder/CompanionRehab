@@ -1,0 +1,187 @@
+{
+  "evidence_id": "S02-MVP-LEDGER-2026-10-05",
+  "recorded_at": "2026-10-05T23:08:36.984Z",
+  "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
+  "status": "engineering_qualified_awaiting_participant_day",
+  "owner_decision": {
+    "source": "Direct user instruction in this development conversation, 2026-10-05",
+    "latency_feedback": "The owner reports that Nancy is working quickly now. This accepts perceived speed, not every S01 device/clinical/release gate.",
+    "requested_scope": [
+      "Remove testing clutter from the client UI",
+      "Implement a durable ledger for completed tasks, meals and appointments",
+      "Ground nutrition guidance in repository nutrition material"
+    ],
+    "dependency_override": "S02 implementation and live engineering qualification may overlap unfinished S01. S02 completion still requires S01 plus the genuine-day trial and applicable human actions."
+  },
+  "changes": [
+    "Activity view with actual counts, prior-date readback, completed/deferred/rescheduled entries, unplanned reports, corrections and voids",
+    "Voice and touch share strict authorized care commands with exact occurrence IDs, revisions and idempotent receipts",
+    "PostgreSQL migration 003 stores durable current activity with immutable before/after events and receipts; accepted plan versions stay separate",
+    "Current/next suggestions use committed actuals and effective schedules, including moved items absent from a new day plan",
+    "Testing banners and raw readiness details removed from ordinary client; setup and older transcript are collapsed; internal model instructions are not displayed",
+    "Repository nutrition authority rules and bounded claim/recipe retrieval include source IDs, status, limitations and actual-file SHA-256"
+  ],
+  "automated": {
+    "command": "npm run check",
+    "status": "passed",
+    "tests_passed": 225,
+    "tests_skipped": 1,
+    "test_files_passed": 28,
+    "skip_reason": "Optional separately configured PostgreSQL integration test; actual local PostgreSQL independently exercised below.",
+    "typecheck": "passed",
+    "production_build": "passed",
+    "diff_check": "passed"
+  },
+  "live_database": {
+    "status": "passed",
+    "started_at": "2026-10-05T22:58:11.024Z",
+    "completed_at": "2026-10-05T22:58:14.711Z",
+    "server_version": "17.11",
+    "clock": {
+      "injected_instant": "2026-10-05T15:00:00.000Z",
+      "participant_time_zone": "America/Toronto",
+      "local_date": "2026-10-05"
+    },
+    "checks": {
+      "unique_disposable_databases_created": true,
+      "source_and_empty_target_migrated": true,
+      "two_synthetic_users_authenticated": true,
+      "fixed_toronto_local_day": true,
+      "day_plan_accepted_without_actuals": true,
+      "accepted_plan_history_present": true,
+      "one_task_synthetic_completed_walk_option": true,
+      "one_task_synthetic_deferred_call_option": true,
+      "one_task_synthetic_rescheduled_laundry_option": true,
+      "one_meal_synthetic_oatmeal_option": true,
+      "one_appointment_synthetic_attended_appointment_option": true,
+      "same_key_same_payload_replayed_once": true,
+      "same_key_changed_payload_rejected": true,
+      "task_meal_appointment_completion_saved": true,
+      "deferral_reschedule_correction_saved": true,
+      "cross_user_exact_target_rejected": true,
+      "stale_activity_revision_rejected": true,
+      "invalid_session_rejected": true,
+      "factual_summary_matches_committed_records": true,
+      "voided_correction_is_current_projection": true,
+      "today_projects_committed_activity": true,
+      "activity_did_not_mutate_accepted_plan_history": true,
+      "one_immutable_event_per_effective_activity_command": true,
+      "generic_activity_events_retain_kind_and_before_after": true,
+      "domain_event_update_blocked": true,
+      "activity_audit_unchanged_after_blocked_mutation": true,
+      "one_receipt_per_effective_activity_command": true,
+      "fresh_adapter_reads_same_activity_ledger": true,
+      "fresh_adapter_reads_exact_activity_receipt": true,
+      "fresh_adapter_reads_accepted_plan": true,
+      "encrypted_backup_round_trip": true,
+      "backup_excludes_live_sessions": true,
+      "backup_contains_no_plaintext_password": true,
+      "backup_contains_activity_records_events_receipts": true,
+      "restore_target_was_empty": true,
+      "restore_preserved_activity_records": true,
+      "restore_preserved_activity_receipts": true,
+      "restore_preserved_activity_events_exactly": true,
+      "restore_created_no_sessions": true,
+      "restored_auth_and_ledger_readback": true,
+      "restored_exact_receipt_readback": true,
+      "all_prior_checks_passed": true
+    },
+    "counts": {
+      "source_activity_records": 6,
+      "restored_activity_records": 6
+    },
+    "method": "Two uniquely created disposable local PostgreSQL databases. Synthetic identities only. Reconnect and encrypted isolated restore compared records, events and receipts; no writes to the pilot account.",
+    "private_evidence_ref": ".local/probes/activity-ledger-live.json"
+  },
+  "live_conversation": {
+    "status": "passed",
+    "observed_at": "2026-10-05T23:04:33.919Z",
+    "model": "gpt-6-sol",
+    "effort": "high",
+    "voice": "af_heart",
+    "checks": {
+      "no_write_before_confirmation": true,
+      "real_heart_review_synthesized": true,
+      "real_asr_spoken_confirmation_saved_once": true,
+      "fresh_session_ledger_readback": true,
+      "real_model_repository_recipe_retrieval": true,
+      "recipe_reply_heart_synthesis": true,
+      "no_plan_change_from_recipe_ideas": true
+    },
+    "nutrition_refs": [
+      {
+        "document_id": "CR_NUTRITION_MEALS_V1",
+        "path": "docs/nutrition/meal-library.md",
+        "sha256": "28a51b6348c72a031348a608d270ead839c9b6bc37173144de5d96d0777ee8a9",
+        "items": [
+          "B01",
+          "B02"
+        ]
+      },
+      {
+        "document_id": "CR_NUTRITION_EVIDENCE_V1",
+        "path": "docs/nutrition/research-knowledge-base.md",
+        "sha256": "1916edb1197bf9bee4e71560d74b02cf743f9cc262fecd516f9e2e46ddd7a3a3",
+        "items": []
+      }
+    ],
+    "method": "Actual owner-authorized ChatGPT connection, selected Sol-high, generated Heart WAV input, local CUDA ASR, full review synthesis and explicit playback acknowledgement then generated spoken confirmation. Fresh session reads committed ledger. This is service evidence, not a physical microphone/audibility test.",
+    "private_evidence_ref": ".local/probes/activity-voice-live.json"
+  },
+  "live_https": {
+    "observed_at": "2026-10-05T23:03:12.554Z",
+    "status": "passed",
+    "checks": {
+      "anonymous_ledger_denied": true,
+      "existing_pilot_authentication": true,
+      "selected_local_voice_ready": true,
+      "synthetic_mode_preserved": true,
+      "today_and_ledger_agree": true,
+      "history_readback": true,
+      "invalid_activity_write_rejected": true,
+      "session_revocation_denies_ledger": true
+    },
+    "public_origin_unchanged": true,
+    "writes_to_care_records": 0,
+    "private_evidence_ref": ".local/probes/activity-https.json"
+  },
+  "browser": {
+    "observed_at": "2026-10-05T23:08:36.984Z",
+    "browser": "Codex in-app browser; not Safari",
+    "checks": {
+      "authenticated_activity_view": true,
+      "master_voice_button_available": true,
+      "actual_summary_and_fallback_controls_visible": true,
+      "completion_form_opened_and_cancelled_without_write": true,
+      "prior_date_ledger_loaded": true,
+      "viewport_390_no_horizontal_page_overflow": true,
+      "normal_viewport_restored": true
+    },
+    "care_writes": 0,
+    "screenshot_private_ref": ".local/probes/my-day-ledger-mvp.png"
+  },
+  "live_issue_fixed": {
+    "problem": "Responses normalized optional tool fields, requiring both a planned target and an unplanned target; strict server validation correctly rejected the ambiguous payload.",
+    "fix": "Function definitions explicitly keep best-effort optional argument generation (strict:false); authoritative Zod validation, ownership, revisions and spoken-confirmation gates remain mandatory.",
+    "official_reference": "https://developers.openai.com/api/docs/guides/function-calling",
+    "qualified": "Final real-provider activity and nutrition flow passed. Regression asserts optional target schema behavior."
+  },
+  "deployment": {
+    "existing_authenticated_https_origin_unchanged": true,
+    "postgres_migration_003_applied": true,
+    "encrypted_pre_migration_backup_saved_privately": true,
+    "source_backups_preserved": true,
+    "pilot_synthetic_mode_preserved": true,
+    "pilot_actual_activity_not_polluted_by_tests": true,
+    "additional_monthly_services_cost_cad": 0
+  },
+  "remaining": [
+    "S02-LIVE1 genuine-day reporting and participant factual-summary review have not run; S02-H01/H02 remain pending",
+    "S02-LIVE2 has substantial disposable-service evidence but does not claim every ambiguous-date, appointment-reschedule, revised-plan and physical second-device branch was observed live",
+    "S01 intended-user account eligibility/binding, consent and real setup, complete iPhone/Safari acceptance and remaining release gates remain open",
+    "Saved sample task content remains explicitly synthetic; UI cleanup did not silently replace it with approved care instructions",
+    "Nutrition files are evidence-informed references, not clinician-approved individualized targets; actual restrictions, allergies and protocols take precedence",
+    "Outlook/Asana synchronization, proactive reminders and cross-day reviewed carryover remain in later slices"
+  ],
+  "privacy": "Public evidence contains sanitized checks only. Credentials, records, full provider responses and private synthetic transcripts remain ignored locally."
+}

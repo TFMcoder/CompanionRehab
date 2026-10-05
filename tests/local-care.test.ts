@@ -52,6 +52,7 @@ describe('local PostgreSQL care adapter', () => {
   beforeAll(async () => {
     db = new PGlite();
     await db.exec(await readFile(new URL('../db/002_local_care.sql', import.meta.url), 'utf8'));
+    await db.exec(await readFile(new URL('../db/003_activity_ledger.sql', import.meta.url), 'utf8'));
     care = new LocalCare({ pool: pglitePool(db) as any });
   });
   afterAll(async () => { await db.close(); });
@@ -121,6 +122,7 @@ describe('local PostgreSQL care adapter', () => {
     const decoded = decryptSnapshot(encrypted, key);
     const target = new PGlite();
     await target.exec(await readFile(new URL('../db/002_local_care.sql', import.meta.url), 'utf8'));
+    await target.exec(await readFile(new URL('../db/003_activity_ledger.sql', import.meta.url), 'utf8'));
     try {
       await restoreSnapshot(target as any, decoded, 'target-local');
       const restored = await exportSnapshot(target as any, 'target-local', 'companion_local');
@@ -183,6 +185,7 @@ describeLive('local PostgreSQL 17 acceptance probe', () => {
     const decoded = decryptSnapshot(encryptSnapshot(snapshot, key), key);
     const target = new PGlite();
     await target.exec(await readFile(new URL('../db/002_local_care.sql', import.meta.url), 'utf8'));
+    await target.exec(await readFile(new URL('../db/003_activity_ledger.sql', import.meta.url), 'utf8'));
     try {
       await restoreSnapshot(target as any, decoded, `pglite-target-${suffix}`);
       const restored = await exportSnapshot(target as any, `pglite-target-${suffix}`, 'companion_local');

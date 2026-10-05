@@ -35,7 +35,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 | Stage | Feature | Human action IDs |
 |---|---|---|
 | S01 | Talk to Nancy and plan the day | S01-H01, S01-H02, S01-H03, S01-H04, S01-H05, S01-H06, S01-H07, S01-H08 |
-| S02 | Track actual meals and tasks through the day | S02-H01, S02-H02 |
+| S02 | Track actual tasks, meals and appointments with grounded nutrition | S02-H01, S02-H02 |
 | S03 | Resume check-ins and tracking after interruptions | S03-H01, S03-H02 |
 | S04 | Return to a fresh day with reviewed carryover and timely prompts | S04-H01, S04-H02, S04-H03 |
 | S05 | Build and use groceries from the meal plan | S05-H01, S05-H02 |
@@ -64,7 +64,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Agent prepares or handles:** Prepare and test the HTTPS page for iPhone/Safari; separately qualify Safari tab and Home Screen web-app audio/lifecycle behavior before relying on either. Configure and debug microphone/audio code; provide short test prompts.
 
-  **Completion evidence:** Device/browser and actual microphone plus audible observations, first for the sample device preview and then linked to the integrated S01 live evidence. A desktop phone-sized viewport, generated audio or dictated-text mock is insufficient. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. Owner subsequently reports that latency is still too high. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Navigation is faster; general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required.
+  **Completion evidence:** Device/browser and actual microphone plus audible observations, first for the sample device preview and then linked to the integrated S01 live evidence. A desktop phone-sized viewport, generated audio or dictated-text mock is insufficient. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. The owner subsequently accepted the faster response for advancing the MVP, while general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required.
 
   **Linked inputs/tests:** I-DEVICE, S01-LIVE1, S01-LIVE2.
 
@@ -200,13 +200,13 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Agent prepares or handles:** Integrate the selected Heart voice with warm local synthesis, coherent sentence delivery, cancellation and the Sol-high/care-command flow. Finish the working day-planning and nutrition conversation before asking for its actual-device trial. Archive alternative-model experiments; do not extend the voice search. Save only the selected preference and consent state; keep raw samples/audio private or synthetic.
 
-  **Completion evidence:** Owner Heart-selection decision is recorded at docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart. Remaining evidence: actual-device conversation delivery and foreground-wake consent references; neither is a new voice-choice gate. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. Owner subsequently reports that latency is still too high. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Navigation is faster; general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required.
+  **Completion evidence:** Owner Heart-selection decision is recorded at docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart. Remaining evidence: actual-device conversation delivery and foreground-wake consent references; neither is a new voice-choice gate. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. The owner subsequently accepted the faster response for advancing the MVP, while general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required.
 
   **Linked inputs/tests:** I-VOICE-CHOICE, I-WAKE-CONSENT, S01-LIVE1, S01-LIVE2.
 
-## S02: Track actual meals and tasks through the day
+## S02: Track actual tasks, meals and appointments with grounded nutrition
 
-- [ ] **S02-H01: Report a genuine day of meals and tasks**
+- [ ] **S02-H01: Report a genuine day of tasks, meals and appointments**
 
   Owner: **participant_or_tester**. Status: **pending**. Requirement: **required**.
 
@@ -215,16 +215,16 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Use the accepted plan during an ordinary day and report tasks actually performed and meals actually eaten.
-  - Defer an actual item when appropriate and distinguish unplanned activity from the original plan; no invented completion is needed for testing.
+  - During an ordinary day, report tasks actually completed, meals actually eaten and any appointment actually attended; do not invent an appointment or completion for testing.
+  - Defer or reschedule an actual pending item when appropriate and distinguish unplanned activity from the original plan.
 
-  **Agent prepares or handles:** Prepare working voice/touch reporting and a short trial flow using the S01 plan. Run duplicate, unknown-target, stale-device and unauthorized-access checks with disposable records.
+  **Agent prepares or handles:** Prepare working voice/touch reporting and a short trial flow covering task, meal and appointment actuals. Run duplicate, unknown-target, stale-device, correction/void, reschedule and unauthorized-access checks with disposable records.
 
-  **Completion evidence:** Observed real-day reports and deferral/current-next evidence linked to database readback.
+  **Completion evidence:** Observed genuine-day reports and pending/current-next behavior linked to database readback; branches that did not naturally occur are explicitly identified as disposable-only evidence.
 
   **Linked inputs/tests:** S02-LIVE1.
 
-- [ ] **S02-H02: Review the factual daily summary**
+- [ ] **S02-H02: Review the factual ledger and grounded nutrition behavior**
 
   Owner: **participant_or_tester**. Status: **pending**. Requirement: **required**.
 
@@ -233,12 +233,13 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Compare Nancy's summary with what actually happened and identify any mistaken report.
-  - Correct a real mistake if one exists; otherwise the agent exercises correction on disposable records.
+  - Compare Nancy's ledger and summary with what actually happened and identify any mistaken report.
+  - Ask a normal meal or nutrition question and confirm that repository reference guidance is clearly limited and respects the participant's preferences and safety.
+  - Correct a real mistake if one exists; otherwise the agent exercises correction and void behavior on disposable records.
 
-  **Agent prepares or handles:** Reconcile reports, correction history and plan versions; the human need not do database checks. Collect concise usability observations and keep detailed evidence private.
+  **Agent prepares or handles:** Reconcile reports, effective reschedules, correction history, nutrition provenance and plan versions; the human need not do database checks. Collect concise usability observations and keep detailed evidence private.
 
-  **Completion evidence:** Participant observations and factual summary readback; corrections are evidenced honestly in the appropriate live lane.
+  **Completion evidence:** Participant observations of the factual readback, pending suggestions, clean UI and bounded nutrition response; corrections are evidenced honestly in the appropriate live lane.
 
   **Linked inputs/tests:** S02-LIVE1, S02-LIVE2.
 

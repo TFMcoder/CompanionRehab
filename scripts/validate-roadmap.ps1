@@ -80,13 +80,23 @@ try {
     }
 
     foreach ($feature in $roadmap.slices) {
+        $unfinishedDependencies = @()
         foreach ($dependencyId in $feature.depends_on) {
             Assert-Roadmap ($sliceById.ContainsKey($dependencyId)) "Unknown dependency $dependencyId in $($feature.id)"
             # Strictly earlier dependencies imply an acyclic graph and a valid execution order.
             Assert-Roadmap ($sliceById[$dependencyId].priority -lt $feature.priority) "Dependency $dependencyId must precede $($feature.id); forward/cyclic dependencies are invalid."
-            if ($feature.status -in @('in_progress', 'awaiting_live_test', 'done')) {
-                Assert-Roadmap ($sliceById[$dependencyId].status -eq 'done') "$($feature.id) cannot be $($feature.status) while $dependencyId is unfinished."
-            }
+            if ($sliceById[$dependencyId].status -ne 'done') { $unfinishedDependencies += $dependencyId }
+        }
+        $hasImplementationAuthorization = $feature.ContainsKey('implementation_authorization')
+        if ($hasImplementationAuthorization) {
+            Assert-Roadmap ($feature.status -in @('in_progress', 'awaiting_live_test')) "$($feature.id) implementation_authorization applies only to in_progress or awaiting_live_test status."
+            Assert-Roadmap ($unfinishedDependencies.Count -gt 0) "$($feature.id) implementation_authorization is unnecessary because all dependencies are done."
+        }
+        if ($feature.status -eq 'done') {
+            Assert-Roadmap ($unfinishedDependencies.Count -eq 0) "$($feature.id) cannot be done while $($unfinishedDependencies -join ', ') is unfinished."
+        }
+        elseif ($feature.status -in @('in_progress', 'awaiting_live_test') -and $unfinishedDependencies.Count -gt 0) {
+            Assert-Roadmap $hasImplementationAuthorization "$($feature.id) cannot be $($feature.status) while $($unfinishedDependencies -join ', ') is unfinished without explicit implementation_authorization."
         }
         foreach ($requiredInput in $feature.required_inputs) {
             Assert-Roadmap ($inputIds.ContainsKey($requiredInput)) "Unknown operator input $requiredInput in $($feature.id)"

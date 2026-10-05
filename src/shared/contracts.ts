@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { ActivityLedger } from './activity-contracts.js';
 
 export const mealSlots = ["breakfast", "lunch", "dinner"] as const;
 export type MealSlot = typeof mealSlots[number];
@@ -41,8 +42,8 @@ export const setupSchema = z.object({
   meal_options: z.array(z.object({ id: uuid.optional(), name: z.string().trim().min(1).max(160), slots: z.array(z.enum(mealSlots)).min(1).max(3) }).strict()).min(3).max(30),
 }).strict();
 export type SetupInput = z.infer<typeof setupSchema>;
-export interface Task { id: string; title: string; time_hint: string | null; urgency?: 'high' | 'medium' | 'low'; scheduled_time?: string | null; category?: 'task' | 'exercise' | 'rehab'; duration_minutes?: number | null }
-export type ClientView = 'my_day' | 'tasks' | 'meals' | 'groceries';
+export interface Task { id: string; title: string; time_hint: string | null; urgency?: 'high' | 'medium' | 'low'; scheduled_date?: string | null; scheduled_time?: string | null; category?: 'task' | 'exercise' | 'rehab'; duration_minutes?: number | null }
+export type ClientView = 'my_day' | 'tasks' | 'meals' | 'groceries' | 'activity';
 export type AppRole = 'administrator' | 'client' | 'family_friend' | 'clinician';
 export interface GroceryItem { id: string; name: string; quantity?: string }
 export const groceryInput = z.object({ name: z.string().trim().min(1).max(160), quantity: z.string().trim().max(80).optional(), idempotency_key: uuid }).strict();
@@ -67,6 +68,7 @@ export interface Today {
   tasks: Task[]; meal_options: MealOption[]; checkin: CheckIn | null;
   role?: AppRole; groceries?: GroceryItem[]; appointments?: CalendarAppointment[];
   activity_reports?: ActivityReport[]; priority_context?: PriorityContext;
+  activity_ledger?: ActivityLedger;
 }
 export interface Receipt {
   command_id: string; checkin_id: string; revision: number;

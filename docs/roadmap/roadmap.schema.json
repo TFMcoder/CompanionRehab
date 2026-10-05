@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:companion-rehab:roadmap:1.4.0",
+  "$id": "urn:companion-rehab:roadmap:1.5.0",
   "title": "Companion Rehab agent implementation roadmap",
   "type": "object",
   "properties": {
@@ -11,7 +11,7 @@
       "const": "companion-rehab"
     },
     "schema_version": {
-      "const": "1.4.0"
+      "const": "1.5.0"
     },
     "updated_at": {
       "type": "string",
@@ -1317,6 +1317,24 @@
           },
           "minItems": 0,
           "uniqueItems": true
+        },
+        "implementation_authorization": {
+          "type": "object",
+          "properties": {
+            "decision_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "decision_ref",
+            "reason"
+          ],
+          "additionalProperties": false
         },
         "required_inputs": {
           "type": "array",

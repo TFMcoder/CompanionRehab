@@ -1,7 +1,7 @@
 {
   "$schema": "./roadmap.schema.json",
   "roadmap_id": "companion-rehab",
-  "schema_version": "1.4.0",
+  "schema_version": "1.5.0",
   "updated_at": "2026-10-05",
   "planning_status": "ready_for_implementation",
   "implementation_status": "in_progress",
@@ -37,7 +37,8 @@
     "One master Talk to Nancy button is the primary client experience, available from home/My Day and all shipped client views. It opens one general conversation with only \"Hi <preferred name>, what can I help with?\", then listens. Show Starting/Preparing until audio begins, Speaking during playback and Listening only when taking the client's turn. Contextual suggestions follow the client's request, using current local time and authorized outstanding records; do not append an unsolicited agenda to the greeting. No workflow picker, task screen, meal screen or planning command is required first. The client can redirect at any time. Voice workflows execute the same typed commands without requiring navigation; visual views are optional support and remain directly accessible with independent buttons.",
     "The morning routine window is 08:00 inclusive to 11:00 exclusive in the participant profile time zone, covering breakfast, planning the day, post-breakfast exercise and rehab. These are flexible planned activities, not fixed appointment times or automatic completion. Suggest only relevant pending items, prioritize imminent appointments, and use known meal/activity reports; if breakfast or completion state is unknown, ask. Post-breakfast exercise follows confirmed breakfast in suggestions. Use only supplied approved exercise/rehab tasks; guided protocol execution remains S07/S08. Outside this window the same master button works and Nancy adapts to the current day. The prior 10:00 routine is a preference, never an access restriction.",
     "October 5 owner live feedback: opening state was confusing, greeting was too long, rehab pronunciation was wrong and latency was slow. Use the short preferred-name greeting only, support mid-sentence interruption without ending the session, correct REEhab in synthesis only, and improve measured latency while retaining Heart and GPT-6 Sol high. Acoustic interruption must reject playback echo; a visible Interrupt Nancy button is always available during replies. Actual revised Safari behavior requires another owner trial.",
-    "October 5 latency follow-up: owner still finds Nancy too slow. The diagnostic at docs/evidence/S01-LATENCY-DIAGNOSIS-2026-10-05.json confirms sequential CPU speech and completed-model waits, plus a natural-navigation fast-path miss causing two GPT calls and a long first speech part. Prioritize these measured delays within S01; preserve Heart, GPT-6 Sol/high, authorization and explicit plan acceptance. Do not claim voice latency accepted or S01 complete."
+    "October 5 latency follow-up: owner still finds Nancy too slow. The diagnostic at docs/evidence/S01-LATENCY-DIAGNOSIS-2026-10-05.json confirms sequential CPU speech and completed-model waits, plus a natural-navigation fast-path miss causing two GPT calls and a long first speech part. Prioritize these measured delays within S01; preserve Heart, GPT-6 Sol/high, authorization and explicit plan acceptance. Do not claim voice latency accepted or S01 complete.",
+    "October 5 latest owner feedback: the faster response is accepted for advancing the MVP. Remove engineering/test clutter from the participant UI, add a durable actual task/meal/appointment ledger and ground nutrition conversation in the repository research and meal library. This feedback does not complete S01 actual-device, consent, deployment or clinical-use gates."
   ],
   "constraints": {
     "budget": {
@@ -736,9 +737,9 @@
         "S03",
         "S04"
       ],
-      "implementation_revision": "sha256:22b64add541a3102503148242c113f05c0588eddccd7f0cea6c95bd80cbe6249",
+      "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
       "blockers": [
-        "October 5 latency fixes deployed; see docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Natural navigation now avoids two GPT calls, fixed Heart acknowledgements are primed, CUDA ASR is qualified on six synthetic phrases and validated first-part preparation overlaps some model output. Public exact-navigation estimates improved from 4.58-4.82s to 1.83-1.85s; natural navigation was 1.93s through HTTPS. General GPT answers remain variable (one public sample 9.17s). Actual revised iPhone/Safari latency, interruption and participant acceptance are still required. Preserve Heart and Sol/high; S01 is not complete.",
+        "October 5 latency fixes deployed; see docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Natural navigation now avoids two GPT calls, fixed Heart acknowledgements are primed, CUDA ASR is qualified on six synthetic phrases and validated first-part preparation overlaps some model output. Public exact-navigation estimates improved from 4.58-4.82s to 1.83-1.85s; natural navigation was 1.93s through HTTPS. General GPT answers remain variable (one public sample 9.17s). The owner subsequently accepted the faster response for advancing the MVP. Actual revised iPhone/Safari latency, interruption and participant acceptance are still required. Preserve Heart and Sol/high; S01 is not complete.",
         "S01-LIVE2 is partial: encrypted restore and integrated planning passed, but the complete provider-loss/revocation/allowance, device and full-role scenario remains open. S01-LIVE1 has not run on the consenting participant's iPhone/Safari with genuine tasks/meals.",
         "Owner approved the temporary authenticated sample-data My Day Cloudflare route; HTTPS sign-in, care access denial, session revocation and Heart greeting delivery passed. See docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json. The owner reported an initial device trial; revised conversation quality and stable HTTPS operation remain unqualified.",
         "The intended participant account/deployment eligibility and live credential lifecycle are not established by owner-only synthetic inference. No paid API/model fallback is enabled.",
@@ -750,24 +751,24 @@
         {
           "test_id": "S01-AUTO1",
           "outcome": "pass",
-          "implementation_revision": "sha256:22b64add541a3102503148242c113f05c0588eddccd7f0cea6c95bd80cbe6249",
-          "executed_at": "2026-10-05T22:22:48Z",
+          "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
+          "executed_at": "2026-10-05T23:08:36.984Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
-          "observed_by": "Codex automated engineering checks",
-          "evidence_ref": "docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json",
-          "notes": "Current code: 187 tests pass across 24 files; one optional PostgreSQL test skipped. Typecheck/build pass. Tests cover natural navigation ambiguity, exact model binding, tentative/final speech matching, stale/cancelled reply invalidation, readback/acceptance and cache bounds. Actual PostgreSQL/selected providers separately exercised with synthetic records."
+          "observed_by": "Codex engineering checks",
+          "evidence_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
+          "notes": "Final regression suite: 225 pass, one optional PostgreSQL test skipped; typecheck/build pass. S01 planning, audio, interruption and authorization tests remain green."
         },
         {
           "test_id": "S01-LIVE2",
           "outcome": "blocked",
-          "implementation_revision": "sha256:22b64add541a3102503148242c113f05c0588eddccd7f0cea6c95bd80cbe6249",
-          "executed_at": "2026-10-05T22:30:21.819Z",
+          "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
+          "executed_at": "2026-10-05T23:08:36.984Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
-          "observed_by": "Codex actual service probes with synthetic care records/generated Heart WAVs",
-          "evidence_ref": "docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json",
-          "notes": "Partial current-revision engineering acceptance passed: six CPU/GPU phrase comparisons, real Sol-high/Heart/ASR care planning, 23 live request checks, exact spoken synthetic acceptance/replay/relogin, 13 HTTPS interruption/recovery assertions and measured public latency. Full device, provider-loss/lifecycle/allowance and role scenario coverage remains open. No physical iPhone audio or participant acceptance was observed."
+          "observed_by": "Codex engineering checks",
+          "evidence_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
+          "notes": "Current increment exercised real Sol-high/Heart/ASR, local PostgreSQL, HTTPS authentication/history and browser readback. Earlier planning evidence is retained in prior evidence files. This does not close the complete S01 provider/device/lifecycle/role scenario."
         }
       ],
       "human_actions": [
@@ -789,7 +790,7 @@
             "Prepare and test the HTTPS page for iPhone/Safari; separately qualify Safari tab and Home Screen web-app audio/lifecycle behavior before relying on either.",
             "Configure and debug microphone/audio code; provide short test prompts."
           ],
-          "expected_evidence": "Device/browser and actual microphone plus audible observations, first for the sample device preview and then linked to the integrated S01 live evidence. A desktop phone-sized viewport, generated audio or dictated-text mock is insufficient. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. Owner subsequently reports that latency is still too high. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Navigation is faster; general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required.",
+          "expected_evidence": "Device/browser and actual microphone plus audible observations, first for the sample device preview and then linked to the integrated S01 live evidence. A desktop phone-sized viewport, generated audio or dictated-text mock is insufficient. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. The owner subsequently accepted the faster response for advancing the MVP, while general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required.",
           "related_input_ids": [
             "I-DEVICE"
           ],
@@ -998,7 +999,7 @@
             "Integrate the selected Heart voice with warm local synthesis, coherent sentence delivery, cancellation and the Sol-high/care-command flow. Finish the working day-planning and nutrition conversation before asking for its actual-device trial. Archive alternative-model experiments; do not extend the voice search.",
             "Save only the selected preference and consent state; keep raw samples/audio private or synthetic."
           ],
-          "expected_evidence": "Owner Heart-selection decision is recorded at docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart. Remaining evidence: actual-device conversation delivery and foreground-wake consent references; neither is a new voice-choice gate. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. Owner subsequently reports that latency is still too high. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Navigation is faster; general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required.",
+          "expected_evidence": "Owner Heart-selection decision is recorded at docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart. Remaining evidence: actual-device conversation delivery and foreground-wake consent references; neither is a new voice-choice gate. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. The owner subsequently accepted the faster response for advancing the MVP, while general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required.",
           "related_input_ids": [
             "I-VOICE-CHOICE",
             "I-WAKE-CONSENT"
@@ -1028,103 +1029,114 @@
     {
       "id": "S02",
       "priority": 20,
-      "title": "Track actual meals and tasks through the day",
-      "status": "planned",
+      "title": "Track actual tasks, meals and appointments with grounded nutrition",
+      "status": "awaiting_live_test",
       "depends_on": [
         "S01"
       ],
+      "implementation_authorization": {
+        "decision_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
+        "reason": "On 2026-10-05 the owner explicitly asked to advance the MVP with UI cleanup, a factual task/meal/appointment ledger and repository-grounded nutrition while S01 actual-device and clinical-use gates remain open. This authorizes overlapping implementation and awaiting-live-test status only; S01 completion remains required before S02 can be done."
+      },
       "required_inputs": [],
-      "outcome": "The participant follows the accepted day, reports what was actually eaten or done, defers work, corrects mistakes and hears a factual daily summary from saved records. The ledger shows when each actual task or meal occurred and what was delayed, so Nancy can prioritize from committed facts rather than planned intentions.",
+      "outcome": "The participant reports tasks actually completed, meals actually eaten and appointments actually attended, corrects or voids mistakes, defers or reschedules pending work and sees a factual durable ledger. Nancy prioritizes from committed actuals and effective schedules, uses bounded repository nutrition references with provenance and limitations, and keeps the ordinary My Day surface free of engineering test clutter.",
       "in_scope": [
-        "Current/next task and meal from S01's accepted plan",
-        "Voice/touch meal reports, task completion and explicit deferral",
-        "Unplanned meal/activity reporting without inventing plan matches",
-        "Corrections, observed occurrence time and factual daily summary",
-        "Explicit task/meal rescheduling with old/new scheduled instants and versions; committed completion/reschedule events support later opt-in family notifications",
-        "Ongoing factual ledger of completed, eaten, delayed, deferred and rescheduled occurrences with observed times; session-start priorities exclude already reported work"
+        "Voice and touch reporting for task, meal and appointment occurrences through one typed activity contract",
+        "Explicit unplanned activity entries without inventing a match to an accepted plan or appointment",
+        "Corrections and voids that preserve prior facts, command receipts and event history",
+        "Explicit deferral and rescheduling with the effective scheduled instant, actor, versions and old/new values",
+        "ActivityOption, ActivityEntry and ActivityLedger projections plus authenticated HTTP ledger, command and receipt endpoints",
+        "Session-start and current/next priority from committed actuals so completed, eaten, attended or deferred entries are not suggested as pending",
+        "Removal of engineering and test-only clutter from the participant-facing My Day surface",
+        "Server-owned bounded access to docs/nutrition/research-knowledge-base.md and docs/nutrition/meal-library.md, including G01-G08 authority limits, exact claim/recipe retrieval, document status and SHA-256 provenance"
       ],
       "out_of_scope": [
-        "New day-plan engine or separate ledger",
-        "Asana, scoring, achievements, clinical interpretation and dashboards",
+        "A second day-plan engine or treating an accepted plan, calendar event or suggestion as a performed activity",
+        "Clinically approved nutrition goals, diagnosis assumptions, private protocol changes, universal calorie/carbohydrate/weight targets or treating a reference recipe as an approved saved meal",
+        "Asana, external calendar sync, scoring, achievements, clinical interpretation and dashboards",
         "Recurring template setup or automatic carryover (S04)",
         "Offline voice processing"
       ],
       "implementation_tasks": [
         {
           "id": "S02-T01",
-          "description": "Extend the S01 My Day view with complete/defer/report/correct actions and truthful planned-versus-actual state."
+          "description": "Add a focused Activity view and current-day summary for task, meal and appointment actuals; remove engineering/test-only controls from the ordinary participant UI."
         },
         {
           "id": "S02-T02",
-          "description": "Implement log_meal, correct_meal_entry, report_task, correct_task_report and defer_task through shared typed commands. Add reschedule_task; changing a scheduled instant is distinct from reporting completion or merely proposing a plan."
+          "description": "Implement record_activity, correct_activity and reschedule_activity through one strict shared contract and authenticated HTTP command/receipt routes."
         },
         {
           "id": "S02-T03",
-          "description": "Link actual reports only to an eligible explicit planned occurrence; retain unplanned reports separately and clarify ambiguous targets or dates."
+          "description": "Project eligible plan, task and appointment occurrences into ActivityOption records; retain explicit unplanned reports separately and clarify ambiguous targets or local dates."
         },
         {
           "id": "S02-T04",
-          "description": "Persist correction events without overwriting accepted plan history; derive current/next and factual summaries from committed projections."
+          "description": "Persist ActivityReported, ActivityCorrected and ActivityRescheduled with idempotent receipts, optimistic revisions, effective schedules and append-only history without rewriting accepted plan versions."
         },
         {
           "id": "S02-T05",
-          "description": "Adapt Cerberus duplicate/stale-target/date regression scenarios and run a genuine tracked-day trial."
+          "description": "Store the ledger in local PostgreSQL migration 003, include it in encrypted backup/isolated restore, and exercise duplicate, stale-target, ownership and date boundaries."
         },
         {
           "id": "S02-T06",
-          "description": "Project an ongoing factual ledger and feed committed actuals into each conversation start and daily summary; never infer completion from an accepted plan, calendar event or fluent model reply."
+          "description": "Feed the latest committed ledger and effective schedules into each conversation start and daily priority; never infer completion from a plan, appointment schedule or model reply."
+        },
+        {
+          "id": "S02-T07",
+          "description": "Load the canonical nutrition research and meal library from disk; expose compact G01-G08 authority, a claim index and bounded exact claim/recipe retrieval with source IDs, status, hashes and limitations."
         }
       ],
       "contracts": {
         "entities": [
-          "MealEntry",
-          "TaskOccurrence",
-          "TaskReport",
-          "ActivityCorrection",
-          "DaySummary"
+          "ActivityOption",
+          "ActivityEntry",
+          "ActivityLedger",
+          "ActivityReceipt",
+          "NutritionReferenceSource",
+          "NutritionClaimReference",
+          "NutritionRecipeReference"
         ],
         "commands": [
-          "log_meal",
-          "correct_meal_entry",
-          "report_task",
-          "correct_task_report",
-          "defer_task",
-          "reschedule_task"
+          "record_activity",
+          "correct_activity",
+          "reschedule_activity"
         ],
         "queries": [
-          "get_today_tracker",
-          "get_recent_meals",
-          "get_day_summary"
+          "get_activity_ledger",
+          "get_activity_receipt",
+          "get_nutrition_reference"
         ],
         "events": [
-          "MealReported",
-          "MealEntryCorrected",
-          "TaskReported",
-          "TaskReportCorrected",
-          "TaskDeferred",
-          "TaskRescheduled"
+          "ActivityReported",
+          "ActivityCorrected",
+          "ActivityRescheduled"
         ]
       },
       "acceptance_criteria": [
         {
           "id": "S02-AC01",
-          "assertion": "Voice and touch report actual meals and performed tasks once against the correct local day and explicitly selected occurrence, with unplanned reports kept distinct."
+          "assertion": "Voice and touch report actual tasks, meals and appointment attendance once against the correct local day and exact occurrence; explicit unplanned reports remain distinct from plan intentions."
         },
         {
           "id": "S02-AC02",
-          "assertion": "Corrections preserve prior facts and accepted plan versions while updating current readback; a plan acceptance or AI suggestion never marks an activity performed."
+          "assertion": "Corrections and voids preserve prior facts, receipts, events and accepted plan versions while updating current readback; a plan acceptance, appointment schedule or AI suggestion never marks an activity performed."
         },
         {
           "id": "S02-AC03",
-          "assertion": "Deferral, explicit rescheduling and current/next behavior are date-aware and consistent across devices. Record old/new schedules and actor/version in an event; never reschedule a backlog silently or count the same meal twice."
+          "assertion": "Deferral, explicit rescheduling and current/next behavior are date-aware and use the effective overridden schedule. Old/new schedules and actor/version are auditable; no completed/deferred item is suggested as pending or meal counted twice."
         },
         {
           "id": "S02-AC04",
-          "assertion": "The factual daily summary matches committed reports, deferrals and corrections and excludes unsupported clinical or scoring conclusions."
+          "assertion": "The factual ledger and summary survive process restart and encrypted backup/isolated restore, reconcile committed reports, deferrals, reschedules and corrections, and exclude unsupported clinical or scoring conclusions."
         },
         {
           "id": "S02-AC05",
-          "assertion": "The current-day ledger records actual occurrence times and current delayed/deferred state; Nancy does not remind as pending an item already reported completed/eaten, and corrections update current priority without erasing history."
+          "assertion": "Nancy's nutrition explanations and recipe suggestions come from bounded exact repository references that retain document ID, status, hash and limitations; participant preference and safety take precedence, and reference recipes are not represented as approved meals."
+        },
+        {
+          "id": "S02-AC06",
+          "assertion": "The participant UI exposes the factual activity workflow and ordinary care controls without engineering probes, test labels or setup clutter in the primary experience."
         }
       ],
       "automated_tests": [
@@ -1134,8 +1146,8 @@
             "S02-AC01",
             "S02-AC02"
           ],
-          "scenario": "Replay meal/task commands, correct a report, mismatch a planned occurrence and inspect events plus accepted plan history.",
-          "expected": "One effective report; correct ownership and links; immutable prior facts/plan versions with current corrected projection."
+          "scenario": "Replay generic task, meal and appointment commands; add an explicit unplanned entry; correct and void reports; mismatch a planned occurrence; inspect receipts, events and accepted plan history.",
+          "expected": "One effective mutation per idempotency key, correct ownership and occurrence links, and immutable prior facts/plan versions with a current corrected projection."
         },
         {
           "id": "S02-AUTO2",
@@ -1144,18 +1156,19 @@
             "S02-AC03",
             "S02-AC04"
           ],
-          "scenario": "Exercise planned/unplanned activities, explicit deferral, midnight/backdated inputs and cross-user requests. Include exact-version reschedules, repeated payloads and a meal shown in both task and meal views.",
-          "expected": "Only authorized intended occurrences change; date ambiguity is clarified and summary totals reconcile. One auditable reschedule and one effective meal completion; no notification is sent before S10 enables a consented subscription."
+          "scenario": "Exercise planned and unplanned activities, explicit deferral, midnight/backdated inputs and cross-user requests. Include exact-version task/appointment reschedules, repeated payloads and a meal shown in both task and meal views.",
+          "expected": "Only authorized exact occurrences change; date ambiguity is rejected and summary totals reconcile. Effective schedules drive priority, with one auditable reschedule and one effective meal completion."
         },
         {
           "id": "S02-AUTO3",
           "criterion_ids": [
             "S02-AC02",
             "S02-AC04",
-            "S02-AC05"
+            "S02-AC05",
+            "S02-AC06"
           ],
-          "scenario": "Compare independent expected daily facts with query results after corrections, refresh and API restart. Re-enter a voice session after a meal report and a task deferral.",
-          "expected": "The summary reflects actual history rather than planned or model-suggested completion. Session-start priority uses corrected factual state."
+          "scenario": "Compare independent expected facts after corrections, refresh, API restart and encrypted backup/isolated restore. Re-enter Nancy after task/meal/appointment actuals, inspect the participant UI, and retrieve known and unknown bounded nutrition claim/recipe IDs.",
+          "expected": "The ledger reflects durable actual history rather than planned completion, session priority uses corrected factual state, UI test clutter is absent, and nutrition retrieval preserves source status, hashes and guardrails while failing closed on unknown IDs."
         }
       ],
       "live_tests": [
@@ -1166,16 +1179,18 @@
             "S02-AC02",
             "S02-AC03",
             "S02-AC04",
-            "S02-AC05"
+            "S02-AC05",
+            "S02-AC06"
           ],
           "data_policy": "real_consented",
           "steps": [
-            "Use the S01 plan during a genuine day; actually perform selected tasks and report meals eaten through voice/touch.",
-            "Defer a real item and correct a genuine mistaken report where present; if no real correction is needed, exercise that branch in LIVE2. Exercise a genuine reschedule if appropriate; otherwise cover rescheduling using disposable records in LIVE2.",
-            "Compare the spoken/day-screen summary with the participant's actual day and database readback.",
-            "Reopen Nancy after reporting one meal and one completed/deferred task; confirm she uses the factual ledger and occurrence times to prioritize the remainder of the day."
+            "During a genuine day, report tasks actually completed, meals actually eaten and any appointment actually attended; do not invent an appointment or completion for the trial.",
+            "Defer or reschedule a real item and correct a genuine mistaken report where present; cover any branch that does not naturally occur with disposable records in LIVE2.",
+            "Compare the activity view and Nancy's readback with the participant's actual day and database readback; confirm engineering/test controls are absent from the ordinary UI.",
+            "Ask an ordinary nutrition or recipe question and confirm Nancy respects preferences and safety while presenting repository reference material as unapproved guidance with limitations.",
+            "Reopen Nancy after actual reports; confirm completed/eaten/attended/deferred items are excluded from pending suggestions and effective reschedules drive priority."
           ],
-          "expected": "Real reporting, deferral and current/next behavior agree with committed history and the participant's observations."
+          "expected": "Real reporting and current/next behavior agree with committed history and the participant's observations; nutrition guidance remains bounded, attributed and non-clinical."
         },
         {
           "id": "S02-LIVE2",
@@ -1184,15 +1199,18 @@
             "S02-AC02",
             "S02-AC03",
             "S02-AC04",
-            "S02-AC05"
+            "S02-AC05",
+            "S02-AC06"
           ],
           "data_policy": "disposable_live",
           "steps": [
-            "Use disposable real-service records to repeat a report, correct a detail and test an ambiguous target/date and stale second-device update.",
-            "Check that revising a plan cannot rewrite intake history or imply a task was performed; restart and compare the summary.",
-            "Reschedule a disposable task and meal, replay the command and verify old/new schedule events and absence of duplicate task/meal completion."
+            "Use disposable real-service records to repeat task, meal and appointment reports, correct and void details, and test an ambiguous target/date, explicit unplanned entry and stale second-device update.",
+            "Check that revising a plan or appointment schedule cannot rewrite actual history or imply performance; restart and compare the ledger.",
+            "Reschedule disposable task and appointment occurrences, replay commands and verify effective schedules, old/new events, receipts and absence of duplicate completion.",
+            "Back up the local migration-003 ledger and restore it into the isolated disposable target; compare records, events and receipts.",
+            "Request exact and unknown nutrition claim/recipe IDs; verify bounded output, provenance/status/limitations and fail-closed behavior."
           ],
-          "expected": "No duplicate or unintended action; corrections, permission checks and plan-versus-actual separation hold."
+          "expected": "No duplicate or unintended action; corrections, permission checks, effective schedules, durable history, plan-versus-actual separation and nutrition source boundaries hold."
         }
       ],
       "story_refs": [
@@ -1205,13 +1223,61 @@
         "A05",
         "A06"
       ],
-      "implementation_revision": null,
-      "blockers": [],
-      "test_results": [],
+      "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
+      "blockers": [
+        "S02-LIVE1 has not run through a genuine participant day; code and synthetic/disposable evidence do not complete the slice.",
+        "S01 is unfinished. The explicit implementation authorization permits overlap and awaiting-live-test status only; S01 completion remains required before S02 can be done."
+      ],
+      "test_results": [
+        {
+          "test_id": "S02-AUTO1",
+          "outcome": "pass",
+          "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
+          "executed_at": "2026-10-05T23:08:36.984Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering checks",
+          "evidence_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
+          "notes": "225 tests pass across 28 files; ledger, auth/routes, explicit voice confirmation, nutrition provenance/bounds, priority, client history/corrections and backup regressions included. Actual PostgreSQL and provider checks are separately recorded."
+        },
+        {
+          "test_id": "S02-AUTO2",
+          "outcome": "pass",
+          "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
+          "executed_at": "2026-10-05T23:08:36.984Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering checks",
+          "evidence_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
+          "notes": "225 tests pass across 28 files; ledger, auth/routes, explicit voice confirmation, nutrition provenance/bounds, priority, client history/corrections and backup regressions included. Actual PostgreSQL and provider checks are separately recorded."
+        },
+        {
+          "test_id": "S02-AUTO3",
+          "outcome": "pass",
+          "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
+          "executed_at": "2026-10-05T23:08:36.984Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering checks",
+          "evidence_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
+          "notes": "225 tests pass across 28 files; ledger, auth/routes, explicit voice confirmation, nutrition provenance/bounds, priority, client history/corrections and backup regressions included. Actual PostgreSQL and provider checks are separately recorded."
+        },
+        {
+          "test_id": "S02-LIVE2",
+          "outcome": "blocked",
+          "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
+          "executed_at": "2026-10-05T23:08:36.984Z",
+          "environment": "live_real_services",
+          "data_origin": "disposable_live",
+          "observed_by": "Codex engineering checks",
+          "evidence_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
+          "notes": "Partial live acceptance: PostgreSQL42/42 including immutable audit and encrypted restore; selected Sol-high/Heart/ASR7/7; HTTPS8/8 and browser history/control checks. Full live branch coverage and physical second-device behavior are not claimed."
+        }
+      ],
       "human_actions": [
         {
           "id": "S02-H01",
-          "title": "Report a genuine day of meals and tasks",
+          "title": "Report a genuine day of tasks, meals and appointments",
           "owner_role": "participant_or_tester",
           "when": "When the S02 reporting feature is ready",
           "blocking_scope": "slice_completion",
@@ -1219,14 +1285,14 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Use the accepted plan during an ordinary day and report tasks actually performed and meals actually eaten.",
-            "Defer an actual item when appropriate and distinguish unplanned activity from the original plan; no invented completion is needed for testing."
+            "During an ordinary day, report tasks actually completed, meals actually eaten and any appointment actually attended; do not invent an appointment or completion for testing.",
+            "Defer or reschedule an actual pending item when appropriate and distinguish unplanned activity from the original plan."
           ],
           "agent_can_do": [
-            "Prepare working voice/touch reporting and a short trial flow using the S01 plan.",
-            "Run duplicate, unknown-target, stale-device and unauthorized-access checks with disposable records."
+            "Prepare working voice/touch reporting and a short trial flow covering task, meal and appointment actuals.",
+            "Run duplicate, unknown-target, stale-device, correction/void, reschedule and unauthorized-access checks with disposable records."
           ],
-          "expected_evidence": "Observed real-day reports and deferral/current-next evidence linked to database readback.",
+          "expected_evidence": "Observed genuine-day reports and pending/current-next behavior linked to database readback; branches that did not naturally occur are explicitly identified as disposable-only evidence.",
           "related_input_ids": [],
           "related_test_ids": [
             "S02-LIVE1"
@@ -1238,7 +1304,7 @@
         },
         {
           "id": "S02-H02",
-          "title": "Review the factual daily summary",
+          "title": "Review the factual ledger and grounded nutrition behavior",
           "owner_role": "participant_or_tester",
           "when": "At the end of the real tracked day",
           "blocking_scope": "slice_completion",
@@ -1246,14 +1312,15 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Compare Nancy's summary with what actually happened and identify any mistaken report.",
-            "Correct a real mistake if one exists; otherwise the agent exercises correction on disposable records."
+            "Compare Nancy's ledger and summary with what actually happened and identify any mistaken report.",
+            "Ask a normal meal or nutrition question and confirm that repository reference guidance is clearly limited and respects the participant's preferences and safety.",
+            "Correct a real mistake if one exists; otherwise the agent exercises correction and void behavior on disposable records."
           ],
           "agent_can_do": [
-            "Reconcile reports, correction history and plan versions; the human need not do database checks.",
+            "Reconcile reports, effective reschedules, correction history, nutrition provenance and plan versions; the human need not do database checks.",
             "Collect concise usability observations and keep detailed evidence private."
           ],
-          "expected_evidence": "Participant observations and factual summary readback; corrections are evidenced honestly in the appropriate live lane.",
+          "expected_evidence": "Participant observations of the factual readback, pending suggestions, clean UI and bounded nutrition response; corrections are evidenced honestly in the appropriate live lane.",
           "related_input_ids": [],
           "related_test_ids": [
             "S02-LIVE1",

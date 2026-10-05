@@ -1,7 +1,9 @@
 import { randomBytes, randomUUID, scrypt as scryptCallback, timingSafeEqual, createHash } from 'node:crypto';
 import { Pool, type PoolClient, type PoolConfig } from 'pg';
 import { z, ZodError } from 'zod';
-import { commandSchema, setupSchema, type CareCommand, type SetupInput, type Today, type Receipt, type Task, type MealOption } from '../shared/contracts.js';
+import { commandSchema, setupSchema, dateInZone, type CareCommand, type SetupInput, type Today, type Receipt, type Task, type MealOption } from '../shared/contracts.js';
+import { activityCommandSchema, activityDate, type ActivityCommand, type ActivityEntry, type ActivityLedger, type ActivityReceipt } from '../shared/activity-contracts.js';
+import { activityId, activityRow, plannedActivities, projectLedger } from './activity-ledger.js';
 import { ApiError, unavailable } from './errors.js';
 import type { Session } from './session.js';
 import type { AppointmentInput, CareAccess, GroceryInput, GroceryItem, LocalRole } from './care-access.js';
@@ -184,15 +186,16 @@ export class LocalCare implements CareAccess {
     return value;
   }
   private async localDate(client: QueryClient, participantId: string) {
-    const { rows } = await client.query(`select (now() at time zone time_zone)::date::text as local_date from companion_local.participant_profiles where id=$1`, [participantId]);
+    const { rows } = await client.query(`select ($2::timestamptz at time zone time_zone)::date::text as local_date from companion_local.participant_profiles where id=$1`, [participantId,this.clock()]);
     if (!rows[0]) throw new ApiError(409, 'setup_required', 'Complete participant setup before planning the day.');
     return rows[0].local_date as string;
   }
-  private async todayFor(client: QueryClient, participantId: string): Promise<Today> {
+  private async todayFor(client: QueryClient, participantId: string, selectedDate?: string): Promise<Today> {
     const profileResult = await client.query(`select id,display_name,time_zone,preferences,revision from companion_local.participant_profiles where id=$1`, [participantId]);
     const p = profileResult.rows[0];
     if (!p) throw new ApiError(409, 'setup_required', 'Complete participant setup before planning the day.');
-    const day = await this.localDate(client, participantId);
+    const currentDate = await this.localDate(client, participantId);
+    const day = selectedDate ?? currentDate;
     const [taskResult, mealResult, checkResult, appointmentResult, groceryResult] = await Promise.all([
       client.query(`select id,title,time_hint,urgency,scheduled_date::text as scheduled_date,to_char(scheduled_time,'HH24:MI') as scheduled_time,category,duration_minutes
         from companion_local.task_definitions where participant_id=$1 and active order by scheduled_date nulls last,scheduled_time nulls last,created_at,id`, [participantId]),
@@ -201,7 +204,9 @@ export class LocalCare implements CareAccess {
         from companion_local.daily_checkins c left join companion_local.day_plan_proposals p on p.id=c.current_proposal_id
         left join companion_local.accepted_day_plan_versions a on a.checkin_id=c.id and a.version=c.accepted_version
         where c.participant_id=$1 and c.local_date=$2`, [participantId, day]),
-      client.query(`select id,title,starts_at from companion_local.appointments where participant_id=$1 and starts_at>=now() order by starts_at limit 20`, [participantId]),
+      client.query(`select id,title,starts_at from companion_local.appointments where participant_id=$1
+        and starts_at >= (($2::date - interval '30 days') at time zone $3)
+        and starts_at < (($2::date + interval '31 days') at time zone $3) order by starts_at limit 200`, [participantId,day,p.time_zone]),
       client.query(`select id,name,quantity from companion_local.grocery_items where participant_id=$1 order by created_at,id`, [participantId]),
     ]);
     const tasks = taskResult.rows.map((t: any) => ({ id: t.id, title: t.title, time_hint: t.time_hint, urgency: t.urgency, scheduled_date: t.scheduled_date, scheduled_time: t.scheduled_time, category: t.category, duration_minutes: t.duration_minutes })) as Task[];
@@ -209,12 +214,91 @@ export class LocalCare implements CareAccess {
     const check = checkResult.rows[0];
     const appointments = appointmentResult.rows.map((a: any) => ({ id: a.id, title: a.title, starts_at: (a.starts_at as Date).toISOString() }));
     const groceries = groceryResult.rows.map((g: any) => ({ id: g.id, name: g.name, ...(g.quantity ? { quantity: g.quantity } : {}) }));
-    return { profile: { id: p.id, display_name: p.display_name, time_zone: p.time_zone, preferences: p.preferences, revision: p.revision }, local_date: day, tasks, meal_options,
+    const today:Today = { profile: { id: p.id, display_name: p.display_name, time_zone: p.time_zone, preferences: p.preferences, revision: p.revision }, local_date: day, tasks, meal_options,
       checkin: check ? { id: check.id, local_date: check.local_date, revision: check.revision, proposal: check.proposal, accepted: check.accepted } : null,
       groceries, appointments } as Today;
+    const rows = (await client.query(`select *,local_date::text as local_date from companion_local.activity_records where participant_id=$1
+      and (local_date=$2::date or (occurred_at at time zone $3)::date=$2::date or (scheduled_at at time zone $3)::date=$2::date
+        or id in (select id from companion_local.activity_records where participant_id=$1 order by updated_at desc,id limit 100))
+      order by updated_at desc,id`, [participantId,day,p.time_zone])).rows;
+    today.activity_ledger = projectLedger(today,rows.map(activityRow),currentDate);
+    today.activity_reports = today.activity_ledger.entries.filter(e=>e.status==='completed'||e.status==='deferred').map(e=>({
+      target_id:e.source_id??e.id, local_date:e.occurred_at?dateInZone(new Date(e.occurred_at),p.time_zone):e.local_date,
+      status:e.status as 'completed'|'deferred',occurred_at:e.occurred_at??e.updated_at,...(e.meal_slot?{meal_slot:e.meal_slot}:{})}));
+    return today;
   }
   async today(session: Session): Promise<Today> {
     try { const { participantId, role } = await this.clientContext(session); return { ...await this.todayFor(this.pool, participantId), role }; } catch (error) { return mapError(error); }
+  }
+
+  async ledger(session:Session,date?:string):Promise<ActivityLedger> {
+    try { const {participantId}=await this.clientContext(session);if(date)activityDate.parse(date);
+      return (await this.todayFor(this.pool,participantId,date)).activity_ledger!;
+    } catch(error){return mapError(error);}
+  }
+  async activityReceipt(session:Session,key:string):Promise<ActivityReceipt|null> {
+    try {const {participantId}=await this.clientContext(session);
+      const row=(await this.pool.query(`select result from companion_local.append_only_mutations where participant_id=$1 and command_id=$2 and event_type in ('ActivityReported','ActivityCorrected','ActivityRescheduled')`,[participantId,uuidSchema.parse(key)])).rows[0];
+      return row?.result??null;
+    }catch(error){return mapError(error);}
+  }
+  async activityCommand(session:Session,input:ActivityCommand):Promise<ActivityReceipt> {
+    try {
+      input=activityCommandSchema.parse(input);
+      return await transaction(this.pool,async client=>{
+        const {participantId,actorId}=await this.clientContext(session,client);
+        const profile=(await client.query('select id,time_zone from companion_local.participant_profiles where id=$1 for update',[participantId])).rows[0];
+        const old=(await client.query('select command,result from companion_local.append_only_mutations where participant_id=$1 and command_id=$2',[participantId,input.idempotency_key])).rows[0];
+        if(old){if(canonical(old.command)!==canonical(input))fail('conflict','That request key was already used for a different change.');return {...old.result,replayed:true};}
+        const now=this.clock(),currentDate=dateInZone(now,profile.time_zone);
+        if(input.type!=='reschedule_activity'&&input.local_date>currentDate)fail('invalid_activity_time','An actual report cannot be dated in the future.',400);
+        const snapshot=await this.todayFor(client,participantId,input.local_date);
+        const targetId=input.payload.activity_id;
+        const previous=targetId?(await client.query('select *,local_date::text as local_date from companion_local.activity_records where participant_id=$1 and id=$2 for update',[participantId,targetId])).rows[0]:undefined;
+        const prior=previous?activityRow(previous):undefined;
+        let target=prior??plannedActivities(snapshot,currentDate).find(option=>option.id===targetId);
+        if(!target&&input.type==='record_activity'&&input.payload.unplanned){
+          const unplanned=input.payload.unplanned;
+          target={id:activityId(participantId,input.local_date,unplanned.kind,input.idempotency_key),kind:unplanned.kind,title:unplanned.title,
+            local_date:input.local_date,source_id:null,meal_slot:unplanned.meal_slot??null,plan_id:null,unplanned:true,scheduled_at:null,status:'pending',revision:0};
+        }
+        if(!target)fail('unknown_activity','Choose an existing activity, or explicitly report something unplanned.',400);
+        if(input.expected_revision!==target.revision)fail('conflict','This activity changed. Refresh it before saving.');
+        if(input.type==='correct_activity'&&!prior)fail('unknown_activity','There is no saved report to correct.',400);
+        if(input.type==='record_activity'&&target.status==='completed')fail('already_reported','This activity is already recorded. Use a correction if a detail is wrong.');
+        const completedPayload=input.type!=='reschedule_activity'?input.payload:undefined;
+        if(completedPayload?.occurred_at){
+          const actual=new Date(completedPayload.occurred_at);
+          if(actual.getTime()>now.getTime()+60000||dateInZone(actual,profile.time_zone)!==input.local_date)
+            fail('invalid_activity_time','Use the actual time and its matching local date; future completion is not allowed.',400);
+        }
+        if(completedPayload?.portion&&target.kind!=='meal')fail('invalid_input','Portions apply only to meals.',400);
+        const stamp=now.toISOString();
+        const entry:ActivityEntry={...target,revision:target.revision+1,occurred_at:prior?.occurred_at??null,notes:prior?.notes??'',portion:prior?.portion??null,
+          recorded_at:prior?.recorded_at??stamp,updated_at:stamp,last_action:input.type==='record_activity'?'reported':input.type==='correct_activity'?'corrected':'rescheduled'};
+        if(input.type==='reschedule_activity'){
+          if(target.status==='completed')fail('already_reported','A completed activity cannot be rescheduled. Correct the mistaken report first.');
+          if(Date.parse(input.payload.scheduled_at)<now.getTime()-60000)fail('invalid_activity_time','Choose a new time that has not already passed.',400);
+          entry.scheduled_at=new Date(input.payload.scheduled_at).toISOString();entry.status='pending';entry.occurred_at=null;
+        }else{
+          entry.status=input.payload.status;entry.occurred_at=input.payload.occurred_at?new Date(input.payload.occurred_at).toISOString():null;
+          entry.notes=input.payload.notes;entry.portion=target.kind==='meal'?input.payload.portion??null:null;
+        }
+        const fields=[entry.id,participantId,entry.local_date,entry.kind,entry.title,entry.source_id,entry.meal_slot,entry.plan_id,entry.unplanned,entry.scheduled_at,
+          entry.status,entry.occurred_at,entry.notes,entry.portion,entry.revision,entry.last_action,entry.recorded_at,entry.updated_at];
+        await client.query(`insert into companion_local.activity_records(id,participant_id,local_date,kind,title,source_id,meal_slot,plan_id,unplanned,scheduled_at,status,occurred_at,notes,portion,revision,last_action,recorded_at,updated_at)
+          values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+          on conflict(id) do update set status=excluded.status,occurred_at=excluded.occurred_at,scheduled_at=excluded.scheduled_at,notes=excluded.notes,
+            portion=excluded.portion,revision=excluded.revision,last_action=excluded.last_action,updated_at=excluded.updated_at`,fields);
+        const eventType=input.type==='record_activity'?'ActivityReported':input.type==='correct_activity'?'ActivityCorrected':'ActivityRescheduled';
+        const result:ActivityReceipt={command_id:input.idempotency_key,result:entry.last_action,entry,replayed:false};
+        await client.query('insert into companion_local.append_only_mutations(participant_id,command_id,command,result,event_type,actor_id) values($1,$2,$3,$4,$5,$6)',[participantId,input.idempotency_key,JSON.stringify(input),JSON.stringify(result),eventType,actorId]);
+        await client.query('insert into companion_local.domain_events(participant_id,actor_id,command_id,event_type,local_date,data) values($1,$2,$3,$4,$5,$6)',
+          [participantId,actorId,input.idempotency_key,eventType,input.local_date,JSON.stringify({activity_id:entry.id,kind:entry.kind,before:prior??target,after:entry,
+            reason:'reason' in input.payload?input.payload.reason:null,old_scheduled_at:target.scheduled_at,new_scheduled_at:entry.scheduled_at})]);
+        return result;
+      });
+    }catch(error){return mapError(error);}
   }
 
   async setup(session: Session, input: SetupInput): Promise<Today> {

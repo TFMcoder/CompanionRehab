@@ -67,7 +67,7 @@ try {
     await target.connect();
     const migrationUrl = new URL(targetUrl);
     const migrationPool = new Pool({ connectionString: migrationUrl.toString(), max: 1 });
-    try { await migrationPool.query(await (await import('node:fs/promises')).readFile('db/002_local_care.sql', 'utf8')); }
+    try { for (const file of ['db/002_local_care.sql','db/003_activity_ledger.sql']) await migrationPool.query(await (await import('node:fs/promises')).readFile(file, 'utf8')); }
     finally { await migrationPool.end(); }
     await restoreSnapshot(target as any, snapshot!, databaseIdentity(targetUrl.toString()));
     const counts = await target.query(`select

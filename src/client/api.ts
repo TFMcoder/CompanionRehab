@@ -1,4 +1,5 @@
 import type { AppConfig, CareCommand, GroceryItem, Receipt, SetupInput, Today } from "../shared/contracts";
+import type { ActivityCommand, ActivityLedger, ActivityReceipt } from "../shared/activity-contracts";
 
 export class ApiError extends Error {
   constructor(
@@ -61,6 +62,9 @@ export const api = {
   groceries: () => request<{ items: GroceryItem[] } | GroceryItem[]>("/api/groceries"),
   addGrocery: (input: GroceryInput) => request<GroceryItem>("/api/groceries", { method: "POST", body: JSON.stringify(input) }),
   addAppointment: (input: { title: string; starts_at: string; idempotency_key: string }) => request<{ appointment: { id: string; title: string; starts_at: string } }>("/api/appointments", { method: "POST", body: JSON.stringify(input) }),
+  activity: (date?: string) => request<ActivityLedger>(`/api/activity${date ? `?date=${encodeURIComponent(date)}` : ""}`),
+  activityCommand: (command: ActivityCommand) => request<ActivityReceipt>("/api/activity/commands", { method: "POST", body: JSON.stringify(command) }),
+  activityReceipt: (key: string) => request<ActivityReceipt>(`/api/activity/receipts/${encodeURIComponent(key)}`),
   conversationStart: (signal?: AbortSignal) => request<ConversationStart>("/api/conversation", { method: "POST", body: "{}", signal }, 90_000),
   conversationTurn: (id: string, text: string, turnId: string, signal?: AbortSignal) => request<ConversationReply>(`/api/conversation/${encodeURIComponent(id)}/turn`, { method: "POST", body: JSON.stringify({ text, turn_id: turnId }), signal }, 90_000),
   conversationAudio: (id: string, wav: string, turnId: string, signal?: AbortSignal) => request<ConversationReply>(`/api/conversation/${encodeURIComponent(id)}/audio`, { method: "POST", body: JSON.stringify({ wav, turn_id: turnId }), signal }, 90_000),
