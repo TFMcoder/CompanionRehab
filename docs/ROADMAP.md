@@ -2,7 +2,7 @@
 
 Updated: 2026-10-05. **S01 is in progress: adapt the existing baseline to local data hosting, four roles, My Day navigation, meals as tasks and GPT-6 Sol high reasoning. Historical automated checks do not establish acceptance of this revised scope; no live acceptance has run.**
 
-The canonical [roadmap.json](roadmap/roadmap.json), schema version 1.4.0, defines feature order, product contracts, scope, dependencies, human actions and acceptance. [HUMAN_ACTIONS.md](HUMAN_ACTIONS.md) is generated from its human-action records. Current user instructions take precedence; reflect agreed changes in the JSON. The [October 3 decisions](architecture/PRODUCT_DECISIONS_2026-10-03.md) record roles, hosting and model selection; the [October 4 decisions](architecture/PRODUCT_DECISIONS_2026-10-04.md) prioritize existing-subscription reasoning qualification and distinguish it from MCP, speech and browser access.
+The canonical [roadmap.json](roadmap/roadmap.json), schema version 1.4.0, defines feature order, product contracts, scope, dependencies, human actions and acceptance. [HUMAN_ACTIONS.md](HUMAN_ACTIONS.md) is generated from its human-action records. Current user instructions take precedence; reflect agreed changes in the JSON. The [October 3 decisions](architecture/PRODUCT_DECISIONS_2026-10-03.md) record roles, hosting and model selection; the [October 4 decisions](architecture/PRODUCT_DECISIONS_2026-10-04.md) prioritize existing-subscription reasoning qualification. The [October 5 voice and daily companion decision](architecture/VOICE_AND_DAILY_COMPANION_2026-10-05.md) records free voice candidates, conversation timing, foreground wake limits, current-time context, meal choice and prompted-day behavior.
 
 Current account-setup step: [qualify the supported ChatGPT-plan route](S01_FIRST_CONNECTION.md). The private API key is saved and model visibility passed; bounded API reasoning/speech probes returned HTTP 429. Do not repeat key creation or require API funding before subscription qualification. The requested October 5 supervised S01/S02 pilot is a stretch target; current acceptance gates still apply.
 
@@ -10,37 +10,41 @@ October 4 implementation progress: the owner approved Nancy's app-specific OAuth
 
 October 5 device direction: the owner will test from a **smartphone browser** and requested a web URL first. The [My Day device preview](DEVICE_PREVIEW.md) exposes only synthetic tasks/meals, fixed voice playback and a browser-only microphone check over a temporary HTTPS route. Phone recordings are not uploaded. [Preview evidence](evidence/S01-DEVICE-PREVIEW-2026-10-05.json) records 79 passing tests, actual HTTPS/browser checks and the limits of those checks. This preview supports immediate device feedback within S01; it does not replace the authenticated care service, select the production route, or complete either live gate. The actual phone OS/browser and observed audio result remain pending. Existing Tailscale/MCP routes are unchanged.
 
+The owner approved the preview's **interface layout**, then specified the next behavior: choose a free natural voice, converse after one tap with a delayed close, optionally say **Hey Nancy** while My Day is awake, and receive timely help around appointments/meals. The voice, wake listener and reminders have not been accepted on the actual phone. The provisional voice defaults (1.2-second end-of-turn silence, 30-second idle, 10-second closure grace) are adjustable and require real-device measurement. An explicit End closes immediately; thinking/speaking does not count as idle. A browser cannot promise Alexa-like listening when the phone is locked or the page is closed.
+
+The public preview now exposes a **browser-local voice chooser** and sample audition. [Voice-audition evidence](evidence/S01-VOICE-AUDITION-2026-10-05.json) records 83 passing automated tests, a production build and an actual public-browser chooser check. Phone audibility, the participant's preferred voice, natural conversation and full S01 live acceptance remain unverified.
+
 ## Immediate delivery goal: S01-S04
 
-The first MVP is the participant's **10:00 local-time check-in with Nancy**, combining a daily task brief and meal planning through actual two-way voice. The first four slices make that experience useful through a real day, resilient to interruptions and repeatable across days.
+The first MVP is the participant's **user-initiated 10:00 local-time check-in with Nancy** within a preferred 09:00-11:00 window, combining a daily task brief and meal planning through actual two-way voice. **Let's Plan the Day** and **Let's Plan Today** open the same current-day flow at any time. The first four slices make that experience useful through a real day, resilient to interruptions and repeatable across days.
 
 | Slice | Completed feature | What the participant can do | Dependencies |
 |---|---|---|---|
-| S01 | Plan the day with Nancy at 10 AM | Hear real tasks, discuss meals, accept the reviewed day plan and retrieve or revise it by voice/touch | None |
-| S02 | Track actual meals and tasks through the day | Report what was eaten or done, defer tasks, correct mistakes and hear a factual summary | S01 |
+| S01 | Plan the day with Nancy at 10 AM | Open a continuous conversation by button or opted-in foreground wake; hear real tasks and local appointments, choose among meals, capture a confirmed missing ingredient, accept the reviewed day plan and retrieve or revise it | None |
+| S02 | Track actual meals and tasks through the day | Report what was eaten or done and when, defer tasks, correct mistakes and hear a factual ledger and summary | S01 |
 | S03 | Resume check-ins and tracking after interruptions | See what is pending or saved, reconnect and resolve conflicts without duplicate actions | S02 |
-| S04 | Return to a fresh 10 AM brief each day | Review yesterday, explicitly carry unfinished work forward and accept a fresh plan across successive days | S03 |
+| S04 | Return to a fresh day with reviewed carryover and timely prompts | Ask whether yesterday's unfinished tasks still matter, need a new priority or help; accept a fresh plan and receive opted-in meal/appointment prompts | S03 |
 
-**S01 delivers a useful combined feature.** It includes My Day, minimum real authentication with four scoped roles, a local PostgreSQL deployment, HTTPS route, task/meal setup and two-way speech with GPT-6 Sol high reasoning. Voice and buttons open the task and daily meal views. Tasks expose what, urgency and scheduled date/time; meals share task occurrence identities. Minimal authorized setup supplies the choices; Asana and full dashboards are not prerequisites.
+**S01 delivers a useful combined feature.** It includes My Day, minimum real authentication with four scoped roles, a local PostgreSQL deployment, HTTPS route, task/meal and local appointment setup, and two-way speech with GPT-6 Sol high reasoning. One tap opens a continuous conversation; a qualified opted-in foreground **Hey Nancy** path opens the same authorized session. The participant auditions free voice candidates and chooses the preferred one. Voice and buttons open task, meal and minimal grocery views. Tasks expose what, urgency, proposed duration and scheduled date/time; meals share task occurrence identities. Nancy proposes several feasible meals, asks what to change when none appeals, discusses ordinary portions within approved constraints and confirms a missing ingredient before saving one grocery item. Minimal authorized setup supplies local calendar context; Asana and full dashboards are not prerequisites.
 
 Within S01, first qualify the intended account/deployment for existing ChatGPT-plan usage and prove a bounded **GPT-6 Sol high** turn with authorized tools. Next qualify speech input/output independently. Integrate those connections with My Day and local care state, then run disposable S01-LIVE2 before the consented S01-LIVE1 conversation. Database/auth and UI work can proceed while independent account checks are pending. This is an execution order inside the feature, not a new infrastructure slice.
 
 Keep four concerns separate: reasoning/auth/billing, speech, care-tool transport and the browser's HTTPS origin. Prefer server-owned functions or local MCP; a **Secure MCP Tunnel is optional** for a supported OpenAI caller that needs local tools. It supplies neither speech nor My Day web hosting. Any API-key fallback requires a documented qualification result and explicit owner route/cost decision; quota failure must not silently switch billing or model. A successful catalog lookup is not completed inference, and a completed text turn is not voice acceptance.
 
-**S02 separates intentions from actual events.** Accepting a plan never marks tasks complete or meals eaten. Factual reporting, unplanned activity and corrections preserve the accepted plan and event history.
+**S02 separates intentions from actual events.** Accepting a plan never marks tasks complete or meals eaten. Factual reporting includes actual occurrence times, delays/deferrals, unplanned activity and corrections; each new conversation uses the latest committed ledger rather than repeating a completed item as pending.
 
 **S03 expands reliability already required in S01.** Basic durable local database saves, receipt lookup and honest failure messages are required from the first write. S03 adds persistent device-pending commands, offline touch behavior, conflict handling and revocation-safe recovery. It does not promise offline GPT voice.
 
-**S04 proves repeat-day use.** Extend S01's existing DailyCheckIn record and start/resume contract; do not create a second session ledger. Reuse current task definitions and meal choices; preserve prior-day facts, show gaps, review carryover and explicitly accept the current day's plan. The live gate spans three genuine local dates. Synthetic time travel does not satisfy it.
+**S04 proves repeat-day use.** Extend S01's existing DailyCheckIn record and start/resume contract; do not create a second session ledger. Reuse current task definitions and meal choices; preserve prior-day facts, show gaps and ask whether each missed task still needs doing, has changed urgency or needs help before reviewed carryover. Add a durable local scheduler for explicitly enabled meal/appointment prompts, quiet hours, delivery receipts and missed-run handling. Nancy may speak while the browser is active; a permitted browser notification invites the participant back when speech is unavailable. The live gate spans three genuine local dates and at least one genuine prompt. Synthetic time travel does not satisfy it.
 
-The check-in is **user initiated at 10:00 in the participant's configured time zone**. America/Toronto is a planning default to confirm once during setup. Automatic reminders, outbound calls, background preparation and microphone activation are separately deferred; Cerberus has no qualified scheduler to import for this requirement.
+The check-in is **user initiated**, preferably at 10:00 within 09:00-11:00 in the participant's configured time zone. America/Toronto is a planning default to confirm once during setup. S04 prompts are opt-in and separately scheduled. Outbound calls, closed-browser speech, background phone wake, automatic microphone activation and model/connector preparation remain deferred; Cerberus has no qualified scheduler to import.
 
 ## Later feature order
 
 | Slice | Completed feature | Dependencies |
 |---|---|---|
-| S05 | Build and use groceries from the meal plan | S01, S02 |
-| S06 | Bring Asana household tasks into the daily tracker | S02 |
+| S05 | Expand minimal grocery capture into a shared shopping list | S01, S02 |
+| S06 | Connect Asana tasks and the selected external calendar | S02 |
 | S07 | Follow Morning Boot one step at a time | S02, S04 |
 | S08 | Follow and report an approved rehab session | S02, S07 |
 | S09 | See explainable daily progress and achievements | S02, S07, S08 |
@@ -122,7 +126,7 @@ pwsh -NoProfile -File ./scripts/render-human-actions.ps1 -Check
 
 After human-action edits, first run the renderer without `-Check`. The roadmap validator checks schema, unique IDs, dependencies, focus/reuse references, test coverage in both lanes and completion metadata. The renderer checks that the human reading view matches the JSON. Neither proves application behavior or private live evidence.
 
-Current inventory: **12 feature slices, 31 human actions, 30 automated acceptance groups and 18 live scenarios; S01 in progress; 0 completed features.** The September 29 baseline's 43 passing tests across six suites are [historical evidence](evidence/S01-2026-09-29.json), not validation of the revised contracts. The [setup guide](S01_SETUP.md) and [live run sheet](S01_LIVE_TEST.md) explicitly flag the deployment adaptation still required. The JSON is authoritative as this changes.
+Current inventory: **12 feature slices, 34 human actions, 34 automated acceptance groups and 19 live scenarios; S01 in progress; 0 completed features.** The September 29 baseline's 43 passing tests across six suites are [historical evidence](evidence/S01-2026-09-29.json), not validation of the revised contracts. The [setup guide](S01_SETUP.md) and [live run sheet](S01_LIVE_TEST.md) explicitly flag the deployment adaptation still required. The JSON is authoritative as this changes.
 
 The [October 3 publication checks](evidence/SYNC-2026-10-03.json) record 43 passing baseline regressions, type checking and a production build after a task/meal input-state repair. They also preserve the initial failed attempts. Revised-contract and live acceptance remain outstanding.
 

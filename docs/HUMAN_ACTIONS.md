@@ -34,12 +34,12 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
 | Stage | Feature | Human action IDs |
 |---|---|---|
-| S01 | Plan the day with Nancy at 10 AM | S01-H01, S01-H02, S01-H03, S01-H04, S01-H05, S01-H06, S01-H07 |
+| S01 | Plan the day with Nancy at 10 AM | S01-H01, S01-H02, S01-H03, S01-H04, S01-H05, S01-H06, S01-H07, S01-H08 |
 | S02 | Track actual meals and tasks through the day | S02-H01, S02-H02 |
 | S03 | Resume check-ins and tracking after interruptions | S03-H01, S03-H02 |
-| S04 | Return to a fresh 10 AM brief each day | S04-H01, S04-H02 |
+| S04 | Return to a fresh day with reviewed carryover and timely prompts | S04-H01, S04-H02, S04-H03 |
 | S05 | Build and use groceries from the meal plan | S05-H01, S05-H02 |
-| S06 | Bring Asana household tasks into the daily tracker | S06-H01, S06-H02 |
+| S06 | Connect Asana tasks and the selected external calendar | S06-H01, S06-H02, S06-H03 |
 | S07 | Follow Morning Boot one step at a time | S07-H01, S07-H02 |
 | S08 | Follow and report an approved rehab session | S08-H01, S08-H02 |
 | S09 | See explainable daily progress and achievements | S09-H01, S09-H02 |
@@ -60,6 +60,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   - Smartphone testing is selected. Identify its OS/browser, open the supplied HTTPS preview and check task/meal navigation and audible sample playback.
   - When ready, complete the smartphone browser microphone prompt and speak/listen during the local playback check. The integrated two-way Nancy conversation still needs a later actual-device trial.
+  - The interface layout was approved by the owner on 2026-10-05; separately audition the actual preferred voice and rate phone conversation timing, interruption and wake behavior when integrated. Do not infer voice approval from the interface comment.
 
   **Agent prepares or handles:** Check supported browser behavior and prepare the HTTPS test page. Configure and debug microphone/audio code; provide short test prompts.
 
@@ -115,6 +116,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   - At the intended 10:00 local routine, hear today's actual tasks, discuss available meals with Nancy and explicitly accept the reviewed day plan.
   - Retrieve and revise the plan by voice/touch. Navigate from My Day to tasks/meals using both speech and buttons; assess urgency, scheduled times, speech pace, text and controls.
+  - Try Lets Plan the Day/Today within the 09:00-11:00 window, review one upcoming local appointment, multiple meal options and a missing-ingredient grocery capture; compare the suggested task duration, urgency and calendar placement with what is practical.
 
   **Agent prepares or handles:** Prepare the working combined voice/task/meal feature before asking for a session. Verify committed plan versions, permissions, duplicate/stale protection and restore behavior; collect sanitized technical observations.
 
@@ -154,12 +156,13 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   - Provide genuine tasks with urgency and scheduled date/time where known, available/preferred meals, known restrictions and who maintains these choices. Meals appear as tasks.
   - Confirm or correct the participant's time zone once; 10:00 refers to that local zone. Reuse choices and decisions already supplied.
+  - Provide known pantry ingredients, portion preferences and a small genuine local appointment where available; S01 can use manual entry without external calendar OAuth.
 
   **Agent prepares or handles:** Prepare minimal setup forms and a concrete task/meal proposal; do not require an administrator dashboard. Record private input references and configure ownership, options and local-time behavior.
 
   **Completion evidence:** Private real task/meal-choice, ownership and participant-timezone references; I-DAY-CONTENT resolved and the profile's zone recorded.
 
-  **Linked inputs/tests:** I-DAY-CONTENT, I-TIMEZONE, S01-LIVE1.
+  **Linked inputs/tests:** I-DAY-CONTENT, I-TIMEZONE, I-CALENDAR, S01-LIVE1.
 
 - [x] **S01-H07: Supply approved clinical dietary instructions if used**
 
@@ -181,6 +184,24 @@ Routine coding, technical service configuration, database work, synthetic tests 
   **Linked inputs/tests:** I-PROTOCOL.
 
   **Not applicable because:** This implementation supports ordinary household meal choices only; no clinical nutrition targets or prescribed-diet protocol has been supplied, retained or implemented. Reassess before adding clinical constraints.
+
+- [ ] **S01-H08: Choose Nancy voice and foreground wake preference**
+
+  Owner: **participant_or_tester**. Status: **pending**. Requirement: **required**.
+
+  **When:** Before S01 actual-device voice acceptance.
+  **Blocks:** Completing this feature slice.
+
+  **Human action:**
+
+  - Hear several free samples on the intended device and choose a natural, encouraging voice or ask for another candidate.
+  - Decide whether to enable foreground Hey Nancy while My Day is open after seeing the microphone indicator, stop control and disclosed processing location.
+
+  **Agent prepares or handles:** Prepare licensed sample choices and test phone playback, latency, wake false positives and fallback button entry. Save only the selected preference and consent state; keep raw samples/audio private or synthetic.
+
+  **Completion evidence:** Private selected-voice and wake-consent references plus actual-device observations; interface visual approval alone is insufficient.
+
+  **Linked inputs/tests:** I-VOICE-CHOICE, I-WAKE-CONSENT, S01-LIVE1, S01-LIVE2.
 
 ## S02: Track actual meals and tasks through the day
 
@@ -231,7 +252,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Make the tablet available and toggle its connection or refresh when the agent cannot do so remotely.
+  - Make the smartphone available and toggle its connection or refresh when the agent cannot do so remotely.
   - Confirm that pending, unknown, saved and conflict messages are understandable; complete any account/device interaction the agent cannot perform.
 
   **Agent prepares or handles:** Prepare disposable live records and a step-by-step test before asking. Stop/restart only task-owned services, inspect queued commands and verify recovery; avoid disrupting unrelated work.
@@ -257,7 +278,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Completion evidence:** Recorded operator role, availability/recovery targets and operating procedure for G-DAILY-RELIANCE; this conditional action does not block supervised feature trials.
 
-## S04: Return to a fresh 10 AM brief each day
+## S04: Return to a fresh day with reviewed carryover and timely prompts
 
 - [ ] **S04-H01: Choose reusable routine content and review carryover rules**
 
@@ -270,8 +291,9 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   - Identify which existing tasks and meal choices are reusable and on which days; reuse S01 inputs rather than creating a second list.
   - Review the agent's concrete rule for unfinished tasks, one-day deferrals and meal-plan carryover; the participant still accepts each day's plan.
+  - Review the exact missed-task questions: still needed, urgency changed, help needed and where it belongs today; no automatic carryover acceptance.
 
-  **Agent prepares or handles:** Prepare minimal versioned routine setup and clear examples using existing choices. Implement profile-local dates, edit ownership and explicit carryover without adding a background reminder or dashboard.
+  **Agent prepares or handles:** Prepare minimal versioned routine setup and clear examples using existing choices. Implement profile-local dates, edit ownership and explicit carryover with S04 opted-in prompt scheduling and without a dashboard.
 
   **Completion evidence:** Private routine version and reviewed carryover choices, with existing input/authority reused.
 
@@ -288,12 +310,31 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   - Return at the intended 10:00 routine, review actual prior-day history and explicitly choose today's tasks/meals.
   - Review genuine unfinished work or an explicit choice not to carry it, reopen a same-day session, and report usefulness or friction. Use existing genuine history where suitable.
+  - During the genuine multi-day trial, opt into a limited reminder window if comfortable and observe one real meal or appointment prompt; review the visible reminder/notification behavior and whether timing helps.
 
   **Agent prepares or handles:** Prepare the complete working loop and independently verify one check-in per local day, plan versions and report history. Exercise synthetic DST/midnight cases and disposable service scenarios separately; never manufacture elapsed days or real-life activity.
 
   **Completion evidence:** Three real-date check-in observations, accepted plans, actual reports and participant feedback; supports G-FIRST-FOUR.
 
   **Linked inputs/tests:** S04-LIVE1.
+
+- [ ] **S04-H03: Choose reminder windows and notification permission**
+
+  Owner: **participant_or_tester**. Status: **pending**. Requirement: **required**.
+
+  **When:** Before S04 scheduled-prompt live acceptance.
+  **Blocks:** Completing this feature slice.
+
+  **Human action:**
+
+  - Choose meal/appointment prompt opt-in, quiet hours, preferred audible/notification mode and notification permission on the actual device; keep the microphone off until a separate user action.
+  - Observe or report one actual scheduled prompt and whether its timing/content was helpful.
+
+  **Agent prepares or handles:** Prepare the precise due-time and consent UI, durable scheduler and permission fallback. Test duplicate, restart, missed-run, changed-schedule and closed-browser cases using disposable records before the genuine prompt.
+
+  **Completion evidence:** Private consent/preference reference and observed actual prompt or explicit declined permission, with disposable service evidence for denied/closed paths.
+
+  **Linked inputs/tests:** I-REMINDER-PREF, S04-LIVE1, S04-LIVE2.
 
 ## S05: Build and use groceries from the meal plan
 
@@ -333,7 +374,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Linked inputs/tests:** S05-LIVE1.
 
-## S06: Bring Asana household tasks into the daily tracker
+## S06: Connect Asana tasks and the selected external calendar
 
 - [ ] **S06-H01: Authorize the dedicated Asana connection**
 
@@ -370,6 +411,24 @@ Routine coding, technical service configuration, database work, synthetic tests 
   **Completion evidence:** Observed real household-task round trip plus the agent's separate recovery evidence.
 
   **Linked inputs/tests:** S06-LIVE1.
+
+- [ ] **S06-H03: Authorize the selected calendar account**
+
+  Owner: **account_owner**. Status: **pending**. Requirement: **required**.
+
+  **When:** Before live external calendar reads.
+  **Blocks:** Completing this feature slice.
+
+  **Human action:**
+
+  - Choose the intended calendar provider/account and approve only the concrete read scope needed for appointment context.
+  - Complete any required sign-in/MFA or consent; review which participant appointments may be visible to Nancy.
+
+  **Agent prepares or handles:** Prepare the provider-specific scope and minimal read-only connector, with costs and retention documented. Test stale, deleted and denied events on disposable appointments before the genuine trial.
+
+  **Completion evidence:** Private scoped calendar authorization reference and one genuine appointment context observation.
+
+  **Linked inputs/tests:** I-CALENDAR-EXTERNAL, S06-LIVE3.
 
 ## S07: Follow Morning Boot one step at a time
 

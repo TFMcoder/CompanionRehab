@@ -1,0 +1,65 @@
+{
+  "purpose": "Local browser voice audition and expanded conversational requirements; not full S01 acceptance",
+  "local_execution_date": "2026-10-05",
+  "base_git_revision": "443b2ec27f7df9408924ed366584b834a9b32bf7",
+  "implementation_revision": "sha256:46139f2fda616f503b9dec56a21ed8b47149d7a84b91ccf867e0c77a530d0a16",
+  "observed_by": "Codex orchestrator, with delegated React implementation and roadmap updates",
+  "data_origin": "Fixed synthetic speech sentence and sample task/meal fixtures; no real care data",
+  "owner_feedback": {
+    "interface": "Owner said the interface looks fine.",
+    "preferred_voice": "Not yet selected by the participant",
+    "actual_phone_os_browser": "Not yet provided",
+    "actual_phone_audio_acceptance": "Not yet reported"
+  },
+  "implemented": [
+    "Preview chooser filters English speechSynthesis voices to localService=true and rechecks the live inventory before playback.",
+    "Fixed sample text, three pace choices and explicit stop; no production voice preference is saved.",
+    "Playback stops before microphone checks, recorded playback, navigation, page hide, visibility hidden and unmount.",
+    "Missing voices, removed choices and playback errors are explicit; no remote voice fallback.",
+    "Existing Windows Zira WAV is clearly labeled as a fixed sample."
+  ],
+  "automated_checks": {
+    "command": "npm run check",
+    "outcome": "passed",
+    "tests_passed": 83,
+    "test_files": 11,
+    "typecheck": "passed",
+    "production_build": "passed",
+    "preview_ui_tests": 9
+  },
+  "browser_observations": {
+    "environment": "Codex in-app desktop browser through the existing public HTTPS preview",
+    "final_build_reloaded": true,
+    "available_local_voices": ["Microsoft David", "Microsoft Mark", "Microsoft Zira"],
+    "selected_sample": "Microsoft Zira with Relaxed pace",
+    "playback_control_entered_playing_state": true,
+    "playback_control_returned_to_idle": true,
+    "audibility_verified_by_human": false,
+    "requested_viewport": { "width": 390, "height": 844 },
+    "document_client_width": 375,
+    "document_scroll_width": 375,
+    "horizontal_overflow": false,
+    "microphone_opened_by_agent": false,
+    "viewport_override_reset": true,
+    "private_screenshot_ref": "local:.local/probes/nancy-voice-chooser.jpg",
+    "private_runtime_ref": "local:.local/runtime/device-preview.json"
+  },
+  "deployment": {
+    "dedicated_sample_server_restarted": true,
+    "existing_tunnel_and_url_preserved": true,
+    "care_auth_and_provider_endpoints_exposed": false,
+    "new_paid_service": false,
+    "new_speech_model_installed": false
+  },
+  "unimplemented_or_unqualified": [
+    "Production free speech provider and participant voice preference",
+    "Full continuous Sol-high conversation, turn timing, interruption and idle closure",
+    "Custom Hey Nancy detection and intended-device wake qualification",
+    "Local PostgreSQL/auth integration and accepted daily plans",
+    "Calendar-aware live workflow tools, meal alternatives and durable grocery commands",
+    "Actual-report ledger, reviewed cross-day carryover and proactive scheduler",
+    "External calendar/Asana authorization and connectors",
+    "S01 full disposable and real-consented live acceptance"
+  ],
+  "decision_ref": "docs/architecture/VOICE_AND_DAILY_COMPANION_2026-10-05.md"
+}

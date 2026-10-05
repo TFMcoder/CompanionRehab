@@ -11,7 +11,7 @@ html, body, #root { margin: 0; min-height: 100%; }
 
 .dp-page *, .dp-page *::before, .dp-page *::after { box-sizing: border-box; }
 .dp-page button { font: inherit; cursor: pointer; }
-.dp-page button:focus-visible, .dp-page audio:focus-visible { outline: 3px solid #096b71; outline-offset: 3px; }
+.dp-page button:focus-visible, .dp-page audio:focus-visible, .dp-page select:focus-visible { outline: 3px solid #096b71; outline-offset: 3px; }
 .dp-shell { max-width: 1120px; margin: 0 auto; background: #fffdfa; min-height: 100vh; box-shadow: 0 0 60px #1d354009; }
 .dp-header { min-height: 95px; display: flex; align-items: center; gap: 13px; padding: 20px clamp(20px, 5vw, 64px); border-bottom: 1px solid #e5e5dd; }
 .dp-mark { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; flex: none; background: #134f5a; color: white; font: 700 27px/1 Georgia, serif; }
@@ -42,6 +42,11 @@ html, body, #root { margin: 0; min-height: 100%; }
 .dp-secondary:disabled { opacity: .64; cursor: wait; }
 .dp-hint { max-width: 510px; margin: 14px 0 0; color: #53686e; font-size: 14px; }
 .dp-mic-card { margin-top: 20px; padding: 25px clamp(22px, 4vw, 36px); border: 1px solid #dbe3df; border-radius: 22px; background: #fff; }
+.dp-voice-card { margin-top: 20px; padding: 25px clamp(22px, 4vw, 36px); border: 1px solid #dbe3df; border-radius: 22px; background: #fff; }
+.dp-voice-card > p:not(.dp-inline-error):not(.dp-inline-info):not(.dp-hint) { color: #52666e; margin: 14px 0 19px; }
+.dp-voice-controls { display: grid; grid-template-columns: minmax(0, 2fr) minmax(130px, 1fr); gap: 12px; margin: 0 0 16px; }
+.dp-voice-controls label { display: grid; gap: 5px; color: #355760; font-size: 14px; font-weight: 750; }
+.dp-voice-controls select { width: 100%; min-height: 48px; border: 1px solid #91aaa9; border-radius: 11px; padding: 8px 11px; background: #fffdfa; color: #183044; font: inherit; font-size: 16px; }
 .dp-section-top { display: flex; align-items: center; gap: 15px; }
 .dp-icon { display: inline-grid; place-items: center; width: 43px; height: 43px; flex: none; border-radius: 13px; background: #e9f4f3; color: #146d70; font-size: 18px; }
 .dp-mic-card > p:not(.dp-inline-error):not(.dp-inline-info) { color: #52666e; margin: 14px 0 19px; }
@@ -92,6 +97,8 @@ html, body, #root { margin: 0; min-height: 100%; }
   .dp-hero > p:not(.dp-eyebrow):not(.dp-hint):not(.dp-inline-error) { font-size: 18px; }
   .dp-primary, .dp-secondary { width: 100%; }
   .dp-mic-card { padding: 23px 20px; }
+  .dp-voice-card { padding: 23px 20px; }
+  .dp-voice-controls { grid-template-columns: 1fr; }
   .dp-overview-grid { gap: 10px; }
   .dp-overview-grid button { padding: 15px; min-height: 112px; }
   .dp-task { padding: 18px; }

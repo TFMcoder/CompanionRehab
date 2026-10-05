@@ -23,7 +23,14 @@
     "Use GPT-6 Sol with high reasoning for Nancy intelligence, with a separate speech input/output layer.",
     "Target a supervised Nancy voice, meal/day planning and tracking pilot on 2026-10-05 (S01 then S02). This is a stretch target, not a waiver of live acceptance or a claim of completion.",
     "Qualify existing ChatGPT subscription usage for Nancy reasoning before requesting API funding. Adapt the small Cerberus subscription adapter pattern; treat MCP transport, inference billing, speech and browser HTTPS as separate concerns.",
-    "On 2026-10-05, provide a smartphone-accessible web interface URL for immediate device feedback. Keep the sample preview explicit and isolated while completing S01 live conversation and durable planning."
+    "On 2026-10-05, provide a smartphone-accessible web interface URL for immediate device feedback. Keep the sample preview explicit and isolated while completing S01 live conversation and durable planning.",
+    "Use the approved simple smartphone My Day interface for a natural Nancy conversation: one tap opens it, continuous turns continue with a configurable end-of-turn pause and delayed session closure, and an explicit End control closes immediately.",
+    "Offer the participant a free, auditioned choice of encouraging voices; qualify licensing, actual device playback and perceived naturalness before recording a selected voice.",
+    "Support an opt-in foreground Hey Nancy wake phrase where the intended browser/device route permits it; do not imply background listening, on-phone-only processing or microphone activation without explicit consent.",
+    "At each conversation start, prioritize current local calendar appointments, scheduled tasks, meal windows, actual reports and unresolved work; the 09:00-11:00 morning intent Lets Plan the Day/Lets Plan Today remains user initiated, with 10:00 preferred.",
+    "Offer several practical meal choices, alternatives and portion-aware discussion from supplied preferences and ingredients; capture a confirmed missing ingredient into a minimal grocery list in S01, with full grocery management in S05.",
+    "After actual reports begin in S02, maintain a factual ongoing ledger; in S04 review unfinished yesterday tasks explicitly so they cannot disappear, and add opt-in scheduled meal/appointment prompts with honest browser availability limits.",
+    "Keep local calendar context in S01; connect an authorized external calendar and Asana in S06 after provider selection and scoped consent."
   ],
   "constraints": {
     "budget": {
@@ -64,14 +71,14 @@
     "selection": "Immediate delivery focus is S01-S04 in priority order. Select the earliest unfinished slice with completed dependencies. If external input blocks it, record the blocker and continue independent authorized preparation without claiming completion or advancing a dependent slice.",
     "unit_of_delivery": "One slice is a usable feature spanning UI, voice where applicable, API, database, permissions and tests.",
     "setup": "Within S01, qualify account/deployment eligibility for ChatGPT-plan reasoning, then a bounded gpt-6-sol high turn and separate speech input/output. Build local PostgreSQL/auth and shared care commands in parallel where independent. Qualify optional MCP transport only for a concrete supported caller; do not create an infrastructure/reuse milestone.",
-    "dashboard_boundary": "Client My Day tasks/meals ship in S01; grocery and achievement destinations follow S05/S09. Minimal scoped setup and role homes may precede full Support Team S10, administrator S11 and clinical/trend dashboards S12.",
+    "dashboard_boundary": "Client My Day tasks/meals ship in S01; minimal grocery view ships in S01; S05 expands shared groceries and achievement destination follows S09. Minimal scoped setup and role homes may precede full Support Team S10, administrator S11 and clinical/trend dashboards S12.",
     "live_test_requirement": "Every slice requires its listed real-provider live tests. S01 includes actual two-way speech, tasks and accepted meals in one check-in. Browser-dictation mocks, screenshots, provider-call success alone and synthetic-only runs cannot satisfy a live gate. Honor test prerequisites: the S01 disposable safety/restore scenario S01-LIVE2 precedes real-data S01-LIVE1, regardless of numeric ID order.",
     "done_rule": "All acceptance criteria are covered, all dependencies are done, required inputs are resolved/defaulted, applicable slice_completion human actions are complete, blockers are empty, implementation_revision is set, and every listed automated/live test has a passing evidence record for that revision. Use awaiting_live_test when code is ready but live evidence is missing. Apply other human-action blocking scopes to their named operation or release gate.",
     "result_policy": "Store one current result per test. Preserve superseded evidence privately. Record failures honestly; do not prefill results or infer a pass from a successful tool invocation.",
     "revision_policy": "Any code change relevant to a slice invalidates its prior completion evidence until affected acceptance is revalidated. Reuse a result only with documented unchanged implementation revision.",
     "input_policy": "Use recorded defaults for reversible implementation choices. Missing credentials, target-device access or participant consent block only dependent live actions. Never substitute guessed values or mock results.",
     "cost_policy": "Update the service ledger before each new service, plan, project or seat. Qualify existing subscription usage first and record allowance/limit behavior; do not call it unlimited or assume an administrator subscription covers other users. Recheck prices and quotas before provisioning. API-key inference is a deliberate fallback after documented eligibility/technical findings and an explicit owner route/cost decision; never silently fall back, top up or upgrade. Speech is costed independently.",
-    "scope_policy": "Use the reuse_plan decisions and keep Companion independent. No universal agent platform, generic provider tools, speculative microservices, background schedule or dashboard UI in S01-S04.",
+    "scope_policy": "Use the reuse_plan decisions and keep Companion independent. No universal agent platform, generic provider tools, speculative microservices, dashboard UI in S01-S04; S04 alone implements opted-in scheduled prompts with a durable scheduler.",
     "authorization": "This artifact specifies implementation work; writing it does not mean accounts are connected, live tests passed or recurring monitoring is active."
   },
   "status_values": [
@@ -105,7 +112,7 @@
     {
       "id": "R-VOICE",
       "introduced_in": "S01",
-      "requirement": "Nancy supports user-initiated two-way voice with real microphone input and spoken responses in S01. Voice and touch invoke the same authenticated typed commands. Keep credentials/tools server-owned, sessions bounded, ambiguity explicit and saved/pending/failed responses truthful. Dictated text alone is not voice acceptance. Use GPT Sol with high reasoning behind the speech layer. Client, family/friend and administrator interactions are principally voice; every role has a complete UI path as its features ship. Subscription-backed text reasoning and an MCP tunnel do not supply speech entitlement or prove an audio conversation. Qualify the speech provider/device path independently; the chosen GPT-6 Sol high remains the reasoning backend."
+      "requirement": "Nancy supports user-initiated two-way voice with real microphone input and spoken responses in S01. Voice and touch invoke the same authenticated typed commands. Keep credentials/tools server-owned, sessions bounded, ambiguity explicit and saved/pending/failed responses truthful. Dictated text alone is not voice acceptance. Use GPT Sol with high reasoning behind the speech layer. Client, family/friend and administrator interactions are principally voice; every role has a complete UI path as its features ship. Subscription-backed text reasoning and an MCP tunnel do not supply speech entitlement or prove an audio conversation. Qualify the speech provider/device path independently; the chosen GPT-6 Sol high remains the reasoning backend. One tap opens a continuous voice session; explicit End closes immediately. Initial tunable defaults: 1.2 seconds of end-of-turn silence, 30 seconds idle plus a visible/audible 10-second closure grace; never count idle while Nancy is speaking or thinking. Support user interruption of speech only after device echo/false-trigger checks. Foreground Hey Nancy requires opt-in, visible listening state, bounded audio handling and a qualified actual-device path; no automatic background phone wake is implied."
     },
     {
       "id": "R-READMODEL",
@@ -145,12 +152,12 @@
     {
       "id": "R-NAVIGATION",
       "introduced_in": "S01",
-      "requirement": "Voice intent and buttons share a typed, role-authorized destination registry. Reject unknown or unauthorized targets; clearly explain features not yet available. Navigation alone cannot mutate a plan or report activity. Preserve My Day as the client home; avoid adding setup/clinical complexity to it."
+      "requirement": "Voice intent and buttons share a typed, role-authorized destination registry. Reject unknown or unauthorized targets; clearly explain features not yet available. Navigation alone cannot mutate a plan or report activity. Preserve My Day as the client home; avoid adding setup/clinical complexity to it. Session-start priority is computed from current authorized local calendar entries, scheduled task/meal windows, actual reports and unresolved work; each suggestion cites the relevant record/time and asks before changing a schedule."
     },
     {
       "id": "R-TASKMODEL",
       "introduced_in": "S01",
-      "requirement": "Tasks expose what, urgency (high/medium/low) and scheduled date/time. Meals are tasks with linked meal details, not a second competing task ledger. Persist stable occurrence IDs and date/time context from the accepted plan; S02 adds actual reports. Planning/acceptance does not mark an item completed or eaten."
+      "requirement": "Tasks expose what, urgency (high/medium/low) and scheduled date/time. Meals are tasks with linked meal details, not a second competing task ledger. Persist stable occurrence IDs and date/time context from the accepted plan; S02 adds actual reports. Planning/acceptance does not mark an item completed or eaten. Capture proposed duration or unknown in planning and preserve it with the plan. In S02 maintain actual performed/eaten/deferred times separately, and in S04 explicitly review missed prior-day occurrences."
     }
   ],
   "operator_inputs": [
@@ -281,6 +288,46 @@
       "needed_for": "S12 clinical dashboards and data exports; does not block S01-S04",
       "question": "Review concrete archetype measures, authorized export fields/date ranges and formats with the clinical partners when S12 is prepared.",
       "resolution_ref": null
+    },
+    {
+      "id": "I-VOICE-CHOICE",
+      "status": "unresolved",
+      "default": "Simple smartphone interface approved by the owner on 2026-10-05; voice quality and preferred voice are not yet approved. Prepare free voices for audition, with licensing and device path verified.",
+      "needed_for": "S01 preferred audible Nancy voice and genuine phone conversation",
+      "question": "Have the participant or designated tester hear several free Nancy samples on the intended device and choose the most natural and encouraging voice, or request another candidate. Record choice privately without raw voice recordings in the public repo.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-WAKE-CONSENT",
+      "status": "unresolved",
+      "default": "Wake listening is disabled until explicitly enabled by the participant/tester on the intended device. Browser foreground microphone access and local server processing must be disclosed; operating-system background wake is not assumed.",
+      "needed_for": "S01 Hey Nancy foreground wake consent and actual-device test",
+      "question": "Choose whether foreground Hey Nancy is enabled while My Day is open, and review the visible listening indicator, stop control and processing location.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-CALENDAR",
+      "status": "unresolved",
+      "default": "S01 accepts a minimal authorized local appointment entry. This input does not require external calendar account access or OAuth.",
+      "needed_for": "S01 genuine local appointment context and time-aware morning planning",
+      "question": "Supply or authorize a small real appointment schedule with local time and known preparation/travel buffer, or say there are no appointments; keep private details out of this repository.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-REMINDER-PREF",
+      "status": "unresolved",
+      "default": "Scheduled speech/notification prompts are disabled until the participant/tester chooses reminder windows, quiet hours, content and allowed delivery modes. Browser notification permission is separately required; locked/closed-page speech is not presumed.",
+      "needed_for": "S04 genuine meal/appointment prompt delivery and consent",
+      "question": "Choose which meal/appointment prompts are helpful, quiet hours and whether foreground speech or supported browser notifications are allowed; review actual phone permission and PC availability limits.",
+      "resolution_ref": null
+    },
+    {
+      "id": "I-CALENDAR-EXTERNAL",
+      "status": "unresolved",
+      "default": "No external calendar provider/account selected. S01 local appointments remain usable without this input; S06 chooses and qualifies the least-privilege external connection.",
+      "needed_for": "S06 scoped external calendar connector and live integration",
+      "question": "Choose the intended external calendar account/provider and approve the proposed read scope and participant visibility before S06 live access.",
+      "resolution_ref": null
     }
   ],
   "service_defaults": [
@@ -363,9 +410,12 @@
         "I-REGION",
         "I-DAY-CONTENT",
         "I-TIMEZONE",
-        "I-MODEL"
+        "I-MODEL",
+        "I-VOICE-CHOICE",
+        "I-WAKE-CONSENT",
+        "I-CALENDAR"
       ],
-      "outcome": "A consenting participant opens Nancy at the intended 10:00 local-time routine, hears today's actual tasks, discusses practical meals, explicitly accepts a day/meal plan and retrieves or revises it through real two-way voice or touch.",
+      "outcome": "A consenting participant opens Nancy during the preferred 10:00 local-time routine (09:00-11:00 window), has a fluid two-way conversation about current tasks, appointments and meal choices, explicitly accepts a day/meal plan and retrieves or revises it by voice or touch.",
       "in_scope": [
         "Narrow large-type My Day client home with Talk to Nancy, task list and daily meal view; voice navigation and matching buttons",
         "Minimal authorized setup for real tasks, meal options/preferences and participant timezone; no full administrator dashboard",
@@ -374,15 +424,19 @@
         "Basic refresh/restart durability, receipt reconciliation, denied access and encrypted backup/restore proof",
         "Task urgency and scheduled date/time; meals represented as task occurrences with meal details",
         "Minimal administrator setup and scoped Support Team / Clinician Partners landing routes; their full feature sets remain in S10/S12",
-        "Qualify supported existing-subscription reasoning first, independent speech and optional narrowly scoped MCP connectivity; preserve the custom My Day UI and local care-service authority"
+        "Qualify supported existing-subscription reasoning first, independent speech and optional narrowly scoped MCP connectivity; preserve the custom My Day UI and local care-service authority",
+        "One-tap continuous conversation with configurable end-of-turn silence, idle grace, explicit End and tested interruption/echo handling; Dad can audition and select a free Nancy voice",
+        "Opt-in foreground Hey Nancy listener with visible status and stop control on a qualified browser/local-service path; button remains usable when wake listening is unsupported or disabled",
+        "Local calendar/appointment entries, current-time priority and user-initiated Lets Plan the Day/Lets Plan Today intent during 09:00-11:00; propose task duration, urgency and calendar placement without autonomous acceptance",
+        "Several meal choices and collaborative alternatives using known ingredients/preferences, portion discussion within approved boundaries, and confirmed missing-ingredient capture in a minimal grocery list"
       ],
       "out_of_scope": [
         "Meal intake reporting and task completion history (S02)",
         "Durable offline queue (S03)",
         "Recurring-day convenience and reviewed carryover (S04)",
-        "Asana, groceries, guided rehab, scoring and dashboards",
+        "Asana/external calendar sync, full grocery management or purchasing, guided rehab, scoring and dashboards",
         "Clinical dietary advice or autonomous changes to supplied care rules",
-        "Automatic outbound reminders, scheduled preparation or microphone activation",
+        "Automatic outbound reminders, scheduled preparation or background microphone activation; S04 adds opted-in prompts",
         "A ChatGPT-only client replacing My Day, generic OpenClaw adoption, shared Cerberus credentials or automatic paid API fallback"
       ],
       "implementation_tasks": [
@@ -421,6 +475,26 @@
         {
           "id": "S01-T06",
           "description": "Exercise actual local PostgreSQL/auth, the selected and evidenced reasoning billing route, separate speech and My Day HTTPS. Run S01-LIVE2 disposable safety/restore and account/provider-loss checks before meaningful retention, then S01-LIVE1 genuine 10 AM planning. Record exact runtime/model/high effort, speech route, local data path and conditional MCP use; prepare portable encrypted migration."
+        },
+        {
+          "id": "S01-T10",
+          "description": "Qualify free speech voices and their model/engine licensing, produce short participant audition samples, save a scoped voice preference and live-test preferred voice quality on the selected phone. Start with local PC synthesis candidates; browser system voices are device-dependent. No new paid speech service is selected."
+        },
+        {
+          "id": "S01-T11",
+          "description": "Implement one-tap conversation lifecycle with speech activity detection, tunable initial 1.2-second end-of-turn pause, 30-second idle plus 10-second visible closure grace, immediate End and no idle countdown while Nancy speaks/thinks. Test interruption only with echo rejection on the actual device; persist accepted care commands separately from ephemeral audio."
+        },
+        {
+          "id": "S01-T12",
+          "description": "Implement an explicitly opted-in Hey Nancy foreground listener with visible microphone status, stop/revoke controls and bounded local-server audio processing if needed. Qualify wake-model licensing and false accept/reject behavior; browser background/lock-screen support is not presumed, and the button remains available."
+        },
+        {
+          "id": "S01-T13",
+          "description": "Add minimal authorized local appointments and current-time priority ranking for tasks, meals and appointments. Map Lets Plan the Day and Lets Plan Today to the same user-initiated morning flow. Capture task duration or unknown, urgency and proposed calendar placement; ask before accepting any schedule change. Keep external calendar/Asana connectors for S06. Ask for unknown appointment preparation/travel buffer; show local source freshness and explicitly say external calendar data is not connected until S06."
+        },
+        {
+          "id": "S01-T14",
+          "description": "Propose several feasible meals from supplied preferences, ingredients and approved restrictions. Clarify missing ingredients, alternatives and portion preferences without prescribing clinical targets; on explicit confirmation add a minimal idempotent GroceryItem tied to the meal proposal. S05 expands list sharing, normalization and acquired state."
         }
       ],
       "contracts": {
@@ -434,27 +508,43 @@
           "DailyCheckIn",
           "CommandReceipt",
           "DomainEvent",
-          "TaskOccurrence"
+          "TaskOccurrence",
+          "VoicePreference",
+          "VoiceSession",
+          "CalendarAppointment",
+          "GroceryItem"
         ],
         "commands": [
           "propose_day_plan",
           "accept_day_plan",
           "revise_day_plan",
-          "start_or_resume_checkin"
+          "start_or_resume_checkin",
+          "set_voice_preference",
+          "start_voice_session",
+          "end_voice_session",
+          "enable_foreground_wake",
+          "set_local_appointment",
+          "add_grocery_item"
         ],
         "queries": [
           "get_daily_brief",
           "get_day_plan",
           "get_next_planned_item",
           "get_command_receipt",
-          "get_available_views"
+          "get_available_views",
+          "get_priority_context",
+          "get_voice_options",
+          "get_grocery_list"
         ],
         "events": [
           "DayPlanProposed",
           "DayPlanAccepted",
           "DayPlanRevised",
           "DailyCheckInStarted",
-          "DailyCheckInResumed"
+          "DailyCheckInResumed",
+          "VoicePreferenceSelected",
+          "LocalAppointmentScheduled",
+          "GroceryItemAdded"
         ]
       },
       "acceptance_criteria": [
@@ -489,6 +579,22 @@
         {
           "id": "S01-AC08",
           "assertion": "The live deployment stores durable care data locally and uses gpt-6-sol high through an explicitly selected, qualified inference/auth/billing route behind independently qualified two-way speech. Evidence identifies runtime/model/effort, account/deployment eligibility, usage limits, local data path and browser HTTPS. Quota/auth failure never silently changes billing/model; any MCP tunnel remains scoped tool transport."
+        },
+        {
+          "id": "S01-AC09",
+          "assertion": "A button starts a continuous natural-feeling voice session; turns wait for a configurable silence threshold, a visible delayed idle close preserves context, speaking/thinking suspends idle, End closes immediately, and interruption does not make Nancy hear her own audio as a user request."
+        },
+        {
+          "id": "S01-AC10",
+          "assertion": "The participant can audition free voices and select a preferred voice on the intended device. With explicit consent, foreground Hey Nancy starts the same authorized conversation, shows listening state and stops cleanly; button entry remains available if wake listening is unavailable. No background phone or on-device-only wake claim is made. A consenting tester must demonstrate the foreground wake path on a qualified intended route; if the selected phone cannot support it, the wake criterion remains open until a supported path or explicit owner scope change. Button fallback does not count as a passed wake test."
+        },
+        {
+          "id": "S01-AC11",
+          "assertion": "Lets Plan the Day and Lets Plan Today open one morning planning flow. On each start Nancy uses current local appointments, tasks, meals and available actuals to explain time-aware priorities, propose realistic duration/urgency/calendar placement and ask before saving changes. Unknown preparation or travel buffers are asked about, and absent external calendar data is disclosed rather than invented."
+        },
+        {
+          "id": "S01-AC12",
+          "assertion": "Nancy presents multiple feasible meal choices, handles no-choice and missing-ingredient responses, discusses portions within supplied constraints and adds only a confirmed missing item to the minimal grocery list with one effective command receipt."
         }
       ],
       "automated_tests": [
@@ -529,6 +635,24 @@
           ],
           "scenario": "Exercise each scoped role/home and both navigation entry paths, unsupported routes, urgency/schedule validation and one meal task identity. Verify local database/auth adapter contracts and Sol high request construction with provider doubles. Exercise subscription-vs-API route selection, exact Sol-high binding, provider auth renewal/revocation and quota failures; deny inherited or cross-client tools and silent billed fallback. Verify speech and browser HTTPS remain independent of MCP transport.",
           "expected": "Only available authorized destinations open; navigation does not write care state. Shared task/meal records agree and the reasoning adapter requests the chosen Sol ID with high effort. Actual deployment/audio still requires live evidence. Tool calls reach only the shared authorized care boundary; expired/revoked credentials and quota exhaustion yield an honest unavailable state without changing billing or model. A tunnel or catalog listing cannot satisfy completed inference/audio evidence."
+        },
+        {
+          "id": "S01-AUTO5",
+          "criterion_ids": [
+            "S01-AC09",
+            "S01-AC10"
+          ],
+          "scenario": "Simulate speech, thought, silence, echo, interruption, page hide, explicit End, idle expiry, late permission and unsupported wake route.",
+          "expected": "Session timing and microphone ownership are truthful; no duplicate turn, recording leak or false wake from Nancy audio; button path remains usable."
+        },
+        {
+          "id": "S01-AUTO6",
+          "criterion_ids": [
+            "S01-AC11",
+            "S01-AC12"
+          ],
+          "scenario": "Use fixed local times around an appointment and meals, stale revisions, several candidate meals, missing pantry item, rejected choices and duplicate grocery command.",
+          "expected": "Relevant records drive ranked explanations; calendar/task changes require acceptance, unknown quantities are clarified and one confirmed grocery item is stored."
         }
       ],
       "live_tests": [
@@ -541,7 +665,11 @@
             "S01-AC05",
             "S01-AC06",
             "S01-AC07",
-            "S01-AC08"
+            "S01-AC08",
+            "S01-AC09",
+            "S01-AC10",
+            "S01-AC11",
+            "S01-AC12"
           ],
           "data_policy": "real_consented",
           "steps": [
@@ -549,7 +677,10 @@
             "At the intended 10:00 routine on the actual device over HTTPS, use Nancy's live voice to review supplied real tasks and choose today's meals.",
             "Explicitly accept the reviewed plan, retrieve it by voice and touch, then revise a choice and refresh; verify local database state and participant usability.",
             "From My Day, open task and meal views using both spoken requests and buttons; inspect urgency and local scheduled times and verify each meal is the same task in both views.",
-            "Record sanitized evidence of the actual gpt-6-sol/high runtime and selected subscription/API route, intended-user eligibility, separate speech round trip and My Day web origin. Confirm Dad can use the normal My Day voice/touch interface. Do not retain raw audio or private transcripts in the repository."
+            "Record sanitized evidence of the actual gpt-6-sol/high runtime and selected subscription/API route, intended-user eligibility, separate speech round trip and My Day web origin. Confirm Dad can use the normal My Day voice/touch interface. Do not retain raw audio or private transcripts in the repository.",
+            "On the actual smartphone, choose among free voice samples; open by button, converse across several turns, pause and observe the closure grace, then use End. If the qualified foreground Hey Nancy path is enabled with consent, invoke it and verify the visible listener and stop control; note browser lock/background limits honestly.",
+            "At 09:00-11:00 say Lets Plan the Day and Lets Plan Today in separate starts; discuss a real upcoming appointment, task duration/urgency/placement, several meal choices and a confirmed missing ingredient. Verify the saved plan and minimal grocery list without claiming a meal was eaten.",
+            "Record whether a consenting tester actually invoked Hey Nancy on the intended route; if the browser cannot support it, record the blocker rather than treating button operation as wake acceptance."
           ],
           "expected": "Actual microphone and spoken-response round trips produce one accepted real plan and an auditable revision with matching readback."
         },
@@ -562,7 +693,11 @@
             "S01-AC05",
             "S01-AC06",
             "S01-AC07",
-            "S01-AC08"
+            "S01-AC08",
+            "S01-AC09",
+            "S01-AC10",
+            "S01-AC11",
+            "S01-AC12"
           ],
           "data_policy": "disposable_live",
           "steps": [
@@ -571,7 +706,9 @@
             "Export encrypted disposable data and restore to an isolated target; compare retained records without touching active care history.",
             "Sign in under each of the four roles, verify scoped landing routes and denied cross-client/role access. Check unknown/unavailable voice destinations and matching UI behavior.",
             "Verify local database process restart and encrypted restore to an isolated local target; confirm no cloud database is silently used and validate the actual selected Sol high/speech route with disposable data.",
-            "Prove a completed synthetic Sol-high turn on the selected auth/billing route and an independently completed speech round trip. Record intended-account/deployment eligibility and actual usage/limits. Exercise provider refusal or revoked disposable access without paid fallback; verify any conditional MCP connection uses the same client-scoped authorization. Keep browser HTTPS proof separate."
+            "Prove a completed synthetic Sol-high turn on the selected auth/billing route and an independently completed speech round trip. Record intended-account/deployment eligibility and actual usage/limits. Exercise provider refusal or revoked disposable access without paid fallback; verify any conditional MCP connection uses the same client-scoped authorization. Keep browser HTTPS proof separate.",
+            "With disposable records, test button and foreground wake entry, session timeout/grace, speech interruption/echo, a denied microphone and unsupported browser path; verify no recording persists or background wake claim.",
+            "Create disposable appointments one hour away and meal windows. Reject all initial meal choices, modify one proposal, request a missing ingredient twice and inspect exact-version plan and one grocery receipt."
           ],
           "expected": "Denial, duplicate/stale protection, honest failure and exact restore/readback hold against real services; dictation mocks do not count."
         }
@@ -613,7 +750,8 @@
           "condition": null,
           "human_must_do": [
             "Smartphone testing is selected. Identify its OS/browser, open the supplied HTTPS preview and check task/meal navigation and audible sample playback.",
-            "When ready, complete the smartphone browser microphone prompt and speak/listen during the local playback check. The integrated two-way Nancy conversation still needs a later actual-device trial."
+            "When ready, complete the smartphone browser microphone prompt and speak/listen during the local playback check. The integrated two-way Nancy conversation still needs a later actual-device trial.",
+            "The interface layout was approved by the owner on 2026-10-05; separately audition the actual preferred voice and rate phone conversation timing, interruption and wake behavior when integrated. Do not infer voice approval from the interface comment."
           ],
           "agent_can_do": [
             "Check supported browser behavior and prepare the HTTPS test page.",
@@ -707,7 +845,8 @@
           "condition": null,
           "human_must_do": [
             "At the intended 10:00 local routine, hear today's actual tasks, discuss available meals with Nancy and explicitly accept the reviewed day plan.",
-            "Retrieve and revise the plan by voice/touch. Navigate from My Day to tasks/meals using both speech and buttons; assess urgency, scheduled times, speech pace, text and controls."
+            "Retrieve and revise the plan by voice/touch. Navigate from My Day to tasks/meals using both speech and buttons; assess urgency, scheduled times, speech pace, text and controls.",
+            "Try Lets Plan the Day/Today within the 09:00-11:00 window, review one upcoming local appointment, multiple meal options and a missing-ingredient grocery capture; compare the suggested task duration, urgency and calendar placement with what is practical."
           ],
           "agent_can_do": [
             "Prepare the working combined voice/task/meal feature before asking for a session.",
@@ -761,7 +900,8 @@
           "condition": null,
           "human_must_do": [
             "Provide genuine tasks with urgency and scheduled date/time where known, available/preferred meals, known restrictions and who maintains these choices. Meals appear as tasks.",
-            "Confirm or correct the participant's time zone once; 10:00 refers to that local zone. Reuse choices and decisions already supplied."
+            "Confirm or correct the participant's time zone once; 10:00 refers to that local zone. Reuse choices and decisions already supplied.",
+            "Provide known pantry ingredients, portion preferences and a small genuine local appointment where available; S01 can use manual entry without external calendar OAuth."
           ],
           "agent_can_do": [
             "Prepare minimal setup forms and a concrete task/meal proposal; do not require an administrator dashboard.",
@@ -770,7 +910,8 @@
           "expected_evidence": "Private real task/meal-choice, ownership and participant-timezone references; I-DAY-CONTENT resolved and the profile's zone recorded.",
           "related_input_ids": [
             "I-DAY-CONTENT",
-            "I-TIMEZONE"
+            "I-TIMEZONE",
+            "I-CALENDAR"
           ],
           "related_test_ids": [
             "S01-LIVE1"
@@ -806,6 +947,37 @@
           "completion_ref": null,
           "completed_at": null,
           "not_applicable_reason": "This implementation supports ordinary household meal choices only; no clinical nutrition targets or prescribed-diet protocol has been supplied, retained or implemented. Reassess before adding clinical constraints."
+        },
+        {
+          "id": "S01-H08",
+          "title": "Choose Nancy voice and foreground wake preference",
+          "owner_role": "participant_or_tester",
+          "when": "Before S01 actual-device voice acceptance",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Hear several free samples on the intended device and choose a natural, encouraging voice or ask for another candidate.",
+            "Decide whether to enable foreground Hey Nancy while My Day is open after seeing the microphone indicator, stop control and disclosed processing location."
+          ],
+          "agent_can_do": [
+            "Prepare licensed sample choices and test phone playback, latency, wake false positives and fallback button entry.",
+            "Save only the selected preference and consent state; keep raw samples/audio private or synthetic."
+          ],
+          "expected_evidence": "Private selected-voice and wake-consent references plus actual-device observations; interface visual approval alone is insufficient.",
+          "related_input_ids": [
+            "I-VOICE-CHOICE",
+            "I-WAKE-CONSENT"
+          ],
+          "related_test_ids": [
+            "S01-LIVE1",
+            "S01-LIVE2"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
         }
       ],
       "reuse_refs": [
@@ -829,13 +1001,14 @@
         "S01"
       ],
       "required_inputs": [],
-      "outcome": "The participant follows the accepted day, reports what was actually eaten or done, defers work, corrects mistakes and hears a factual daily summary from saved records.",
+      "outcome": "The participant follows the accepted day, reports what was actually eaten or done, defers work, corrects mistakes and hears a factual daily summary from saved records. The ledger shows when each actual task or meal occurred and what was delayed, so Nancy can prioritize from committed facts rather than planned intentions.",
       "in_scope": [
         "Current/next task and meal from S01's accepted plan",
         "Voice/touch meal reports, task completion and explicit deferral",
         "Unplanned meal/activity reporting without inventing plan matches",
         "Corrections, observed occurrence time and factual daily summary",
-        "Explicit task/meal rescheduling with old/new scheduled instants and versions; committed completion/reschedule events support later opt-in family notifications"
+        "Explicit task/meal rescheduling with old/new scheduled instants and versions; committed completion/reschedule events support later opt-in family notifications",
+        "Ongoing factual ledger of completed, eaten, delayed, deferred and rescheduled occurrences with observed times; session-start priorities exclude already reported work"
       ],
       "out_of_scope": [
         "New day-plan engine or separate ledger",
@@ -863,6 +1036,10 @@
         {
           "id": "S02-T05",
           "description": "Adapt Cerberus duplicate/stale-target/date regression scenarios and run a genuine tracked-day trial."
+        },
+        {
+          "id": "S02-T06",
+          "description": "Project an ongoing factual ledger and feed committed actuals into each conversation start and daily summary; never infer completion from an accepted plan, calendar event or fluent model reply."
         }
       ],
       "contracts": {
@@ -911,6 +1088,10 @@
         {
           "id": "S02-AC04",
           "assertion": "The factual daily summary matches committed reports, deferrals and corrections and excludes unsupported clinical or scoring conclusions."
+        },
+        {
+          "id": "S02-AC05",
+          "assertion": "The current-day ledger records actual occurrence times and current delayed/deferred state; Nancy does not remind as pending an item already reported completed/eaten, and corrections update current priority without erasing history."
         }
       ],
       "automated_tests": [
@@ -937,10 +1118,11 @@
           "id": "S02-AUTO3",
           "criterion_ids": [
             "S02-AC02",
-            "S02-AC04"
+            "S02-AC04",
+            "S02-AC05"
           ],
-          "scenario": "Compare independent expected daily facts with query results after corrections, refresh and API restart.",
-          "expected": "The summary reflects actual history rather than planned or model-suggested completion."
+          "scenario": "Compare independent expected daily facts with query results after corrections, refresh and API restart. Re-enter a voice session after a meal report and a task deferral.",
+          "expected": "The summary reflects actual history rather than planned or model-suggested completion. Session-start priority uses corrected factual state."
         }
       ],
       "live_tests": [
@@ -950,13 +1132,15 @@
             "S02-AC01",
             "S02-AC02",
             "S02-AC03",
-            "S02-AC04"
+            "S02-AC04",
+            "S02-AC05"
           ],
           "data_policy": "real_consented",
           "steps": [
             "Use the S01 plan during a genuine day; actually perform selected tasks and report meals eaten through voice/touch.",
             "Defer a real item and correct a genuine mistaken report where present; if no real correction is needed, exercise that branch in LIVE2. Exercise a genuine reschedule if appropriate; otherwise cover rescheduling using disposable records in LIVE2.",
-            "Compare the spoken/day-screen summary with the participant's actual day and database readback."
+            "Compare the spoken/day-screen summary with the participant's actual day and database readback.",
+            "Reopen Nancy after reporting one meal and one completed/deferred task; confirm she uses the factual ledger and occurrence times to prioritize the remainder of the day."
           ],
           "expected": "Real reporting, deferral and current/next behavior agree with committed history and the participant's observations."
         },
@@ -966,7 +1150,8 @@
             "S02-AC01",
             "S02-AC02",
             "S02-AC03",
-            "S02-AC04"
+            "S02-AC04",
+            "S02-AC05"
           ],
           "data_policy": "disposable_live",
           "steps": [
@@ -1175,7 +1360,7 @@
           ],
           "data_policy": "disposable_live",
           "steps": [
-            "On the actual tablet with disposable provider records, disconnect before and after writes and refresh/restart the local application.",
+            "On the actual smartphone with disposable provider records, disconnect before and after writes and refresh/restart the local application.",
             "Reconnect, reconcile receipts and inspect the durable database ledger and visible status; make an intentional second-device version conflict."
           ],
           "expected": "One effective action, truthful state and explicit conflict review on real devices/services."
@@ -1215,7 +1400,7 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Make the tablet available and toggle its connection or refresh when the agent cannot do so remotely.",
+            "Make the smartphone available and toggle its connection or refresh when the agent cannot do so remotely.",
             "Confirm that pending, unknown, saved and conflict messages are understandable; complete any account/device interaction the agent cannot perform."
           ],
           "agent_can_do": [
@@ -1270,22 +1455,26 @@
     {
       "id": "S04",
       "priority": 40,
-      "title": "Return to a fresh 10 AM brief each day",
+      "title": "Return to a fresh day with reviewed carryover and timely prompts",
       "status": "planned",
       "depends_on": [
         "S03"
       ],
-      "required_inputs": [],
-      "outcome": "Across successive days the participant returns to Nancy at 10:00 local time, hears accurate prior-day facts, reviews unfinished work and fresh meal choices, then explicitly accepts the current day's plan.",
+      "required_inputs": [
+        "I-REMINDER-PREF"
+      ],
+      "outcome": "Across genuine local dates, Nancy resumes one morning check-in per day, reviews factual prior-day results and missed tasks, asks whether each unfinished task still matters and needs a changed priority or help, then offers opted-in meal/appointment prompts at relevant times without inventing activity.",
       "in_scope": [
         "Reusable approved task definitions and meal choices through minimal authorized setup",
         "One persistent check-in identity per participant/local date with same-day resume",
         "Fresh-day proposal assembled from current facts and explicitly reviewed carryover",
         "Yesterday/history readback, correct local dates and visible missed-day gaps",
-        "A short multi-day live trial of the first four slices"
+        "A short multi-day live trial of the first four slices",
+        "Explicit conversation about each missed prior-day task: still needed, changed priority, help needed, duration and proposed placement; retain unresolved items until reviewed",
+        "Durable local scheduler for opted-in meal/appointment prompts, quiet hours, duplicate/missed-run handling and notification permission; foreground Nancy speech only while My Day is active, with supported browser notification fallback"
       ],
       "out_of_scope": [
-        "Automatic outbound reminders, scheduled model/connector preparation and microphone activation",
+        "Unconsented/outbound-call reminders, scheduled model/connector preparation, closed-browser speech and automatic microphone activation",
         "Automatic acceptance or completion of copied plans",
         "Repetition of deferred tasks without participant review",
         "Full Morning Boot guidance, clinical protocol management, Asana, scoring and dashboards"
@@ -1310,29 +1499,56 @@
         {
           "id": "S04-T05",
           "description": "Test timezone/DST/day boundaries synthetically and run three genuine daily check-ins plus disposable real-service same-day/second-zone checks."
+        },
+        {
+          "id": "S04-T06",
+          "description": "Build a durable local prompt scheduler from accepted meal times and explicit appointments, with participant timezone, quiet hours, consent, cancellation/revision, idempotent delivery receipts and missed-run recovery. Foreground speech only while My Day is active; browser notification fallback only after permission and with no automatic microphone activation."
+        },
+        {
+          "id": "S04-T07",
+          "description": "At the next morning conversation, ask for each missed task whether it remains needed, whether urgency/duration/slot changed and whether help is needed. Carry it forward only after reviewed acceptance; maintain links to the prior occurrence and any deferral. Record keep, reschedule, explicit cancellation, unresolved or help-request decisions linked to the prior task; a help request does not send a family notification until S10 grants/flow exist."
         }
       ],
       "contracts": {
         "entities": [
           "RoutineTemplateVersion",
           "DailyCheckIn",
-          "CarryoverProposal"
+          "CarryoverProposal",
+          "ReminderPreference",
+          "ScheduledPrompt",
+          "PromptDeliveryReceipt",
+          "TaskHelpRequest"
         ],
         "commands": [
           "configure_daily_routine",
           "start_or_resume_checkin",
-          "propose_carryover"
+          "propose_carryover",
+          "set_reminder_preference",
+          "acknowledge_prompt",
+          "snooze_prompt",
+          "resolve_carryover",
+          "request_task_help"
         ],
         "queries": [
           "get_checkin_status",
           "get_previous_day_summary",
-          "get_routine_options"
+          "get_routine_options",
+          "get_due_prompts",
+          "get_reminder_status"
         ],
         "events": [
           "RoutineConfigured",
           "DailyCheckInStarted",
           "DailyCheckInResumed",
-          "CarryoverProposed"
+          "CarryoverProposed",
+          "ReminderPreferenceChanged",
+          "ScheduledPromptDue",
+          "PromptDelivered",
+          "PromptMissed",
+          "PromptAcknowledged",
+          "CarryoverDecisionRecorded",
+          "TaskHelpRequested",
+          "TaskCancelled"
         ]
       },
       "acceptance_criteria": [
@@ -1342,7 +1558,7 @@
         },
         {
           "id": "S04-AC02",
-          "assertion": "Today's tasks/meals are fresh proposals based on current approved options and actual prior reports; unfinished work and carried items are explicitly reviewed before current-day acceptance."
+          "assertion": "Today's tasks/meals are fresh proposals based on current approved options and actual prior reports; unfinished work and carried items are explicitly reviewed before current-day acceptance. Nancy explicitly asks whether each missed prior-day task still needs doing, changed urgency or needs help before proposing its current-day slot. A keep, changed slot, cancel, unresolved or help decision is stored against the original occurrence, and a help request is retained without prematurely messaging family."
         },
         {
           "id": "S04-AC03",
@@ -1351,6 +1567,10 @@
         {
           "id": "S04-AC04",
           "assertion": "Three genuine daily check-ins demonstrate usable voice planning, actual reporting, repeat-day readback and recovery; time-zone boundary behavior is also checked against real-service disposable profiles."
+        },
+        {
+          "id": "S04-AC05",
+          "assertion": "With explicit opt-in, a real due meal or appointment produces one timely foreground spoken prompt while My Day is active or a permitted browser notification fallback; quiet hours, changed schedules, missed runs and unavailable browser states are truthful and never activate the microphone."
         }
       ],
       "automated_tests": [
@@ -1367,9 +1587,10 @@
           "id": "S04-AUTO2",
           "criterion_ids": [
             "S04-AC02",
-            "S04-AC03"
+            "S04-AC03",
+            "S04-AC05"
           ],
-          "scenario": "Refresh a new-day proposal after a routine edit or late prior-day correction; mix unfinished, deferred and future tasks.",
+          "scenario": "Refresh a new-day proposal after a routine edit or late prior-day correction; mix unfinished, deferred and future tasks. Include unresolved yesterday task and ask still needed, changed priority and help before carrying it.",
           "expected": "Only current authorized options and explicit reviewed carryover can become today's accepted plan."
         },
         {
@@ -1381,6 +1602,14 @@
           ],
           "scenario": "Exercise the S01-S03 command/query sequence across three synthetic dates, same-day resume and a reconnect.",
           "expected": "Deterministic history, accepted versions and receipt recovery remain consistent; synthetic dates do not count as the three live days."
+        },
+        {
+          "id": "S04-AUTO4",
+          "criterion_ids": [
+            "S04-AC05"
+          ],
+          "scenario": "Advance a durable scheduler across restart, DST, changed/cancelled meals, quiet hours, denied notification permission, closed page and repeated delivery attempts.",
+          "expected": "No duplicate prompt or silent missed run; foreground speech occurs only while active, fallback uses consented notifications, and microphone remains off."
         }
       ],
       "live_tests": [
@@ -1390,13 +1619,16 @@
             "S04-AC01",
             "S04-AC02",
             "S04-AC03",
-            "S04-AC04"
+            "S04-AC04",
+            "S04-AC05"
           ],
           "data_policy": "real_consented",
           "steps": [
             "At the intended 10:00 routine across three genuine local dates, use Nancy to review the prior day's actuals and choose today's tasks/meals.",
             "Review at least one real carryover or explicit decision not to carry unfinished work; report actual meals/tasks during those days.",
-            "Reopen a same-day session and review participant feedback. Use existing genuine history when suitable; do not fabricate dates or completion to meet this gate."
+            "Reopen a same-day session and review participant feedback. Use existing genuine history when suitable; do not fabricate dates or completion to meet this gate.",
+            "With participant opt-in and quiet hours configured, observe at least one genuine meal or appointment prompt at its real time while the page is active; check spoken behavior, permission/notification fallback and that no microphone starts on its own. Review a missed prior-day task by asking whether it still matters, changed priority or needs help.",
+            "If help is requested for a missed task, verify it remains in the ledger; do not imply a family message was sent before S10 sharing and notification permissions exist."
           ],
           "expected": "Three observed check-ins retain separate accurate days, explicit accepted plans and useful voice/touch behavior."
         },
@@ -1406,12 +1638,14 @@
             "S04-AC01",
             "S04-AC02",
             "S04-AC03",
-            "S04-AC04"
+            "S04-AC04",
+            "S04-AC05"
           ],
           "data_policy": "disposable_live",
           "steps": [
             "With designated disposable profiles in the actual database deployment, check repeated same-day opens, current profile time zones and a stale second-device proposal.",
-            "Use explicitly dated disposable historical records to review missed-day and future-intent behavior; label this a disposable scenario, not genuine elapsed-day use."
+            "Use explicitly dated disposable historical records to review missed-day and future-intent behavior; label this a disposable scenario, not genuine elapsed-day use.",
+            "Using disposable schedules on the live service, restart around a due prompt, change/cancel a meal, test quiet hours, denied notification permission and a closed page; inspect delivery receipts and missed-run status."
           ],
           "expected": "Real-service checks respect configured local dates, exact versions and visible history gaps without automatic scheduling."
         }
@@ -1445,11 +1679,12 @@
           "condition": null,
           "human_must_do": [
             "Identify which existing tasks and meal choices are reusable and on which days; reuse S01 inputs rather than creating a second list.",
-            "Review the agent's concrete rule for unfinished tasks, one-day deferrals and meal-plan carryover; the participant still accepts each day's plan."
+            "Review the agent's concrete rule for unfinished tasks, one-day deferrals and meal-plan carryover; the participant still accepts each day's plan.",
+            "Review the exact missed-task questions: still needed, urgency changed, help needed and where it belongs today; no automatic carryover acceptance."
           ],
           "agent_can_do": [
             "Prepare minimal versioned routine setup and clear examples using existing choices.",
-            "Implement profile-local dates, edit ownership and explicit carryover without adding a background reminder or dashboard."
+            "Implement profile-local dates, edit ownership and explicit carryover with S04 opted-in prompt scheduling and without a dashboard."
           ],
           "expected_evidence": "Private routine version and reviewed carryover choices, with existing input/authority reused.",
           "related_input_ids": [
@@ -1475,7 +1710,8 @@
           "condition": null,
           "human_must_do": [
             "Return at the intended 10:00 routine, review actual prior-day history and explicitly choose today's tasks/meals.",
-            "Review genuine unfinished work or an explicit choice not to carry it, reopen a same-day session, and report usefulness or friction. Use existing genuine history where suitable."
+            "Review genuine unfinished work or an explicit choice not to carry it, reopen a same-day session, and report usefulness or friction. Use existing genuine history where suitable.",
+            "During the genuine multi-day trial, opt into a limited reminder window if comfortable and observe one real meal or appointment prompt; review the visible reminder/notification behavior and whether timing helps."
           ],
           "agent_can_do": [
             "Prepare the complete working loop and independently verify one check-in per local day, plan versions and report history.",
@@ -1485,6 +1721,36 @@
           "related_input_ids": [],
           "related_test_ids": [
             "S04-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S04-H03",
+          "title": "Choose reminder windows and notification permission",
+          "owner_role": "participant_or_tester",
+          "when": "Before S04 scheduled-prompt live acceptance",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Choose meal/appointment prompt opt-in, quiet hours, preferred audible/notification mode and notification permission on the actual device; keep the microphone off until a separate user action.",
+            "Observe or report one actual scheduled prompt and whether its timing/content was helpful."
+          ],
+          "agent_can_do": [
+            "Prepare the precise due-time and consent UI, durable scheduler and permission fallback.",
+            "Test duplicate, restart, missed-run, changed-schedule and closed-browser cases using disposable records before the genuine prompt."
+          ],
+          "expected_evidence": "Private consent/preference reference and observed actual prompt or explicit declined permission, with disposable service evidence for denied/closed paths.",
+          "related_input_ids": [
+            "I-REMINDER-PREF"
+          ],
+          "related_test_ids": [
+            "S04-LIVE1",
+            "S04-LIVE2"
           ],
           "status": "pending",
           "completion_ref": null,
@@ -1510,23 +1776,25 @@
         "S02"
       ],
       "required_inputs": [],
-      "outcome": "The household turns selected meals into a reviewable grocery list, adds items by voice and marks purchases without duplicating entries.",
+      "outcome": "The household expands S01 missing-ingredient capture into a reviewable shared grocery list, with meal-derived suggestions, quantity/unit clarification, voice edits and acquired state without duplicate entries.",
       "in_scope": [
         "Reviewable grocery suggestions from supplied meal ingredients",
         "Voice/touch add, edit and acquired state",
         "Authorized household sharing",
         "Explicit units, quantities and deduplication",
-        "Client grocery-list destination is reachable from My Day through both voice requests and buttons."
+        "Client grocery-list destination is reachable from My Day through both voice requests and buttons.",
+        "Migrate and preserve S01 minimal GroceryItem identities and command receipts; never create a competing grocery ledger"
       ],
       "out_of_scope": [
         "Asana grocery sync",
         "Purchasing or checkout",
-        "Dashboards"
+        "Dashboards",
+        "Reimplementing S01 confirmed missing-ingredient capture as a second ledger"
       ],
       "implementation_tasks": [
         {
           "id": "S05-T01",
-          "description": "Add GroceryItem and optional meal/ingredient source references; make list generation a reviewed proposal."
+          "description": "Extend S01 GroceryItem with shared-list fields, quantities/units, acquisition state and optional meal/ingredient references; make new meal-derived list generation a reviewed proposal."
         },
         {
           "id": "S05-T02",
@@ -1564,7 +1832,7 @@
       "acceptance_criteria": [
         {
           "id": "S05-AC01",
-          "assertion": "Meal-derived suggestions require review before joining the shared grocery list."
+          "assertion": "Meal-derived suggestions require review before joining the shared grocery list. S01 confirmed missing-ingredient items remain present with stable IDs after expansion."
         },
         {
           "id": "S05-AC02",
@@ -1582,7 +1850,7 @@
             "S05-AC01",
             "S05-AC02"
           ],
-          "scenario": "Generate overlapping ingredient suggestions and repeat an add with differing units. Verify matching My Day voice/button grocery navigation under the client grant.",
+          "scenario": "Generate overlapping ingredient suggestions and repeat an add with differing units. Verify matching My Day voice/button grocery navigation under the client grant. Include an existing S01 confirmed missing-ingredient record during migration.",
           "expected": "No silent incompatible merge; review and clarification preserve quantities."
         },
         {
@@ -1607,7 +1875,8 @@
             "Use an actual meal plan to review and accept grocery suggestions.",
             "Add a genuinely needed item by voice and mark an actually acquired item.",
             "Refresh on a second authorized device/account.",
-            "Open the grocery list from My Day with speech and with its button; confirm the same current list."
+            "Open the grocery list from My Day with speech and with its button; confirm the same current list.",
+            "Confirm an S01 missing-ingredient item retains its identity in the expanded shared list."
           ],
           "expected": "The shared list reflects the real choices/purchase and correct access rules."
         }
@@ -1680,25 +1949,29 @@
     {
       "id": "S06",
       "priority": 60,
-      "title": "Bring Asana household tasks into the daily tracker",
+      "title": "Connect Asana tasks and the selected external calendar",
       "status": "planned",
       "depends_on": [
         "S02"
       ],
       "required_inputs": [
-        "I-ASANA"
+        "I-ASANA",
+        "I-CALENDAR-EXTERNAL"
       ],
-      "outcome": "A household task added in the dedicated Asana project appears in the tracker and genuine completion returns to Asana with visible sync state.",
+      "outcome": "Authorized Asana household tasks and selected external calendar appointments appear in Nancy daily context; task completion converges with Asana and calendar reads remain scoped, fresh and visible.",
       "in_scope": [
         "Scoped OAuth and token refresh",
         "Project allowlist, signed webhook import and reconciliation",
         "Review new arrivals into the daily plan",
-        "Transactional outbound completion with retries and conflict review"
+        "Transactional outbound completion with retries and conflict review",
+        "Scoped external calendar OAuth or equivalent authorized read-only connection after provider selection; import appointment identity, local time, freshness and cancellations into daily priorities",
+        "Reconcile calendar changes/outages without silently altering accepted task/meal plans or double-booking"
       ],
       "out_of_scope": [
         "Asana-wide access",
         "Full sync dashboard",
-        "Rewriting meal/rehab protocols from task text"
+        "Rewriting meal/rehab protocols from task text",
+        "Unapproved calendar writeback or broad mailbox access"
       ],
       "implementation_tasks": [
         {
@@ -1720,6 +1993,10 @@
         {
           "id": "S06-T05",
           "description": "Add truthful pending/failed state and operator retry/conflict commands; surface externally reopened/deleted tasks for review."
+        },
+        {
+          "id": "S06-T06",
+          "description": "After owner selects an external calendar provider, qualify least-privilege consent and read-only calendar sync. Map appointment IDs/timezones and freshness into S01 local calendar context, reconcile updates/deletes and provider outages, and never silently move accepted care tasks."
         }
       ],
       "contracts": {
@@ -1727,21 +2004,29 @@
           "ExternalObject",
           "InboundJob",
           "OutboxJob",
-          "SyncCursor"
+          "SyncCursor",
+          "ExternalCalendarAccount",
+          "CalendarEventMapping",
+          "CalendarSyncCursor"
         ],
         "commands": [
           "accept_imported_activity",
           "retry_external_sync",
-          "resolve_sync_conflict"
+          "resolve_sync_conflict",
+          "authorize_calendar_source"
         ],
         "queries": [
-          "get_asana_sync_status"
+          "get_asana_sync_status",
+          "get_calendar_sync_status"
         ],
         "events": [
           "AsanaTaskObserved",
           "ExternalSyncSucceeded",
           "ExternalSyncFailed",
-          "ExternalConflictDetected"
+          "ExternalConflictDetected",
+          "CalendarAppointmentObserved",
+          "CalendarAppointmentChanged",
+          "CalendarSyncFailed"
         ]
       },
       "acceptance_criteria": [
@@ -1756,6 +2041,10 @@
         {
           "id": "S06-AC03",
           "assertion": "Token refresh, missed-webhook recovery, project denial and external reopen/deletion have visible validated outcomes."
+        },
+        {
+          "id": "S06-AC04",
+          "assertion": "A consented live external appointment, including one about an hour ahead, is visible in Nancy session-start priorities with source/freshness; updates, cancellation and unavailable provider status are explicit and do not rewrite an accepted plan without review."
         }
       ],
       "automated_tests": [
@@ -1775,6 +2064,14 @@
           ],
           "scenario": "Exercise pagination, changed project membership, token expiry and external deletion/reopen.",
           "expected": "Allowlist is enforced and current source state is recovered or flagged."
+        },
+        {
+          "id": "S06-AUTO3",
+          "criterion_ids": [
+            "S06-AC04"
+          ],
+          "scenario": "Replay external appointment create/update/cancel, daylight-saving ambiguity, expired consent, duplicate sync and stale cache around a session start.",
+          "expected": "One current scoped appointment influences priority, stale/outage state is disclosed, and accepted plans remain versioned and unchanged without review."
         }
       ],
       "live_tests": [
@@ -1804,6 +2101,18 @@
             "Exercise OAuth access-token renewal, a denied project and reopen/delete conflicts."
           ],
           "expected": "No lost committed action or duplicate score/event; recovery and denial are recorded."
+        },
+        {
+          "id": "S06-LIVE3",
+          "criterion_ids": [
+            "S06-AC04"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "Using the selected and authorized external calendar, schedule or identify a genuine ordinary appointment and open Nancy about an hour ahead.",
+            "Confirm Nancy reports its time/source and prioritizes the current day; change or cancel a disposable appointment to test reconciliation without editing a real obligation."
+          ],
+          "expected": "Live calendar context is timely, source-attributed and correctly scoped; accepted plans change only through explicit reviewed commands."
         }
       ],
       "story_refs": [
@@ -1867,6 +2176,35 @@
           "related_input_ids": [],
           "related_test_ids": [
             "S06-LIVE1"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S06-H03",
+          "title": "Authorize the selected calendar account",
+          "owner_role": "account_owner",
+          "when": "Before live external calendar reads",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Choose the intended calendar provider/account and approve only the concrete read scope needed for appointment context.",
+            "Complete any required sign-in/MFA or consent; review which participant appointments may be visible to Nancy."
+          ],
+          "agent_can_do": [
+            "Prepare the provider-specific scope and minimal read-only connector, with costs and retention documented.",
+            "Test stale, deleted and denied events on disposable appointments before the genuine trial."
+          ],
+          "expected_evidence": "Private scoped calendar authorization reference and one genuine appointment context observation.",
+          "related_input_ids": [
+            "I-CALENDAR-EXTERNAL"
+          ],
+          "related_test_ids": [
+            "S06-LIVE3"
           ],
           "status": "pending",
           "completion_ref": null,
@@ -3083,7 +3421,7 @@
         "S03",
         "S04"
       ],
-      "requirement": "All four feature slices pass their automated and prescribed live checks, including a genuine tracked day, actual-device recovery/isolated restore and three real-date check-ins with useful history and explicitly reviewed carryover. No automatic reminder or unattended-availability claim."
+      "requirement": "All four feature slices pass their automated and prescribed live checks, including a genuine tracked day, actual-device recovery/isolated restore and three real-date check-ins with useful history and explicitly reviewed carryover. S04 includes a consented actual scheduled prompt and honest missed-run behavior; no unattended-availability or automatic microphone claim."
     },
     {
       "id": "G-DAILY-RELIANCE",
@@ -3133,7 +3471,7 @@
     },
     {
       "id": "D-AUTOMATIC-CHECKIN",
-      "reason": "Automatic reminders, outbound calls, automatic microphone activation and scheduled background preparation are outside S01-S04. The 10:00 routine is user initiated. Cerberus M53 is a planned design, not an installed scheduler; any selected scheduling feature needs its own complete slice and missed-run/live acceptance."
+      "reason": "Unattended outbound calls, automatic microphone activation, closed-browser spoken audio and scheduled model/connector preparation remain deferred. S04 now includes opted-in meal/appointment prompt scheduling, foreground speech when My Day is active and browser notification fallback when permitted. The user still initiates the 09:00-11:00 planning conversation; no Cerberus scheduler is assumed. S04 must build and test a durable scheduler, missed-run behavior and genuine reminders."
     }
   ],
   "human_action_policy": {
@@ -3161,7 +3499,7 @@
     "timezone_input_id": "I-TIMEZONE",
     "outcome": "A client opens My Day, plans tasks and meals with Nancy by voice or buttons, reports actual activity, resumes after interruptions and returns to a fresh day with accurate history and reviewed carryover.",
     "completion_gate_id": "G-FIRST-FOUR",
-    "scope_boundary": "No automatic outbound reminder, background connector scan or automatic microphone activation is implied by the 10:00 routine. Core local-date semantics exist in S01; repeat-day convenience ships in S04."
+    "scope_boundary": "10:00 is the preferred user-initiated morning check-in within 09:00-11:00 in the participant time zone; Lets Plan the Day and Lets Plan Today start the same flow. S01 uses a local calendar/appointment source and opt-in foreground wake only while a qualified page/session is active. S04 adds opted-in scheduled meal/appointment prompts with a durable scheduler and browser notification fallback. No automatic microphone activation, background phone wake or unattended spoken prompt from a closed browser is promised."
   },
   "reuse_plan": {
     "assessment_ref": "docs/architecture/CERBERUS_REUSE_ASSESSMENT.md",
@@ -3294,7 +3632,7 @@
         "primary_interaction": "voice",
         "ui_required": true,
         "capabilities": [
-          "Manage scoped accounts, grants and task/meal setup from S01.",
+          "Manage scoped accounts, grants and task/meal/local appointment setup from S01.",
           "Full operations dashboard in S11. Administration does not authorize changing human-approved clinical protocols."
         ]
       },
@@ -3306,7 +3644,7 @@
         "ui_required": true,
         "capabilities": [
           "View own task list and daily meals, plan with Nancy and explicitly accept reviewed plans in S01.",
-          "Report actual activity in S02; use grocery list in S05 and achievement view in S09."
+          "Report actual activity in S02; use a minimal grocery list in S01 and expanded sharing/acquisition in S05 and achievement view in S09."
         ]
       },
       {
@@ -3349,7 +3687,7 @@
       {
         "id": "groceries",
         "label": "Grocery list",
-        "introduced_in": "S05"
+        "introduced_in": "S01"
       },
       {
         "id": "achievements",
@@ -3369,9 +3707,9 @@
         "medium",
         "low"
       ],
-      "schedule_policy": "Persist the scheduled instant with participant time zone/local date; display the date/time in that zone. An unknown time is explicitly unscheduled until supplied, never invented. S02 rescheduling preserves old/new values, actor, versions and an event.",
+      "schedule_policy": "Persist the scheduled instant with participant time zone/local date; display the date/time in that zone. An unknown time is explicitly unscheduled until supplied, never invented. S02 rescheduling preserves old/new values, actor, versions and an event. Capture a proposed duration (or explicit unknown) and ask whether an appointment or task should occupy a proposed local calendar slot; only an explicitly accepted version changes the schedule. At session start rank impending appointments, meals, overdue tasks and commitments from current facts. This is assistance, not an autonomous calendar mutation.",
       "meals_are_tasks": true,
-      "meal_policy": "A planned meal has one task occurrence identity and meal-specific details. Task list and meal view project the same record; accepting a meal plan does not mean eaten, and one meal report must not double count completion.",
+      "meal_policy": "A planned meal has one task occurrence identity and meal-specific details. Task list and meal view project the same record; accepting a meal plan does not mean eaten, and one meal report must not double count completion. Offer multiple household-appropriate choices and a collaborative alternative/healthier modification path; discuss portions within approved preferences and avoid unsupported clinical dietary prescriptions. Confirm missing ingredients before adding them to a minimal grocery list.",
       "internal_metadata": "Stable IDs, kind, participant, versions, source and audit fields remain internal; keep the client-facing form simple."
     },
     "family_notification_events": [
@@ -3403,7 +3741,7 @@
       "api_model_id": "gpt-6-sol",
       "model_input_id": "I-MODEL",
       "api": "Responses-based gpt-6-sol high reasoning through a supported ChatGPT-plan adapter, preferably minimal local Codex app-server where qualified; care service owns tool execution. API-key billing is an explicitly selected fallback.",
-      "speech_policy": "Qualify speech input/output independently around Sol high. The documented ChatGPT-plan flow excludes audio input/transcription; MCP transport grants no speech coverage. Compare supported local and low-cost hosted choices and test actual device audio, latency, interruption, privacy and costs. Never replace the selected Sol brain with a speech model; do not retain raw audio by default.",
+      "speech_policy": "Qualify speech input/output independently around Sol high. The documented ChatGPT-plan flow excludes audio input/transcription; MCP transport grants no speech coverage. Compare supported local and low-cost hosted choices and test actual device audio, latency, interruption, privacy and costs. Never replace the selected Sol brain with a speech model; do not retain raw audio by default. Free participant-selectable voice auditions are required; compare licensed local Kokoro, Piper per-voice model terms and browser speechSynthesis where available. Natural turn taking requires explicit state/timing contracts and live device testing; foreground wake processing may stream to the local server, not necessarily run on the phone. See docs/architecture/VOICE_AND_DAILY_COMPANION_2026-10-05.md.",
       "source_refs": [
         "https://developers.openai.com/api/docs/models/gpt-6-sol",
         "https://developers.openai.com/api/docs/guides/secure-mcp-tunnels",

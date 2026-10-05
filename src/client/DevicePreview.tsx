@@ -12,6 +12,12 @@ type SampleTask = {
   detail?: string;
 };
 
+const voiceSampleText = "Good morning. I'm glad you're here. We can take today one step at a time.";
+
+export function localEnglishVoices(voices: readonly SpeechSynthesisVoice[]): SpeechSynthesisVoice[] {
+  return voices.filter(voice => voice.localService === true && /^en(?:-|$)/i.test(voice.lang));
+}
+
 // A meal has one occurrence identity. Both views project this same list.
 export const previewTasks: readonly SampleTask[] = [
   { id: "sample-breakfast", what: "Breakfast", urgency: "Medium", time: "8:30 AM", kind: "meal", detail: "Oatmeal and fruit" },
@@ -40,6 +46,11 @@ export function DevicePreview() {
   const [view, setView] = useState<View>("home");
   const [sampleMessage, setSampleMessage] = useState("");
   const [samplePlaying, setSamplePlaying] = useState(false);
+  const [localVoices, setLocalVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState("");
+  const [voiceRate, setVoiceRate] = useState(1);
+  const [voicePlaying, setVoicePlaying] = useState(false);
+  const [voiceMessage, setVoiceMessage] = useState("");
   const [micState, setMicState] = useState<"idle" | "requesting" | "recording" | "ready">("idle");
   const [micMessage, setMicMessage] = useState("");
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
@@ -51,6 +62,8 @@ export function DevicePreview() {
   const micEpoch = useRef(0);
   const micRequested = useRef(false);
   const sampleEpoch = useRef(0);
+  const voiceEpoch = useRef(0);
+  const voiceUtterance = useRef<SpeechSynthesisUtterance | null>(null);
   const mounted = useRef(true);
   const date = localDate();
 
@@ -85,6 +98,29 @@ export function DevicePreview() {
     clearRecordingUrl();
   };
 
+  const stopVoice = () => {
+    voiceEpoch.current += 1;
+    voiceUtterance.current = null;
+    if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+    if (mounted.current) setVoicePlaying(false);
+  };
+
+  useEffect(() => {
+    if (!("speechSynthesis" in window)) return;
+    const synthesis = window.speechSynthesis;
+    const refresh = () => {
+      try {
+        setLocalVoices(localEnglishVoices(synthesis.getVoices()));
+      } catch {
+        setLocalVoices([]);
+        setVoiceMessage("This browser could not load its installed voices.");
+      }
+    };
+    refresh();
+    synthesis.addEventListener("voiceschanged", refresh);
+    return () => synthesis.removeEventListener("voiceschanged", refresh);
+  }, []);
+
   useEffect(() => {
     mounted.current = true;
     const suspend = () => {
@@ -92,6 +128,7 @@ export function DevicePreview() {
       stopMicrophone(false);
       sampleEpoch.current += 1;
       stopAudio();
+      stopVoice();
       if (wasChecking) setMicMessage("Microphone check stopped when this page was left. Tap to try again.");
     };
     const onVisibility = () => { if (document.visibilityState === "hidden") suspend(); };
@@ -112,6 +149,7 @@ export function DevicePreview() {
         current.stream.getTracks().forEach(track => track.stop());
       }
       sampleAudio.current?.pause();
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
       recordingAudio.current?.pause();
       if (recordingUrlRef.current) URL.revokeObjectURL(recordingUrlRef.current);
     };
@@ -122,6 +160,7 @@ export function DevicePreview() {
     stopMicrophone(false);
     sampleEpoch.current += 1;
     stopAudio();
+    stopVoice();
     setMicMessage("");
     setSampleMessage("");
     setView(destination);
@@ -133,6 +172,8 @@ export function DevicePreview() {
     if (!audio) return;
     const epoch = ++sampleEpoch.current;
     setSampleMessage("");
+    stopVoice();
+    stopMicrophone(false);
     if (samplePlaying) {
       audio.pause();
       audio.currentTime = 0;
@@ -150,6 +191,61 @@ export function DevicePreview() {
     }
   };
 
+  const playLocalVoice = () => {
+    if (voicePlaying) {
+      stopVoice();
+      return;
+    }
+    if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+      setVoiceMessage("This browser cannot play installed voices.");
+      return;
+    }
+    let currentVoices: SpeechSynthesisVoice[];
+    try {
+      currentVoices = localEnglishVoices(window.speechSynthesis.getVoices());
+      setLocalVoices(currentVoices);
+    } catch {
+      setVoiceMessage("This browser could not confirm its installed voices. Try again later.");
+      return;
+    }
+    const voice = selectedVoice
+      ? currentVoices.find(candidate => candidate.voiceURI === selectedVoice)
+      : currentVoices[0];
+    if (!voice) {
+      setVoiceMessage("The selected installed voice is no longer available. Choose another voice and try again.");
+      return;
+    }
+    sampleEpoch.current += 1;
+    stopAudio();
+    stopMicrophone(false);
+    stopVoice();
+    setVoiceMessage("");
+    const epoch = voiceEpoch.current;
+    try {
+      const utterance = new SpeechSynthesisUtterance(voiceSampleText);
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
+      utterance.rate = voiceRate;
+      utterance.onend = () => {
+        if (!mounted.current || epoch !== voiceEpoch.current) return;
+        voiceUtterance.current = null;
+        setVoicePlaying(false);
+      };
+      utterance.onerror = () => {
+        if (!mounted.current || epoch !== voiceEpoch.current) return;
+        voiceUtterance.current = null;
+        setVoicePlaying(false);
+        setVoiceMessage("This installed voice could not play. Try another voice or the fixed sample.");
+      };
+      voiceUtterance.current = utterance;
+      window.speechSynthesis.speak(utterance);
+      setVoicePlaying(true);
+    } catch {
+      stopVoice();
+      setVoiceMessage("This installed voice could not start. Try another voice or the fixed sample.");
+    }
+  };
+
   const finishMicrophone = () => {
     if (recording.current) {
       stopMicrophone(true);
@@ -158,6 +254,7 @@ export function DevicePreview() {
   };
 
   const startMicrophone = async () => {
+    stopVoice();
     sampleEpoch.current += 1;
     stopAudio();
     setMicMessage("");
@@ -219,6 +316,7 @@ export function DevicePreview() {
   };
 
   const visibleTasks = view === "meals" ? previewTasks.filter(task => task.kind === "meal") : previewTasks;
+  const activeVoice = localVoices.find(voice => voice.voiceURI === selectedVoice) ?? localVoices[0];
   return <main className="dp-page">
     <div className="dp-shell">
       <header className="dp-header">
@@ -244,7 +342,26 @@ export function DevicePreview() {
             <button type="button" className="dp-primary" onClick={() => void hearNancy()}>{samplePlaying ? "Stop sample voice" : "Hear Nancy’s sample voice"}</button>
             <audio ref={sampleAudio} preload="none" src="/preview/voice-sample.wav" onEnded={() => setSamplePlaying(false)} onError={() => { setSamplePlaying(false); setSampleMessage("Nancy’s sample voice is unavailable right now. Please try again later."); }} />
             {sampleMessage && <p className="dp-inline-error" role="alert">{sampleMessage}</p>}
-            <p className="dp-hint">This plays a short synthetic voice sample. It is not a live conversation.</p>
+            <p className="dp-hint">Fixed Windows Zira sample. It is not a live conversation.</p>
+          </section>
+
+          <section className="dp-voice-card" aria-labelledby="dp-voice-title">
+            <div className="dp-section-top"><span className="dp-icon" aria-hidden="true">♫</span><div><p className="dp-eyebrow">Listen and choose</p><h2 id="dp-voice-title">Voice for this preview</h2></div></div>
+            <p>Try English voices this browser reports as installed on your device. The same short sentence plays each time. Your choice applies only to this preview.</p>
+            {localVoices.length > 0 ? <>
+              <div className="dp-voice-controls">
+                <label>Voice<select value={selectedVoice || activeVoice?.voiceURI || ""} onChange={event => { stopVoice(); setSelectedVoice(event.target.value); setVoiceMessage(""); }}>
+                  {selectedVoice && !localVoices.some(voice => voice.voiceURI === selectedVoice) && <option value={selectedVoice}>Previously selected voice is unavailable</option>}
+                  {localVoices.map(voice => <option key={`${voice.voiceURI}-${voice.name}`} value={voice.voiceURI}>{voice.name} ({voice.lang})</option>)}
+                </select></label>
+                <label>Pace<select value={voiceRate} onChange={event => { stopVoice(); setVoiceRate(Number(event.target.value)); }}>
+                  <option value={0.85}>Relaxed</option><option value={1}>Regular</option><option value={1.15}>Brisk</option>
+                </select></label>
+              </div>
+              <button type="button" className="dp-secondary" onClick={playLocalVoice}>{voicePlaying ? "Stop selected voice" : "Preview selected voice"}</button>
+            </> : <p className="dp-inline-info" role="status">No installed English voices are available from this browser yet. You can still play the fixed sample above.</p>}
+            {voiceMessage && <p className="dp-inline-error" role="alert">{voiceMessage}</p>}
+            <p className="dp-hint">This is a fixed sample, not a live conversation or a saved Nancy voice preference.</p>
           </section>
 
           <section className="dp-mic-card" aria-labelledby="dp-mic-title">
@@ -255,7 +372,7 @@ export function DevicePreview() {
               {micState === "recording" && <span className="dp-recording"><span aria-hidden="true" />Recording… 10 sec max</span>}
             </div>
             {micMessage && <p className={micState === "ready" ? "dp-inline-info" : "dp-inline-error"} role={micState === "ready" ? "status" : "alert"}>{micMessage}</p>}
-            {recordingUrl && <audio ref={recordingAudio} controls src={recordingUrl} aria-label="Play your microphone check recording" />}
+            {recordingUrl && <audio ref={recordingAudio} controls src={recordingUrl} aria-label="Play your microphone check recording" onPlay={() => { stopVoice(); sampleEpoch.current += 1; sampleAudio.current?.pause(); setSamplePlaying(false); }} />}
           </section>
 
           <section className="dp-overview" aria-labelledby="dp-overview-title">
