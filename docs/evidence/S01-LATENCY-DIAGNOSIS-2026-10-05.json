@@ -1,0 +1,576 @@
+{
+  "slice_id": "S01",
+  "status": "diagnosed_latency_unacceptable_not_fixed",
+  "recorded_at": "2026-10-05T22:00:56.495Z",
+  "implementation_revision": "sha256:20610cbcb13f3b210d7f7969d517dbe469eca54e0c25735986d8e864cb496524",
+  "source_commit": "70e62637d74a9d71c2d77ddf3611fbedba25ea81",
+  "owner_feedback": "Owner reports latency remains too high after voice refinement and requests diagnosis.",
+  "changes": "Diagnosis and roadmap records only; no production code, model, voice, service, care plan or hosting change.",
+  "method": {
+    "clock": "Monotonic performance.now within each probe. Service times are measured; adding 900 ms is an estimate from the configured client silence threshold.",
+    "data": "Fixed generated synthetic WAVs and existing explicitly synthetic owner practice records. No microphone audio, household records or transcripts retained in public evidence.",
+    "isolated": "Production ConversationService, PlanReasoner and local speech code, real authorized local PostgreSQL reads and connected gpt-6-sol/high. Care writes denied by wrapper. SSE observer records timing/counts only. Separate warm workers; startup excluded from turn timings.",
+    "deployed": "Running production app, first through loopback with configured host/origin, then through the already-approved public HTTPS tunnel. Each navigation repeated three times; one general-question turn. No concurrent diagnostic inference.",
+    "samples": "Small diagnostic sample, not p95 or device acceptance. Independent generated-audio recognition equality checks are not clinical/speech-impairment ASR qualification."
+  },
+  "hardware": {
+    "cpu": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+    "logical_cpus": 16,
+    "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU, 6141 MiB reported",
+    "cpu_asr": "faster-whisper small.en int8, 4 threads, beam_size=1, best_of=1",
+    "cpu_tts": "Kokoro Heart fp32, 4 intra-op threads, 1 inter-op thread"
+  },
+  "instrumented": {
+    "observed_at": "2026-10-05T21:56:17.844Z",
+    "status": "passed",
+    "worker_startup_ms": 4322,
+    "samples": [
+      {
+        "id": "navigation",
+        "input_audio_seconds": 1.75,
+        "asr_ms": 2099,
+        "transcript_matches_fixed_synthetic_input": true,
+        "care_calls": [
+          {
+            "operation": "authorize",
+            "ms": 1
+          },
+          {
+            "operation": "today",
+            "ms": 8
+          }
+        ],
+        "model_calls": [],
+        "text_response_ms": 2110,
+        "first_audio_ready_ms": 3643,
+        "speech_parts": [
+          {
+            "characters": 52,
+            "synthesis_ms": 1533,
+            "audio_ms": 3150
+          }
+        ],
+        "estimated_silence_plus_first_audio_ready_ms": 4543
+      },
+      {
+        "id": "open_question",
+        "input_audio_seconds": 6.4,
+        "asr_ms": 2365,
+        "transcript_matches_fixed_synthetic_input": true,
+        "care_calls": [
+          {
+            "operation": "authorize",
+            "ms": 7
+          },
+          {
+            "operation": "today",
+            "ms": 10
+          }
+        ],
+        "model_calls": [
+          {
+            "request_bytes": 12289,
+            "headers_ms": 1557,
+            "first_text_delta_ms": 3032,
+            "first_sentence_ms": 3125,
+            "completed_ms": 3264,
+            "input_tokens": 2834,
+            "output_tokens": 67,
+            "reasoning_tokens": 53,
+            "cached_tokens": 0
+          }
+        ],
+        "text_response_ms": 5684,
+        "first_audio_ready_ms": 6672,
+        "speech_parts": [
+          {
+            "characters": 29,
+            "synthesis_ms": 988,
+            "audio_ms": 2050
+          }
+        ],
+        "estimated_silence_plus_first_audio_ready_ms": 7572
+      },
+      {
+        "id": "read_tasks",
+        "input_audio_seconds": 5.93,
+        "asr_ms": 2259,
+        "transcript_matches_fixed_synthetic_input": true,
+        "care_calls": [
+          {
+            "operation": "authorize",
+            "ms": 1
+          },
+          {
+            "operation": "today",
+            "ms": 11
+          }
+        ],
+        "model_calls": [
+          {
+            "request_bytes": 12276,
+            "headers_ms": 1245,
+            "first_text_delta_ms": 2933,
+            "first_sentence_ms": 3179,
+            "completed_ms": 4083,
+            "input_tokens": 2829,
+            "output_tokens": 122,
+            "reasoning_tokens": 63,
+            "cached_tokens": 0
+          }
+        ],
+        "text_response_ms": 6359,
+        "first_audio_ready_ms": 8298,
+        "speech_parts": [
+          {
+            "characters": 51,
+            "synthesis_ms": 1940,
+            "audio_ms": 3950
+          },
+          {
+            "characters": 98,
+            "synthesis_ms": 3826,
+            "audio_ms": 8000
+          },
+          {
+            "characters": 39,
+            "synthesis_ms": 1413,
+            "audio_ms": 2950
+          }
+        ],
+        "estimated_silence_plus_first_audio_ready_ms": 9198
+      },
+      {
+        "id": "open_question_repeat",
+        "input_audio_seconds": 6.4,
+        "asr_ms": 2298,
+        "transcript_matches_fixed_synthetic_input": true,
+        "care_calls": [
+          {
+            "operation": "authorize",
+            "ms": 7
+          },
+          {
+            "operation": "today",
+            "ms": 7
+          }
+        ],
+        "model_calls": [
+          {
+            "request_bytes": 12289,
+            "headers_ms": 1597,
+            "first_text_delta_ms": 2730,
+            "first_sentence_ms": 3013,
+            "completed_ms": 3103,
+            "input_tokens": 2834,
+            "output_tokens": 48,
+            "reasoning_tokens": 34,
+            "cached_tokens": 0
+          }
+        ],
+        "text_response_ms": 5419,
+        "first_audio_ready_ms": 6459,
+        "speech_parts": [
+          {
+            "characters": 29,
+            "synthesis_ms": 1040,
+            "audio_ms": 2050
+          }
+        ],
+        "estimated_silence_plus_first_audio_ready_ms": 7359
+      }
+    ],
+    "blocked_writes": 0,
+    "saved_plan_unchanged": true
+  },
+  "natural_navigation": {
+    "observed_at": "2026-10-05T21:58:29.704Z",
+    "status": "passed",
+    "samples": [
+      {
+        "id": "natural_navigation",
+        "input_audio_seconds": 2,
+        "asr_ms": 2074,
+        "transcript_matches_fixed_synthetic_input": true,
+        "care_calls": [
+          {
+            "operation": "authorize",
+            "ms": 1
+          },
+          {
+            "operation": "today",
+            "ms": 9
+          },
+          {
+            "operation": "authorize",
+            "ms": 5
+          },
+          {
+            "operation": "today",
+            "ms": 9
+          }
+        ],
+        "model_calls": [
+          {
+            "request_bytes": 12220,
+            "headers_ms": 1285,
+            "first_text_delta_ms": null,
+            "first_sentence_ms": null,
+            "completed_ms": 2211,
+            "input_tokens": 2818,
+            "output_tokens": 17,
+            "reasoning_tokens": 0,
+            "cached_tokens": 0
+          },
+          {
+            "request_bytes": 12528,
+            "headers_ms": 1143,
+            "first_text_delta_ms": 1590,
+            "first_sentence_ms": 2234,
+            "completed_ms": 2807,
+            "input_tokens": 2850,
+            "output_tokens": 59,
+            "reasoning_tokens": 0,
+            "cached_tokens": 0
+          }
+        ],
+        "text_response_ms": 7168,
+        "first_audio_ready_ms": 11393,
+        "speech_parts": [
+          {
+            "characters": 120,
+            "synthesis_ms": 4224,
+            "audio_ms": 8750
+          },
+          {
+            "characters": 10,
+            "synthesis_ms": 837,
+            "audio_ms": 1625
+          },
+          {
+            "characters": 77,
+            "synthesis_ms": 2150,
+            "audio_ms": 4350
+          }
+        ],
+        "estimated_silence_plus_first_audio_ready_ms": 12293
+      }
+    ],
+    "blocked_writes": 0,
+    "saved_plan_unchanged": true
+  },
+  "deployed": {
+    "observed_at": "2026-10-05T21:57:15.907Z",
+    "status": "passed",
+    "network": [
+      {
+        "route": "local",
+        "sample": 0,
+        "ms": 16,
+        "headers_ms": 16,
+        "bytes": 4843
+      },
+      {
+        "route": "https",
+        "sample": 0,
+        "ms": 476,
+        "headers_ms": 471,
+        "bytes": 4843
+      },
+      {
+        "route": "local",
+        "sample": 1,
+        "ms": 10,
+        "headers_ms": 10,
+        "bytes": 4843
+      },
+      {
+        "route": "https",
+        "sample": 1,
+        "ms": 95,
+        "headers_ms": 94,
+        "bytes": 4843
+      },
+      {
+        "route": "local",
+        "sample": 2,
+        "ms": 5,
+        "headers_ms": 4,
+        "bytes": 4843
+      },
+      {
+        "route": "https",
+        "sample": 2,
+        "ms": 79,
+        "headers_ms": 78,
+        "bytes": 4843
+      },
+      {
+        "route": "local",
+        "sample": 3,
+        "ms": 16,
+        "headers_ms": 16,
+        "bytes": 4843
+      },
+      {
+        "route": "https",
+        "sample": 3,
+        "ms": 68,
+        "headers_ms": 67,
+        "bytes": 4843
+      },
+      {
+        "route": "local",
+        "sample": 4,
+        "ms": 6,
+        "headers_ms": 6,
+        "bytes": 4843
+      },
+      {
+        "route": "https",
+        "sample": 4,
+        "ms": 80,
+        "headers_ms": 80,
+        "bytes": 4843
+      }
+    ],
+    "turns": [
+      {
+        "route": "local",
+        "kind": "greeting",
+        "parts": [
+          {
+            "part": 0,
+            "ms": 1131,
+            "headers_ms": 1131,
+            "bytes": 114044,
+            "audio_ms": 2375
+          }
+        ]
+      },
+      {
+        "route": "local",
+        "kind": "navigation",
+        "sample": 0,
+        "text_response_ms": 6,
+        "audio_response_ms": 2009,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 1543,
+            "headers_ms": 1542,
+            "bytes": 151244,
+            "audio_ms": 3150
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 4452
+      },
+      {
+        "route": "local",
+        "kind": "navigation",
+        "sample": 1,
+        "text_response_ms": 7,
+        "audio_response_ms": 1961,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 1509,
+            "headers_ms": 1509,
+            "bytes": 151244,
+            "audio_ms": 3150
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 4370
+      },
+      {
+        "route": "local",
+        "kind": "navigation",
+        "sample": 2,
+        "text_response_ms": 6,
+        "audio_response_ms": 2027,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 1519,
+            "headers_ms": 1519,
+            "bytes": 151244,
+            "audio_ms": 3150
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 4446
+      },
+      {
+        "route": "https",
+        "kind": "greeting",
+        "parts": [
+          {
+            "part": 0,
+            "ms": 177,
+            "headers_ms": 144,
+            "bytes": 114044,
+            "audio_ms": 2375
+          }
+        ]
+      },
+      {
+        "route": "https",
+        "kind": "navigation",
+        "sample": 0,
+        "text_response_ms": 73,
+        "audio_response_ms": 2188,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 1735,
+            "headers_ms": 1689,
+            "bytes": 151244,
+            "audio_ms": 3150
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 4823
+      },
+      {
+        "route": "https",
+        "kind": "navigation",
+        "sample": 1,
+        "text_response_ms": 81,
+        "audio_response_ms": 2105,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 1575,
+            "headers_ms": 1559,
+            "bytes": 151244,
+            "audio_ms": 3150
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 4580
+      },
+      {
+        "route": "https",
+        "kind": "navigation",
+        "sample": 2,
+        "text_response_ms": 72,
+        "audio_response_ms": 2070,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 1632,
+            "headers_ms": 1618,
+            "bytes": 151244,
+            "audio_ms": 3150
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 4602
+      },
+      {
+        "route": "https",
+        "kind": "open_question",
+        "audio_response_ms": 5822,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 1670,
+            "headers_ms": 1661,
+            "bytes": 147644,
+            "audio_ms": 3075
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 8392
+      }
+    ],
+    "saved_plan_unchanged": true
+  },
+  "gpu_asr_probe": {
+    "observed_at": "2026-10-05T22:00:21.4531930Z",
+    "status": "unavailable",
+    "data": "synthetic fixed WAV; warmup was silence only; no transcript content retained",
+    "model": "faster-whisper small.en pinned local revision",
+    "device": "cuda",
+    "compute_type": "float16",
+    "settings": "same as CPU: beam_size=1, best_of=1, temperature=0, English, no VAD",
+    "qualification_stage": "warmup",
+    "error_category": "missing_or_unloadable_cuda_runtime",
+    "error_type": "RuntimeError",
+    "timed_transcriptions": 0
+  },
+  "findings": [
+    {
+      "id": "LAT-01",
+      "finding": "All normal voice work is sequential: capture endpoint, complete upload, full ASR, complete model turn(s), first full Heart WAV, download/decode/playback.",
+      "source": [
+        "src/client/local-voice.ts:169",
+        "src/server/app.ts:124",
+        "src/server/conversation.ts:159",
+        "src/client/local-voice.ts:124"
+      ]
+    },
+    {
+      "id": "LAT-02",
+      "finding": "Exact Show my tasks bypasses inference. Can you show me my tasks? misses the regex and the measured route made two GPT requests, followed by a 120-character first TTS part. Estimated 12.293s vs 4.543s for the direct instrumented command.",
+      "source": [
+        "src/server/conversation.ts:131",
+        "src/server/conversation.ts:159",
+        "src/server/conversation.ts:183"
+      ]
+    },
+    {
+      "id": "LAT-03",
+      "finding": "Both speech engines run on CPU. Even model-free spoken navigation needs about 2s ASR and 1.5s TTS, on top of the 900ms client silence threshold.",
+      "source": [
+        "scripts/local-speech-worker.py:63",
+        "scripts/local-speech-worker.mjs:53"
+      ]
+    },
+    {
+      "id": "LAT-04",
+      "finding": "Provider streaming is consumed internally but speech starts only after response.completed. First-sentence-to-completion opportunity was 90,139,904ms in measured single-request replies; streaming alone cannot remove seconds spent before any text arrives. Natural navigation also required a preceding tool-selection request.",
+      "source": [
+        "src/server/chatgpt-plan/inference.ts:98",
+        "src/server/plan-reasoner.ts:36"
+      ]
+    },
+    {
+      "id": "LAT-05",
+      "finding": "Warm public today requests were 68-95ms vs 5-16ms locally; first public request was 476ms. Deployed simple spoken navigation estimated 4.580-4.823s and a general question 8.392s to downloaded first WAV including nominal endpoint delay. Tunnel/database are not dominant in these measurements.",
+      "source": [
+        ".local/probes/latency-http.json"
+      ]
+    },
+    {
+      "id": "LAT-06",
+      "finding": "Whole first speech parts can take seconds: 0.988-1.940s for measured 29-52 character short replies, 4.224s for 120 characters. Subsequent parts are already prefetched during playback; do not call that missing or claim all chunks are generated serially before playback.",
+      "source": [
+        "src/shared/speech-parts.ts:21",
+        "src/client/local-voice.ts:140"
+      ]
+    }
+  ],
+  "recommended_order": [
+    "Correct common natural navigation/standard readback routing and avoid a second model call just to acknowledge successful navigation, retaining identical care authorization.",
+    "Qualify acceleration of the existing ASR model and Heart runtime on existing hardware before choosing any paid speech service or changing voices. The installed GPU path has not passed warmup.",
+    "Make the first reply concise and overlap coherent first-sentence synthesis with model completion where safe. Never speak unvalidated tool claims or expose a cancelled/stale response.",
+    "Measure microphone-end, upload, ASR, each model round, first TTS part and actual playback on the iPhone; then tune endpointing without clipping hesitant speech. Preserve the selected 900ms setting until a tested change.",
+    "Reassess residual Sol-high latency after application overhead is reduced. No model, reasoning-effort or billing change is authorized by this diagnosis."
+  ],
+  "limits": [
+    "No actual iPhone microphone/network/playback timestamps were captured; real phone delay may be longer.",
+    "No p95, mobile radio benchmark, acoustic interruption retest or full S01 live gate run.",
+    "No optimization was deployed in this diagnosis. Prior automated results remain historical/current for unchanged app code; no new application-test pass is asserted."
+  ],
+  "official_references": [
+    "https://developers.openai.com/api/docs/guides/streaming-responses",
+    "https://developers.openai.com/api/docs/guides/latency-optimization"
+  ],
+  "private_evidence_refs": [
+    ".local/probes/latency-instrumented.json",
+    ".local/probes/latency-natural-navigation.json",
+    ".local/probes/latency-http.json",
+    ".local/probes/latency-gpu-asr.json"
+  ],
+  "diagnostic_setup_notes": [
+    "Initial probe guard rejected a mismatched synthetic marker before inference; corrected to the existing exact fixture marker.",
+    "First isolated remote-inference attempt was unavailable under restricted network execution; authorized network run passed.",
+    "Initial loopback probe used fetch with a Host override that did not reach the server as intended; server rejected it. Native Node HTTP with the configured host/origin passed. No host checks were weakened."
+  ]
+}
