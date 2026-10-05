@@ -7,7 +7,7 @@ async function scan(path: string) {
   for (const entry of await readdir(path, { withFileTypes: true })) {
     const name = join(path, entry.name).replaceAll('\\', '/');
     if (entry.isDirectory()) await scan(name);
-    else if (entry.isFile() && /\.(ts|tsx|js|mjs|css|sql|ps1|py)$/.test(name)) files.push(name);
+    else if (entry.isFile() && /\.(ts|tsx|js|mjs|css|sql|ps1|py|txt)$/.test(name)) files.push(name);
   }
 }
 for (const root of roots) await scan(root);

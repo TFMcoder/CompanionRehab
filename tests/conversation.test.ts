@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { ConversationService } from '../src/server/conversation.js';
+import { navigationIntent, navigationReply } from '../src/server/navigation-intent.js';
 import type { CareService } from '../src/server/care-access.js';
 import type { Reasoner } from '../src/server/plan-reasoner.js';
 import type { CompletedTurn } from '../src/server/chatgpt-plan/inference.js';
@@ -19,6 +20,34 @@ function make(responses: CompletedTurn[] = [textResponse('What would you like fo
   return { care, respond, service };
 }
 describe('Nancy conversation orchestration', () => {
+  it.each([
+    ['Can you show me my tasks?', 'tasks'],
+    ['Nancy, could you please open my task list?', 'tasks'],
+    ['I’d like to see the meal screen.', 'meals'],
+    ['Please, Nancy, show me my groceries.', 'groceries'],
+    ['Take me to My Day.', 'my_day'],
+    ['Can we look at the grocery list?', 'groceries'],
+  ] as const)('routes a complete navigation request: %s', (utterance, view) => {
+    expect(navigationIntent(utterance)).toBe(view);
+  });
+  it('uses fixed non-personal acknowledgments for the four supported views', () => {
+    expect(['my_day', 'tasks', 'meals', 'groceries'].map(view => navigationReply(view as 'my_day' | 'tasks' | 'meals' | 'groceries'))).toEqual([
+      'Here is My Day.', 'Here are your tasks.', 'Here are your meals.', 'Here is your grocery list.',
+    ]);
+  });
+  it.each([
+    'Can you show me my tasks and tell me which is urgent?',
+    "Don't show me my tasks.",
+    'Can you not show my tasks?',
+    'What tasks do I have today?',
+    'Show me my tasks for tomorrow.',
+    'Show me my tasks or my meals.',
+    'Show me my tasks after adding milk.',
+    "I don't want to see my tasks.",
+    'Please show me what tasks are due.',
+  ])('leaves compound, negated or substantive request to Nancy: %s', utterance => {
+    expect(navigationIntent(utterance)).toBeUndefined();
+  });
   it('opens without a check-in write or workflow selection, binds owner and login', async () => {
     const { service, care, respond } = make(); const start = await service.start(session);
     expect(start.text).toBe('Hi Test, what can I help with?');
@@ -27,17 +56,43 @@ describe('Nancy conversation orchestration', () => {
     await expect(service.speech(start.session_id, { ...session, session_id: randomUUID() }, start.reply_id)).rejects.toMatchObject({ status: 404 });
   });
   it('reads fresh context on each turn and preserves conversation while navigating', async () => {
-    const { service, respond, care } = make([callResponse('navigate', { view: 'meals' }), textResponse('Here are your meal choices.'), textResponse('Let’s discuss tasks instead.')]);
+    const { service, respond, care } = make([callResponse('navigate', { view: 'meals' }), textResponse('Let’s discuss tasks instead.')]);
     const start = await service.start(session);
-    const first = await service.turn(start.session_id, session, randomUUID(), 'I would like to see the meal screen');
+    const first = await service.turn(start.session_id, session, randomUUID(), 'Could you put the meals up on screen?');
     expect(first.navigate).toBe('meals');
+    expect(first.text).toBe('Here are your meals.');
+    expect(respond).toHaveBeenCalledTimes(1);
     await service.turn(start.session_id, session, randomUUID(), 'Actually, tasks');
-    expect(respond.mock.calls[2][0]).toEqual(expect.arrayContaining([expect.objectContaining({ content: 'I would like to see the meal screen' })]));
+    expect(respond.mock.calls[1][0]).toEqual(expect.arrayContaining([expect.objectContaining({ content: 'Could you put the meals up on screen?' })]));
     expect(care.today).toHaveBeenCalledTimes(4);
+  });
+  it('does not fast-route a substantive task question and keeps the model response', async () => {
+    const { service, respond } = make([textResponse('You have one task due this morning.')]);
+    const start = await service.start(session);
+    const reply = await service.turn(start.session_id, session, randomUUID(), 'What tasks are due this morning?');
+    expect(reply.navigate).toBeUndefined();
+    expect(reply.text).toBe('You have one task due this morning.');
+    expect(respond).toHaveBeenCalledTimes(1);
+    expect(respond.mock.calls[0][1]).toContain('normally with one short sentence or question');
+  });
+  it('does not discard other model tool actions when navigation is one of multiple calls', async () => {
+    const first = { ...textResponse(''), output: [
+      { type: 'function_call', name: 'navigate', call_id: randomUUID(), arguments: JSON.stringify({ view: 'tasks' }) },
+      { type: 'function_call', name: 'get_daily_brief', call_id: randomUUID(), arguments: '{}' },
+    ] } as CompletedTurn;
+    const { service, respond } = make([first, textResponse('Here are the current tasks.')]);
+    const start = await service.start(session);
+    const reply = await service.turn(start.session_id, session, randomUUID(), 'Could you put my tasks up and read the latest brief?');
+    expect(reply.navigate).toBe('tasks');
+    expect(reply.text).toBe('Here are the current tasks.');
+    expect(respond).toHaveBeenCalledTimes(2);
+    expect(respond.mock.calls[1][0].filter((item: { type?: string }) => item.type === 'function_call_output')).toHaveLength(2);
   });
   it('opens a known view immediately without a model round trip', async () => {
     const { service, respond } = make(); const start = await service.start(session);
     expect((await service.turn(start.session_id, session, randomUUID(), 'Please show my meals.')).navigate).toBe('meals');
+    const tasks = await service.turn(start.session_id, session, randomUUID(), 'Can you show me my tasks?');
+    expect(tasks).toMatchObject({ navigate: 'tasks', text: 'Here are your tasks.' });
     expect(respond).not.toHaveBeenCalled();
   });
   it('starts a requested planning conversation from saved options without a model round trip or write', async () => {

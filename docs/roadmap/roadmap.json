@@ -736,9 +736,9 @@
         "S03",
         "S04"
       ],
-      "implementation_revision": "sha256:20610cbcb13f3b210d7f7969d517dbe469eca54e0c25735986d8e864cb496524",
+      "implementation_revision": "sha256:22b64add541a3102503148242c113f05c0588eddccd7f0cea6c95bd80cbe6249",
       "blockers": [
-        "October 5 latency follow-up: owner still finds Nancy too slow. The diagnostic at docs/evidence/S01-LATENCY-DIAGNOSIS-2026-10-05.json confirms sequential CPU speech and completed-model waits, plus a natural-navigation fast-path miss causing two GPT calls and a long first speech part. Prioritize these measured delays within S01; preserve Heart, GPT-6 Sol/high, authorization and explicit plan acceptance. Do not claim voice latency accepted or S01 complete.",
+        "October 5 latency fixes deployed; see docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Natural navigation now avoids two GPT calls, fixed Heart acknowledgements are primed, CUDA ASR is qualified on six synthetic phrases and validated first-part preparation overlaps some model output. Public exact-navigation estimates improved from 4.58-4.82s to 1.83-1.85s; natural navigation was 1.93s through HTTPS. General GPT answers remain variable (one public sample 9.17s). Actual revised iPhone/Safari latency, interruption and participant acceptance are still required. Preserve Heart and Sol/high; S01 is not complete.",
         "S01-LIVE2 is partial: encrypted restore and integrated planning passed, but the complete provider-loss/revocation/allowance, device and full-role scenario remains open. S01-LIVE1 has not run on the consenting participant's iPhone/Safari with genuine tasks/meals.",
         "Owner approved the temporary authenticated sample-data My Day Cloudflare route; HTTPS sign-in, care access denial, session revocation and Heart greeting delivery passed. See docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json. The owner reported an initial device trial; revised conversation quality and stable HTTPS operation remain unqualified.",
         "The intended participant account/deployment eligibility and live credential lifecycle are not established by owner-only synthetic inference. No paid API/model fallback is enabled.",
@@ -750,24 +750,24 @@
         {
           "test_id": "S01-AUTO1",
           "outcome": "pass",
-          "implementation_revision": "sha256:20610cbcb13f3b210d7f7969d517dbe469eca54e0c25735986d8e864cb496524",
-          "executed_at": "2026-10-05T21:47:03.454Z",
+          "implementation_revision": "sha256:22b64add541a3102503148242c113f05c0588eddccd7f0cea6c95bd80cbe6249",
+          "executed_at": "2026-10-05T22:22:48Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex automated engineering checks",
-          "evidence_ref": "docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json",
-          "notes": "Shared voice/touch proposal and exact-review acceptance tests pass. Late played acknowledgements after interruption are rejected; cancelled model results cannot add new actions. Broad suite passed 158 tests, with 16 relevant client-voice/detector tests and build repeated after the final onset-buffer-only change. Actual audible acceptance remains a live gate."
+          "evidence_ref": "docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json",
+          "notes": "Current code: 187 tests pass across 24 files; one optional PostgreSQL test skipped. Typecheck/build pass. Tests cover natural navigation ambiguity, exact model binding, tentative/final speech matching, stale/cancelled reply invalidation, readback/acceptance and cache bounds. Actual PostgreSQL/selected providers separately exercised with synthetic records."
         },
         {
           "test_id": "S01-LIVE2",
           "outcome": "blocked",
-          "implementation_revision": "sha256:20610cbcb13f3b210d7f7969d517dbe469eca54e0c25735986d8e864cb496524",
-          "executed_at": "2026-10-05T21:40:35.691Z",
+          "implementation_revision": "sha256:22b64add541a3102503148242c113f05c0588eddccd7f0cea6c95bd80cbe6249",
+          "executed_at": "2026-10-05T22:30:21.819Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
-          "observed_by": "Codex engineering checks with practice records/generated audio; owner separately reported earlier device feedback",
-          "evidence_ref": "docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json",
-          "notes": "Partial live-service regression passed for the unchanged final backend: actual Sol-high plan, Heart/ASR, one-commit confirmation, HTTPS interruption and same-session recovery. Generated Heart echo tests pass after the frontend detector fix. Final browser-only detector/onset changes have automated coverage; actual revised iPhone audio and complete provider/role/lifecycle LIVE2 coverage remain outstanding. This is not a full live-gate pass."
+          "observed_by": "Codex actual service probes with synthetic care records/generated Heart WAVs",
+          "evidence_ref": "docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json",
+          "notes": "Partial current-revision engineering acceptance passed: six CPU/GPU phrase comparisons, real Sol-high/Heart/ASR care planning, 23 live request checks, exact spoken synthetic acceptance/replay/relogin, 13 HTTPS interruption/recovery assertions and measured public latency. Full device, provider-loss/lifecycle/allowance and role scenario coverage remains open. No physical iPhone audio or participant acceptance was observed."
         }
       ],
       "human_actions": [
@@ -789,7 +789,7 @@
             "Prepare and test the HTTPS page for iPhone/Safari; separately qualify Safari tab and Home Screen web-app audio/lifecycle behavior before relying on either.",
             "Configure and debug microphone/audio code; provide short test prompts."
           ],
-          "expected_evidence": "Device/browser and actual microphone plus audible observations, first for the sample device preview and then linked to the integrated S01 live evidence. A desktop phone-sized viewport, generated audio or dictated-text mock is insufficient. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. Owner subsequently reports that latency is still too high. docs/evidence/S01-LATENCY-DIAGNOSIS-2026-10-05.json records engineering diagnosis; further latency work and actual-device measurement are required, not another voice audition.",
+          "expected_evidence": "Device/browser and actual microphone plus audible observations, first for the sample device preview and then linked to the integrated S01 live evidence. A desktop phone-sized viewport, generated audio or dictated-text mock is insufficient. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. Owner subsequently reports that latency is still too high. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Navigation is faster; general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required.",
           "related_input_ids": [
             "I-DEVICE"
           ],
@@ -998,7 +998,7 @@
             "Integrate the selected Heart voice with warm local synthesis, coherent sentence delivery, cancellation and the Sol-high/care-command flow. Finish the working day-planning and nutrition conversation before asking for its actual-device trial. Archive alternative-model experiments; do not extend the voice search.",
             "Save only the selected preference and consent state; keep raw samples/audio private or synthetic."
           ],
-          "expected_evidence": "Owner Heart-selection decision is recorded at docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart. Remaining evidence: actual-device conversation delivery and foreground-wake consent references; neither is a new voice-choice gate. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. Owner subsequently reports that latency is still too high. docs/evidence/S01-LATENCY-DIAGNOSIS-2026-10-05.json records engineering diagnosis; further latency work and actual-device measurement are required, not another voice audition.",
+          "expected_evidence": "Owner Heart-selection decision is recorded at docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart. Remaining evidence: actual-device conversation delivery and foreground-wake consent references; neither is a new voice-choice gate. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. Owner subsequently reports that latency is still too high. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Navigation is faster; general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required.",
           "related_input_ids": [
             "I-VOICE-CHOICE",
             "I-WAKE-CONSENT"
@@ -3777,7 +3777,7 @@
       "api_model_id": "gpt-6-sol",
       "model_input_id": "I-MODEL",
       "api": "Responses-based gpt-6-sol high reasoning through a supported ChatGPT-plan adapter, preferably minimal local Codex app-server where qualified; care service owns tool execution. API-key billing is an explicitly selected fallback.",
-      "speech_policy": "Use owner-selected Kokoro Heart (af_heart), female, as Nancy speech output. The owner explicitly closed voice selection; no additional comparison or voice-choice approval is required. Retain kokoro-js 1.2.1, pinned ONNX checkpoint 1939ad2a8e416c0acfeecc08a694d14ef25f2231, CPU fp32 and normal speed. Keep the model warm and synthesize coherent phrases/sentences as Sol text becomes available; Kokoro returns each full waveform, so Pocket native-chunk timing is not Heart performance evidence. Integrate local speech input, Heart playback/cancellation, GPT-6 Sol high and authorized care commands. Actual iPhone/Safari conversation timing, interruptions, privacy and foreground wake consent still require qualification. Never silently change voice, model or billing. See docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart.",
+      "speech_policy": "Use owner-selected Kokoro Heart (af_heart), female, as Nancy speech output. The owner explicitly closed voice selection; no additional comparison or voice-choice approval is required. Retain kokoro-js 1.2.1, pinned ONNX checkpoint 1939ad2a8e416c0acfeecc08a694d14ef25f2231, CPU fp32 and normal speed. Keep the model warm and synthesize coherent phrases/sentences as Sol text becomes available; Kokoro returns each full waveform, so Pocket native-chunk timing is not Heart performance evidence. Integrate local speech input, Heart playback/cancellation, GPT-6 Sol high and authorized care commands. Actual iPhone/Safari conversation timing, interruptions, privacy and foreground wake consent still require qualification. Never silently change voice, model or billing. See docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart. October 5 latency implementation: keep the same pinned small.en ASR model; explicitly qualified CUDA float16 on this local RTX 4050 using isolated pinned NVIDIA DLLs. CPU int8 remains the configuration default elsewhere, with no silent GPU-to-CPU fallback. Prime fixed Heart navigation phrases and prepare matching first-part speech during model output, releasing it only after completed exact-model validation and authorization. Navigation estimates improved; general Sol-high response delay remains variable. Evidence: docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json.",
       "source_refs": [
         "https://developers.openai.com/api/docs/models/gpt-6-sol",
         "https://developers.openai.com/api/docs/guides/secure-mcp-tunnels",

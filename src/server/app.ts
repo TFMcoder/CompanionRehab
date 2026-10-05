@@ -70,7 +70,8 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     if (error && typeof error === 'object' && 'statusCode' in error && error.statusCode === 413) return reply.code(413).send({ error: { code: 'too_large', message: 'That request is too large.' } });
     return reply.code(500).send({ error: { code: 'unexpected', message: 'Nancy could not finish that request. A save may be unconfirmed; check the plan before trying again.' } });
   });
-  app.get('/api/config', async () => ({ configured: missingConfig(config).length === 0, voice_available: missingConfig(config).length === 0 && (config.voiceTransport === 'local' ? !!conversation && !!speech : !!config.openaiKey), voice_transport: config.voiceTransport, synthetic: !!config.synthetic, assistant_name: 'Nancy', missing: missingConfig(config) }));
+  const localSpeechReady = () => !!conversation && speech?.readiness().kokoro === 'ready' && speech.readiness().asr === 'ready';
+  app.get('/api/config', async () => ({ configured: missingConfig(config).length === 0, voice_available: missingConfig(config).length === 0 && (config.voiceTransport === 'local' ? localSpeechReady() : !!config.openaiKey), voice_transport: config.voiceTransport, synthetic: !!config.synthetic, assistant_name: 'Nancy', missing: missingConfig(config) }));
   app.post('/api/auth/login', async (request, reply) => {
     limit(request, `login:${request.ip}`, 8);
     if (missingConfig(config).length) throw new ApiError(503, 'not_configured', 'The care service has not been connected yet.');
@@ -104,7 +105,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     return care.setAppointment(sessions.get(request)!, input);
   });
   const localConversation = () => {
-    if (!conversation || !speech) throw new ApiError(503, 'voice_unavailable', 'Nancy’s selected voice connection is unavailable. You can use the buttons.');
+    if (!conversation || !speech || !localSpeechReady()) throw new ApiError(503, 'voice_unavailable', 'Nancy’s selected voice connection is unavailable. You can use the buttons.');
     return { conversation, speech };
   };
   const conversationId = (request: FastifyRequest) => uuid.parse((request.params as { id: string }).id);
@@ -149,7 +150,11 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
       if (speaking.has(key)) throw new ApiError(409, 'speech_busy', 'Nancy is still preparing that reply.');
       const controller = new AbortController(); speaking.set(key, controller);
       reply.raw.once('close', () => { if (!reply.raw.writableFinished) controller.abort(); });
-      try { audio = await speech.synthesize(text, controller.signal); await conversation.speech(id, session, turn_id); }
+      try {
+        audio = await conversation.preparedAudio(id, session, turn_id, text, controller.signal)
+          ?? await speech.synthesize(text, controller.signal);
+        await conversation.speech(id, session, turn_id);
+      }
       finally { if (speaking.get(key) === controller) speaking.delete(key); }
       audioCache.set(cacheKey, audio);
       while (audioCache.size > 4) audioCache.delete(audioCache.keys().next().value!);

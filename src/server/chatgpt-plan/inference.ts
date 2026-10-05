@@ -63,6 +63,8 @@ export interface SolHighTimingProbeResult {
   samples: SolHighTimingSample[];
 }
 interface StreamTimingObserver {
+  /** Tentative assistant text only; callers must wait for the validated final turn before publishing it. */
+  textDelta?: (delta: string) => void;
   firstTextDelta?: (elapsedMs: number) => void;
   firstSpeakable?: (elapsedMs: number) => void;
   completed?: (elapsedMs: number, usage: ProbeResult['usage']) => void;
@@ -112,6 +114,7 @@ export async function requestSolHigh(account: PlanCredential, input: OutputItem[
         try { item = JSON.parse(data) as Record<string, unknown>; } catch { throw new Error('Invalid ChatGPT response stream.'); }
         if (item.type === 'response.output_text.delta' && typeof item.delta === 'string') {
           text = (text + item.delta).slice(0, 2000);
+          if (!signal?.aborted) timing?.textDelta?.(item.delta);
           if (timing && item.delta.length > 0) {
             observedText = (observedText + item.delta).slice(-2000);
             if (!firstDeltaSeen) { firstDeltaSeen = true; timing.firstTextDelta?.(performance.now() - started); }

@@ -1,0 +1,842 @@
+{
+  "slice_id": "S01",
+  "status": "deployed_latency_improvements_awaiting_actual_device_acceptance",
+  "recorded_at": "2026-10-05T22:31:56.872Z",
+  "implementation_revision": "sha256:22b64add541a3102503148242c113f05c0588eddccd7f0cea6c95bd80cbe6249",
+  "source_base_commit": "c97470a1b42bd3bb76994b3894e3bd457a4d3dab",
+  "owner_direction": "Implement the measured latency fixes; retain owner-selected Heart, GPT-6 Sol high, local care storage and the existing approved HTTPS pilot.",
+  "changes": [
+    "Recognize anchored natural requests to open one authorized view without inference. Negations, compound requests and substantive questions remain on the reasoning path. A single validated model navigation call uses the same fixed acknowledgement without a second model call.",
+    "Prime four short Heart navigation acknowledgements before the server accepts requests, using a bounded memory cache. Retain the existing bounded short-greeting cache; arbitrary care replies are not globally cached.",
+    "Use an isolated pinned NVIDIA runtime for explicit local CUDA small.en float16 transcription. CPU int8 remains the default for other configurations. Wrong runtime/device fails closed with voice unavailable, rather than silently falling back.",
+    "Keep the first spoken sentence separate; ask for concise replies. Tentatively prepare the first complete speech part while assistant text streams, releasing it only after completed exact-model validation, matching final text and renewed care authorization. Interruption, logout, tool narration, changed output and eviction discard it.",
+    "Retain Kokoro Heart CPU fp32 and normal speed, the configured 900 ms silence threshold, GPT-6 Sol high, care commands, accepted-plan confirmation and the public pilot URL."
+  ],
+  "method": {
+    "data": "Generated synthetic Heart WAVs and explicitly synthetic owner practice records. No human microphone capture or private transcript is included here.",
+    "time": "Monotonic service durations. Estimated end-of-speech values add the configured 900 ms silence threshold to measured request/first-WAV durations; physical phone endpointing, decoding and playback are not measured.",
+    "comparison": "Same fixed synthetic input phrases as the prior diagnosis. Model wording and remote response timing vary; this is a small sample, not p95 or a controlled provider benchmark.",
+    "authorization": "Instrumented comparisons deny durable care writes and confirmed the saved plan unchanged. Separate live acceptance regression intentionally accepts a disposable synthetic practice plan."
+  },
+  "runtime": {
+    "asr_model": "Systran/faster-whisper-small.en",
+    "asr_revision": "d1d751a5f8271d482d14ca55d9e2deeebbae577f",
+    "faster_whisper": "1.2.1",
+    "ctranslate2": "4.8.2",
+    "device": "cuda",
+    "compute_type": "float16",
+    "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+    "tts": "Kokoro Heart af_heart CPU fp32, normal speed",
+    "nvidia_wheels": {
+      "cuda_runtime": "12.9.79",
+      "cuda_nvrtc": "12.9.86",
+      "cublas": "12.9.2.10",
+      "cudnn": "9.22.0.52"
+    },
+    "installation": "Isolated target on the existing D: drive because C: lacked room; no machine-wide PATH change. Explicit NANCY_ASR_CUDA_ROOT and NANCY_ASR_DEVICE in private local configuration.",
+    "new_monthly_service_cost_cad": 0
+  },
+  "automated": {
+    "command": "npm run check",
+    "started_at": "2026-10-05T22:22:48Z",
+    "status": "passed",
+    "test_files_passed": 24,
+    "tests_passed": 187,
+    "tests_skipped": 1,
+    "skip_reason": "Optional PostgreSQL integration test requires its dedicated opt-in configuration; actual local PostgreSQL was exercised by the live-service regression.",
+    "typecheck": "passed",
+    "production_build": "passed",
+    "diff_check": "passed",
+    "additional_worker_checks": {
+      "observed_at": "2026-10-05T22:29:43.7866413Z",
+      "bad_cuda_root_exit": 1,
+      "ready_emitted": false,
+      "status": "passed"
+    }
+  },
+  "gpu_qualification": {
+    "observed_at": "2026-10-05T22:25:57.350Z",
+    "status": "passed",
+    "method": "Same Heart synthetic WAV buffers; pinned small.en; sequential CPU int8 then CUDA float16; digits retained in comparison; no raw transcripts saved",
+    "devices": [
+      {
+        "device": "cpu",
+        "compute_type": "int8",
+        "warmup_ms": 3953,
+        "samples": [
+          {
+            "id": "navigation",
+            "ms": 1995,
+            "normalized_match": true,
+            "audio_seconds": 1.75
+          },
+          {
+            "id": "natural_navigation",
+            "ms": 1975,
+            "normalized_match": true,
+            "audio_seconds": 2
+          },
+          {
+            "id": "open_question",
+            "ms": 2248,
+            "normalized_match": true,
+            "audio_seconds": 6.4
+          },
+          {
+            "id": "numbers_negation",
+            "ms": 2285,
+            "normalized_match": true,
+            "audio_seconds": 6.5
+          },
+          {
+            "id": "meal_planning",
+            "ms": 2259,
+            "normalized_match": true,
+            "audio_seconds": 5.15
+          },
+          {
+            "id": "carryover",
+            "ms": 2237,
+            "normalized_match": true,
+            "audio_seconds": 4.97
+          }
+        ]
+      },
+      {
+        "device": "cuda",
+        "compute_type": "float16",
+        "warmup_ms": 6102,
+        "samples": [
+          {
+            "id": "navigation",
+            "ms": 565,
+            "normalized_match": true,
+            "audio_seconds": 1.75
+          },
+          {
+            "id": "natural_navigation",
+            "ms": 613,
+            "normalized_match": true,
+            "audio_seconds": 2
+          },
+          {
+            "id": "open_question",
+            "ms": 936,
+            "normalized_match": true,
+            "audio_seconds": 6.4
+          },
+          {
+            "id": "numbers_negation",
+            "ms": 934,
+            "normalized_match": true,
+            "audio_seconds": 6.5
+          },
+          {
+            "id": "meal_planning",
+            "ms": 918,
+            "normalized_match": true,
+            "audio_seconds": 5.15
+          },
+          {
+            "id": "carryover",
+            "ms": 898,
+            "normalized_match": true,
+            "audio_seconds": 4.97
+          }
+        ]
+      }
+    ],
+    "other_gpu_activity": "Other local applications may use the GPU; not an isolated hardware benchmark"
+  },
+  "instrumented": {
+    "observed_at": "2026-10-05T22:27:22.915Z",
+    "kind": "instrumented actual services; synthetic input; no browser",
+    "source_revision": "sha256:22b64add541a3102503148242c113f05c0588eddccd7f0cea6c95bd80cbe6249",
+    "model": "gpt-6-sol",
+    "effort": "high",
+    "voice": "af_heart",
+    "cpu": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+    "logical_cpus": 16,
+    "memory_gib": {
+      "total": 15.29,
+      "free": 2.82
+    },
+    "samples": [
+      {
+        "id": "navigation",
+        "input_audio_seconds": 1.75,
+        "care_calls": [
+          {
+            "operation": "authorize",
+            "ms": 12
+          },
+          {
+            "operation": "today",
+            "ms": 16
+          },
+          {
+            "operation": "authorize",
+            "ms": 12
+          },
+          {
+            "operation": "today",
+            "ms": 11
+          }
+        ],
+        "model_calls": [],
+        "speech_parts": [
+          {
+            "characters": 20,
+            "synthesis_ms": 24,
+            "audio_ms": 1750
+          }
+        ],
+        "asr_ms": 643,
+        "transcript_matches": true,
+        "turn_text_ms": 675,
+        "prepared_parts_used": 0,
+        "first_audio_ready_ms": 699,
+        "non_asr_turn_ms": 32,
+        "estimated_end_of_speech_to_audio_ready_ms": 1599
+      },
+      {
+        "id": "open_question",
+        "input_audio_seconds": 6.4,
+        "care_calls": [
+          {
+            "operation": "authorize",
+            "ms": 1
+          },
+          {
+            "operation": "today",
+            "ms": 5
+          },
+          {
+            "operation": "authorize",
+            "ms": 6
+          },
+          {
+            "operation": "today",
+            "ms": 6
+          }
+        ],
+        "model_calls": [
+          {
+            "request_bytes": 12482,
+            "events": {
+              "response.created": 1777,
+              "response.in_progress": 1781,
+              "response.output_item.added": 2279,
+              "response.output_item.done": 2935,
+              "response.content_part.added": 2935,
+              "response.output_text.delta": 2935,
+              "response.output_text.done": 3171,
+              "response.content_part.done": 3171,
+              "response.completed": 3176
+            },
+            "headers_ms": 1770,
+            "status": 200,
+            "first_sentence_ms": 3027,
+            "completed_ms": 3176,
+            "usage": {
+              "input_tokens": 2871,
+              "output_tokens": 49,
+              "reasoning_tokens": 35,
+              "cached_tokens": 0
+            }
+          }
+        ],
+        "speech_parts": [
+          {
+            "characters": 29,
+            "synthesis_ms": 1032,
+            "audio_ms": 2050
+          }
+        ],
+        "asr_ms": 1048,
+        "transcript_matches": true,
+        "turn_text_ms": 4273,
+        "prepared_parts_used": 0,
+        "first_audio_ready_ms": 5305,
+        "non_asr_turn_ms": 3225,
+        "estimated_end_of_speech_to_audio_ready_ms": 6205
+      },
+      {
+        "id": "read_tasks",
+        "input_audio_seconds": 5.93,
+        "care_calls": [
+          {
+            "operation": "authorize",
+            "ms": 1
+          },
+          {
+            "operation": "today",
+            "ms": 8
+          },
+          {
+            "operation": "authorize",
+            "ms": 2
+          },
+          {
+            "operation": "today",
+            "ms": 4
+          },
+          {
+            "operation": "authorize",
+            "ms": 2
+          },
+          {
+            "operation": "today",
+            "ms": 3
+          },
+          {
+            "operation": "authorize",
+            "ms": 1
+          },
+          {
+            "operation": "today",
+            "ms": 3
+          },
+          {
+            "operation": "authorize",
+            "ms": 1
+          },
+          {
+            "operation": "today",
+            "ms": 3
+          }
+        ],
+        "model_calls": [
+          {
+            "request_bytes": 12469,
+            "events": {
+              "response.created": 1328,
+              "response.in_progress": 1331,
+              "response.output_item.added": 1802,
+              "response.content_part.added": 1802,
+              "response.output_text.delta": 1802,
+              "response.output_text.done": 2645,
+              "response.content_part.done": 2645,
+              "response.output_item.done": 2645,
+              "response.completed": 2645
+            },
+            "headers_ms": 1326,
+            "status": 200,
+            "first_sentence_ms": 2340,
+            "completed_ms": 2645,
+            "usage": {
+              "input_tokens": 2866,
+              "output_tokens": 48,
+              "reasoning_tokens": 0,
+              "cached_tokens": 0
+            }
+          }
+        ],
+        "speech_parts": [
+          {
+            "characters": 116,
+            "synthesis_ms": 3683,
+            "audio_ms": 8575
+          },
+          {
+            "characters": 7,
+            "synthesis_ms": 728,
+            "audio_ms": 1575
+          },
+          {
+            "characters": 45,
+            "synthesis_ms": 1342,
+            "audio_ms": 2900
+          }
+        ],
+        "asr_ms": 800,
+        "transcript_matches": true,
+        "turn_text_ms": 3461,
+        "prepared_parts_used": 1,
+        "first_audio_ready_ms": 7145,
+        "non_asr_turn_ms": 2661,
+        "estimated_end_of_speech_to_audio_ready_ms": 8045
+      },
+      {
+        "id": "open_question_repeat",
+        "input_audio_seconds": 6.4,
+        "care_calls": [
+          {
+            "operation": "authorize",
+            "ms": 1
+          },
+          {
+            "operation": "today",
+            "ms": 2
+          },
+          {
+            "operation": "authorize",
+            "ms": 2
+          },
+          {
+            "operation": "today",
+            "ms": 3
+          }
+        ],
+        "model_calls": [
+          {
+            "request_bytes": 12482,
+            "events": {
+              "response.created": 3910,
+              "response.in_progress": 3922,
+              "response.output_item.added": 4624,
+              "response.output_item.done": 5441,
+              "response.content_part.added": 5450,
+              "response.output_text.delta": 5460,
+              "response.output_text.done": 5771,
+              "response.content_part.done": 5812,
+              "response.completed": 5848
+            },
+            "headers_ms": 3909,
+            "status": 200,
+            "first_sentence_ms": 5537,
+            "completed_ms": 5848,
+            "usage": {
+              "input_tokens": 2871,
+              "output_tokens": 57,
+              "reasoning_tokens": 43,
+              "cached_tokens": 0
+            }
+          }
+        ],
+        "speech_parts": [
+          {
+            "characters": 29,
+            "synthesis_ms": 995,
+            "audio_ms": 2050
+          }
+        ],
+        "asr_ms": 942,
+        "transcript_matches": true,
+        "turn_text_ms": 6798,
+        "prepared_parts_used": 0,
+        "first_audio_ready_ms": 7793,
+        "non_asr_turn_ms": 5856,
+        "estimated_end_of_speech_to_audio_ready_ms": 8693
+      }
+    ],
+    "worker_startup_ms": 6359,
+    "blocked_writes": 0,
+    "saved_plan_unchanged": true,
+    "status": "passed"
+  },
+  "natural_navigation": {
+    "observed_at": "2026-10-05T22:28:26.701Z",
+    "kind": "instrumented actual services; synthetic input; no browser",
+    "source_revision": "sha256:22b64add541a3102503148242c113f05c0588eddccd7f0cea6c95bd80cbe6249",
+    "model": "gpt-6-sol",
+    "effort": "high",
+    "voice": "af_heart",
+    "cpu": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+    "logical_cpus": 16,
+    "memory_gib": {
+      "total": 15.29,
+      "free": 3.13
+    },
+    "samples": [
+      {
+        "id": "natural_navigation",
+        "input_audio_seconds": 2,
+        "care_calls": [
+          {
+            "operation": "authorize",
+            "ms": 1
+          },
+          {
+            "operation": "today",
+            "ms": 9
+          },
+          {
+            "operation": "authorize",
+            "ms": 2
+          },
+          {
+            "operation": "today",
+            "ms": 8
+          }
+        ],
+        "model_calls": [],
+        "speech_parts": [
+          {
+            "characters": 20,
+            "synthesis_ms": 10,
+            "audio_ms": 1750
+          }
+        ],
+        "asr_ms": 623,
+        "transcript_matches": true,
+        "turn_text_ms": 637,
+        "prepared_parts_used": 0,
+        "first_audio_ready_ms": 647,
+        "non_asr_turn_ms": 14,
+        "estimated_end_of_speech_to_audio_ready_ms": 1547
+      }
+    ],
+    "worker_startup_ms": 5834,
+    "blocked_writes": 0,
+    "saved_plan_unchanged": true,
+    "status": "passed"
+  },
+  "deployed": {
+    "observed_at": "2026-10-05T22:28:44.529Z",
+    "kind": "actual deployed service over loopback and public HTTPS; generated audio; no browser",
+    "network": [
+      {
+        "route": "local",
+        "sample": 0,
+        "ms": 16,
+        "headers_ms": 16,
+        "bytes": 4843
+      },
+      {
+        "route": "https",
+        "sample": 0,
+        "ms": 460,
+        "headers_ms": 457,
+        "bytes": 4843
+      },
+      {
+        "route": "local",
+        "sample": 1,
+        "ms": 12,
+        "headers_ms": 12,
+        "bytes": 4843
+      },
+      {
+        "route": "https",
+        "sample": 1,
+        "ms": 120,
+        "headers_ms": 119,
+        "bytes": 4843
+      },
+      {
+        "route": "local",
+        "sample": 2,
+        "ms": 6,
+        "headers_ms": 6,
+        "bytes": 4843
+      },
+      {
+        "route": "https",
+        "sample": 2,
+        "ms": 77,
+        "headers_ms": 76,
+        "bytes": 4843
+      },
+      {
+        "route": "local",
+        "sample": 3,
+        "ms": 18,
+        "headers_ms": 18,
+        "bytes": 4843
+      },
+      {
+        "route": "https",
+        "sample": 3,
+        "ms": 75,
+        "headers_ms": 75,
+        "bytes": 4843
+      },
+      {
+        "route": "local",
+        "sample": 4,
+        "ms": 15,
+        "headers_ms": 15,
+        "bytes": 4843
+      },
+      {
+        "route": "https",
+        "sample": 4,
+        "ms": 92,
+        "headers_ms": 92,
+        "bytes": 4843
+      }
+    ],
+    "turns": [
+      {
+        "route": "local",
+        "kind": "greeting",
+        "parts": [
+          {
+            "part": 0,
+            "ms": 1189,
+            "headers_ms": 1188,
+            "bytes": 114044,
+            "audio_ms": 2375
+          }
+        ]
+      },
+      {
+        "route": "local",
+        "kind": "navigation",
+        "sample": 0,
+        "text_response_ms": 8,
+        "audio_response_ms": 633,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 11,
+            "headers_ms": 11,
+            "bytes": 84044,
+            "audio_ms": 1750
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 1544
+      },
+      {
+        "route": "local",
+        "kind": "navigation",
+        "sample": 1,
+        "text_response_ms": 6,
+        "audio_response_ms": 596,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 14,
+            "headers_ms": 14,
+            "bytes": 84044,
+            "audio_ms": 1750
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 1510
+      },
+      {
+        "route": "local",
+        "kind": "navigation",
+        "sample": 2,
+        "text_response_ms": 7,
+        "audio_response_ms": 574,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 13,
+            "headers_ms": 12,
+            "bytes": 84044,
+            "audio_ms": 1750
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 1487
+      },
+      {
+        "route": "https",
+        "kind": "greeting",
+        "parts": [
+          {
+            "part": 0,
+            "ms": 183,
+            "headers_ms": 151,
+            "bytes": 114044,
+            "audio_ms": 2375
+          }
+        ]
+      },
+      {
+        "route": "https",
+        "kind": "navigation",
+        "sample": 0,
+        "text_response_ms": 84,
+        "audio_response_ms": 749,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 204,
+            "headers_ms": 193,
+            "bytes": 84044,
+            "audio_ms": 1750
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 1853
+      },
+      {
+        "route": "https",
+        "kind": "navigation",
+        "sample": 1,
+        "text_response_ms": 77,
+        "audio_response_ms": 730,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 197,
+            "headers_ms": 188,
+            "bytes": 84044,
+            "audio_ms": 1750
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 1827
+      },
+      {
+        "route": "https",
+        "kind": "navigation",
+        "sample": 2,
+        "text_response_ms": 75,
+        "audio_response_ms": 700,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 231,
+            "headers_ms": 224,
+            "bytes": 84044,
+            "audio_ms": 1750
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 1831
+      },
+      {
+        "route": "https",
+        "kind": "natural_navigation",
+        "audio_response_ms": 866,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 168,
+            "headers_ms": 160,
+            "bytes": 84044,
+            "audio_ms": 1750
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 1934
+      },
+      {
+        "route": "https",
+        "kind": "open_question",
+        "audio_response_ms": 6080,
+        "parts": [
+          {
+            "part": 0,
+            "ms": 2192,
+            "headers_ms": 2169,
+            "bytes": 195644,
+            "audio_ms": 4075
+          }
+        ],
+        "estimated_end_to_first_audio_ms": 9172
+      }
+    ],
+    "saved_plan_unchanged": true,
+    "status": "passed"
+  },
+  "comparisons": [
+    {
+      "case": "Natural navigation, instrumented",
+      "before_estimated_ms": 12293,
+      "after_estimated_ms": 1547,
+      "before_gpt_calls": 2,
+      "after_gpt_calls": 0
+    },
+    {
+      "case": "Exact spoken navigation, public HTTPS, three runs",
+      "before_estimated_ms": [
+        4823,
+        4580,
+        4602
+      ],
+      "after_estimated_ms": [
+        1853,
+        1827,
+        1831
+      ]
+    },
+    {
+      "case": "General question, public HTTPS, one run each",
+      "before_estimated_ms": 8392,
+      "after_estimated_ms": 9172,
+      "interpretation": "This sample was slower after deployment. GPU ASR improved, but variable remote model time and a longer generated reply offset that gain. General conversational latency is not solved."
+    }
+  ],
+  "live_regressions": {
+    "plan": {
+      "observed_at": "2026-10-05T22:29:20.696Z",
+      "status": "passed",
+      "request_checks": 23,
+      "audio_acceptance_replay": "one commit",
+      "checks": "Real Sol-high task/meal proposal, Heart review, generated spoken acceptance, exact accepted version, no duplicate commit and persistence across relogin; actual local PostgreSQL."
+    },
+    "interruption": {
+      "observed_at": "2026-10-05T22:30:21.819Z",
+      "data": "Synthetic care records; preferred greeting name configured privately",
+      "checks": [
+        {
+          "name": "Practice login",
+          "passed": true
+        },
+        {
+          "name": "Exact concise configured-name greeting without activity suggestions",
+          "passed": true
+        },
+        {
+          "name": "First greeting Heart WAV",
+          "passed": true
+        },
+        {
+          "name": "Repeated greeting Heart WAV",
+          "passed": true
+        },
+        {
+          "name": "Planning entry offers saved breakfast choices",
+          "passed": true
+        },
+        {
+          "name": "Active speech interrupt acknowledged",
+          "passed": true
+        },
+        {
+          "name": "Interrupted reply cannot be fetched again",
+          "passed": true
+        },
+        {
+          "name": "Late played acknowledgement rejected",
+          "passed": true
+        },
+        {
+          "name": "Same conversation works after interruption",
+          "passed": true
+        },
+        {
+          "name": "Thinking turn can be interrupted",
+          "passed": true
+        },
+        {
+          "name": "Interrupted reasoning response does not return a completed reply",
+          "passed": true
+        },
+        {
+          "name": "Conversation survives cancelled reasoning",
+          "passed": true
+        },
+        {
+          "name": "Interruption/navigation did not accept or alter the saved plan",
+          "passed": true
+        }
+      ],
+      "timings_ms": {
+        "first_greeting_http": 391,
+        "cached_greeting_http": 220,
+        "planning_entry_text": 89,
+        "interrupt_http": 71
+      },
+      "status": "passed"
+    },
+    "deployment": "Restarted the existing authenticated sample-data app on the same owner-approved tunnel; /api/config returned configured=true, voice_available=true, local voice and synthetic=true."
+  },
+  "remaining_limits": [
+    "Actual iPhone/Safari microphone-end-to-audible-speech, acoustic interruption, hesitant speech and recognition for the intended participant remain unmeasured; S01-H01/H08 and both full live gates remain open.",
+    "Instrumented general-question estimates ranged from 6.205 to 8.693 seconds; the public question estimate was 9.172 seconds. Sol-high completion varied from 2.645 to 5.848 seconds in the isolated samples. No lower effort/model or paid speech fallback was selected.",
+    "Prepared speech was used for one measured task-readback first part. Single-sentence replies without a stable streaming sentence boundary may get no overlap benefit; full first-part Heart synthesis still costs time.",
+    "Synthetic number/negation recognition checks are a small engineering screen, not broad speech or clinical qualification. Other local GPU applications were running; this was a shared-workstation measurement.",
+    "No new frontend audio behavior was changed; audible device acceptance is still required. S01 remains in progress for its broader existing contracts."
+  ],
+  "private_evidence_refs": [
+    ".local/probes/latency-gpu-qualified.json",
+    ".local/probes/latency-gpu-fail-closed.json",
+    ".local/probes/latency-optimized-instrumented.json",
+    ".local/probes/latency-optimized-natural.json",
+    ".local/probes/latency-optimized-http.json",
+    ".local/probes/latency-optimized-plan-live.json",
+    ".local/probes/latency-optimized-feedback-https.json"
+  ]
+}

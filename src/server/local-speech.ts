@@ -2,6 +2,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { navigationReply } from './navigation-intent.js';
 
 const MAX_TEXT_CHARS = 1500;
 const MAX_WAV_BYTES = 10 * 1024 * 1024;
@@ -13,6 +14,7 @@ const TRANSCRIPTION_TIMEOUT_MS = 30_000;
 const GREETING_CACHE_MAX_ENTRIES = 8;
 const GREETING_CACHE_MAX_BYTES = 2 * 1024 * 1024;
 const GREETING_CACHE_TTL_MS = 5 * 60_000;
+const NAVIGATION_PHRASES = new Set((['my_day', 'tasks', 'meals', 'groceries'] as const).map(navigationReply));
 
 export type LocalSpeechReadiness = { kokoro: 'starting' | 'ready' | 'unavailable'; asr: 'starting' | 'ready' | 'unavailable' };
 
@@ -280,7 +282,8 @@ function defaultWorkerSpecs(): { kokoro: ChildSpec; asr: ChildSpec } {
     kokoro: { executable: process.execPath, args: [resolve(root, 'scripts/local-speech-worker.mjs'), 'kokoro'], cwd: root,
       env: { ...commonEnv, KOKORO_RUNTIME: runtime, KOKORO_CACHE: resolve(root, '.local/speech/kokoro-cache') } },
     asr: { executable: python, args: [resolve(root, 'scripts/local-speech-worker.py'), 'asr'], cwd: root,
-      env: { ...commonEnv, HF_HOME: resolve(root, '.local/speech/runtime/model-cache'), HF_HUB_OFFLINE: '1' } },
+      env: { ...commonEnv, HF_HOME: resolve(root, '.local/speech/runtime/model-cache'), HF_HUB_OFFLINE: '1',
+        NANCY_ASR_DEVICE: process.env.NANCY_ASR_DEVICE || 'cpu', NANCY_ASR_CUDA_ROOT: process.env.NANCY_ASR_CUDA_ROOT } },
   };
 }
 
@@ -298,6 +301,12 @@ export class LocalSpeech {
 
   async ready() { await Promise.all([this.kokoro.ready(), this.asr.ready()]); }
   readiness(): LocalSpeechReadiness { return { kokoro: this.kokoro.readiness(), asr: this.asr.readiness() }; }
+
+  /** Fixed UI acknowledgements contain no care data and can be prepared before serving requests. */
+  async primeNavigation() {
+    await this.ready();
+    for (const text of NAVIGATION_PHRASES) await this.synthesize(text);
+  }
 
   async synthesize(text: string, signal?: AbortSignal): Promise<Buffer> {
     const clean = validateSpeechText(text);
@@ -349,10 +358,10 @@ export class LocalSpeech {
       if (oldest === undefined) return;
       this.greetingAudio.delete(oldest);
     }
-    this.greetingAudio.set(text, { wav: Buffer.from(wav), expiresAt: Date.now() + GREETING_CACHE_TTL_MS });
+    this.greetingAudio.set(text, { wav: Buffer.from(wav), expiresAt: NAVIGATION_PHRASES.has(text) ? Infinity : Date.now() + GREETING_CACHE_TTL_MS });
   }
 }
 
 function isGreetingForCache(text: string) {
-  return /^Hi [^,\r\n]{1,80}, what can I help with\?$/i.test(text);
+  return NAVIGATION_PHRASES.has(text) || /^Hi [^,\r\n]{1,80}, what can I help with\?$/i.test(text);
 }

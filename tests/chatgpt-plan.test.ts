@@ -4,7 +4,7 @@ import { readFile, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { beginAuthorization, jwksEndpoint, readCallback, validateIdToken } from '../src/server/chatgpt-plan/oauth.js';
 import { PlanStore, type PlanCredential } from '../src/server/chatgpt-plan/storage.js';
-import { PlanRequestError, probeSolHigh, probeSolHighFirstSpeakable } from '../src/server/chatgpt-plan/inference.js';
+import { PlanRequestError, probeSolHigh, probeSolHighFirstSpeakable, requestSolHigh } from '../src/server/chatgpt-plan/inference.js';
 import { startPlanSetup } from '../src/server/chatgpt-plan/local.js';
 
 const clientId = 'oaiapp_test123';
@@ -110,6 +110,21 @@ describe('synthetic Sol-high probe', () => {
     await expect(probeSolHigh(credential, quota)).rejects.toMatchObject({ code: 'subscription_sharing_usage_limit_exceeded' });
     const wrong = vi.fn(async () => stream([JSON.stringify({ type: 'response.completed', response: { status: 'completed', model: 'gpt-6.1-sol' } })])) as unknown as typeof fetch;
     await expect(probeSolHigh(credential, wrong)).rejects.toThrow('different model');
+  });
+  it('delivers tentative assistant text before completion without exposing reasoning deltas or weakening terminal validation', async () => {
+    let enqueue!: (event: unknown) => void;
+    const response = new Response(new ReadableStream({ start(controller) {
+      enqueue = event => controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`));
+    } }));
+    const delta = vi.fn(); let completed = false;
+    const pending = requestSolHigh(credential, [{ role: 'user', content: 'Synthetic input' }], {},
+      vi.fn(async () => response) as unknown as typeof fetch, { textDelta: delta }).then(result => { completed = true; return result; });
+    enqueue({ type: 'response.reasoning_text.delta', delta: 'private reasoning' });
+    enqueue({ type: 'response.output_text.delta', delta: 'A first sentence. ' });
+    await vi.waitFor(() => expect(delta).toHaveBeenCalledWith('A first sentence. '));
+    expect(delta).toHaveBeenCalledTimes(1); expect(completed).toBe(false);
+    enqueue({ type: 'response.completed', response: { status: 'completed', model: 'gpt-6-sol' } });
+    expect((await pending).completed).toBe(true);
   });
   it('preserves status and request id while suppressing unknown provider error text', async () => {
     const fetcher = vi.fn(async () => new Response(JSON.stringify({ error: { code: 'raw_secret', message: 'sensitive provider text' } }), { status: 403, headers: { 'x-request-id': 'req-test' } })) as unknown as typeof fetch;

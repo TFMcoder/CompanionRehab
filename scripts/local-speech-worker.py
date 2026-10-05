@@ -17,6 +17,8 @@ MODEL_REVISION = "d1d751a5f8271d482d14ca55d9e2deeebbae577f"
 MAX_WAV_BYTES = 10 * 1024 * 1024
 MAX_SECONDS = 45.0
 CPU_THREADS = 4
+ASR_DEVICE = os.environ.get("NANCY_ASR_DEVICE", "cpu").strip().lower()
+CUDA_DLL_HANDLES = []
 output_lock = threading.Lock()
 
 os.environ["OMP_NUM_THREADS"] = str(CPU_THREADS)
@@ -45,8 +47,49 @@ def inspect_wav(raw: bytes) -> None:
             raise ValueError("audio_bounds")
 
 
+def configure_cuda_dll_search() -> None:
+    """Add only the isolated, pinned runtime DLL dirs before importing CTranslate2."""
+    if ASR_DEVICE != "cuda":
+        return
+    if os.name != "nt":
+        raise RuntimeError("cuda_runtime_platform_unsupported")
+    from importlib.metadata import distributions
+
+    configured_root = os.environ.get("NANCY_ASR_CUDA_ROOT")
+    if configured_root:
+        site_packages = Path(configured_root).resolve()
+    else:
+        site_packages = Path(sys.prefix) / "Lib" / "site-packages"
+    required_versions = {
+        "nvidia-cuda-runtime-cu12": "12.9.79",
+        "nvidia-cuda-nvrtc-cu12": "12.9.86",
+        "nvidia-cublas-cu12": "12.9.2.10",
+        "nvidia-cudnn-cu12": "9.22.0.52",
+    }
+    installed_versions = {
+        (dist.metadata.get("Name", "").lower().replace("_", "-")): dist.version
+        for dist in distributions(path=[str(site_packages)])
+    }
+    if any(installed_versions.get(name) != version for name, version in required_versions.items()):
+        raise RuntimeError("cuda_runtime_package_unqualified")
+    package_root = site_packages / "nvidia"
+    library_dirs = [package_root / name / "bin" for name in
+                    ("cuda_runtime", "cuda_nvrtc", "cublas", "cudnn")]
+    existing_dirs = [path for path in library_dirs if path.is_dir()]
+    missing = [path.name for path in library_dirs if not path.is_dir()]
+    if missing:
+        raise RuntimeError("cuda_runtime_dll_directory_missing")
+    for path in existing_dirs:
+        # Python 3.8+ does not always search venv package DLL directories implicitly.
+        CUDA_DLL_HANDLES.append(os.add_dll_directory(str(path)))
+    os.environ["PATH"] = os.pathsep.join([*(str(path) for path in existing_dirs), os.environ.get("PATH", "")])
+
+
 def main() -> int:
     import importlib.metadata
+    if ASR_DEVICE not in {"cpu", "cuda"}:
+        raise RuntimeError("asr_device_invalid")
+    configure_cuda_dll_search()
     from faster_whisper import WhisperModel
     from faster_whisper.audio import decode_audio
     from huggingface_hub import snapshot_download
@@ -60,14 +103,15 @@ def main() -> int:
                                   cache_dir=str(cache), local_files_only=True)
     if Path(model_dir).name.lower() != MODEL_REVISION or not (Path(model_dir) / "model.bin").is_file():
         raise RuntimeError("model_unqualified")
-    model = WhisperModel(str(model_dir), device="cpu", compute_type="int8", cpu_threads=CPU_THREADS,
+    compute_type = "float16" if ASR_DEVICE == "cuda" else "int8"
+    model = WhisperModel(str(model_dir), device=ASR_DEVICE, compute_type=compute_type, cpu_threads=CPU_THREADS,
                          num_workers=1, local_files_only=True)
     # Exercise the warmed inference path on synthetic silence; discard all output.
     warm_segments, _ = model.transcribe(np.zeros(16000, dtype=np.float32), language="en", beam_size=1,
                                         best_of=1, temperature=0.0, condition_on_previous_text=False, vad_filter=False)
     for _ in warm_segments:
         pass
-    emit({"type": "ready"})
+    emit({"type": "ready", "device": ASR_DEVICE, "compute_type": compute_type})
     active: dict | None = None
     active_lock = threading.Lock()
 

@@ -76,7 +76,7 @@ describe('LocalSpeech input bounds and worker lifecycle', () => {
     } finally { await service.close(); }
   });
 
-  it('caches only exact greeting audio in bounded memory and returns a defensive copy', async () => {
+  it('caches exact greeting audio in bounded memory and returns a defensive copy', async () => {
     const service = await makeService();
     try {
       await service.ready();
@@ -86,6 +86,19 @@ describe('LocalSpeech input bounds and worker lifecycle', () => {
       first[44] = 0;
       expect(second[44]).toBe(1);
       expect(await service.synthesize('Please help with exercise.')).not.toEqual(second);
+    } finally { await service.close(); }
+  });
+
+  it('primes only fixed navigation acknowledgements and never caches arbitrary care answers', async () => {
+    const service = await makeService();
+    try {
+      await service.primeNavigation();
+      const first = await service.synthesize('Here are your tasks.');
+      expect(await service.synthesize('Here are your tasks.')).toEqual(first);
+      const careAnswer = await service.synthesize('Your appointment is at ten.');
+      expect(await service.synthesize('Your appointment is at ten.')).not.toEqual(careAnswer);
+      const controller = new AbortController(); controller.abort();
+      await expect(service.synthesize('Here are your tasks.', controller.signal)).rejects.toMatchObject({ name: 'AbortError' });
     } finally { await service.close(); }
   });
 
