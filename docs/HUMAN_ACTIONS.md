@@ -194,7 +194,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Current device voices were auditioned and rejected as robotic. Compare the prepared Kokoro Heart, Bella and Emma samples across the three scripts on iPhone/Safari; choose a suitable voice or reject them. Rate conversation responsiveness separately once integrated.
+  - Kokoro feedback is recorded as improved but still somewhat robotic. Identify which candidate was closest if useful, then compare a materially improved sample or expressive alternative when prepared. Production voice acceptance and integrated conversation responsiveness remain separate decisions.
   - Decide whether to enable foreground Hey Nancy while My Day is open after seeing the microphone indicator, stop control and disclosed processing location.
 
   **Agent prepares or handles:** Replace rejected device samples as primary candidates with licensed neural speech auditions; test intonation, phrasing, pauses and emphasis on varied utterances, then real turn timing, interruption, wake false positives and fallback button entry. Keep paid alternatives separately costed and unselected. Save only the selected preference and consent state; keep raw samples/audio private or synthetic.

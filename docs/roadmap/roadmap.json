@@ -294,7 +294,7 @@
     {
       "id": "I-VOICE-CHOICE",
       "status": "unresolved",
-      "default": "Owner rejected installed-browser/fixed-Windows voices as robotic, then requested a Kokoro trial on 2026-10-05. Nine local Kokoro-82M fp32 samples (Heart, Bella, Emma across three scripts) are generated and served on the phone preview. Actual participant listening preference and integrated conversational quality remain pending; no production voice or paid route is selected.",
+      "default": "Owner rejected installed-browser/fixed-Windows voices, then auditioned the prepared Kokoro samples and reported on 2026-10-05: Its better, but still a tad robotic. Record improved but insufficient naturalness, not production approval. The preferred Kokoro voice, participant acceptance and integrated conversational quality remain unresolved; no production voice or paid route is selected.",
       "needed_for": "S01 preferred audible Nancy voice and genuine phone conversation",
       "question": "Prepare improved neural voice samples and an actual conversational trial; evaluate natural intonation, phrasing, pauses, warmth, latency and interruption on iPhone/Safari. Do not ask the owner to select the rejected device samples again.",
       "resolution_ref": "docs/architecture/VOICE_AND_DAILY_COMPANION_2026-10-05.md#owner-quality-feedback-current-samples-rejected"
@@ -739,7 +739,7 @@
         "S01-LIVE2 and S01-LIVE1: Actual local deployment plus remote reasoning and the selected speech path, isolated restore and the real 10 AM planning trial have not run. Run disposable checks before retained participant use.",
         "2026-10-04 actual connection checks are recorded in docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. These synthetic provider probes are not S01 live acceptance. The MCP tunnel transports local tool calls; it does not establish Nancy model access, voice, per-client authorization or a public My Day web route.",
         "2026-10-04 connection progress: the app-specific OAuth/Responses helper completed text and fixed read-only tool probes using gpt-6-sol/high. The adapter now replays finalized streamed items when terminal output is empty, and verifies the returned fixture value in the completed answer. Separate Windows voice generation and local faster-whisper recognition passed on synthetic audio; genuine microphone/audible conversation is still untested. See docs/evidence/S01-CHATGPT-PLAN-CONNECTION-2026-10-04.json. Existing Tailscale/MCP services remain unchanged; a new tool tunnel is unnecessary for these local probes.",
-        "2026-10-05 Kokoro trial: owner requested local neural audition after rejecting device voices. Nine pinned synthetic Kokoro samples are generated and deployed; docs/evidence/S01-KOKORO-AUDITION-2026-10-05.json records 92 passing automated tests, actual CPU synthesis, ASR sanity checks and public desktop-browser playback. Participant iPhone listening preference and genuine back-and-forth remain unqualified. No paid service or production voice selection is implied."
+        "2026-10-05 Kokoro trial: nine pinned samples are deployed; docs/evidence/S01-KOKORO-AUDITION-2026-10-05.json records 92 passing tests, actual CPU synthesis, ASR checks and public desktop-browser playback. Subsequent owner feedback: better, but still a tad robotic. Naturalness remains insufficient; preferred voice and genuine back-and-forth are unqualified. Assess phrasing/prosody and an expressive local alternative before production selection. No paid service or voice selection is implied."
       ],
       "test_results": [],
       "human_actions": [
@@ -962,7 +962,7 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-        "Current device voices were auditioned and rejected as robotic. Compare the prepared Kokoro Heart, Bella and Emma samples across the three scripts on iPhone/Safari; choose a suitable voice or reject them. Rate conversation responsiveness separately once integrated.",
+        "Kokoro feedback is recorded as improved but still somewhat robotic. Identify which candidate was closest if useful, then compare a materially improved sample or expressive alternative when prepared. Production voice acceptance and integrated conversation responsiveness remain separate decisions.",
             "Decide whether to enable foreground Hey Nancy while My Day is open after seeing the microphone indicator, stop control and disclosed processing location."
           ],
           "agent_can_do": [

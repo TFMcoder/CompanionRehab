@@ -44,6 +44,16 @@ See [reproduction steps](../DEVICE_PREVIEW.md#local-kokoro-audition) and [saniti
 
 Encouragement is also conversational behavior: one question at a time, brief replies, adult and respectful wording, no guilt about missed tasks, and room to think or disagree. Do not substitute exaggerated cheerfulness for listening.
 
+### Kokoro listening feedback: improved, still robotic
+
+After the prepared samples were delivered, the owner reported: “Its better, but still a tad robotic.” This is actual owner listening feedback, not production approval or proof of a completed iPhone conversation. The specific preferred voice and the participant's own assessment remain unresolved. Preserve the original generation/test receipt as historical evidence.
+
+The installed `kokoro-js` 1.2.1 `GenerateOptions` exposes voice and speed, with no natural-language delivery instruction or explicit emotion control. The audition already uses fp32 and normal speed. Shorter spoken turns, conversational wording and deliberate punctuation are reasonable low-cost experiments, but their improvement must be heard; slowing the entire clip cannot establish expressive intonation. The likely remaining issue is speech prosody rather than Sol reasoning, since these fixed clips contain no live reasoning call.
+
+The proposed next free comparison is **original English Chatterbox**, whose public API exposes exaggeration and pacing-related controls and supports CPU inference. Its 500M model is larger than Kokoro's 82M; actual Windows compatibility, local latency, voice suitability and dependency/model terms still need qualification. Its default voice avoids needing a personal voice recording. Chatterbox Turbo/Nano are distinct variants; do not assume the original model's exaggeration control applies to them. This is a research recommendation, not a new selected or installed provider. Source: [upstream Chatterbox documentation](https://github.com/resemble-ai/chatterbox/blob/master/README.md).
+
+A documentation check also changes the earlier hosted comparison: OpenAI announced retirement of its listed `gpt-4o-mini-tts` snapshots and `tts-1` models for January 6, 2027, recommending `gpt-realtime-2.1-mini`. The older TTS guide still describes the retiring models. Do not start a new production dependency or repeat a historical per-minute price without checking the supported replacement, current pricing and a speech-only boundary around Sol/high. No hosted speech or paid test was enabled. Source: [official deprecation notice](https://developers.openai.com/api/docs/deprecations#2026-10-01-text-to-speech-models).
+
 ## Conversation lifecycle
 
 One press of **Talk to Nancy** opens a conversation. The client then speaks normally without pressing a button for each turn. **End conversation** stops immediately. The transcript and equivalent touch controls remain available.
