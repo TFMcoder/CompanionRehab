@@ -295,9 +295,9 @@
     {
       "id": "I-VOICE-CHOICE",
       "status": "unresolved",
-      "default": "Owner rejected installed-browser/fixed-Windows voices, then found Kokoro Heart (af_heart) better but still somewhat robotic. Pocket TTS 3.3 English 2026-09 with Alba is the provisional free local engineering configuration; Heart remains the listening baseline. Neither voice has participant production acceptance. Naturalness on varied prompts, preference, actual iPhone/Safari audio and integrated conversational quality remain unresolved.",
+      "default": "Latest owner direction: female voices only; Kokoro Heart remains the preferred listening candidate so far. Offer Pocket Anna and Qwen Serena as matched female alternatives. Pocket Alba remains the prior engineering performance reference, not an accepted production voice. Final participant preference, actual iPhone/Safari audio and integrated conversational quality remain unresolved.",
       "needed_for": "S01 preferred audible Nancy voice and genuine phone conversation",
-      "question": "Compare the prepared Pocket Alba and Kokoro Heart samples, then qualify preferred-voice intonation, phrasing, pauses, warmth, latency and interruption during an actual iPhone/Safari conversation. Do not treat a local audition or public-browser playback as participant production acceptance.",
+      "question": "Compare Kokoro Heart with the prepared female alternatives Pocket Anna and Qwen Serena, then qualify preferred-voice intonation, phrasing, pauses, warmth, latency and interruption during an actual iPhone/Safari conversation. Serena is a hosted-demo sample, not a qualified live service. Do not treat synthetic playback as participant production acceptance.",
       "resolution_ref": "docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md"
     },
     {
@@ -964,11 +964,11 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Compare the prepared Pocket Alba voice with Kokoro Heart, the owner's closest previous candidate, and choose a preferred voice only after listening and an actual iPhone/Safari conversational trial. Report whether phrasing, warmth and responsiveness are acceptable; production voice acceptance and integrated conversation remain open until observed.",
+            "Female voices only, per the owner. Heart is still the preferred candidate. Compare matched Pocket Anna and Qwen Serena samples with Heart, then choose only after listening and an actual iPhone/Safari conversational trial. Report phrasing, warmth and responsiveness; production voice acceptance and integrated conversation remain open.",
             "Decide whether to enable foreground Hey Nancy while My Day is open after seeing the microphone indicator, stop control and disclosed processing location."
           ],
           "agent_can_do": [
-            "Prepare the licensed Pocket Alba and Kokoro Heart neural auditions, implement the provisional warm local audio-stream path, and test intonation, phrasing, pauses and emphasis on varied utterances. Then measure real iPhone turn timing, interruption, wake false positives and fallback button entry. Keep cloud and paid alternatives separately qualified and unselected.",
+            "Present matched female voice auditions with Heart as the owner-preferred baseline; keep the completed Pocket streaming performance evidence separate from voice preference. Qualify the chosen runtime, then measure real iPhone turn timing, interruption, wake false positives and fallback button entry. Qwen hosted demo and cloud alternatives remain separately qualified and unselected.",
             "Save only the selected preference and consent state; keep raw samples/audio private or synthetic."
           ],
           "expected_evidence": "Private selected-voice and wake-consent references plus actual-device observations; interface visual approval alone is insufficient.",

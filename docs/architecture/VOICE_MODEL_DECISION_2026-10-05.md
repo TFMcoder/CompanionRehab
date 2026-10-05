@@ -2,6 +2,8 @@
 
 **Recommend Pocket TTS, English 2026-09, Alba, running warm on this PC with native audio chunks over WebSocket.** This is a provisional engineering selection for integration and human audition. We have not established that Alba is the most natural voice to the participant, or accepted it as the production voice. Keep Heart as the listening baseline. Do not change GPT-6 Sol/high or silently enable paid speech.
 
+**Subsequent owner listening direction:** female voices only, with Kokoro Heart still preferred so far. The next matched alternatives are Pocket Anna and Qwen Serena. The Alba selection above records the engineering evaluation, not participant voice acceptance; it does not override this preference. Serena remains a hosted-demo audition with unqualified live latency.
+
 ## Configuration
 
 | Setting | Selection |

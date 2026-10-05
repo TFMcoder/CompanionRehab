@@ -194,10 +194,10 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Compare the prepared Pocket Alba voice with Kokoro Heart, the owner's closest previous candidate, and choose a preferred voice only after listening and an actual iPhone/Safari conversational trial. Report whether phrasing, warmth and responsiveness are acceptable; production voice acceptance and integrated conversation remain open until observed.
+  - Female voices only, per the owner. Heart is still the preferred candidate. Compare matched Pocket Anna and Qwen Serena samples with Heart, then choose only after listening and an actual iPhone/Safari conversational trial. Report phrasing, warmth and responsiveness; production voice acceptance and integrated conversation remain open.
   - Decide whether to enable foreground Hey Nancy while My Day is open after seeing the microphone indicator, stop control and disclosed processing location.
 
-  **Agent prepares or handles:** Prepare the licensed Pocket Alba and Kokoro Heart neural auditions, implement the provisional warm local audio-stream path, and test intonation, phrasing, pauses and emphasis on varied utterances. Then measure real iPhone turn timing, interruption, wake false positives and fallback button entry. Keep cloud and paid alternatives separately qualified and unselected. Save only the selected preference and consent state; keep raw samples/audio private or synthetic.
+  **Agent prepares or handles:** Present matched female voice auditions with Heart as the owner-preferred baseline; keep the completed Pocket streaming performance evidence separate from voice preference. Qualify the chosen runtime, then measure real iPhone turn timing, interruption, wake false positives and fallback button entry. Qwen hosted demo and cloud alternatives remain separately qualified and unselected. Save only the selected preference and consent state; keep raw samples/audio private or synthetic.
 
   **Completion evidence:** Private selected-voice and wake-consent references plus actual-device observations; interface visual approval alone is insufficient.
 
