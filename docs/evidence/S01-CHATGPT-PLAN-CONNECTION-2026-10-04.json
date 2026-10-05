@@ -1,0 +1,147 @@
+{
+  "purpose": "Actual owner ChatGPT-plan OAuth/inference/tool qualification and local synthetic speech-recognition evidence; not full S01 acceptance",
+  "recorded_at": "2026-10-05T03:12:25.621868+00:00",
+  "local_execution_date": "2026-10-04",
+  "base_git_revision": "310548b02c0e96541c0af89866522b8543789028",
+  "implementation_revision": "sha256:5573c197a2496370dd23a7a2acf057369612a4d2430cc60d7e2beba815ae7e57",
+  "revision_note": "The basic text probe ran before the tool adapter changes on the previously committed implementation. Tool round trip ran on the final inference/helper sources; final ASR rerun includes phrase-mismatch failure. Python sources are now included in implementation fingerprints.",
+  "observed_by": "Codex orchestrator through the actual local browser; delegated local ASR execution and independent code review",
+  "environment": "Local Windows host, real OpenAI OAuth/Responses service, existing ChatGPT account, isolated CPU speech runtime",
+  "data_origin": "Fixed synthetic prompts, a random nonsecret read-only fixture value and previously generated synthetic WAV; no participant care records",
+  "automated_checks": {
+    "command": "npm run check",
+    "outcome": "passed",
+    "test_files": 9,
+    "tests_passed": 70,
+    "typecheck": "passed",
+    "production_build": "passed",
+    "roadmap_validation": "passed",
+    "generated_human_actions_check": "passed",
+    "note": "These checks include targeted tool transport regressions and existing application tests. They do not complete the revised S01 acceptance contract."
+  },
+  "oauth": {
+    "consent_granted": true,
+    "approval_source": "Owner confirmation in the active conversation followed by actual final browser consent",
+    "app_name": "Nancy - Companion Rehab",
+    "route": "App-specific dynamic public-client OAuth; public Responses endpoint; ChatGPT plan allowance",
+    "granted_purpose": "Basic profile identity and explicit ChatGPT-plan inference usage",
+    "credentials_private": true,
+    "existing_cerberus_or_codex_credentials_copied": false,
+    "connection_survived_helper_restart": true,
+    "live_refresh_revocation_and_quota_qualification": false,
+    "intended_participant_deployment_eligibility_resolved": false,
+    "note": "The old pending sign-in attempt was restarted before consent because it had expired. The approved scopes and destination were unchanged."
+  },
+  "text_probe": {
+    "completed": true,
+    "model": "gpt-6-sol",
+    "reasoning_effort": "high",
+    "usage": {
+      "input_tokens": 18,
+      "output_tokens": 5
+    },
+    "implementation_revision": "sha256:90fbfdacf0a4ca0292c67c3732e0bd3c6a705288707da867a4d3804b86dcf7e1",
+    "private_screenshot_ref": "local:.local/probes/nancy-chatgpt-connected.jpg"
+  },
+  "tool_probe": {
+    "completed": true,
+    "model": "gpt-6-sol",
+    "reasoning_effort": "high",
+    "requests_in_successful_round_trip": 2,
+    "usage_for_successful_round_trip": {
+      "input_tokens": 236,
+      "output_tokens": 70
+    },
+    "function": "nancy_probe.get_probe_value",
+    "target": "One fixed synthetic fixture; no care database or command access",
+    "verification": "Exact namespace/function/arguments validation precedes one fixture read; second completed assistant message reproduces the newly generated fixture value",
+    "private_screenshot_ref": "local:.local/probes/nancy-chatgpt-tools-connected.jpg",
+    "earlier_attempts": [
+      "First attempt stopped before local dispatch because the helper discarded finalized streamed items when terminal output was empty.",
+      "A subsequent diagnostic attempt returned an unclassified provider stream failure (HTTP 0 in the helper). Its raw body and complete usage were not captured; no cause or complete all-attempt total is claimed.",
+      "A diagnostic completed first turn recorded empty terminal output and 86 input/25 output tokens. The adapter was repaired to collect response.output_item.done items before stateless continuation."
+    ],
+    "automated_boundaries": "Unknown namespace/function/target/fields, duplicate/missing/incomplete calls, invented or unfinished output and quota refusal fail closed; no retries or billed/model fallback",
+    "limits": "At most two Responses requests per tool probe, 45-second local timeout and 1 MB stream cap per request. max_output_tokens is unsupported in this preview; local limits are not hard remote usage caps."
+  },
+  "local_speech_recognition": {
+    "command": "./.local/speech/runtime/venv/Scripts/python.exe ./scripts/check-local-asr.py",
+    "executed_at": "2026-10-05T03:08:33.686125+00:00",
+    "status": "completed",
+    "input": {
+      "artifact_private_ref": ".local/probes/nancy-local-voice.wav",
+      "duration_seconds": 6.939,
+      "sample_rate_hz": 22050,
+      "channels": 1,
+      "sample_width_bytes": 2,
+      "pcm_data_bytes": 305988,
+      "has_nonzero_pcm": true
+    },
+    "runtime": {
+      "python": "3.14.7",
+      "platform": "win32",
+      "packages": {
+        "faster-whisper": "1.2.1",
+        "ctranslate2": "4.8.2",
+        "av": "18.1.0",
+        "huggingface-hub": "1.33.0",
+        "tokenizers": "0.23.2",
+        "onnxruntime": "1.30.0",
+        "numpy": "2.5.3",
+        "PyYAML": "6.0.3",
+        "protobuf": "7.36.2"
+      },
+      "locked_dependencies_private_ref": ".local/speech/runtime/installed-packages.txt"
+    },
+    "model": {
+      "id": "Systran/faster-whisper-small.en",
+      "source": "https://huggingface.co/Systran/faster-whisper-small.en",
+      "revision": "d1d751a5f8271d482d14ca55d9e2deeebbae577f",
+      "license": "MIT",
+      "model_bin_sha256": "62b2a45b05ee59acb4a5341b33ee35e041395d378d418a18acfe4c9e768ee37a",
+      "model_bin_bytes": 483545366
+    },
+    "compute": {
+      "device": "cpu",
+      "compute_type": "int8",
+      "cpu_threads": 4
+    },
+    "timing": {
+      "total_elapsed_ms": 2604.3,
+      "model_resolve_and_download_ms": 0.6,
+      "model_load_ms": 743.1,
+      "transcription_latency_ms": 1199.0
+    },
+    "expected_text_match": true,
+    "private_receipt_ref": "local:.local/probes/local-asr-result.json",
+    "transcript_published": false,
+    "microphone_opened": false,
+    "device_conversation_verified": false,
+    "remote_inference_used": false,
+    "incremental_service_cost": 0,
+    "compatibility_finding": "PyAV 19.0.1 rejected the metadata_errors keyword used by faster-whisper 1.2.1. Verified PyAV 18.1.0 is pinned; the final cached CPU run passed.",
+    "prior_speech_output_evidence": "docs/evidence/S01-CHATGPT-PLAN-PREP-2026-10-04.json"
+  },
+  "routing_and_cost": {
+    "new_tunnel_created": false,
+    "existing_tailscale_or_mcp_routing_modified": false,
+    "api_key_fallback_used": false,
+    "new_paid_service_activated": false,
+    "nancy_device_https_qualified": false
+  },
+  "limitations": [
+    "Only the owner's local account connection and synthetic tool transport are proven. No shared entitlement, production route, care-command authorization or full credential lifecycle qualification is asserted.",
+    "Synthetic-file speech generation/recognition does not establish audible playback, a microphone conversation, target-device usability or interruption behavior.",
+    "Local PostgreSQL/auth, revised four-role My Day, task/meal integration, HTTPS and isolated restore remain work in progress.",
+    "S01 remains in_progress with no canonical acceptance group passed; S01-H02 remains in_progress and S01-LIVE2/S01-LIVE1 have not run.",
+    "Credentials, account identifiers, audio, transcripts and screenshots remain in ignored private storage. Historical preparation evidence is unchanged."
+  ],
+  "primary_references": [
+    "https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations",
+    "https://developers.openai.com/api/docs/guides/function-calling",
+    "https://developers.openai.com/api/reference/resources/responses/methods/create",
+    "https://pypi.org/project/faster-whisper/",
+    "https://pypi.org/project/av/18.1.0/",
+    "https://huggingface.co/Systran/faster-whisper-small.en/tree/d1d751a5f8271d482d14ca55d9e2deeebbae577f"
+  ]
+}

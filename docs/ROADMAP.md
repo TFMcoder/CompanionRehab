@@ -6,7 +6,7 @@ The canonical [roadmap.json](roadmap/roadmap.json), schema version 1.4.0, define
 
 Current account-setup step: [qualify the supported ChatGPT-plan route](S01_FIRST_CONNECTION.md). The private API key is saved and model visibility passed; bounded API reasoning/speech probes returned HTTP 429. Do not repeat key creation or require API funding before subscription qualification. The requested October 5 supervised S01/S02 pilot is a stretch target; current acceptance gates still apply.
 
-October 4 implementation progress: the app-specific local OAuth/Responses helper is built, tested and at OpenAI's final consent screen. Consent and completed subscription inference are pending. A separate installed-Windows-voice probe generated valid synthetic audio; microphone, audible device conversation, local PostgreSQL/auth and My Day integration remain unqualified. [Preparation evidence](evidence/S01-CHATGPT-PLAN-PREP-2026-10-04.json) records these limited results; neither S01 live gate is passed.
+October 4 implementation progress: the owner approved Nancy's app-specific OAuth connection. Actual GPT-6 Sol high reasoning and a two-request, read-only synthetic function round trip succeeded through the owner's ChatGPT plan. Installed Windows speech generated a synthetic sample and local faster-whisper recognized it correctly. [Connection evidence](evidence/S01-CHATGPT-PLAN-CONNECTION-2026-10-04.json) records usage, the streaming adapter repair and separate speech results. Intended-user/deployment eligibility, live credential lifecycle, genuine microphone/audible conversation, local PostgreSQL/auth and My Day integration remain unqualified; neither S01 live gate is passed.
 
 ## Immediate delivery goal: S01-S04
 

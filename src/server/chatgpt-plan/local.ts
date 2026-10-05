@@ -1,9 +1,10 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { randomBytes } from 'node:crypto';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { accountKey, type PlanCredential, type PlanState, PlanStore } from './storage.js';
 import { beginAuthorization, exchangeCode, readCallback, requiredScope, validateIdToken, issuer, type Attempt } from './oauth.js';
-import { probeSolHigh, refreshCredential, type ProbeResult } from './inference.js';
-import { PlanRequestError } from './inference.js';
+import { probeSolHigh, probeSolHighTools, refreshCredential, type ProbeResult } from './inference.js';
+import { PlanRequestError, ToolProbeError } from './inference.js';
 
 const host = '127.0.0.1';
 const htmlHeaders = { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store',
@@ -14,7 +15,7 @@ function escape(value: string): string { return value.replace(/[&<>"']/g, char =
 function render(content: string, csrf: string): string {
   return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Companion Rehab ChatGPT connection</title>
   <style>body{font:18px system-ui;max-width:42rem;margin:3rem auto;padding:0 1rem;line-height:1.5;background:#faf9f6;color:#1d2935}button{font:inherit;padding:.65rem 1rem;margin:.35rem;border-radius:.5rem;background:#174778;color:white;border:0;cursor:pointer}form{display:inline-block}p{max-width:38rem}</style>
-  <h1>Companion Rehab connection</h1><p>This local setup connects your own ChatGPT account to a synthetic text reasoning test. It uses your ChatGPT plan allowance. It does not access ChatGPT conversations or send care records in this test.</p><p>The test sends one short prompt to GPT-6 Sol with high reasoning effort and stops locally after 45 seconds. The ChatGPT usage settings control plan limits. There is no API-key fallback.</p>
+  <h1>Companion Rehab connection</h1><p>This local setup connects your own ChatGPT account to synthetic reasoning tests. It uses your ChatGPT plan allowance. It does not access ChatGPT conversations or send care records in these tests.</p><p>The text test sends one request; the read-only synthetic tool test sends at most two. Both use GPT-6 Sol with high reasoning effort and a 45-second local timeout per request. The ChatGPT usage settings control plan limits. There is no API-key fallback.</p>
   ${content}<p><a href="https://chatgpt.com/#settings/usage">Review plan usage and app limits</a></p>
   <form method="post" action="/start"><input type="hidden" name="csrf" value="${csrf}"><button>Continue with ChatGPT</button></form>
   <form method="post" action="/new"><input type="hidden" name="csrf" value="${csrf}"><button>Add another account</button></form></html>`;
@@ -36,7 +37,8 @@ function safeNotice(error: unknown): string {
     'Sign-in returned a different ChatGPT account.', 'Refreshed ChatGPT identity changed. Sign in again.',
     'ChatGPT plan permission is missing.', 'ChatGPT plan use was not granted for this connection.',
     'ChatGPT response was incomplete.', 'ChatGPT stream ended without response.completed.',
-    'ChatGPT completed with a different model.', 'ChatGPT returned no response stream.']);
+    'ChatGPT completed with a different model or status.', 'ChatGPT returned no response stream.',
+    'Synthetic tool call was not authorized.', 'Synthetic tool result was not verified.']);
   return error instanceof Error && known.has(error.message) ? error.message : 'Connection failed. Check the account or try again.';
 }
 async function form(req: IncomingMessage): Promise<URLSearchParams> {
@@ -93,14 +95,14 @@ export async function startPlanSetup(store: PlanStore, fetcher: typeof fetch = f
         const current = active(state);
         const connected = current?.accessToken && current.scopes.includes(requiredScope);
         const info = current ? `<p>Selected ChatGPT account: ${connected ? 'plan usage connected' : 'sign-in required or plan permission missing'}.</p>` : '<p>No ChatGPT account is connected.</p>';
-        const probe = connected ? `<form method="post" action="/probe"><input type="hidden" name="csrf" value="${csrf}"><button>Run synthetic GPT-6 Sol high test</button></form>` : '';
+        const probe = connected ? `<form method="post" action="/probe"><input type="hidden" name="csrf" value="${csrf}"><button>Run synthetic GPT-6 Sol high test</button></form><form method="post" action="/tools-probe"><input type="hidden" name="csrf" value="${csrf}"><button>Run synthetic tool round trip</button></form>` : '';
         const previous = result ? `<p>Completed: ${result.model}, effort ${result.effort}. Input tokens: ${result.usage?.inputTokens ?? 'unknown'}; output tokens: ${result.usage?.outputTokens ?? 'unknown'}.</p>` : '';
         const choices = Object.entries(state.accounts).map(([key], index) => `<form method="post" action="/select"><input type="hidden" name="csrf" value="${csrf}"><input type="hidden" name="account" value="${escape(key)}"><button>Select account ${index + 1}</button></form>`).join('');
         const disconnect = current?.refreshToken ? `<form method="post" action="/disconnect"><input type="hidden" name="csrf" value="${csrf}"><button>Disconnect selected account</button></form>` : '';
         send(res, 200, render(`${info}<p role="status">${escape(notice)}</p>${previous}${probe}${choices}${disconnect}`, csrf),
           `plan_setup_csrf=${csrf}; HttpOnly; SameSite=Lax; Path=/`); return;
       }
-      if (req.method !== 'POST' || !['/start', '/new', '/select', '/probe', '/disconnect'].includes(path.pathname)) { send(res, 404, 'Not found.'); return; }
+      if (req.method !== 'POST' || !['/start', '/new', '/select', '/probe', '/tools-probe', '/disconnect'].includes(path.pathname)) { send(res, 404, 'Not found.'); return; }
       if (req.headers.origin !== origin || !cookieIs(req, 'plan_setup_csrf', csrf)) { send(res, 403, 'Forbidden'); return; }
       const fields = await form(req);
       if (fields.get('csrf') !== csrf || fields.getAll('csrf').length !== 1) { send(res, 403, 'Forbidden'); return; }
@@ -126,15 +128,16 @@ export async function startPlanSetup(store: PlanStore, fetcher: typeof fetch = f
       try {
         const current = active(state);
         if (!current) { send(res, 400, 'No account selected.'); return; }
-        if (path.pathname === '/probe') {
+        if (path.pathname === '/probe' || path.pathname === '/tools-probe') {
           if (!current.scopes.includes(requiredScope)) throw new Error('ChatGPT plan permission is missing.');
           let usable = current;
           if (current.expiresAt - Date.now() < 60_000) {
             usable = await refreshCredential(current, fetcher);
             state.accounts[accountKey(usable)] = usable; await store.save(state);
           }
-          result = await probeSolHigh(usable, fetcher);
-          notice = 'Synthetic text reasoning completed through the ChatGPT plan route.';
+          result = path.pathname === '/tools-probe' ? await probeSolHighTools(usable, fetcher) : await probeSolHigh(usable, fetcher);
+          notice = path.pathname === '/tools-probe' ? 'Synthetic tool round trip verified through the ChatGPT plan route. No care records were accessed.'
+            : 'Synthetic text reasoning completed through the ChatGPT plan route.';
         } else {
           let revoked = false;
           try {
@@ -157,6 +160,13 @@ export async function startPlanSetup(store: PlanStore, fetcher: typeof fetch = f
       } finally { working = false; }
       redirect(res, '/');
     } catch (error) {
+      if (error instanceof ToolProbeError || error instanceof PlanRequestError) {
+        // Only bounded descriptors/codes; no arguments, reasoning, account IDs or credentials.
+        try {
+          await mkdir('.local/probes', { recursive: true });
+          await writeFile('.local/probes/chatgpt-probe-rejection.json', JSON.stringify({ observedAt: new Date().toISOString(), ...error.diagnostic }, null, 2), { mode: 0o600 });
+        } catch { /* A diagnostic write must not crash the local helper. */ }
+      }
       result = undefined;
       notice = safeNotice(error);
       // Never echo callback URL, authorization code, tokens, or raw provider body.
