@@ -34,7 +34,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
 | Stage | Feature | Human action IDs |
 |---|---|---|
-| S01 | Plan the day with Nancy at 10 AM | S01-H01, S01-H02, S01-H03, S01-H04, S01-H05, S01-H06, S01-H07, S01-H08 |
+| S01 | Talk to Nancy and plan the day | S01-H01, S01-H02, S01-H03, S01-H04, S01-H05, S01-H06, S01-H07, S01-H08 |
 | S02 | Track actual meals and tasks through the day | S02-H01, S02-H02 |
 | S03 | Resume check-ins and tracking after interruptions | S03-H01, S03-H02 |
 | S04 | Return to a fresh day with reviewed carryover and timely prompts | S04-H01, S04-H02, S04-H03 |
@@ -47,7 +47,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 | S11 | Operate today's program from an administrator dashboard | S11-H01, S11-H02 |
 | S12 | Review trends and exports in Clinician Partners | S12-H01, S12-H02, S12-H03, S12-H04 |
 
-## S01: Plan the day with Nancy at 10 AM
+## S01: Talk to Nancy and plan the day
 
 - [ ] **S01-H01: Test on the selected smartphone**
 
@@ -105,7 +105,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Linked inputs/tests:** I-DATA, I-REGION, S01-LIVE1.
 
-- [ ] **S01-H04: Try the real 10 AM brief and meal-planning conversation**
+- [ ] **S01-H04: Try Talk to Nancy and the morning planning conversation**
 
   Owner: **participant_or_tester**. Status: **pending**. Requirement: **required**.
 
@@ -114,9 +114,9 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - At the intended 10:00 local routine, hear today's actual tasks, discuss available meals with Nancy and explicitly accept the reviewed day plan.
-  - Retrieve and revise the plan by voice/touch. Navigate from My Day to tasks/meals using both speech and buttons; assess urgency, scheduled times, speech pace, text and controls.
-  - Try Lets Plan the Day/Today within the 09:00-11:00 window, review one upcoming local appointment, multiple meal options and a missing-ingredient grocery capture; compare the suggested task duration, urgency and calendar placement with what is practical.
+  - Tap Talk to Nancy during the 08:00-11:00 local morning routine; answer the open question or redirect the suggestion, discuss today’s actual tasks and meals and explicitly accept the reviewed day plan. No prior workflow screen is required.
+  - Complete the supported planning flow by voice, then independently open My Day/tasks/meals through buttons and verify matching records. Check that switching views does not discard the active conversation.
+  - Try Lets Plan the Day/Today within the 08:00-11:00 window, review one upcoming local appointment, multiple meal options and a missing-ingredient grocery capture; compare the suggested task duration, urgency and calendar placement with what is practical.
 
   **Agent prepares or handles:** Prepare the working combined voice/task/meal feature before asking for a session. Verify committed plan versions, permissions, duplicate/stale protection and restore behavior; collect sanitized technical observations.
 
@@ -154,7 +154,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Provide genuine tasks with urgency and scheduled date/time where known, available/preferred meals, known restrictions and who maintains these choices. Meals appear as tasks.
+  - Provide genuine tasks with urgency and scheduled date/time where known, available/preferred meals, known restrictions and who maintains these choices. Meals appear as tasks. The morning categories are already supplied: breakfast, day planning, post-breakfast exercise and rehab between 08:00 and 11:00. Request only the actual task details and existing approved exercise/rehab routine needed for the live trial; do not ask the owner to decide this UX again.
   - Confirm or correct the participant's time zone once; 10:00 refers to that local zone. Reuse choices and decisions already supplied.
   - Provide known pantry ingredients, portion preferences and a small genuine local appointment where available; S01 can use manual entry without external calendar OAuth.
 

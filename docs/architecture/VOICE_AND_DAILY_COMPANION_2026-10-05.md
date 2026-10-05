@@ -2,9 +2,17 @@
 
 Decision date: 2026-10-05. The owner approved the smartphone preview's interface and requested the expanded behavior below. These are implementation requirements, not evidence that live conversation, wake-word detection, reminders or connectors are running. The canonical [roadmap](../roadmap/roadmap.json) assigns delivery and acceptance. This decision supersedes the earlier blanket deferral of wake-word listening and proactive reminders; it does not enable a microphone or a schedule by itself.
 
+## Latest owner direction: one master conversation
+
+**Talk to Nancy** is the primary client entry from home/My Day and every shipped client view. Tapping it opens a general conversation: Nancy asks what the client wants to do and offers one or two suggestions grounded in current participant-local time and outstanding records. A workflow picker, My Day task screen or special planning phrase is never required. The client can redirect freely. Optional voice-driven screen transitions and direct buttons expose the same records and commands; opening My Day does not discard the active conversation.
+
+The **08:00-11:00 morning window** covers breakfast, planning the day, post-breakfast exercise and rehab. This is a flexible context window, not four invented appointment times. Use actual known completion and accepted schedule state; ask when it is unknown. Suggest post-breakfast exercise only in the appropriate meal context. Use existing approved exercise/rehab tasks; S01 schedules/surfaces them, while S07/S08 retain step-by-step routine and approved-protocol execution. At other times the same button offers relevant help. These in-session suggestions do not require or imply background reminders or automatic microphone activation.
+
+**Heart is selected and voice comparison is closed.** The owner’s final decision supersedes the historical audition sections below. The remaining work is integrating Heart with this conversational flow and the authorized care service, then actual-device testing.
+
 ## Confirmed device and calendar
 
-The owner subsequently confirmed **iPhone**, **Safari** and **Outlook calendar** in the October 5 conversation. These selections are resolved and must not be requested again. The iOS version, audible/microphone trial, preferred voice and live wake behavior remain unqualified. Safari-tab and installed Home Screen web-app behavior need separate real-device testing. A stable authenticated origin is required before relying on a Home Screen installation or push subscriptions; the temporary public preview is not that deployment.
+The owner subsequently confirmed **iPhone**, **Safari** and **Outlook calendar** in the October 5 conversation. These selections are resolved and must not be requested again. Heart is selected. The iOS version, actual microphone/conversation delivery and live wake behavior remain unqualified. Safari-tab and installed Home Screen web-app behavior need separate real-device testing. A stable authenticated origin is required before relying on a Home Screen installation or push subscriptions; the temporary public preview is not that deployment.
 
 For the Outlook connection, confirm whether the calendar belongs to a personal Microsoft account or a work/school account and identify the intended calendar privately. Microsoft Graph is the proposed route once hosting is verified. Start with delegated `Calendars.ReadBasic` and bounded `calendarView` reads, which include recurring occurrences and exceptions. This scope omits event bodies, attachments and extensions; collect only needed appointment fields. It is listed for personal and work/school delegated access. Broader calendar access is conditional on a demonstrated requirement, and organizational approval depends on the actual tenant. No email access, writeback or invitations are selected. Sources: [Graph calendarView](https://learn.microsoft.com/en-us/graph/api/calendar-list-calendarview?view=graph-rest-1.0), [permission reference](https://learn.microsoft.com/en-us/graph/permissions-reference#calendarsreadbasic).
 
@@ -99,7 +107,7 @@ When the app is visible, the client opted into spoken prompts, and browser audio
 
 ## Morning planning, meals and groceries
 
-**Let's Plan the Day** and **Let's Plan Today** enter the same daily planning workflow. The preferred morning window is 09:00-11:00 in the participant's configured time zone; 10:00 remains the default. The command also works outside the window and resumes the current day's check-in rather than creating duplicate plans.
+**Let's Plan the Day** and **Let's Plan Today** enter the same daily planning workflow. The preferred morning window is 08:00-11:00 in the participant's configured time zone; 10:00 remains the default. The command also works outside the window and resumes the current day's check-in rather than creating duplicate plans.
 
 Review the calendar, current tasks and factual meal reports. Ask about uncertain facts such as breakfast. Discuss each relevant task's duration, priority and calendar placement, including buffers and conflicts. The client reviews and accepts a concrete version. A calendar suggestion is not an appointment booking. Calendar and Asana integrations retain external IDs, source freshness and scoped access; until a connector is qualified, show locally entered appointments and explicitly say external information is unavailable.
 

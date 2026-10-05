@@ -27,13 +27,15 @@
     "Use the approved simple smartphone My Day interface for a natural Nancy conversation: one tap opens it, continuous turns continue with a configurable end-of-turn pause and delayed session closure, and an explicit End control closes immediately.",
     "The owner selected Kokoro Heart (af_heart). Honor that completed voice decision; qualify licensing and actual-device conversational delivery without another voice comparison.",
     "Support an opt-in foreground Hey Nancy wake phrase where the intended browser/device route permits it; do not imply background listening, on-phone-only processing or microphone activation without explicit consent.",
-    "At each conversation start, prioritize current local calendar appointments, scheduled tasks, meal windows, actual reports and unresolved work; the 09:00-11:00 morning intent Lets Plan the Day/Lets Plan Today remains user initiated, with 10:00 preferred.",
+    "At each conversation start, prioritize current local calendar appointments, scheduled tasks, meal windows, actual reports and unresolved work; the 08:00-11:00 morning intent Lets Plan the Day/Lets Plan Today remains user initiated, with 10:00 preferred.",
     "Offer several practical meal choices, alternatives and portion-aware discussion from supplied preferences and ingredients; capture a confirmed missing ingredient into a minimal grocery list in S01, with full grocery management in S05.",
     "After actual reports begin in S02, maintain a factual ongoing ledger; in S04 review unfinished yesterday tasks explicitly so they cannot disappear, and add opt-in scheduled meal/appointment prompts with honest browser availability limits.",
     "Keep local calendar context in S01; connect an authorized external calendar and Asana in S06 after provider selection and scoped consent.",
     "Owner confirmed iPhone with Safari and Outlook calendar on 2026-10-05. Reuse these selections; account type, calendar authorization and actual iPhone audio/wake behavior remain separate qualifications.",
     "The owner rejected robotic device TTS on 2026-10-05. Natural intonation, phrasing, pacing, inflection and responsive turn-taking are required for Nancy voice acceptance, while retaining the free-first speech constraint.",
-    "Final owner selection: use Kokoro Heart (af_heart), female, for Nancy. Voice comparison is closed. Keep synthesis warm and deliver coherent sentence audio without waiting for the entire response where feasible; measure actual Heart latency independently of Pocket benchmarks. Actual-device conversation acceptance remains required, but voice selection must not be reopened without an owner request."
+    "Final owner selection: use Kokoro Heart (af_heart), female, for Nancy. Voice comparison is closed. Keep synthesis warm and deliver coherent sentence audio without waiting for the entire response where feasible; measure actual Heart latency independently of Pocket benchmarks. Actual-device conversation acceptance remains required, but voice selection must not be reopened without an owner request.",
+    "One master Talk to Nancy button is the primary client experience, available from home/My Day and all shipped client views. It opens one general conversation and Nancy asks what the client wants to do, offering one or two relevant suggestions from current local time and authorized outstanding records. No workflow picker, task screen, meal screen or planning command is required first. The client can redirect at any time. Voice workflows execute the same typed commands without requiring navigation; visual views are optional support and remain directly accessible with independent buttons.",
+    "The morning routine window is 08:00 inclusive to 11:00 exclusive in the participant profile time zone, covering breakfast, planning the day, post-breakfast exercise and rehab. These are flexible planned activities, not fixed appointment times or automatic completion. Suggest only relevant pending items, prioritize imminent appointments, and use known meal/activity reports; if breakfast or completion state is unknown, ask. Post-breakfast exercise follows confirmed breakfast in suggestions. Use only supplied approved exercise/rehab tasks; guided protocol execution remains S07/S08. Outside this window the same master button works and Nancy adapts to the current day. The prior 10:00 routine is a preference, never an access restriction."
   ],
   "constraints": {
     "budget": {
@@ -402,7 +404,7 @@
     {
       "id": "S01",
       "priority": 10,
-      "title": "Plan the day with Nancy at 10 AM",
+      "title": "Talk to Nancy and plan the day",
       "status": "in_progress",
       "depends_on": [],
       "required_inputs": [
@@ -418,9 +420,9 @@
         "I-WAKE-CONSENT",
         "I-CALENDAR"
       ],
-      "outcome": "A consenting participant opens Nancy during the preferred 10:00 local-time routine (09:00-11:00 window), has a fluid two-way conversation about current tasks, appointments and meal choices, explicitly accepts a day/meal plan and retrieves or revises it by voice or touch.",
+      "outcome": "A consenting participant taps Talk to Nancy from any client view, hears an open question and time-aware suggestions, discusses tasks, appointments and meals without navigating through workflow screens, explicitly accepts a day/meal plan and retrieves or revises it through voice or direct UI. The 08:00-11:00 morning context includes breakfast, day planning, post-breakfast exercise and supplied approved rehab tasks.",
       "in_scope": [
-        "Narrow large-type My Day client home with Talk to Nancy, task list and daily meal view; voice navigation and matching buttons",
+        "One primary Talk to Nancy button across the narrow client experience; general voice entry with contextual suggestions; direct My Day, task, daily meal and minimal grocery UI paths using the same authorized records",
         "Minimal authorized setup for real tasks, meal options/preferences and participant timezone; no full administrator dashboard",
         "Real two-way speech with GPT Sol high reasoning, local database and authentication, four scoped roles/homes and HTTPS route within the same usable feature",
         "Typed proposal, exact-version acceptance, correction/revision and committed-state readback",
@@ -428,9 +430,9 @@
         "Task urgency and scheduled date/time; meals represented as task occurrences with meal details",
         "Minimal administrator setup and scoped Support Team / Clinician Partners landing routes; their full feature sets remain in S10/S12",
         "Qualify supported existing-subscription reasoning first, independent speech and optional narrowly scoped MCP connectivity; preserve the custom My Day UI and local care-service authority",
-        "One-tap continuous conversation with configurable end-of-turn silence, idle grace, explicit End and tested interruption/echo handling; Dad can audition and select a free Nancy voice",
+        "One-tap continuous conversation using the owner-selected Heart voice, configurable end-of-turn silence, idle grace, explicit End and tested interruption/echo handling; no further voice audition",
         "Opt-in foreground Hey Nancy listener with visible status and stop control on a qualified browser/local-service path; button remains usable when wake listening is unsupported or disabled",
-        "Local calendar/appointment entries, current-time priority and user-initiated Lets Plan the Day/Lets Plan Today intent during 09:00-11:00; propose task duration, urgency and calendar placement without autonomous acceptance",
+        "The morning routine window is 08:00 inclusive to 11:00 exclusive in the participant profile time zone, covering breakfast, planning the day, post-breakfast exercise and rehab. These are flexible planned activities, not fixed appointment times or automatic completion. Suggest only relevant pending items, prioritize imminent appointments, and use known meal/activity reports; if breakfast or completion state is unknown, ask. Post-breakfast exercise follows confirmed breakfast in suggestions. Use only supplied approved exercise/rehab tasks; guided protocol execution remains S07/S08. Outside this window the same master button works and Nancy adapts to the current day. The prior 10:00 routine is a preference, never an access restriction.",
         "Several meal choices and collaborative alternatives using known ingredients/preferences, portion discussion within approved boundaries, and confirmed missing-ingredient capture in a minimal grocery list"
       ],
       "out_of_scope": [
@@ -453,11 +455,11 @@
         },
         {
           "id": "S01-T08",
-          "description": "Qualify speech independently using synthetic audio and the actual target microphone/speaker. The provisional free output adapter is pinned Pocket TTS 3.3 English 2026-09 with Alba on local CPU; input/ASR remains separately qualified. Compare actual latency, clarity, interruption, privacy and cost on iPhone/Safari. ChatGPT-plan reasoning includes no audio/transcription entitlement. Preserve Sol high, no retained audio by default and touch fallback. The participant has not selected a final voice."
+          "description": "Integrate owner-selected Kokoro Heart (af_heart) with the independently qualified speech-input adapter and GPT-6 Sol/high. Keep the pinned local Kokoro model warm and synthesize coherent sentences at normal speed. Measure Heart actual-device latency, intelligibility, cancellation, privacy and cost; do not reuse Pocket timing as Heart evidence. No retained audio by default; UI fallback remains independent."
         },
         {
           "id": "S01-T02",
-          "description": "Adapt RU-HTTP/RU-UI into My Day and a shared typed destination registry for voice/buttons. Add role-specific landing routes and local authentication/database deployment; keep a stable HTTPS device route."
+          "description": "Adapt RU-HTTP/RU-UI into My Day and a shared typed destination registry for voice/buttons. Add role-specific landing routes and local authentication/database deployment; keep a stable HTTPS device route. Make Talk to Nancy persistently reachable across client destinations and keep all fallback views directly navigable without voice initialization."
         },
         {
           "id": "S01-T03",
@@ -473,7 +475,7 @@
         },
         {
           "id": "S01-T05",
-          "description": "Integrate the qualified Sol-high reasoning and independent speech adapters into Talk to Nancy. Bind authenticated voice tools and buttons to the same authorized navigation and exact-version care commands. Keep account/tunnel mechanics out of My Day; test cancellation, ambiguity, quota/auth refusal and truthful committed state."
+          "description": "Integrate the qualified Sol-high reasoning and independent speech adapters into Talk to Nancy. Bind authenticated voice tools and buttons to the same authorized navigation and exact-version care commands. Keep account/tunnel mechanics out of My Day; test cancellation, ambiguity, quota/auth refusal and truthful committed state. On entry ask what the client wants to do and use fresh priority context for concise suggestions. Route intent conversationally without a workflow chooser or prerequisite navigation; do not reset the conversation merely because the client opens My Day."
         },
         {
           "id": "S01-T06",
@@ -481,7 +483,7 @@
         },
         {
           "id": "S01-T10",
-          "description": "Qualify free voice licensing and produce participant auditions. Use pinned local Pocket TTS English 2026-09 Alba as the provisional engineering voice and Kokoro Heart as the owner's comparison baseline; save a scoped preference only after actual choice. Test varied utterances and contextual conversation on iPhone/Safari, including first audible response, interruption and natural prosody. A warm same-origin WebSocket carrying native audio chunks with a 160 ms initial buffer is the provisional delivery path, not a completed live result. Qwen's free official demo supplied quality samples only; Azure F0 Jenny is an untested recurring-free candidate. No paid speech service is selected."
+          "description": "Voice selection is complete by explicit owner decision: use Heart, female. Persist that preference in authorized setup without another audition. Focus on responsive sentence delivery and integration, then actual iPhone/Safari conversation testing; do not extend candidate research."
         },
         {
           "id": "S01-T11",
@@ -493,7 +495,7 @@
         },
         {
           "id": "S01-T13",
-          "description": "Add minimal authorized local appointments and current-time priority ranking for tasks, meals and appointments. Map Lets Plan the Day and Lets Plan Today to the same user-initiated morning flow. Capture task duration or unknown, urgency and proposed calendar placement; ask before accepting any schedule change. Keep external calendar/Asana connectors for S06. Ask for unknown appointment preparation/travel buffer; show local source freshness and explicitly say external calendar data is not connected until S06."
+          "description": "One master Talk to Nancy button is the primary client experience, available from home/My Day and all shipped client views. It opens one general conversation and Nancy asks what the client wants to do, offering one or two relevant suggestions from current local time and authorized outstanding records. No workflow picker, task screen, meal screen or planning command is required first. The client can redirect at any time. Voice workflows execute the same typed commands without requiring navigation; visual views are optional support and remain directly accessible with independent buttons. The morning routine window is 08:00 inclusive to 11:00 exclusive in the participant profile time zone, covering breakfast, planning the day, post-breakfast exercise and rehab. These are flexible planned activities, not fixed appointment times or automatic completion. Suggest only relevant pending items, prioritize imminent appointments, and use known meal/activity reports; if breakfast or completion state is unknown, ask. Post-breakfast exercise follows confirmed breakfast in suggestions. Use only supplied approved exercise/rehab tasks; guided protocol execution remains S07/S08. Outside this window the same master button works and Nancy adapts to the current day. The prior 10:00 routine is a preference, never an access restriction. Refresh get_priority_context at session start and before time-sensitive suggestions; Lets Plan the Day/Today remain optional aliases. Capture unknown task duration or preparation/travel buffer by asking. Propose urgency and calendar placement, confirm before saving, and disclose absent/stale sources. External Outlook/Asana connections remain S06."
         },
         {
           "id": "S01-T14",
@@ -569,7 +571,7 @@
         },
         {
           "id": "S01-AC05",
-          "assertion": "My Day exposes the same saved tasks/meals and honest failure state through voice and touch, including when speech or a remote provider is unavailable."
+          "assertion": "My Day exposes the same saved tasks/meals and honest failure state through voice and touch, including when speech or a remote provider is unavailable. The client can open My Day and view tasks without starting voice, and complete supported voice workflows without opening their screens."
         },
         {
           "id": "S01-AC06",
@@ -585,15 +587,15 @@
         },
         {
           "id": "S01-AC09",
-          "assertion": "A button starts a continuous natural-feeling voice session; turns wait for a configurable silence threshold, a visible delayed idle close preserves context, speaking/thinking suspends idle, End closes immediately, and interruption does not make Nancy hear her own audio as a user request."
+          "assertion": "A button starts a continuous natural-feeling voice session; turns wait for a configurable silence threshold, a visible delayed idle close preserves context, speaking/thinking suspends idle, End closes immediately, and interruption does not make Nancy hear her own audio as a user request. The same Talk to Nancy button works from every shipped client view, starts with an open question and concise contextual suggestions, and requires no workflow selection. The client may ignore suggestions or change topic."
         },
         {
           "id": "S01-AC10",
-          "assertion": "The participant can audition free voices and select a preferred voice on the intended device. With explicit consent, foreground Hey Nancy starts the same authorized conversation, shows listening state and stops cleanly; button entry remains available if wake listening is unavailable. No background phone or on-device-only wake claim is made. A consenting tester must demonstrate the foreground wake path on a qualified intended route; if the selected phone cannot support it, the wake criterion remains open until a supported path or explicit owner scope change. Button fallback does not count as a passed wake test. Voice acceptance includes satisfactory intonation, phrasing, pauses, emphasis and warmth on varied utterances; audible playback alone cannot pass the naturalness gate."
+          "assertion": "The owner-selected Heart voice is used; selection is resolved and requires no further audition. With explicit consent, foreground Hey Nancy starts the same authorized conversation, shows listening state and stops cleanly; button entry remains available if wake listening is unavailable. No background phone or on-device-only wake claim is made. A consenting tester must demonstrate the foreground wake path on a qualified intended route; if the selected phone cannot support it, the wake criterion remains open until a supported path or explicit owner scope change. Button fallback does not count as a passed wake test. The Heart choice is complete. Actual-device testing verifies clear audible delivery and usable conversation timing; it does not reopen voice selection."
         },
         {
           "id": "S01-AC11",
-          "assertion": "Lets Plan the Day and Lets Plan Today open one morning planning flow. On each start Nancy uses current local appointments, tasks, meals and available actuals to explain time-aware priorities, propose realistic duration/urgency/calendar placement and ask before saving changes. Unknown preparation or travel buffers are asked about, and absent external calendar data is disclosed rather than invented."
+          "assertion": "One master Talk to Nancy button is the primary client experience, available from home/My Day and all shipped client views. It opens one general conversation and Nancy asks what the client wants to do, offering one or two relevant suggestions from current local time and authorized outstanding records. No workflow picker, task screen, meal screen or planning command is required first. The client can redirect at any time. Voice workflows execute the same typed commands without requiring navigation; visual views are optional support and remain directly accessible with independent buttons. The morning routine window is 08:00 inclusive to 11:00 exclusive in the participant profile time zone, covering breakfast, planning the day, post-breakfast exercise and rehab. These are flexible planned activities, not fixed appointment times or automatic completion. Suggest only relevant pending items, prioritize imminent appointments, and use known meal/activity reports; if breakfast or completion state is unknown, ask. Post-breakfast exercise follows confirmed breakfast in suggestions. Use only supplied approved exercise/rehab tasks; guided protocol execution remains S07/S08. Outside this window the same master button works and Nancy adapts to the current day. The prior 10:00 routine is a preference, never an access restriction. Lets Plan the Day/Today are optional aliases to the same flow, not prerequisites. Suggestions never imply performed activity or accepted schedule changes; ask about unknown preparation or travel time and disclose stale/absent calendar data."
         },
         {
           "id": "S01-AC12",
@@ -636,7 +638,7 @@
             "S01-AC07",
             "S01-AC08"
           ],
-          "scenario": "Exercise each scoped role/home and both navigation entry paths, unsupported routes, urgency/schedule validation and one meal task identity. Verify local database/auth adapter contracts and Sol high request construction with provider doubles. Exercise subscription-vs-API route selection, exact Sol-high binding, provider auth renewal/revocation and quota failures; deny inherited or cross-client tools and silent billed fallback. Verify speech and browser HTTPS remain independent of MCP transport.",
+          "scenario": "Exercise each scoped role/home and both navigation entry paths, unsupported routes, urgency/schedule validation and one meal task identity. Verify local database/auth adapter contracts and Sol high request construction with provider doubles. Exercise subscription-vs-API route selection, exact Sol-high binding, provider auth renewal/revocation and quota failures; deny inherited or cross-client tools and silent billed fallback. Verify speech and browser HTTPS remain independent of MCP transport. Start the master voice session from home, tasks, meals and groceries; verify UI-only navigation and voice-only task/meal planning, without a preceding workflow screen or state reset on view changes.",
           "expected": "Only available authorized destinations open; navigation does not write care state. Shared task/meal records agree and the reasoning adapter requests the chosen Sol ID with high effort. Actual deployment/audio still requires live evidence. Tool calls reach only the shared authorized care boundary; expired/revoked credentials and quota exhaustion yield an honest unavailable state without changing billing or model. A tunnel or catalog listing cannot satisfy completed inference/audio evidence."
         },
         {
@@ -646,7 +648,7 @@
             "S01-AC10"
           ],
           "scenario": "Simulate speech, thought, silence, echo, interruption, page hide, explicit End, idle expiry, late permission and unsupported wake route.",
-          "expected": "Session timing and microphone ownership are truthful; no duplicate turn, recording leak or false wake from Nancy audio; button path remains usable."
+          "expected": "Session timing and microphone ownership are truthful; no duplicate turn, recording leak or false wake from Nancy audio; button path remains usable. General entry asks an open question, accepts an unrelated request, and continues one session while optional supporting views change."
         },
         {
           "id": "S01-AUTO6",
@@ -654,8 +656,8 @@
             "S01-AC11",
             "S01-AC12"
           ],
-          "scenario": "Use fixed local times around an appointment and meals, stale revisions, several candidate meals, missing pantry item, rejected choices and duplicate grocery command.",
-          "expected": "Relevant records drive ranked explanations; calendar/task changes require acceptance, unknown quantities are clarified and one confirmed grocery item is stored."
+          "scenario": "Use fixed local times around an appointment and meals, stale revisions, several candidate meals, missing pantry item, rejected choices and duplicate grocery command. Exercise participant-local 07:59, 08:00, 10:59 and 11:00; breakfast pending/completed/unknown, accepted vs actually performed exercise/rehab, overdue items, near appointments, and client redirection. Use only supplied approved exercise/rehab fixtures.",
+          "expected": "Relevant records drive ranked explanations; calendar/task changes require acceptance, unknown quantities are clarified and one confirmed grocery item is stored. Morning suggestions use the 08:00-11:00 window and actual known state; completed items are suppressed, unknown state is clarified, and the user can choose a different workflow. No autonomous rescheduling, completion or new exercise prescription."
         }
       ],
       "live_tests": [
@@ -676,15 +678,16 @@
           ],
           "data_policy": "real_consented",
           "steps": [
-            "Prerequisite: S01-LIVE2 must pass on disposable records, including encrypted export/isolated restore, before this scenario retains meaningful participant data. Numeric test IDs do not prescribe execution order.",
+            "On the actual device over HTTPS, tap Talk to Nancy without first entering a task, meal or planning screen. Verify Nancy asks what the client wants to do and offers appropriate suggestions based on the participant-local time and current records; review genuine tasks and meal choices.",
             "At the intended 10:00 routine on the actual device over HTTPS, use Nancy's live voice to review supplied real tasks and choose today's meals.",
             "Explicitly accept the reviewed plan, retrieve it by voice and touch, then revise a choice and refresh; verify local database state and participant usability.",
             "From My Day, open task and meal views using both spoken requests and buttons; inspect urgency and local scheduled times and verify each meal is the same task in both views.",
             "Record sanitized evidence of the actual gpt-6-sol/high runtime and selected subscription/API route, intended-user eligibility, separate speech round trip and My Day web origin. Confirm Dad can use the normal My Day voice/touch interface. Do not retain raw audio or private transcripts in the repository.",
             "On the actual smartphone, use the owner-selected Heart voice; open by button, converse across several turns, pause and observe the closure grace, then use End. If the qualified foreground Hey Nancy path is enabled with consent, invoke it and verify the visible listener and stop control; note browser lock/background limits honestly.",
-            "At 09:00-11:00 say Lets Plan the Day and Lets Plan Today in separate starts; discuss a real upcoming appointment, task duration/urgency/placement, several meal choices and a confirmed missing ingredient. Verify the saved plan and minimal grocery list without claiming a meal was eaten.",
+            "At 08:00-11:00 say Lets Plan the Day and Lets Plan Today in separate starts; discuss a real upcoming appointment, task duration/urgency/placement, several meal choices and a confirmed missing ingredient. Verify the saved plan and minimal grocery list without claiming a meal was eaten.",
             "Record whether a consenting tester actually invoked Hey Nancy on the intended route; if the browser cannot support it, record the blocker rather than treating button operation as wake acceptance.",
-            "After the owner rejection of device TTS, compare improved neural delivery on several unrehearsed ordinary prompts and a real exchange; record naturalness and conversational timing feedback separately from successful audio playback. Do not pass voice quality without participant/tester acceptance."
+            "Use the selected Heart voice in an unrehearsed actual conversation and record audible delivery, timing and usability separately from successful sample playback. Do not require a new voice comparison or change the owner-selected voice.",
+            "During the 08:00-11:00 morning window review breakfast, day planning, post-breakfast exercise and supplied approved rehab tasks. Redirect away from a suggested activity, complete the planning flow by voice without required navigation, and independently open My Day to verify the same tasks. Record actual conditions rather than claiming every morning activity was performed."
           ],
           "expected": "Actual microphone and spoken-response round trips produce one accepted real plan and an auditable revision with matching readback."
         },
@@ -712,7 +715,8 @@
             "Verify local database process restart and encrypted restore to an isolated local target; confirm no cloud database is silently used and validate the actual selected Sol high/speech route with disposable data.",
             "Prove a completed synthetic Sol-high turn on the selected auth/billing route and an independently completed speech round trip. Record intended-account/deployment eligibility and actual usage/limits. Exercise provider refusal or revoked disposable access without paid fallback; verify any conditional MCP connection uses the same client-scoped authorization. Keep browser HTTPS proof separate.",
             "With disposable records, test button and foreground wake entry, session timeout/grace, speech interruption/echo, a denied microphone and unsupported browser path; verify no recording persists or background wake claim.",
-            "Create disposable appointments one hour away and meal windows. Reject all initial meal choices, modify one proposal, request a missing ingredient twice and inspect exact-version plan and one grocery receipt."
+            "Create disposable appointments one hour away and meal windows. Reject all initial meal choices, modify one proposal, request a missing ingredient twice and inspect exact-version plan and one grocery receipt.",
+            "With disposable current-day records, exercise the master button from each client destination, independent UI fallback, view changes during one session, and time/completion-aware suggestions. Verify no action is saved merely by opening a screen or hearing a suggestion."
           ],
           "expected": "Denial, duplicate/stale protection, honest failure and exact restore/readback hold against real services; dictation mocks do not count."
         }
@@ -741,7 +745,8 @@
         "2026-10-04 actual connection checks are recorded in docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. These synthetic provider probes are not S01 live acceptance. The MCP tunnel transports local tool calls; it does not establish Nancy model access, voice, per-client authorization or a public My Day web route.",
         "2026-10-04 connection progress: the app-specific OAuth/Responses helper completed text and fixed read-only tool probes using gpt-6-sol/high. The adapter now replays finalized streamed items when terminal output is empty, and verifies the returned fixture value in the completed answer. Separate Windows voice generation and local faster-whisper recognition passed on synthetic audio; genuine microphone/audible conversation is still untested. See docs/evidence/S01-CHATGPT-PLAN-CONNECTION-2026-10-04.json. Existing Tailscale/MCP services remain unchanged; a new tool tunnel is unnecessary for these local probes.",
         "2026-10-05 Kokoro trial: nine pinned samples are deployed; docs/evidence/S01-KOKORO-AUDITION-2026-10-05.json records 92 passing tests, actual CPU synthesis, ASR checks and public desktop-browser playback. Owner reports better but still somewhat robotic, with Heart as the closest candidate and comparison baseline. The owner has now selected Heart and closed voice choice; integrated back-and-forth remains unqualified. No paid service or production approval is implied.",
-        "2026-10-05 voice evaluation: docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md records provisional Pocket TTS 3.3 English 2026-09 Alba on local fp32 CPU (2 intraop/1 interop threads, temperature 0.3, 1 decode step) with pinned CC BY 4.0 checkpoint revision e7205b6ee50e654a5ea19f0e9df2b0813b05e921 and Alba embedding revision 4e1e0a3e611c51c0b4ed8174fc10f32a54644303. Native audio chunks over warm same-origin WebSocket with a 160 ms initial buffer are implemented in the fixed synthetic audition. The official Qwen3-TTS 1.7B Serena demo produced two matched quality clips but does not qualify production latency or access; Azure F0 Jenny is an untested free-tier candidate. Synthetic gpt-6-sol/high first-sentence times were 3.5852, 3.8602 and 4.2776 seconds, without integrated ASR/TTS. Historical comparison is superseded by the final owner Heart selection. Actual iPhone audio, microphone, interruption and S01 live gates remain open. Pocket timings are not Heart timings. Actual public WSS desktop tests now show first rendered audio proxy 251.8-449.3 ms across six completed short/long repeats with zero underruns, Stop-to-zero-quantum acknowledgement 15.9 ms, and independent worker-cancel acknowledgement 71.88 ms. 102 tests/typecheck/build pass at source revision sha256:53eeba88e2fb352b68d9c66a6766fee1232dfdad9f48d3021a1f7f2fe95bcd69 (docs/evidence/S01-VOICE-MODEL-EVALUATION-2026-10-05.json; partial regression/voice evaluation only). These are synthetic desktop checks; integrated speech and actual iPhone acceptance remain pending."
+        "2026-10-05 voice evaluation: docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md records provisional Pocket TTS 3.3 English 2026-09 Alba on local fp32 CPU (2 intraop/1 interop threads, temperature 0.3, 1 decode step) with pinned CC BY 4.0 checkpoint revision e7205b6ee50e654a5ea19f0e9df2b0813b05e921 and Alba embedding revision 4e1e0a3e611c51c0b4ed8174fc10f32a54644303. Native audio chunks over warm same-origin WebSocket with a 160 ms initial buffer are implemented in the fixed synthetic audition. The official Qwen3-TTS 1.7B Serena demo produced two matched quality clips but does not qualify production latency or access; Azure F0 Jenny is an untested free-tier candidate. Synthetic gpt-6-sol/high first-sentence times were 3.5852, 3.8602 and 4.2776 seconds, without integrated ASR/TTS. Historical comparison is superseded by the final owner Heart selection. Actual iPhone audio, microphone, interruption and S01 live gates remain open. Pocket timings are not Heart timings. Actual public WSS desktop tests now show first rendered audio proxy 251.8-449.3 ms across six completed short/long repeats with zero underruns, Stop-to-zero-quantum acknowledgement 15.9 ms, and independent worker-cancel acknowledgement 71.88 ms. 102 tests/typecheck/build pass at source revision sha256:53eeba88e2fb352b68d9c66a6766fee1232dfdad9f48d3021a1f7f2fe95bcd69 (docs/evidence/S01-VOICE-MODEL-EVALUATION-2026-10-05.json; partial regression/voice evaluation only). These are synthetic desktop checks; integrated speech and actual iPhone acceptance remain pending.",
+        "Latest owner UX direction is recorded: one primary Talk to Nancy conversation, independent My Day/task/meal/grocery paths and an 08:00-11:00 time-aware morning context. Implementation and actual-device acceptance for this updated contract remain outstanding; no new live pass is claimed."
       ],
       "test_results": [],
       "human_actions": [
@@ -842,7 +847,7 @@
         },
         {
           "id": "S01-H04",
-          "title": "Try the real 10 AM brief and meal-planning conversation",
+          "title": "Try Talk to Nancy and the morning planning conversation",
           "owner_role": "participant_or_tester",
           "when": "After S01-LIVE2's disposable safety/restore checks pass and the working S01 feature is ready",
           "blocking_scope": "slice_completion",
@@ -850,9 +855,9 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "At the intended 10:00 local routine, hear today's actual tasks, discuss available meals with Nancy and explicitly accept the reviewed day plan.",
-            "Retrieve and revise the plan by voice/touch. Navigate from My Day to tasks/meals using both speech and buttons; assess urgency, scheduled times, speech pace, text and controls.",
-            "Try Lets Plan the Day/Today within the 09:00-11:00 window, review one upcoming local appointment, multiple meal options and a missing-ingredient grocery capture; compare the suggested task duration, urgency and calendar placement with what is practical."
+            "Tap Talk to Nancy during the 08:00-11:00 local morning routine; answer the open question or redirect the suggestion, discuss today’s actual tasks and meals and explicitly accept the reviewed day plan. No prior workflow screen is required.",
+            "Complete the supported planning flow by voice, then independently open My Day/tasks/meals through buttons and verify matching records. Check that switching views does not discard the active conversation.",
+            "Try Lets Plan the Day/Today within the 08:00-11:00 window, review one upcoming local appointment, multiple meal options and a missing-ingredient grocery capture; compare the suggested task duration, urgency and calendar placement with what is practical."
           ],
           "agent_can_do": [
             "Prepare the working combined voice/task/meal feature before asking for a session.",
@@ -905,7 +910,7 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Provide genuine tasks with urgency and scheduled date/time where known, available/preferred meals, known restrictions and who maintains these choices. Meals appear as tasks.",
+            "Provide genuine tasks with urgency and scheduled date/time where known, available/preferred meals, known restrictions and who maintains these choices. Meals appear as tasks. The morning categories are already supplied: breakfast, day planning, post-breakfast exercise and rehab between 08:00 and 11:00. Request only the actual task details and existing approved exercise/rehab routine needed for the live trial; do not ask the owner to decide this UX again.",
             "Confirm or correct the participant's time zone once; 10:00 refers to that local zone. Reuse choices and decisions already supplied.",
             "Provide known pantry ingredients, portion preferences and a small genuine local appointment where available; S01 can use manual entry without external calendar OAuth."
           ],
@@ -2235,7 +2240,8 @@
         "Versioned routine template and today's run",
         "Current/next step with voice and touch",
         "Protected scheduling and explicit interruptions",
-        "Manual appointments, capacity and planning handoff"
+        "Manual appointments, capacity and planning handoff",
+        "Extend S01’s master Talk to Nancy entry and existing morning task context; do not introduce a required routine-picker screen. S01 already schedules/surfaces supplied exercise/rehab tasks; S07 adds step-by-step Morning Boot guidance."
       ],
       "out_of_scope": [
         "Automatic appointment movement",
@@ -2419,7 +2425,8 @@
         "Human-approved versioned rehab protocol",
         "Step-by-step voice/touch presentation",
         "Session results, assistance/difficulty notes and corrections",
-        "Restricted clinical reads"
+        "Restricted clinical reads",
+        "Start approved rehab guidance through the same Talk to Nancy entry; S01 may already show/suggest the scheduled rehab task, while this slice adds protocol execution and session reporting."
       ],
       "out_of_scope": [
         "Diagnosis",
@@ -3477,7 +3484,7 @@
     },
     {
       "id": "D-AUTOMATIC-CHECKIN",
-      "reason": "Unattended outbound calls, automatic microphone activation, closed-browser spoken audio and scheduled model/connector preparation remain deferred. S04 now includes opted-in meal/appointment prompt scheduling, foreground speech when My Day is active and browser notification fallback when permitted. The user still initiates the 09:00-11:00 planning conversation; no Cerberus scheduler is assumed. S04 must build and test a durable scheduler, missed-run behavior and genuine reminders."
+      "reason": "Unattended outbound calls, automatic microphone activation, closed-browser spoken audio and scheduled model/connector preparation remain deferred. S04 now includes opted-in meal/appointment prompt scheduling, foreground speech when My Day is active and browser notification fallback when permitted. The user still initiates the 08:00-11:00 planning conversation; no Cerberus scheduler is assumed. S04 must build and test a durable scheduler, missed-run behavior and genuine reminders."
     }
   ],
   "human_action_policy": {
@@ -3503,9 +3510,9 @@
     "entry_mode": "user_initiated",
     "timezone_source": "participant_profile",
     "timezone_input_id": "I-TIMEZONE",
-    "outcome": "A client opens My Day, plans tasks and meals with Nancy by voice or buttons, reports actual activity, resumes after interruptions and returns to a fresh day with accurate history and reviewed carryover.",
+    "outcome": "The client taps Talk to Nancy and chooses what to do in a time-aware voice conversation; My Day and other direct UI paths expose the same tasks, plans and actuals. Across S01-S04 the client plans meals/tasks, reports activity, recovers from interruptions and returns to reviewed carryover.",
     "completion_gate_id": "G-FIRST-FOUR",
-    "scope_boundary": "10:00 is the preferred user-initiated morning check-in within 09:00-11:00 in the participant time zone; Lets Plan the Day and Lets Plan Today start the same flow. S01 uses a local calendar/appointment source and opt-in foreground wake only while a qualified page/session is active. S04 adds opted-in scheduled meal/appointment prompts with a durable scheduler and browser notification fallback. No automatic microphone activation, background phone wake or unattended spoken prompt from a closed browser is promised."
+    "scope_boundary": "One master Talk to Nancy button is the primary client experience, available from home/My Day and all shipped client views. It opens one general conversation and Nancy asks what the client wants to do, offering one or two relevant suggestions from current local time and authorized outstanding records. No workflow picker, task screen, meal screen or planning command is required first. The client can redirect at any time. Voice workflows execute the same typed commands without requiring navigation; visual views are optional support and remain directly accessible with independent buttons. The morning routine window is 08:00 inclusive to 11:00 exclusive in the participant profile time zone, covering breakfast, planning the day, post-breakfast exercise and rehab. These are flexible planned activities, not fixed appointment times or automatic completion. Suggest only relevant pending items, prioritize imminent appointments, and use known meal/activity reports; if breakfast or completion state is unknown, ask. Post-breakfast exercise follows confirmed breakfast in suggestions. Use only supplied approved exercise/rehab tasks; guided protocol execution remains S07/S08. Outside this window the same master button works and Nancy adapts to the current day. The prior 10:00 routine is a preference, never an access restriction. S04 adds opted-in scheduled prompts with a durable scheduler. Opening Talk to Nancy permits an in-session contextual suggestion, not automatic microphone activation or a background prompt."
   },
   "reuse_plan": {
     "assessment_ref": "docs/architecture/CERBERUS_REUSE_ASSESSMENT.md",
@@ -3649,6 +3656,7 @@
         "primary_interaction": "voice",
         "ui_required": true,
         "capabilities": [
+          "Start the primary Talk to Nancy conversation from any shipped client view, without selecting a workflow. Open My Day, tasks, meals and groceries independently by voice or touch; neither speech nor a screen is a prerequisite for the other.",
           "View own task list and daily meals, plan with Nancy and explicitly accept reviewed plans in S01.",
           "Report actual activity in S02; use a minimal grocery list in S01 and expanded sharing/acquisition in S05 and achievement view in S09."
         ]
@@ -3701,7 +3709,7 @@
         "introduced_in": "S09"
       }
     ],
-    "navigation_policy": "Voice intent and buttons share a typed, role-authorized destination registry. Reject unknown or unauthorized targets; clearly explain features not yet available. Navigation alone cannot mutate a plan or report activity. Preserve My Day as the client home; avoid adding setup/clinical complexity to it.",
+    "navigation_policy": "One master Talk to Nancy button is the primary client experience, available from home/My Day and all shipped client views. It opens one general conversation and Nancy asks what the client wants to do, offering one or two relevant suggestions from current local time and authorized outstanding records. No workflow picker, task screen, meal screen or planning command is required first. The client can redirect at any time. Voice workflows execute the same typed commands without requiring navigation; visual views are optional support and remain directly accessible with independent buttons. Voice and buttons share a typed, role-authorized destination registry. My Day exposes the same saved tasks. Reject unknown or unauthorized destinations; navigation alone never accepts a plan or reports activity. Keep the active conversation/context available when changing views unless the client ends it or a genuine lifecycle condition closes it.",
     "task_model": {
       "user_facing_fields": [
         "what",
@@ -3713,7 +3721,7 @@
         "medium",
         "low"
       ],
-      "schedule_policy": "Persist the scheduled instant with participant time zone/local date; display the date/time in that zone. An unknown time is explicitly unscheduled until supplied, never invented. S02 rescheduling preserves old/new values, actor, versions and an event. Capture a proposed duration (or explicit unknown) and ask whether an appointment or task should occupy a proposed local calendar slot; only an explicitly accepted version changes the schedule. At session start rank impending appointments, meals, overdue tasks and commitments from current facts. This is assistance, not an autonomous calendar mutation.",
+      "schedule_policy": "Persist the scheduled instant with participant time zone/local date; display the date/time in that zone. An unknown time is explicitly unscheduled until supplied, never invented. S02 rescheduling preserves old/new values, actor, versions and an event. Capture a proposed duration (or explicit unknown) and ask whether an appointment or task should occupy a proposed local calendar slot; only an explicitly accepted version changes the schedule. At session start rank impending appointments, meals, overdue tasks and commitments from current facts. This is assistance, not an autonomous calendar mutation. The morning routine window is 08:00 inclusive to 11:00 exclusive in the participant profile time zone, covering breakfast, planning the day, post-breakfast exercise and rehab. These are flexible planned activities, not fixed appointment times or automatic completion. Suggest only relevant pending items, prioritize imminent appointments, and use known meal/activity reports; if breakfast or completion state is unknown, ask. Post-breakfast exercise follows confirmed breakfast in suggestions. Use only supplied approved exercise/rehab tasks; guided protocol execution remains S07/S08. Outside this window the same master button works and Nancy adapts to the current day. The prior 10:00 routine is a preference, never an access restriction.",
       "meals_are_tasks": true,
       "meal_policy": "A planned meal has one task occurrence identity and meal-specific details. Task list and meal view project the same record; accepting a meal plan does not mean eaten, and one meal report must not double count completion. Offer multiple household-appropriate choices and a collaborative alternative/healthier modification path; discuss portions within approved preferences and avoid unsupported clinical dietary prescriptions. Confirm missing ingredients before adding them to a minimal grocery list.",
       "internal_metadata": "Stable IDs, kind, participant, versions, source and audit fields remain internal; keep the client-facing form simple."
