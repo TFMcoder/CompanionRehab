@@ -185,7 +185,7 @@
     {
       "id": "I-DOMAIN",
       "status": "unresolved",
-      "default": "The authenticated My Day app runs locally with synthetic owner-pilot data. A new temporary Cloudflare HTTPS tunnel was rejected by automatic approval review pending specific owner authorization of the authenticated care routes. The earlier isolated public device preview and existing Tailscale/MCP routes are unchanged. Stable authenticated deployment and intended-phone behavior remain unqualified.",
+      "default": "Owner approved the temporary authenticated sample-data My Day Cloudflare Quick Tunnel after the initial automatic approval rejection. docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json records actual HTTPS auth/readback, access denial, session revocation and Heart greeting delivery. Hostname and process records stay in ignored runtime storage. The earlier sample preview and Tailscale/MCP routes remain unchanged. Actual iPhone/Safari behavior and a stable deployment remain unqualified.",
       "needed_for": "S01 HTTPS routing and auth redirects",
       "question": "Identify an available HTTPS hostname/account for the actual device; sender setup is conditional on the chosen invitation/recovery flow.",
       "resolution_ref": null
@@ -738,7 +738,7 @@
       "blockers": [
         "The local My Day increment is implemented and verified with synthetic records against actual PostgreSQL, owner-bound Sol-high inference, Heart synthesis and local ASR. Evidence: docs/evidence/S01-MY-DAY-2026-10-05.json. This does not complete either live acceptance gate.",
         "S01-LIVE2 is partial: encrypted restore and integrated planning passed, but the complete provider-loss/revocation/allowance, device and full-role scenario remains open. S01-LIVE1 has not run on the consenting participant's iPhone/Safari with genuine tasks/meals.",
-        "The new authenticated My Day public tunnel was blocked by automatic approval review pending specific owner approval of those care routes. The existing sample preview is unchanged. Stable HTTPS operation remains unqualified.",
+        "Owner approved the temporary authenticated sample-data My Day Cloudflare route; HTTPS sign-in, care access denial, session revocation and Heart greeting delivery passed. See docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json. Actual iPhone use and stable HTTPS operation remain unqualified.",
         "The intended participant account/deployment eligibility and live credential lifecycle are not established by owner-only synthetic inference. No paid API/model fallback is enabled.",
         "Participant consent, care-data retention/region, real day content, approved restrictions and timezone confirmation remain prerequisites for genuine care use.",
         "Remaining S01 engineering includes foreground Hey Nancy qualification, the other three scoped role landing experiences, shared meal/task occurrence identity and richer pantry/portion/alternative-meal behavior. Current navigation and manual appointment entry do not imply Outlook/Asana sync.",
@@ -765,7 +765,7 @@
           "data_origin": "disposable_live",
           "observed_by": "Codex engineering checks using synthetic practice records and generated audio",
           "evidence_ref": "docs/evidence/S01-MY-DAY-2026-10-05.json",
-          "notes": "Partial live-service check passed: actual PostgreSQL auth/plan durability, encrypted disposable restore, exact Sol-high planning, Heart chunks, synthetic audio through ASR and one-commit acceptance replay. Playback acknowledgements were scripted; no human microphone/listening claim. Full provider-loss/revocation/allowance, role/device and HTTPS qualification remains open; this is not a passed LIVE2 gate."
+          "notes": "Partial live-service check passed: actual PostgreSQL auth/plan durability, encrypted disposable restore, exact Sol-high planning, Heart chunks, synthetic audio through ASR and one-commit acceptance replay. Playback acknowledgements were scripted; no human microphone/listening claim. Full provider-loss/revocation/allowance, role/device and HTTPS qualification remains open; this is not a passed LIVE2 gate. Follow-up owner-approved temporary HTTPS checks also passed; see docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json. No actual iPhone acceptance or full LIVE2 pass is claimed."
         }
       ],
       "human_actions": [
@@ -813,7 +813,7 @@
             "Private OpenAI project/key setup, ownership and the owner's Nancy OAuth/ChatGPT-plan consent are complete. Identify the intended participant account/device and complete only additional sign-in or ownership steps required for that deployment. Do not recreate keys or repeat the completed owner consent, and do not assume the administrator subscription covers every client.",
             "Review an explicit API fallback/cost proposal only if subscription qualification fails or the selected speech path needs separately billed GPT access. Funding remains an owner choice, not an automatic prerequisite or silent fallback.",
             "Complete only missing HTTPS/domain ownership and, if actually selected, Secure MCP Tunnel workspace/access steps. Keep credentials private; routine installation/configuration is agent work.",
-            "Approve public exposure of the new password-protected sample-data My Day app for a supervised phone test if desired. Automatic approval review rejected creating this tunnel because the earlier preview authorization did not specifically cover the authenticated care routes; no tunnel workaround is authorized by elapsed time."
+            "Temporary public exposure of the password-protected sample-data My Day app is explicitly owner-approved on 2026-10-05. The HTTPS practice route is verified; do not ask for this same approval again. This does not approve real care-data use, a paid service or another participant account binding."
           ],
           "agent_can_do": [
             "First prepare and qualify the lowest-cost supported ChatGPT-plan adapter for exact gpt-6-sol high, with app-specific auth, allowance/error handling and actual completed inference evidence. Preserve independent care-service authorization and user/account boundaries.",
@@ -821,7 +821,7 @@
             "Configure local database/auth, shared care commands and My Day HTTPS. Add local MCP or Secure MCP Tunnel only for a concrete supported caller; preserve per-client grants and test revocation.",
             "Reuse docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json and the saved key. Prepare a concrete fallback proposal if needed; no repeated sign-in, key setup or funding requests without a remaining technical need."
           ],
-          "expected_evidence": "Owner app-specific OAuth consent and exact Sol-high inference remain evidenced by the October 4 connection record. docs/evidence/S01-MY-DAY-2026-10-05.json adds actual owner-bound authorized care planning, local PostgreSQL/auth, encrypted disposable restore, Heart and ASR integration using synthetic records. Completion still needs intended-user/deployment eligibility, remaining live credential lifecycle/allowance checks, the actual device conversation and HTTPS route. Specific approval for the new authenticated test tunnel is pending after automatic approval review rejection. Credentials and private evidence remain local; S01-H02 and both full live gates remain incomplete.",
+          "expected_evidence": "Owner app-specific OAuth consent and exact Sol-high inference remain evidenced by the October 4 connection record. docs/evidence/S01-MY-DAY-2026-10-05.json adds actual owner-bound authorized care planning, local PostgreSQL/auth, encrypted disposable restore, Heart and ASR integration using synthetic records. Completion still needs intended-user/deployment eligibility, remaining live credential lifecycle/allowance checks, the actual device conversation and HTTPS route. The owner subsequently approved the new authenticated sample-data test tunnel; docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json records successful HTTPS sign-in, access denial, session revocation and Heart audio delivery. Actual iPhone acceptance and stable deployment remain open. Credentials and private evidence remain local; S01-H02 and both full live gates remain incomplete.",
           "related_input_ids": [
             "I-ACCOUNTS",
             "I-DOMAIN",

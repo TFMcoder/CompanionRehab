@@ -1,0 +1,71 @@
+{
+  "slice_id": "S01",
+  "status": "temporary_https_verified",
+  "observed_at": "2026-10-05T21:10:09.542Z",
+  "implementation_revision": "sha256:7c14045dffe597f905212ce515780dc4988d303288d2812422031420f229d738",
+  "authorization": "Owner explicitly approved temporary public HTTPS exposure of the password-protected sample-data My Day app for a supervised iPhone test after the initial automatic approval rejection.",
+  "scope": "Synthetic owner practice profile only; no genuine participant care-data or account-eligibility acceptance is claimed.",
+  "route": "Cloudflare Quick Tunnel to loopback My Day; hostname and process IDs stay in ignored local runtime records.",
+  "checks": [
+    {
+      "name": "HTTPS serves My Day login application",
+      "passed": true
+    },
+    {
+      "name": "Local voice and synthetic profile configuration ready",
+      "passed": true
+    },
+    {
+      "name": "Signed-out care read denied",
+      "passed": true
+    },
+    {
+      "name": "Foreign origin login denied",
+      "passed": true
+    },
+    {
+      "name": "Practice sign-in succeeds",
+      "passed": true
+    },
+    {
+      "name": "Session cookie is Secure HttpOnly SameSite Strict",
+      "passed": true
+    },
+    {
+      "name": "Authenticated practice plan read succeeds",
+      "passed": true
+    },
+    {
+      "name": "Authenticated Nancy greeting opens",
+      "passed": true
+    },
+    {
+      "name": "Heart first speech chunk is delivered over HTTPS",
+      "passed": true
+    },
+    {
+      "name": "Conversation closes over HTTPS",
+      "passed": true
+    },
+    {
+      "name": "Practice sign-out succeeds",
+      "passed": true
+    },
+    {
+      "name": "Signed-out session cannot read care records",
+      "passed": true
+    }
+  ],
+  "first_chunk_http_ms": 3792,
+  "timing_limit": "Warm server HTTP audio delivery, not actual Safari microphone-to-ear latency.",
+  "desktop_browser": "Public HTTPS login page verified in the in-app browser.",
+  "private_evidence_ref": ".local/probes/my-day-https.json",
+  "remaining": [
+    "Actual iPhone/Safari microphone and audible conversation test.",
+    "The rest of S01-LIVE2 provider lifecycle/allowance and role/device checks, followed by consented S01-LIVE1.",
+    "Intended participant account/deployment eligibility and care-use consent.",
+    "Stable hostname, unattended uptime and daily-reliance arrangements."
+  ],
+  "cost": "No new paid service commitment.",
+  "slice_completion_claimed": false
+}

@@ -90,5 +90,9 @@
     ".local/probes/local-care-live.json",
     ".local/probes/my-day-mobile-layout.png"
   ],
-  "slice_completion_claimed": false
+  "slice_completion_claimed": false,
+  "follow_up": {
+    "evidence_ref": "docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json",
+    "resolution": "After this initial check, the owner explicitly approved temporary public exposure of the authenticated sample-data app. HTTPS authentication, access denial, revocation and Heart greeting delivery passed; actual iPhone acceptance remains open."
+  }
 }
