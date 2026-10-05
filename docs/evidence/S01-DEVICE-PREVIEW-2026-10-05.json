@@ -1,0 +1,77 @@
+{
+  "purpose": "Smartphone-accessible synthetic My Day interface and independent device checks; not integrated S01 acceptance",
+  "local_execution_date": "2026-10-05",
+  "base_git_revision": "f2ea13a5ec5f448eaa2c3d124cf5ffc492f970c3",
+  "implementation_revision": "sha256:dda5abbebb2f5c2f1a8430328f5d3e6c96cf74d77f0c38862d653540feea8a86",
+  "observed_by": "Codex orchestrator with delegated React implementation and actual HTTPS browser verification",
+  "data_origin": "Fixed synthetic task/meal fixtures and the previously generated synthetic Nancy WAV; no real care records",
+  "user_direction": "Owner selected a smartphone for the next test and requested a web-interface URL first. Exact phone OS/browser and owner device observations are pending.",
+  "automated_checks": {
+    "command": "npm run check",
+    "outcome": "passed",
+    "tests_passed": 79,
+    "test_files": 11,
+    "typecheck": "passed",
+    "production_build": "passed",
+    "new_boundaries": "Four server isolation/audio-range tests and five preview UI/lifecycle tests",
+    "roadmap_validation": "passed",
+    "generated_human_actions_check": "passed"
+  },
+  "deployment": {
+    "server": "Separate read-only Fastify preview on 127.0.0.1:8820",
+    "public_route": "Temporary Cloudflare Quick Tunnel HTTPS",
+    "private_url_and_process_ref": "local:.local/runtime/device-preview.json",
+    "cloudflared_version": "2026.9.3",
+    "binary_source": "https://github.com/cloudflare/cloudflared/releases/download/2026.9.3/cloudflared-windows-amd64.exe",
+    "binary_sha256": "f096265ec2fcbe9bb6e2d64268db167ced3fcbb83d894bdb9e2fcdb26f2ea7e2",
+    "release_digest_verified_before_execution": true,
+    "new_paid_service": false,
+    "incremental_service_cost": 0,
+    "existing_tailscale_and_mcp_routes_changed": false,
+    "oauth_helper_exposed": false,
+    "care_or_provider_runtime_loaded": false,
+    "production_ingress_selected": false
+  },
+  "actual_http_checks": [
+    { "path": "/preview", "method": "GET", "status": 200 },
+    { "path": "/preview/voice-sample.wav", "method": "GET", "status": 200 },
+    { "path": "/api/today", "method": "GET", "status": 404 },
+    { "path": "/.env.local", "method": "GET", "status": 404 },
+    { "path": "/auth/callback", "method": "GET", "status": 404 },
+    { "path": "/api/voice", "method": "POST", "status": 405 }
+  ],
+  "browser_checks": {
+    "browser": "Codex in-app desktop browser over the public HTTPS URL",
+    "requested_viewport": { "width": 390, "height": 844 },
+    "observed_document_client_width": 375,
+    "observed_document_scroll_width": 375,
+    "horizontal_overflow": false,
+    "home_task_meal_navigation": "passed",
+    "meal_occurrences_same_as_tasks": true,
+    "synthetic_sample_loaded": true,
+    "synthetic_sample_playback_started": true,
+    "sample_duration_seconds": 6.938503,
+    "sample_media_error": null,
+    "audibility_verified_by_human": false,
+    "actual_smartphone_test_completed": false,
+    "microphone_opened_by_agent": false,
+    "final_build_reloaded": true,
+    "private_screenshot_ref": "local:.local/probes/nancy-smartphone-preview.jpg",
+    "viewport_override_reset": true
+  },
+  "microphone_policy": {
+    "activation": "Explicit user tap and browser permission only",
+    "duration_limit_seconds": 10,
+    "storage": "Browser memory object URL only; no upload, persistence or transcription",
+    "shutdown": "Stop tracks and dispose local playback on navigation, page hide, visibility hidden and unmount; cancel late permission completion",
+    "live_device_observation": "pending"
+  },
+  "limitations": [
+    "The interface shows sample data and explicitly states that no plan is saved and live Nancy conversation is not connected.",
+    "Anyone with the temporary URL can view these public-safe fixtures. The preview imports no care service, provider credentials or OAuth setup, and rejects write/upload routes.",
+    "The link depends on this computer and both hidden processes remaining running. Quick Tunnels change hostname after restart, have no uptime guarantee and do not support SSE.",
+    "Browser playback and a desktop phone-width viewport are not evidence of actual smartphone microphone/audio acceptance.",
+    "S01 remains in_progress; local PostgreSQL/auth, full role scope, care commands, integrated Sol/voice and both S01 live acceptance scenarios remain outstanding."
+  ],
+  "primary_reference": "https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/"
+}

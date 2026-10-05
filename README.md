@@ -4,6 +4,8 @@ Nancy helps a participant plan the day through a user-initiated 10 AM voice chec
 
 **Current status:** S01 adaptation in progress. The October 3 requirements specify local data storage, four roles, My Day voice/button navigation, meals as tasks, and GPT-6 Sol with high reasoning. The existing September 29 implementation is a baseline using Supabase and Realtime; it has not yet been adapted or live accepted under the new requirements. No paid service activation is claimed.
 
+**Smartphone interface preview:** a separate My Day page now supports sample task/meal navigation, Nancy's fixed voice sample and an in-browser microphone/playback check. Use the temporary HTTPS link provided privately in the active conversation. It does not save plans or run live Nancy reasoning. See [device preview and operating notes](docs/DEVICE_PREVIEW.md).
+
 ```powershell
 npm ci
 npm run check

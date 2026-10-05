@@ -2,7 +2,7 @@
   "$schema": "./roadmap.schema.json",
   "roadmap_id": "companion-rehab",
   "schema_version": "1.4.0",
-  "updated_at": "2026-10-04",
+  "updated_at": "2026-10-05",
   "planning_status": "ready_for_implementation",
   "implementation_status": "in_progress",
   "source_of_truth": "docs/roadmap/roadmap.json",
@@ -22,7 +22,8 @@
     "Store durable data on this computer initially; retain migration portability to another local server or a cloud provider.",
     "Use GPT-6 Sol with high reasoning for Nancy intelligence, with a separate speech input/output layer.",
     "Target a supervised Nancy voice, meal/day planning and tracking pilot on 2026-10-05 (S01 then S02). This is a stretch target, not a waiver of live acceptance or a claim of completion.",
-    "Qualify existing ChatGPT subscription usage for Nancy reasoning before requesting API funding. Adapt the small Cerberus subscription adapter pattern; treat MCP transport, inference billing, speech and browser HTTPS as separate concerns."
+    "Qualify existing ChatGPT subscription usage for Nancy reasoning before requesting API funding. Adapt the small Cerberus subscription adapter pattern; treat MCP transport, inference billing, speech and browser HTTPS as separate concerns.",
+    "On 2026-10-05, provide a smartphone-accessible web interface URL for immediate device feedback. Keep the sample preview explicit and isolated while completing S01 live conversation and durable planning."
   ],
   "constraints": {
     "budget": {
@@ -156,9 +157,9 @@
     {
       "id": "I-DEVICE",
       "status": "unresolved",
-      "default": null,
-      "needed_for": "S01 live voice on the actual intended tablet/browser",
-      "question": "Identify the tablet, browser and a consenting tester with access to it.",
+      "default": "Owner selected a smartphone browser and requested an immediately usable web-interface URL on 2026-10-05. A public-safe synthetic My Day/device preview is available; the exact phone OS/browser and actual microphone/audible playback observations remain pending. See docs/DEVICE_PREVIEW.md.",
+      "needed_for": "S01 live voice on the actual intended smartphone/browser, followed by the participant device where different",
+      "question": "Confirm smartphone OS/browser and use the supplied preview link to test navigation, audible sample playback and microphone playback. Reuse the selected smartphone direction; no tablet is required for this first test.",
       "resolution_ref": null
     },
     {
@@ -172,7 +173,7 @@
     {
       "id": "I-DOMAIN",
       "status": "unresolved",
-      "default": "Reuse an existing suitable HTTPS hostname for My Day; qualify free stable routing. Secure MCP Tunnel may connect supported OpenAI tools but cannot serve as the tablet web origin.",
+      "default": "Temporary Cloudflare Quick Tunnel HTTPS is verified for the isolated synthetic device preview only. Keep the active hostname and process record in ignored local runtime storage. Existing Tailscale/MCP routes are preserved. A stable authenticated My Day deployment and its auth redirects remain unqualified; this preview does not select the production ingress.",
       "needed_for": "S01 HTTPS routing and auth redirects",
       "question": "Identify an available HTTPS hostname/account for the actual device; sender setup is conditional on the chosen invitation/recovery flow.",
       "resolution_ref": null
@@ -593,7 +594,7 @@
         "Implementation adaptation: September 29 code still uses Supabase cloud authentication/storage, two legacy role labels and a Realtime reasoning model. It does not yet meet the October 3 local-storage, four-role, My Day navigation, unified task/meal or Sol-high contracts.",
         "Current-contract automated results must be run after adaptation. Historical September 29 evidence remains in docs/evidence/S01-2026-09-29.json. Publication checks passed 43 existing tests after an input-state repair (docs/evidence/SYNC-2026-10-03.json); this does not validate the revised S01 contracts or live gates.",
         "I-ACCOUNTS/S01-H02: Owner OAuth consent, actual Sol-high plan inference and a synthetic function round trip passed. Remaining qualification includes the intended participant/account/deployment, real care-command authorization, live renewal/revocation/allowance behavior and integrated speech. This does not establish shared subscription entitlement or select a paid fallback.",
-        "I-DOMAIN/S01-H02 and I-DEVICE/S01-H01: Actual HTTPS hostname/account and intended tablet/browser are not yet identified; genuine microphone/speaker testing has not run.",
+        "I-DOMAIN/S01-H02 and I-DEVICE/S01-H01: Smartphone browser selected for the owner test. A temporary public HTTPS sample interface loads and serves voice playback, with no care/auth/provider endpoints. Actual phone OS/browser, microphone/audible results and the stable authenticated My Day route still need qualification.",
         "I-DATA/I-REGION/I-DAY-CONTENT/S01-H03/H06: Record consent, remaining remote processing/retention boundary, real task/meal choices and participant timezone privately. Initial local storage is already decided.",
         "S01-LIVE2 and S01-LIVE1: Actual local deployment plus remote reasoning and the selected speech path, isolated restore and the real 10 AM planning trial have not run. Run disposable checks before retained participant use.",
         "2026-10-04 actual connection checks are recorded in docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. These synthetic provider probes are not S01 live acceptance. The MCP tunnel transports local tool calls; it does not establish Nancy model access, voice, per-client authorization or a public My Day web route.",
@@ -603,7 +604,7 @@
       "human_actions": [
         {
           "id": "S01-H01",
-          "title": "Make the target tablet available",
+          "title": "Test on the selected smartphone",
           "owner_role": "participant_or_tester",
           "when": "Before the first actual two-way Nancy conversation",
           "blocking_scope": "slice_completion",
@@ -611,14 +612,14 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Identify the tablet/browser and a suitable time to use it.",
-            "Complete device microphone permission prompts and speak/listen during the test."
+            "Smartphone testing is selected. Identify its OS/browser, open the supplied HTTPS preview and check task/meal navigation and audible sample playback.",
+            "When ready, complete the smartphone browser microphone prompt and speak/listen during the local playback check. The integrated two-way Nancy conversation still needs a later actual-device trial."
           ],
           "agent_can_do": [
             "Check supported browser behavior and prepare the HTTPS test page.",
             "Configure and debug microphone/audio code; provide short test prompts."
           ],
-          "expected_evidence": "Device/browser and genuine microphone plus audible Nancy response observations linked to S01 live evidence; dictated-text mocks are insufficient.",
+          "expected_evidence": "Device/browser and actual microphone plus audible observations, first for the sample device preview and then linked to the integrated S01 live evidence. A desktop phone-sized viewport, generated audio or dictated-text mock is insufficient.",
           "related_input_ids": [
             "I-DEVICE"
           ],
@@ -626,7 +627,7 @@
             "S01-LIVE1",
             "S01-LIVE2"
           ],
-          "status": "pending",
+          "status": "in_progress",
           "completion_ref": null,
           "completed_at": null,
           "not_applicable_reason": null

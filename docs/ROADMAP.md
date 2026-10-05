@@ -1,12 +1,14 @@
 # Companion Rehab: agent implementation roadmap
 
-Updated: 2026-10-04. **S01 is in progress: adapt the existing baseline to local data hosting, four roles, My Day navigation, meals as tasks and GPT-6 Sol high reasoning. Historical automated checks do not establish acceptance of this revised scope; no live acceptance has run.**
+Updated: 2026-10-05. **S01 is in progress: adapt the existing baseline to local data hosting, four roles, My Day navigation, meals as tasks and GPT-6 Sol high reasoning. Historical automated checks do not establish acceptance of this revised scope; no live acceptance has run.**
 
 The canonical [roadmap.json](roadmap/roadmap.json), schema version 1.4.0, defines feature order, product contracts, scope, dependencies, human actions and acceptance. [HUMAN_ACTIONS.md](HUMAN_ACTIONS.md) is generated from its human-action records. Current user instructions take precedence; reflect agreed changes in the JSON. The [October 3 decisions](architecture/PRODUCT_DECISIONS_2026-10-03.md) record roles, hosting and model selection; the [October 4 decisions](architecture/PRODUCT_DECISIONS_2026-10-04.md) prioritize existing-subscription reasoning qualification and distinguish it from MCP, speech and browser access.
 
 Current account-setup step: [qualify the supported ChatGPT-plan route](S01_FIRST_CONNECTION.md). The private API key is saved and model visibility passed; bounded API reasoning/speech probes returned HTTP 429. Do not repeat key creation or require API funding before subscription qualification. The requested October 5 supervised S01/S02 pilot is a stretch target; current acceptance gates still apply.
 
 October 4 implementation progress: the owner approved Nancy's app-specific OAuth connection. Actual GPT-6 Sol high reasoning and a two-request, read-only synthetic function round trip succeeded through the owner's ChatGPT plan. Installed Windows speech generated a synthetic sample and local faster-whisper recognized it correctly. [Connection evidence](evidence/S01-CHATGPT-PLAN-CONNECTION-2026-10-04.json) records usage, the streaming adapter repair and separate speech results. Intended-user/deployment eligibility, live credential lifecycle, genuine microphone/audible conversation, local PostgreSQL/auth and My Day integration remain unqualified; neither S01 live gate is passed.
+
+October 5 device direction: the owner will test from a **smartphone browser** and requested a web URL first. The [My Day device preview](DEVICE_PREVIEW.md) exposes only synthetic tasks/meals, fixed voice playback and a browser-only microphone check over a temporary HTTPS route. Phone recordings are not uploaded. [Preview evidence](evidence/S01-DEVICE-PREVIEW-2026-10-05.json) records 79 passing tests, actual HTTPS/browser checks and the limits of those checks. This preview supports immediate device feedback within S01; it does not replace the authenticated care service, select the production route, or complete either live gate. The actual phone OS/browser and observed audio result remain pending. Existing Tailscale/MCP routes are unchanged.
 
 ## Immediate delivery goal: S01-S04
 

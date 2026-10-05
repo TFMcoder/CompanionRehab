@@ -16,6 +16,7 @@
     "readiness": "tsx scripts/readiness.ts",
     "readiness:openai": "tsx scripts/check-openai.ts",
     "connect:chatgpt": "tsx scripts/chatgpt-plan.ts",
+    "preview:device": "tsx scripts/device-preview.ts",
     "backup": "tsx scripts/backup.ts"
   },
   "dependencies": {

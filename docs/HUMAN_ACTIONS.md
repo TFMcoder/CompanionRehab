@@ -1,6 +1,6 @@
 # Human actions by implementation stage
 
-Updated: 2026-10-04. Generated from the canonical roadmap; all statuses below come from that file.
+Updated: 2026-10-05. Generated from the canonical roadmap; all statuses below come from that file.
 
 Source: [roadmap.json](roadmap/roadmap.json), in each slice's human_actions array. Edit the JSON, then run the renderer; do not maintain a separate checklist here. See [ROADMAP.md](ROADMAP.md) for feature scope and live tests.
 
@@ -49,21 +49,21 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
 ## S01: Plan the day with Nancy at 10 AM
 
-- [ ] **S01-H01: Make the target tablet available**
+- [ ] **S01-H01: Test on the selected smartphone**
 
-  Owner: **participant_or_tester**. Status: **pending**. Requirement: **required**.
+  Owner: **participant_or_tester**. Status: **in_progress**. Requirement: **required**.
 
   **When:** Before the first actual two-way Nancy conversation.
   **Blocks:** Completing this feature slice.
 
   **Human action:**
 
-  - Identify the tablet/browser and a suitable time to use it.
-  - Complete device microphone permission prompts and speak/listen during the test.
+  - Smartphone testing is selected. Identify its OS/browser, open the supplied HTTPS preview and check task/meal navigation and audible sample playback.
+  - When ready, complete the smartphone browser microphone prompt and speak/listen during the local playback check. The integrated two-way Nancy conversation still needs a later actual-device trial.
 
   **Agent prepares or handles:** Check supported browser behavior and prepare the HTTPS test page. Configure and debug microphone/audio code; provide short test prompts.
 
-  **Completion evidence:** Device/browser and genuine microphone plus audible Nancy response observations linked to S01 live evidence; dictated-text mocks are insufficient.
+  **Completion evidence:** Device/browser and actual microphone plus audible observations, first for the sample device preview and then linked to the integrated S01 live evidence. A desktop phone-sized viewport, generated audio or dictated-text mock is insufficient.
 
   **Linked inputs/tests:** I-DEVICE, S01-LIVE1, S01-LIVE2.
 
