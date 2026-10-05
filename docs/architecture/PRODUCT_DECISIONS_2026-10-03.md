@@ -2,6 +2,8 @@
 
 Source: The project owner's October 3, 2026 product clarification and explicit follow-up selection of **GPT-6 Sol — high**. These decisions are recorded in `product_contract` and the affected slices of [the canonical roadmap](../roadmap/roadmap.json), schema 1.3.0. They supersede earlier conflicting hosting, role and model assumptions. They describe the target; they do not claim these changes are implemented.
 
+The [October 4 connectivity decision](PRODUCT_DECISIONS_2026-10-04.md) updates the reasoning access priority to qualify existing ChatGPT-plan usage first, with independent speech and conditional MCP. Current canonical schema is 1.4.0. Roles, local care storage, My Day and the exact Sol-high selection below remain in force.
+
 ## Ownership and access
 
 The project owner is both administrator and technical lead. That resolves responsibility for provider/project decisions. It does not establish that an API key, account connection, HTTPS hostname or intended device is available to the application. Reuse existing authorized access and decisions; only actual missing access remains outstanding. Local PostgreSQL deployment, authentication adaptation, migrations and debugging are engineering work.

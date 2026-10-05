@@ -2,9 +2,9 @@
 
 Updated: 2026-10-04. **S01 is in progress: adapt the existing baseline to local data hosting, four roles, My Day navigation, meals as tasks and GPT-6 Sol high reasoning. Historical automated checks do not establish acceptance of this revised scope; no live acceptance has run.**
 
-The canonical [roadmap.json](roadmap/roadmap.json), schema version 1.3.0, defines feature order, product contracts, scope, dependencies, human actions and acceptance. [HUMAN_ACTIONS.md](HUMAN_ACTIONS.md) is generated from its human-action records. Current user instructions take precedence; reflect agreed changes in the JSON. The [October 3 decisions](architecture/PRODUCT_DECISIONS_2026-10-03.md) record the clarified roles, hosting and exact model selection.
+The canonical [roadmap.json](roadmap/roadmap.json), schema version 1.4.0, defines feature order, product contracts, scope, dependencies, human actions and acceptance. [HUMAN_ACTIONS.md](HUMAN_ACTIONS.md) is generated from its human-action records. Current user instructions take precedence; reflect agreed changes in the JSON. The [October 3 decisions](architecture/PRODUCT_DECISIONS_2026-10-03.md) record roles, hosting and model selection; the [October 4 decisions](architecture/PRODUCT_DECISIONS_2026-10-04.md) prioritize existing-subscription reasoning qualification and distinguish it from MCP, speech and browser access.
 
-Current account-setup step: [private OpenAI connection](S01_FIRST_CONNECTION.md). The requested October 5 supervised S01/S02 pilot is a stretch target; current acceptance gates still apply.
+Current account-setup step: [qualify the supported ChatGPT-plan route](S01_FIRST_CONNECTION.md). The private API key is saved and model visibility passed; bounded API reasoning/speech probes returned HTTP 429. Do not repeat key creation or require API funding before subscription qualification. The requested October 5 supervised S01/S02 pilot is a stretch target; current acceptance gates still apply.
 
 ## Immediate delivery goal: S01-S04
 
@@ -18,6 +18,10 @@ The first MVP is the participant's **10:00 local-time check-in with Nancy**, com
 | S04 | Return to a fresh 10 AM brief each day | Review yesterday, explicitly carry unfinished work forward and accept a fresh plan across successive days | S03 |
 
 **S01 delivers a useful combined feature.** It includes My Day, minimum real authentication with four scoped roles, a local PostgreSQL deployment, HTTPS route, task/meal setup and two-way speech with GPT-6 Sol high reasoning. Voice and buttons open the task and daily meal views. Tasks expose what, urgency and scheduled date/time; meals share task occurrence identities. Minimal authorized setup supplies the choices; Asana and full dashboards are not prerequisites.
+
+Within S01, first qualify the intended account/deployment for existing ChatGPT-plan usage and prove a bounded **GPT-6 Sol high** turn with authorized tools. Next qualify speech input/output independently. Integrate those connections with My Day and local care state, then run disposable S01-LIVE2 before the consented S01-LIVE1 conversation. Database/auth and UI work can proceed while independent account checks are pending. This is an execution order inside the feature, not a new infrastructure slice.
+
+Keep four concerns separate: reasoning/auth/billing, speech, care-tool transport and the browser's HTTPS origin. Prefer server-owned functions or local MCP; a **Secure MCP Tunnel is optional** for a supported OpenAI caller that needs local tools. It supplies neither speech nor My Day web hosting. Any API-key fallback requires a documented qualification result and explicit owner route/cost decision; quota failure must not silently switch billing or model. A successful catalog lookup is not completed inference, and a completed text turn is not voice acceptance.
 
 **S02 separates intentions from actual events.** Accepting a plan never marks tasks complete or meals eaten. Factual reporting, unplanned activity and corrections preserve the accepted plan and event history.
 
@@ -49,12 +53,14 @@ The [source assessment](architecture/CERBERUS_REUSE_ASSESSMENT.md) is the eviden
 - **Extract/adapt:** the small TypeScript request/error utility and selected focus/status/fallback interaction behavior.
 - **Port patterns and tests:** exact-target model proposals, explicit reviewed-plan acceptance, transactional receipts, stale-version refusal, truthful save/recovery state and local-day handling.
 - **Reference security tests:** adapt origin/host and session-boundary cases to administrator/client/family-friend/clinician authentication with client-scoped grants.
+- **Qualify subscription reasoning:** adapt the small Cerberus ChatGPT-authenticated adapter pattern, with exact Sol/high binding, bounded usage, restricted tools, visible quota/auth failure and app-specific credentials. Historical Cerberus runs do not prove current Nancy access or multi-user eligibility.
+- **Reuse MCP conditionally:** expose narrow local care tools only for an identified supported caller. Preserve independent My Day HTTPS and care-service authorization; keep protected LifeCore data and credentials out.
 - **Build for Companion:** two-way Nancy voice, the care/task/meal data model, database permissions and the simple participant screen.
 - **Leave out:** the Cerberus monorepo, business dashboard, general OpenClaw orchestration, private LifeCore data, shared-password authorization and its deployment configuration.
 
 Cerberus dictation adds text to a composer; it is not proof of the required spoken conversation. Its planned M53 morning preparation is not an active scheduler. Historical tests are design evidence, not current Companion test results. Do not import archive-only snapshot merging that would retain deleted or revoked participant data.
 
-Retain React/TypeScript/Vite, Node/Fastify, PostgreSQL and the independent care-service command boundary. Host durable data on this computer first; qualify compatible local authentication and preserve migration to another local server or cloud. Use the explicitly selected GPT-6 Sol with high reasoning through Responses and a separate speech layer. Verify real project access, model route, speech behavior and HTTPS routing during S01. The earlier Supabase cloud setup is superseded as an initial requirement. Small code reuse does not require a new subscription.
+Retain React/TypeScript/Vite, Node/Fastify, PostgreSQL and the independent care-service command boundary. Host durable data on this computer first; qualify compatible local authentication and preserve migration to another local server or cloud. Prefer supported ChatGPT-plan reasoning through a minimal local Codex app-server or Responses adapter, retaining the explicitly selected GPT-6 Sol high and a separate speech layer. Verify intended-user/deployment eligibility, actual completed inference, usage limits, speech and My Day HTTPS during S01. The documented plan flow excludes audio input/transcription and hosted Responses MCP; local MCP/function tools are separate. No new subscription or paid API fallback is selected by this roadmap.
 
 ## Agent execution contract
 
@@ -82,8 +88,8 @@ Writing this plan does not provision accounts, run live tests or activate a recu
 | JSON field | Purpose |
 |---|---|
 | `delivery_focus` | Ordered S01-S04 target, Nancy identity, 10:00 routine, timezone input and first-four gate |
-| `product_contract` | Four roles/homes, navigation, task/meal model, family notifications, clinical archetypes, local hosting and exact Sol model |
-| `reuse_plan`, `slices[].reuse_refs` | Pinned Cerberus source, exact reuse decisions, limits and per-slice mapping |
+| `product_contract` | Four roles/homes, navigation, task/meal model, family notifications, clinical archetypes, local hosting, exact Sol model and explicit reasoning-route qualification/tool-connection policy |
+| `reuse_plan`, `slices[].reuse_refs` | Cerberus source pinned per component, exact reuse decisions, limits and per-slice mapping |
 | `constraints`, `execution_policy` | Budget, runtime, data handling and execution/evidence rules |
 | `shared_requirements` | Cross-cutting behavior and the first slice that requires it |
 | `operator_inputs`, `human_action_policy` | Input resolution, human responsibilities, timing and reused decisions |

@@ -185,6 +185,9 @@ try {
             Assert-Roadmap ($feature.blockers.Count -gt 0) "Blocked slice $($feature.id) needs an explicit blocker."
         }
         if ($feature.status -eq 'done') {
+            if ($feature.id -eq 'S01') {
+                Assert-Roadmap ($roadmap.product_contract.ai_backend.reasoning_route.qualification_status -eq 'qualified') 'Done S01 requires an actually qualified reasoning route and its evidence.'
+            }
             foreach ($requiredInput in $feature.required_inputs) {
                 Assert-Roadmap ($inputIds[$requiredInput].status -in @('resolved', 'defaulted')) "Done slice $($feature.id) has unresolved input $requiredInput"
             }

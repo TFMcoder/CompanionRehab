@@ -13,14 +13,15 @@ npm start
 Open `http://localhost:8787` to inspect the baseline. Its configuration still expects Supabase and Realtime; `.env.example` and readiness checks describe that baseline, not the revised local-data/Sol deployment. Keep real credentials and records in ignored private storage. Do not provision a cloud database just to satisfy the old readiness check.
 
 - [Current product and technical decisions](docs/architecture/PRODUCT_DECISIONS_2026-10-03.md)
-- [First connection: private OpenAI setup](docs/S01_FIRST_CONNECTION.md)
+- [First connection: ChatGPT-plan qualification](docs/S01_FIRST_CONNECTION.md)
+- [October 4 connectivity and subscription decision](docs/architecture/PRODUCT_DECISIONS_2026-10-04.md)
 - [Baseline setup reference, pending local-data adaptation](docs/S01_SETUP.md)
 - [Live-test runbook, pending revised deployment](docs/S01_LIVE_TEST.md)
 - [Implementation roadmap](docs/ROADMAP.md) and [authoritative JSON](docs/roadmap/roadmap.json)
 - [Human-required actions by slice](docs/HUMAN_ACTIONS.md)
 - [Database migration](db/001_s01.sql)
 
-The target Node/Fastify service serves the React client and owns durable care state in local PostgreSQL, with compatible local authentication and later migration to another server or cloud. GPT-6 Sol high provides reasoning through Responses, with a separate speech layer and validated server-owned tools. The service budget is $50/month excluding GPT, with CAD as the unconfirmed planning default and existing resources first. HTTPS routing connects the intended device during supervised tests.
+The target Node/Fastify service serves the React client and owns durable care state in local PostgreSQL, with compatible local authentication and later migration to another server or cloud. First qualify GPT-6 Sol high reasoning through eligible existing ChatGPT-plan usage and a minimal supported local adapter. Speech, typed care tools and My Day HTTPS are qualified independently; a Secure MCP Tunnel is optional tool transport. API-key billing is an explicit fallback decision. The service budget is $50/month excluding GPT, with CAD as the unconfirmed planning default and existing resources first. This is the selected target, not a claim of working subscription inference or voice.
 
 Automated tests use synthetic data, a disposable PGlite PostgreSQL engine, browser DOM tests and provider doubles. They do not substitute for actual local database/auth deployment, GPT/speech, HTTPS, isolated restore or participant acceptance. Client **My Day**, family/friend **Support Team**, clinician **Clinician Partners** and administrator access are scoped separately. Full dashboards and recurring reminder automation remain outside S01.
 

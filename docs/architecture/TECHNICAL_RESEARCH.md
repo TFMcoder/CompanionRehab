@@ -1,5 +1,7 @@
 # Architecture and cost research
 
+**October 4 connectivity priority:** The [new decision](PRODUCT_DECISIONS_2026-10-04.md) selects existing ChatGPT-plan reasoning qualification before API funding, retaining GPT-6 Sol high. Speech and browser HTTPS are independent qualifications; local MCP or Secure MCP Tunnel is optional tool transport. Current schema 1.4.0 records the pending route, fallback decision and per-component Cerberus provenance. Historical provider and pricing choices below do not override it.
+
 **October 3 supersession:** The [current product decisions](PRODUCT_DECISIONS_2026-10-03.md) choose initial data hosting on this machine and GPT-6 Sol high reasoning with a separate speech layer. Supabase cloud and a Realtime-only reasoning backend below are historical research choices, not current provisioning requirements. Qualify local PostgreSQL/auth and actual voice connectivity within S01; preserve the $50/month service limit excluding GPT.
 
 Research snapshot: 2026-09-28. Background rationale and provider references; account capabilities remain to be verified during implementation. [The machine-readable roadmap](../roadmap/roadmap.json) is authoritative for feature order, status and completion requirements. This document does not authorize provisioning or establish live-test results.

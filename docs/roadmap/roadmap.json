@@ -1,7 +1,7 @@
 {
   "$schema": "./roadmap.schema.json",
   "roadmap_id": "companion-rehab",
-  "schema_version": "1.3.0",
+  "schema_version": "1.4.0",
   "updated_at": "2026-10-04",
   "planning_status": "ready_for_implementation",
   "implementation_status": "in_progress",
@@ -21,7 +21,8 @@
     "Client My Day is narrow and conversational; shared voice/button navigation reaches tasks, daily meals, groceries and achievements as their slices ship.",
     "Store durable data on this computer initially; retain migration portability to another local server or a cloud provider.",
     "Use GPT-6 Sol with high reasoning for Nancy intelligence, with a separate speech input/output layer.",
-    "Target a supervised Nancy voice, meal/day planning and tracking pilot on 2026-10-05 (S01 then S02). This is a stretch target, not a waiver of live acceptance or a claim of completion."
+    "Target a supervised Nancy voice, meal/day planning and tracking pilot on 2026-10-05 (S01 then S02). This is a stretch target, not a waiver of live acceptance or a claim of completion.",
+    "Qualify existing ChatGPT subscription usage for Nancy reasoning before requesting API funding. Adapt the small Cerberus subscription adapter pattern; treat MCP transport, inference billing, speech and browser HTTPS as separate concerns."
   ],
   "constraints": {
     "budget": {
@@ -39,7 +40,7 @@
         "Applicable taxes and currency conversion/card fees",
         "Domain and backup charges; record actual annual billing as well as monthly equivalent"
       ],
-      "strategy": "Free tiers and existing local hardware first. Paid upgrades require demonstrated need and a complete in-budget forecast. Exceeding 50 requires an explicit budget revision.",
+      "strategy": "Free tiers and existing local hardware/subscriptions first. Qualify eligible ChatGPT-plan reasoning before requesting API funding; track plan allowance and separately billed GPT speech/reasoning independently. Non-GPT speech/service charges remain inside the service ceiling. Paid upgrades require demonstrated need and a complete in-budget forecast. Exceeding 50 requires an explicit budget revision.",
       "billing_monitor_status": "not_implemented"
     },
     "runtime": {
@@ -47,7 +48,7 @@
       "worker": "Same computer when the current slice requires durable background work",
       "database": "Local PostgreSQL on this computer initially; portable to another local server or cloud provider later. Supabase cloud is no longer an S01 prerequisite.",
       "synthetic_database": "Separate disposable local database",
-      "ingress": "Stable HTTPS Cloudflare Tunnel using free features; verify domain/account eligibility",
+      "ingress": "A stable HTTPS route for the My Day web client, initially evaluate Cloudflare Tunnel free features and existing domain/account eligibility. Secure MCP Tunnel is optional tool transport for supported OpenAI clients and does not replace browser HTTPS.",
       "availability": "Supervised live tests initially; tunnel does not run the app or durably buffer requests while the computer is unavailable. Local application and data storage depend on this machine; qualify operating arrangements before daily reliance."
     },
     "data": {
@@ -61,14 +62,14 @@
   "execution_policy": {
     "selection": "Immediate delivery focus is S01-S04 in priority order. Select the earliest unfinished slice with completed dependencies. If external input blocks it, record the blocker and continue independent authorized preparation without claiming completion or advancing a dependent slice.",
     "unit_of_delivery": "One slice is a usable feature spanning UI, voice where applicable, API, database, permissions and tests.",
-    "setup": "Research and confirm low-cost service eligibility, voice route, auth, migrations and routing inside S01. Extract only the small justified Cerberus utilities and implement care-specific contracts; do not create a separate reuse/platform milestone.",
+    "setup": "Within S01, qualify account/deployment eligibility for ChatGPT-plan reasoning, then a bounded gpt-6-sol high turn and separate speech input/output. Build local PostgreSQL/auth and shared care commands in parallel where independent. Qualify optional MCP transport only for a concrete supported caller; do not create an infrastructure/reuse milestone.",
     "dashboard_boundary": "Client My Day tasks/meals ship in S01; grocery and achievement destinations follow S05/S09. Minimal scoped setup and role homes may precede full Support Team S10, administrator S11 and clinical/trend dashboards S12.",
     "live_test_requirement": "Every slice requires its listed real-provider live tests. S01 includes actual two-way speech, tasks and accepted meals in one check-in. Browser-dictation mocks, screenshots, provider-call success alone and synthetic-only runs cannot satisfy a live gate. Honor test prerequisites: the S01 disposable safety/restore scenario S01-LIVE2 precedes real-data S01-LIVE1, regardless of numeric ID order.",
     "done_rule": "All acceptance criteria are covered, all dependencies are done, required inputs are resolved/defaulted, applicable slice_completion human actions are complete, blockers are empty, implementation_revision is set, and every listed automated/live test has a passing evidence record for that revision. Use awaiting_live_test when code is ready but live evidence is missing. Apply other human-action blocking scopes to their named operation or release gate.",
     "result_policy": "Store one current result per test. Preserve superseded evidence privately. Record failures honestly; do not prefill results or infer a pass from a successful tool invocation.",
     "revision_policy": "Any code change relevant to a slice invalidates its prior completion evidence until affected acceptance is revalidated. Reuse a result only with documented unchanged implementation revision.",
     "input_policy": "Use recorded defaults for reversible implementation choices. Missing credentials, target-device access or participant consent block only dependent live actions. Never substitute guessed values or mock results.",
-    "cost_policy": "Update the service ledger before each new service, plan, project or seat. Recheck provider pricing and quotas at provisioning; avoid paid trials and automatic upgrades as dependencies.",
+    "cost_policy": "Update the service ledger before each new service, plan, project or seat. Qualify existing subscription usage first and record allowance/limit behavior; do not call it unlimited or assume an administrator subscription covers other users. Recheck prices and quotas before provisioning. API-key inference is a deliberate fallback after documented eligibility/technical findings and an explicit owner route/cost decision; never silently fall back, top up or upgrade. Speech is costed independently.",
     "scope_policy": "Use the reuse_plan decisions and keep Companion independent. No universal agent platform, generic provider tools, speculative microservices, background schedule or dashboard UI in S01-S04.",
     "authorization": "This artifact specifies implementation work; writing it does not mean accounts are connected, live tests passed or recurring monitoring is active."
   },
@@ -103,7 +104,7 @@
     {
       "id": "R-VOICE",
       "introduced_in": "S01",
-      "requirement": "Nancy supports user-initiated two-way voice with real microphone input and spoken responses in S01. Voice and touch invoke the same authenticated typed commands. Keep credentials/tools server-owned, sessions bounded, ambiguity explicit and saved/pending/failed responses truthful. Dictated text alone is not voice acceptance. Use GPT Sol with high reasoning behind the speech layer. Client, family/friend and administrator interactions are principally voice; every role has a complete UI path as its features ship."
+      "requirement": "Nancy supports user-initiated two-way voice with real microphone input and spoken responses in S01. Voice and touch invoke the same authenticated typed commands. Keep credentials/tools server-owned, sessions bounded, ambiguity explicit and saved/pending/failed responses truthful. Dictated text alone is not voice acceptance. Use GPT Sol with high reasoning behind the speech layer. Client, family/friend and administrator interactions are principally voice; every role has a complete UI path as its features ship. Subscription-backed text reasoning and an MCP tunnel do not supply speech entitlement or prove an audio conversation. Qualify the speech provider/device path independently; the chosen GPT-6 Sol high remains the reasoning backend."
     },
     {
       "id": "R-READMODEL",
@@ -133,7 +134,7 @@
     {
       "id": "R-COST",
       "introduced_in": "S01",
-      "requirement": "Keep the service total under the confirmed budget, with GPT separately metered. A quota failure is visible and recoverable; no silent paid upgrade or deletion of required care history."
+      "requirement": "Keep service charges under the confirmed budget; track ChatGPT-plan allowance separately from metered GPT reasoning/speech. Qualify the existing subscription first. Quota/auth failures are visible and recoverable; no silent switch to API billing, different model, top-up or paid upgrade, and no deletion of required care history. Non-GPT speech costs stay inside the service ceiling."
     },
     {
       "id": "R-PROPOSAL",
@@ -163,15 +164,15 @@
     {
       "id": "I-ACCOUNTS",
       "status": "unresolved",
-      "default": "Administrator/technical-lead ownership and private OpenAI project-key setup are confirmed. Actual model visibility returned HTTP 200; bounded Responses and speech requests returned HTTP 429. See docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. Qualify the existing-subscription alternative before requesting API funding; usable inference/speech and external routing remain unresolved.",
-      "needed_for": "S01 actual GPT/speech API connection and any selected external routing service; no cloud database account required",
-      "question": "Reuse the saved private key and existing authorized subscription access. Complete only owner steps needed by the qualified route; do not repeat project/key creation or assume a funding decision. Keep credentials out of the repository.",
+      "default": "Private OpenAI key and model visibility are confirmed; API-key reasoning/speech probes returned HTTP 429 (docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json). The selected next step is ChatGPT-plan qualification under docs/architecture/PRODUCT_DECISIONS_2026-10-04.md. Actual plan entitlement, intended-user/deployment eligibility, inference, speech and external routing remain unresolved.",
+      "needed_for": "S01 selected ChatGPT-plan reasoning qualification, independent speech and any required routing service; an API billing top-up is not the default prerequisite",
+      "question": "Reuse saved private access. After the agent prepares a concrete supported route, complete only missing account-owner sign-in/consent or workspace access. Review a separately billed API fallback only if qualification findings require it; do not assume one account can serve every role/client.",
       "resolution_ref": null
     },
     {
       "id": "I-DOMAIN",
       "status": "unresolved",
-      "default": "Reuse an existing suitable domain; free stable alternative only if its account limits support the test.",
+      "default": "Reuse an existing suitable HTTPS hostname for My Day; qualify free stable routing. Secure MCP Tunnel may connect supported OpenAI tools but cannot serve as the tablet web origin.",
       "needed_for": "S01 HTTPS routing and auth redirects",
       "question": "Identify an available HTTPS hostname/account for the actual device; sender setup is conditional on the chosen invitation/recovery flow.",
       "resolution_ref": null
@@ -298,7 +299,7 @@
     },
     {
       "id": "tunnel",
-      "choice": "Cloudflare Tunnel with stable domain",
+      "choice": "My Day browser HTTPS via Cloudflare Tunnel free features and an existing stable domain, subject to eligibility",
       "plan": "Free features",
       "introduced_in": "S01",
       "incremental_subscription": 0
@@ -311,9 +312,23 @@
       "incremental_subscription": 0
     },
     {
+      "id": "reasoning",
+      "choice": "gpt-6-sol high through an eligible ChatGPT-plan connection; adapt a minimal local Codex app-server or supported Responses adapter",
+      "plan": "Existing eligible subscription first; actual entitlement, allowance and intended-user/deployment eligibility unverified; no new subscription selected",
+      "introduced_in": "S01",
+      "incremental_subscription": null
+    },
+    {
+      "id": "mcp_transport",
+      "choice": "Local MCP/function tools by default; Secure MCP Tunnel only when a supported ChatGPT/Codex caller needs private local tools",
+      "plan": "Conditional; verify account/workspace access and current cost before activation. Not a My Day HTTPS or inference billing replacement.",
+      "introduced_in": "S01",
+      "incremental_subscription": null
+    },
+    {
       "id": "voice",
-      "choice": "GPT-6 Sol (gpt-6-sol), high reasoning via Responses API, plus separate speech input/output qualified in S01",
-      "plan": "Metered GPT backend, separately tracked",
+      "choice": "Independent speech input/output around gpt-6-sol high; compare supported local speech and low-cost hosted speech on the intended device, then qualify actual audio",
+      "plan": "Unselected; ChatGPT-plan reasoning does not establish speech coverage. Track any GPT speech separately and include other speech costs in the service ceiling.",
       "introduced_in": "S01",
       "incremental_subscription": null
     },
@@ -357,7 +372,8 @@
         "Typed proposal, exact-version acceptance, correction/revision and committed-state readback",
         "Basic refresh/restart durability, receipt reconciliation, denied access and encrypted backup/restore proof",
         "Task urgency and scheduled date/time; meals represented as task occurrences with meal details",
-        "Minimal administrator setup and scoped Support Team / Clinician Partners landing routes; their full feature sets remain in S10/S12"
+        "Minimal administrator setup and scoped Support Team / Clinician Partners landing routes; their full feature sets remain in S10/S12",
+        "Qualify supported existing-subscription reasoning first, independent speech and optional narrowly scoped MCP connectivity; preserve the custom My Day UI and local care-service authority"
       ],
       "out_of_scope": [
         "Meal intake reporting and task completion history (S02)",
@@ -365,12 +381,21 @@
         "Recurring-day convenience and reviewed carryover (S04)",
         "Asana, groceries, guided rehab, scoring and dashboards",
         "Clinical dietary advice or autonomous changes to supplied care rules",
-        "Automatic outbound reminders, scheduled preparation or microphone activation"
+        "Automatic outbound reminders, scheduled preparation or microphone activation",
+        "A ChatGPT-only client replacing My Day, generic OpenClaw adoption, shared Cerberus credentials or automatic paid API fallback"
       ],
       "implementation_tasks": [
         {
           "id": "S01-T01",
-          "description": "Reuse confirmed administrator/technical-lead ownership and local-hosting decision. Resolve actual device/private access and selected GPT-6 Sol high route; qualify local PostgreSQL/auth and speech route within budget."
+          "description": "Reuse ownership, saved private API-key evidence and local-hosting decision. Inspect the supported ChatGPT-plan route for the intended account, user/device and local/remote deployment. Prepare minimal app-specific sign-in and cost/allowance boundaries; request only missing human sign-in/consent. Do not request API funding as the initial prerequisite."
+        },
+        {
+          "id": "S01-T07",
+          "description": "Adapt RU-SUBSCRIPTION into a minimal local reasoning adapter. Prove one bounded synthetic gpt-6-sol high completion with the exact runtime/auth route and observable usage. Check supported typed tool round trips, isolation, token renewal, revocation, timeouts and quota refusal. No shared Cerberus credentials or silent API/model fallback. If unsupported, record the exact blocker and prepare the API fallback with costs for owner decision."
+        },
+        {
+          "id": "S01-T08",
+          "description": "Select and qualify speech independently using small live synthetic audio tests and the actual target microphone/speaker. Compare available local and low-cost hosted choices for latency, clarity, interruptions and costs; the ChatGPT-plan flow does not include audio/transcription. Preserve Sol high reasoning, no retained audio by default and touch fallback. No final speech model is selected by the prior rejected probe."
         },
         {
           "id": "S01-T02",
@@ -385,12 +410,16 @@
           "description": "Implement get_daily_brief, propose_day_plan, accept_day_plan, revise_day_plan and get_day_plan; bind exact IDs and expected versions and keep suggestions separate from acceptance."
         },
         {
+          "id": "S01-T09",
+          "description": "Apply RU-MCP-TRANSPORT only if a concrete supported ChatGPT/Codex caller needs local care tools. Prefer server-owned functions or local MCP in the subscription adapter; hosted Responses MCP is not supported by the documented plan flow. Any Secure MCP Tunnel needs separate scoped access and deny/revocation tests and is optional. Independently qualify My Day HTTPS for the intended device; never route care data through the LifeCore store."
+        },
+        {
           "id": "S01-T05",
-          "description": "Connect microphone/transcription and Nancy speech output through Sol high reasoning with server-owned validated tools. Provide the same authorized navigation and care commands through buttons; test cancellation, ambiguity and honest state."
+          "description": "Integrate the qualified Sol-high reasoning and independent speech adapters into Talk to Nancy. Bind authenticated voice tools and buttons to the same authorized navigation and exact-version care commands. Keep account/tunnel mechanics out of My Day; test cancellation, ambiguity, quota/auth refusal and truthful committed state."
         },
         {
           "id": "S01-T06",
-          "description": "Exercise actual local PostgreSQL/auth plus remote GPT/speech and HTTPS; verify process/database restart, permission isolation, receipt reconciliation and encrypted isolated restore before meaningful retention. Prepare a portable local-server/cloud migration path."
+          "description": "Exercise actual local PostgreSQL/auth, the selected and evidenced reasoning billing route, separate speech and My Day HTTPS. Run S01-LIVE2 disposable safety/restore and account/provider-loss checks before meaningful retention, then S01-LIVE1 genuine 10 AM planning. Record exact runtime/model/high effort, speech route, local data path and conditional MCP use; prepare portable encrypted migration."
         }
       ],
       "contracts": {
@@ -458,7 +487,7 @@
         },
         {
           "id": "S01-AC08",
-          "assertion": "The live deployment stores durable care data locally on this machine and uses the selected Sol API model with high reasoning behind two-way speech. Sanitized configuration evidence identifies both the local data path and real model route."
+          "assertion": "The live deployment stores durable care data locally and uses gpt-6-sol high through an explicitly selected, qualified inference/auth/billing route behind independently qualified two-way speech. Evidence identifies runtime/model/effort, account/deployment eligibility, usage limits, local data path and browser HTTPS. Quota/auth failure never silently changes billing/model; any MCP tunnel remains scoped tool transport."
         }
       ],
       "automated_tests": [
@@ -497,8 +526,8 @@
             "S01-AC07",
             "S01-AC08"
           ],
-          "scenario": "Exercise each scoped role/home and both navigation entry paths, unsupported routes, urgency/schedule validation and one meal task identity. Verify local database/auth adapter contracts and Sol high request construction with provider doubles.",
-          "expected": "Only available authorized destinations open; navigation does not write care state. Shared task/meal records agree and the reasoning adapter requests the chosen Sol ID with high effort. Actual deployment/audio still requires live evidence."
+          "scenario": "Exercise each scoped role/home and both navigation entry paths, unsupported routes, urgency/schedule validation and one meal task identity. Verify local database/auth adapter contracts and Sol high request construction with provider doubles. Exercise subscription-vs-API route selection, exact Sol-high binding, provider auth renewal/revocation and quota failures; deny inherited or cross-client tools and silent billed fallback. Verify speech and browser HTTPS remain independent of MCP transport.",
+          "expected": "Only available authorized destinations open; navigation does not write care state. Shared task/meal records agree and the reasoning adapter requests the chosen Sol ID with high effort. Actual deployment/audio still requires live evidence. Tool calls reach only the shared authorized care boundary; expired/revoked credentials and quota exhaustion yield an honest unavailable state without changing billing or model. A tunnel or catalog listing cannot satisfy completed inference/audio evidence."
         }
       ],
       "live_tests": [
@@ -519,7 +548,7 @@
             "At the intended 10:00 routine on the actual device over HTTPS, use Nancy's live voice to review supplied real tasks and choose today's meals.",
             "Explicitly accept the reviewed plan, retrieve it by voice and touch, then revise a choice and refresh; verify local database state and participant usability.",
             "From My Day, open task and meal views using both spoken requests and buttons; inspect urgency and local scheduled times and verify each meal is the same task in both views.",
-            "Record sanitized evidence of the actual Sol model ID/high reasoning request and speech round trip; do not retain raw audio or private transcripts in the repository."
+            "Record sanitized evidence of the actual gpt-6-sol/high runtime and selected subscription/API route, intended-user eligibility, separate speech round trip and My Day web origin. Confirm Dad can use the normal My Day voice/touch interface. Do not retain raw audio or private transcripts in the repository."
           ],
           "expected": "Actual microphone and spoken-response round trips produce one accepted real plan and an auditable revision with matching readback."
         },
@@ -540,7 +569,8 @@
             "Interrupt the voice/provider/API path, reconcile any uncertain save by receipt, restart and use touch.",
             "Export encrypted disposable data and restore to an isolated target; compare retained records without touching active care history.",
             "Sign in under each of the four roles, verify scoped landing routes and denied cross-client/role access. Check unknown/unavailable voice destinations and matching UI behavior.",
-            "Verify local database process restart and encrypted restore to an isolated local target; confirm no cloud database is silently used and validate the actual selected Sol high/speech route with disposable data."
+            "Verify local database process restart and encrypted restore to an isolated local target; confirm no cloud database is silently used and validate the actual selected Sol high/speech route with disposable data.",
+            "Prove a completed synthetic Sol-high turn on the selected auth/billing route and an independently completed speech round trip. Record intended-account/deployment eligibility and actual usage/limits. Exercise provider refusal or revoked disposable access without paid fallback; verify any conditional MCP connection uses the same client-scoped authorization. Keep browser HTTPS proof separate."
           ],
           "expected": "Denial, duplicate/stale protection, honest failure and exact restore/readback hold against real services; dictation mocks do not count."
         }
@@ -562,11 +592,12 @@
       "blockers": [
         "Implementation adaptation: September 29 code still uses Supabase cloud authentication/storage, two legacy role labels and a Realtime reasoning model. It does not yet meet the October 3 local-storage, four-role, My Day navigation, unified task/meal or Sol-high contracts.",
         "Current-contract automated results must be run after adaptation. Historical September 29 evidence remains in docs/evidence/S01-2026-09-29.json. Publication checks passed 43 existing tests after an input-state repair (docs/evidence/SYNC-2026-10-03.json); this does not validate the revised S01 contracts or live gates.",
-        "I-ACCOUNTS/S01-H02: Private OpenAI key setup and gpt-6-sol model visibility are confirmed. Actual Responses-high and speech probes returned HTTP 429. The API-key route needs account billing attention; Cerberus's separate subscription-backed reasoning adapter must be assessed before requesting funding. No Nancy inference or speech success is established.",
+        "I-ACCOUNTS/S01-H02: API-key setup/model visibility succeeded but actual inference/speech returned HTTP 429. Selected next step is existing ChatGPT-plan qualification for gpt-6-sol high and intended-user/deployment eligibility, then independent speech. No subscription inference, Nancy audio or API fallback decision is established.",
         "I-DOMAIN/S01-H02 and I-DEVICE/S01-H01: Actual HTTPS hostname/account and intended tablet/browser are not yet identified; genuine microphone/speaker testing has not run.",
         "I-DATA/I-REGION/I-DAY-CONTENT/S01-H03/H06: Record consent, remaining remote processing/retention boundary, real task/meal choices and participant timezone privately. Initial local storage is already decided.",
-        "S01-LIVE2 and S01-LIVE1: Actual local deployment plus remote speech/reasoning, isolated restore and the real 10 AM planning trial have not run. Run disposable checks before retained participant use.",
-        "2026-10-04 actual connection checks are recorded in docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. These synthetic provider probes are not S01 live acceptance. The MCP tunnel transports local tool calls; it does not establish Nancy model access, voice, per-client authorization or a public My Day web route."
+        "S01-LIVE2 and S01-LIVE1: Actual local deployment plus remote reasoning and the selected speech path, isolated restore and the real 10 AM planning trial have not run. Run disposable checks before retained participant use.",
+        "2026-10-04 actual connection checks are recorded in docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. These synthetic provider probes are not S01 live acceptance. The MCP tunnel transports local tool calls; it does not establish Nancy model access, voice, per-client authorization or a public My Day web route.",
+        "2026-10-04 route decision: subscription-first qualification is selected, not implemented. MCP/local function tools, optional Secure MCP Tunnel and My Day HTTPS must be evaluated separately; no generic orchestration or new infrastructure milestone is required."
       ],
       "test_results": [],
       "human_actions": [
@@ -610,16 +641,17 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Administrator/technical-lead ownership and private OpenAI project-key creation are complete. After the agent qualifies the lowest-cost supported model route, complete only remaining owner sign-in/consent or billing steps for that route and missing HTTPS ownership steps. No initial cloud database account is required.",
-            "Complete any MFA, account consent, domain ownership or billing-identity steps that require you; use secure credential setup, never the repository."
+            "Private OpenAI project/key setup and ownership are already complete. When the agent presents the supported subscription route and intended-user/deployment boundaries, complete only missing sign-in, account/workspace consent or ownership steps; do not recreate keys or assume the administrator subscription covers every client.",
+            "Review an explicit API fallback/cost proposal only if subscription qualification fails or the selected speech path needs separately billed GPT access. Funding remains an owner choice, not an automatic prerequisite or silent fallback.",
+            "Complete only missing HTTPS/domain ownership and, if actually selected, Secure MCP Tunnel workspace/access steps. Keep credentials private; routine installation/configuration is agent work."
           ],
           "agent_can_do": [
-            "Prepare the exact free-plan/account setup and disclose any charges before a paid step.",
-            "Reuse authorized access; configure local database/auth, provider adapters, DNS/tunnel and private secrets. Qualify invitation/recovery delivery only if the selected identity flow requires a sender.",
-            "Configure the already selected gpt-6-sol with high reasoning; verify project availability without substituting another model silently.",
-            "Guide the owner through docs/S01_FIRST_CONNECTION.md; use readiness:openai for secret-safe presence/model-visibility checks before bounded real inference and speech tests."
+            "First prepare and qualify the lowest-cost supported ChatGPT-plan adapter for exact gpt-6-sol high, with app-specific auth, allowance/error handling and actual completed inference evidence. Preserve independent care-service authorization and user/account boundaries.",
+            "Qualify speech input/output independently; disclose any new costs before a paid step. Do not claim a tunnel or subscription text call proves voice support.",
+            "Configure local database/auth, shared care commands and My Day HTTPS. Add local MCP or Secure MCP Tunnel only for a concrete supported caller; preserve per-client grants and test revocation.",
+            "Reuse docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json and the saved key. Prepare a concrete fallback proposal if needed; no repeated sign-in, key setup or funding requests without a remaining technical need."
           ],
-          "expected_evidence": "Partial access evidence: docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json records model visibility success and rejected inference/speech probes. Completion still requires actual usable model/speech and routing access, with private configuration references. Reuse the saved key and existing authorized access.",
+          "expected_evidence": "Partial API-key evidence is retained in docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json. Completion needs actual selected-route eligibility/auth/model/usage and independent speech/HTTPS evidence, plus conditional tunnel access. Keep credentials and full account evidence private; an account catalog or successful metadata call is insufficient.",
           "related_input_ids": [
             "I-ACCOUNTS",
             "I-DOMAIN",
@@ -782,7 +814,9 @@
         "RU-RECOVERY",
         "RU-DAY",
         "RU-UI",
-        "RU-ACCESS-TESTS"
+        "RU-ACCESS-TESTS",
+        "RU-SUBSCRIPTION",
+        "RU-MCP-TRANSPORT"
       ]
     },
     {
@@ -3133,7 +3167,7 @@
     "source_repository": "TFMcoder/CerberusLifeCore",
     "source_revision": "e605a660c745f610a477ab45bbfcc53ca9fdcbfc",
     "verification": "Source and test inspection only; no extracted code or Cerberus test result counts as Companion implementation/live evidence. Record provenance and freshly test any extracted or ported code.",
-    "architecture": "Retain React/TypeScript/Vite, Node/Fastify, PostgreSQL and the independent care service. Adapt initial deployment to local database/auth and HTTPS, with GPT-6 Sol high reasoning and separate speech. Reuse does not import Cerberus services, runtime data or account grants.",
+    "architecture": "Retain React/TypeScript/Vite, Node/Fastify, local PostgreSQL/auth and the independent care service. Prefer supported existing ChatGPT-plan reasoning for gpt-6-sol high after live qualification, with independent speech and My Day HTTPS. Adapt only small Cerberus subscription/MCP patterns; no runtime data, credentials or general orchestration import. Each component pins its own source revision; the top-level revision is the original assessment baseline.",
     "excluded": [
       "Cerberus monorepo and business dashboard",
       "General OpenClaw orchestration and Notion/Gmail/Calendar workflows",
@@ -3151,7 +3185,8 @@
           "apps/web/components/dashboard/requests.ts"
         ],
         "application": "Adapt bounded request/error handling to Companion authentication and response validation; unknown writes are reconciled by receipt rather than blindly retried.",
-        "limits": "Do not import business UI types or treat a timeout as proof that a write failed."
+        "limits": "Do not import business UI types or treat a timeout as proof that a write failed.",
+        "source_revision": "e605a660c745f610a477ab45bbfcc53ca9fdcbfc"
       },
       {
         "id": "RU-PROPOSAL",
@@ -3161,7 +3196,8 @@
           "services/api/cerberus_api/daily_brief_contracts.py"
         ],
         "application": "Use small server-validated task/meal proposals with exact target IDs, current observations and explicit acceptance of the reviewed plan version.",
-        "limits": "Do not copy the five-stage business workflow, clinical authority, Notion IDs or provider runtime."
+        "limits": "Do not copy the five-stage business workflow, clinical authority, Notion IDs or provider runtime.",
+        "source_revision": "e605a660c745f610a477ab45bbfcc53ca9fdcbfc"
       },
       {
         "id": "RU-RECEIPT",
@@ -3171,7 +3207,8 @@
           "services/api/cerberus_api/daily_brief_workflow.py"
         ],
         "application": "Atomically persist domain state, event and command receipt; reject changed payloads for a reused key and stale revisions; scope keys to actor/resource.",
-        "limits": "Create Companion's PostgreSQL tables, roles and row policies; a generic board record is not a care-data model."
+        "limits": "Create Companion's PostgreSQL tables, roles and row policies; a generic board record is not a care-data model.",
+        "source_revision": "e605a660c745f610a477ab45bbfcc53ca9fdcbfc"
       },
       {
         "id": "RU-RECOVERY",
@@ -3183,7 +3220,8 @@
           "apps/web/components/dashboard/dailyBrief.ts"
         ],
         "application": "Read retained receipts after interruptions, preserve unresolved intent and reject late responses that belong to an old screen, revision or identity.",
-        "limits": "Do not replay uncertain side effects or copy archive-only snapshot merging; deletions, logout and revoked grants must remove stale client data."
+        "limits": "Do not replay uncertain side effects or copy archive-only snapshot merging; deletions, logout and revoked grants must remove stale client data.",
+        "source_revision": "e605a660c745f610a477ab45bbfcc53ca9fdcbfc"
       },
       {
         "id": "RU-DAY",
@@ -3193,7 +3231,8 @@
           "services/api/tests/test_daily_brief_workflow.py"
         ],
         "application": "Use configured local-day context, bounded current facts and explicit reviewed carryover; adapt date-boundary and temporary-deferral tests.",
-        "limits": "Do not hardcode the source user's timezone or claim that Cerberus's planned 08:00 job supplies a running scheduler."
+        "limits": "Do not hardcode the source user's timezone or claim that Cerberus's planned 08:00 job supplies a running scheduler.",
+        "source_revision": "e605a660c745f610a477ab45bbfcc53ca9fdcbfc"
       },
       {
         "id": "RU-UI",
@@ -3202,7 +3241,8 @@
           "apps/web/components/dashboard/Dashboard.tsx"
         ],
         "application": "Borrow selected focus, Escape, status-announcement and fallback behaviors for a large-type My Day screen.",
-        "limits": "Build the participant UI afresh. Browser dictation is optional fallback only; actual Nancy voice input and audio output remain required."
+        "limits": "Build the participant UI afresh. Browser dictation is optional fallback only; actual Nancy voice input and audio output remain required.",
+        "source_revision": "e605a660c745f610a477ab45bbfcc53ca9fdcbfc"
       },
       {
         "id": "RU-ACCESS-TESTS",
@@ -3213,7 +3253,31 @@
           "services/api/tests/test_browser_login.py"
         ],
         "application": "Adapt origin/host, denied-access, timeout and session-boundary tests to dedicated administrator/client/family_friend/clinician authentication with client-scoped grants.",
-        "limits": "Do not import the single shared-password boundary or infer cross-user database protection from browser login."
+        "limits": "Do not import the single shared-password boundary or infer cross-user database protection from browser login.",
+        "source_revision": "e605a660c745f610a477ab45bbfcc53ca9fdcbfc"
+      },
+      {
+        "id": "RU-SUBSCRIPTION",
+        "decision": "port_pattern",
+        "source_revision": "25bb4b939922e07c688b6a8b3c398366bd7d41ee",
+        "source_paths": [
+          "services/api/cerberus_api/mission_control/planning_provider.py",
+          "docs/director-execution.md"
+        ],
+        "application": "Adapt the small ChatGPT-authenticated reasoning adapter pattern: explicit runtime/model binding, bounded turns, typed tool/results, isolation, usage attribution and visible failure. Qualify gpt-6-sol high on the current supported route before requesting API funding.",
+        "limits": "Historical Cerberus success is not Nancy access or current runtime qualification. Do not copy credentials, personal context, general OpenClaw orchestration or assume unlimited/shared multi-user subscription entitlement. Speech and browser HTTPS remain separate."
+      },
+      {
+        "id": "RU-MCP-TRANSPORT",
+        "decision": "port_pattern",
+        "source_revision": "25bb4b939922e07c688b6a8b3c398366bd7d41ee",
+        "source_paths": [
+          "docs/lifecore-chatgpt.md",
+          "scripts/lifecore_mcp.py",
+          "services/api/cerberus_lifecore/mcp_server.py"
+        ],
+        "application": "Reference private local MCP transport only. If a supported ChatGPT/Codex caller needs Nancy care tools, expose narrow typed commands through its authorized local MCP or conditional Secure MCP Tunnel path.",
+        "limits": "Optional, not a prerequisite for the My Day slice. No LifeCore storage/data/credential reuse; tunnel permission does not confer care access. A Secure MCP Tunnel supplies neither inference billing nor speech nor public browser HTTPS. The documented ChatGPT-plan Responses flow does not support hosted MCP/connectors."
       }
     ]
   },
@@ -3330,19 +3394,46 @@
         "Cloud provider"
       ],
       "migration_policy": "Versioned schema migrations and encrypted, tested export/restore preserve IDs, grants, plans, reports, events and receipts. Durable state stays in the care service; do not couple identity/domain commands to one hosting vendor.",
-      "cloud_processing": "GPT inference and any selected speech provider remain remote; local durable storage does not make processing local."
+      "cloud_processing": "GPT inference remains remote; speech processing location depends on the independently qualified local or hosted speech path. Document actual remote processing before retaining care data; local durable storage does not make all processing local."
     },
     "ai_backend": {
       "requested_family": "GPT Sol",
       "reasoning_effort": "high",
       "api_model_id": "gpt-6-sol",
       "model_input_id": "I-MODEL",
-      "api": "Responses API for reasoning and server-owned tool calls",
-      "speech_policy": "Use a separate speech input/output layer with Sol high as the reasoning backend. Qualify latency, interruption behavior and costs through real voice testing. Do not substitute a Realtime audio model for the requested Sol brain or assign an unsupported Sol ID to an audio endpoint.",
+      "api": "Responses-based gpt-6-sol high reasoning through a supported ChatGPT-plan adapter, preferably minimal local Codex app-server where qualified; care service owns tool execution. API-key billing is an explicitly selected fallback.",
+      "speech_policy": "Qualify speech input/output independently around Sol high. The documented ChatGPT-plan flow excludes audio input/transcription; MCP transport grants no speech coverage. Compare supported local and low-cost hosted choices and test actual device audio, latency, interruption, privacy and costs. Never replace the selected Sol brain with a speech model; do not retain raw audio by default.",
       "source_refs": [
         "https://developers.openai.com/api/docs/models/gpt-6-sol",
-        "https://developers.openai.com/api/docs/models/gpt-6.1-sol"
-      ]
+        "https://developers.openai.com/api/docs/guides/secure-mcp-tunnels",
+        "https://developers.openai.com/siwc/token-sharing-open-source/codex-app-server",
+        "https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations",
+        "https://developers.openai.com/cookbook/articles/sign-in-with-chatgpt"
+      ],
+      "reasoning_route": {
+        "decision_ref": "docs/architecture/PRODUCT_DECISIONS_2026-10-04.md",
+        "preferred": "chatgpt_plan",
+        "adapter_preference": "minimal_local_codex_app_server_or_supported_responses",
+        "qualification_status": "pending",
+        "active_route": null,
+        "qualification_evidence_ref": null,
+        "api_key_fallback": "explicit_owner_decision_after_qualification_and_cost_review",
+        "account_policy": "Use app-specific supported authentication with explicit plan-usage consent where required. Verify intended user and local/remote deployment eligibility, exact model/high effort, renewal/revocation and allowance limits. Never copy Cerberus credentials or infer shared entitlement from administrator status.",
+        "qualification_order": [
+          "account_and_deployment_eligibility",
+          "sol_high_reasoning",
+          "speech_input_output",
+          "authorized_care_tools",
+          "device_and_live_acceptance"
+        ]
+      },
+      "tool_connection": {
+        "default": "server_owned_functions_or_local_mcp",
+        "secure_mcp_tunnel": "conditional_supported_openai_caller_only",
+        "hosted_mcp_on_plan_route": "unsupported",
+        "web_access": "independent_https_origin_for_my_day",
+        "authorization": "Model, local MCP and any tunnel all reach the same authenticated typed care commands. Enforce client/role scope and receipts in the care service; no generic shell or inherited ambient tools."
+      }
     }
   }
 }
