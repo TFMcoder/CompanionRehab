@@ -10,11 +10,14 @@ const MAX_WORKER_LINE = 14 * 1024 * 1024;
 const STARTUP_TIMEOUT_MS = 120_000;
 const SYNTHESIS_TIMEOUT_MS = 60_000;
 const TRANSCRIPTION_TIMEOUT_MS = 30_000;
+const GREETING_CACHE_MAX_ENTRIES = 8;
+const GREETING_CACHE_MAX_BYTES = 2 * 1024 * 1024;
+const GREETING_CACHE_TTL_MS = 5 * 60_000;
 
 export type LocalSpeechReadiness = { kokoro: 'starting' | 'ready' | 'unavailable'; asr: 'starting' | 'ready' | 'unavailable' };
 
 type ChildSpec = { executable: string; args: string[]; cwd: string; env: NodeJS.ProcessEnv };
-type Pending = { id: string; resolve: (value: string) => void; reject: (reason: Error) => void; timer: NodeJS.Timeout; abort?: () => void; signal?: AbortSignal };
+type Pending = { id: string; resolve: (value: string) => void; reject: (reason: Error) => void; timer: NodeJS.Timeout; abort?: () => void; signal?: AbortSignal; settled: boolean; drained: Promise<void>; releaseDrain: () => void };
 
 function abortError() { return Object.assign(new Error('Speech request cancelled.'), { name: 'AbortError' }); }
 function timeoutError() { return Object.assign(new Error('Speech request timed out.'), { name: 'TimeoutError' }); }
@@ -23,6 +26,8 @@ function timeoutError() { return Object.assign(new Error('Speech request timed o
 class WarmWorker {
   private child: ChildProcessWithoutNullStreams | null = null;
   private pending: Pending | null = null;
+  private waiting = false;
+  private claimed = false;
   private state: LocalSpeechReadiness['kokoro'] = 'starting';
   private startup: Promise<void>;
   private resolveStartup!: () => void;
@@ -97,6 +102,7 @@ class WarmWorker {
       const pending = this.pending;
       if (!pending || message?.id !== pending.id) return;
       this.finishPending();
+      if (pending.settled) return;
       if (message.type === 'result' && typeof message.value === 'string') pending.resolve(message.value);
       else pending.reject(new Error('Local speech worker could not complete the request.'));
     });
@@ -129,6 +135,7 @@ class WarmWorker {
     clearTimeout(pending.timer);
     pending.abort && pending.signal?.removeEventListener('abort', pending.abort);
     this.pending = null;
+    pending.releaseDrain();
   }
 
   private async waitUntilReady(signal?: AbortSignal) {
@@ -147,19 +154,58 @@ class WarmWorker {
 
   async request(payload: Record<string, unknown>, timeoutMs: number, signal?: AbortSignal) {
     await this.waitUntilReady(signal);
-    if (signal?.aborted) throw abortError();
-    if (!this.child || this.state !== 'ready') throw new Error('Local speech worker is unavailable.');
-    if (this.pending) throw new Error('Local speech worker is busy.');
+    let claimedHere = false;
+    try {
+      if (this.pending) {
+        const draining = this.pending;
+        if (!draining.settled || this.waiting || this.claimed) throw new Error('Local speech worker is busy.');
+        this.waiting = true;
+        try { await this.waitForDrain(draining, timeoutMs, signal); }
+        finally { this.waiting = false; }
+        if (signal?.aborted) throw abortError();
+        this.claimed = true;
+        claimedHere = true;
+        await this.waitUntilReady(signal);
+      } else {
+        if (this.waiting || this.claimed) throw new Error('Local speech worker is busy.');
+        this.claimed = true;
+        claimedHere = true;
+      }
+      if (signal?.aborted) throw abortError();
+      if (!this.child || this.state !== 'ready') throw new Error('Local speech worker is unavailable.');
+      if (this.pending) throw new Error('Local speech worker is busy.');
+      return await this.sendRequest(payload, timeoutMs, signal);
+    } finally { if (claimedHere) this.claimed = false; }
+  }
+
+  private waitForDrain(pending: Pending, timeoutMs: number, signal?: AbortSignal) {
+    if (signal?.aborted) return Promise.reject(abortError());
+    return new Promise<void>((resolveDrain, rejectDrain) => {
+      const finish = (error?: Error) => {
+        clearTimeout(timer);
+        if (signal && abort) signal.removeEventListener('abort', abort);
+        if (error) rejectDrain(error); else resolveDrain();
+      };
+      const timer = setTimeout(() => finish(timeoutError()), timeoutMs);
+      const abort = signal ? () => finish(abortError()) : undefined;
+      if (abort) signal!.addEventListener('abort', abort, { once: true });
+      pending.drained.then(() => finish());
+    });
+  }
+
+  private sendRequest(payload: Record<string, unknown>, timeoutMs: number, signal?: AbortSignal) {
     const child = this.child;
+    if (!child) return Promise.reject(new Error('Local speech worker is unavailable.'));
     const id = randomUUID();
     return new Promise<string>((resolveRequest, rejectRequest) => {
+      let releaseDrain!: () => void;
       const pending: Pending = {
         id, resolve: resolveRequest, reject: rejectRequest,
         timer: setTimeout(() => this.interrupt(child, pending, timeoutError()), timeoutMs),
-        signal,
+        signal, settled: false, drained: new Promise<void>(resolve => { releaseDrain = resolve; }), releaseDrain: () => releaseDrain(),
       };
       if (signal) {
-        pending.abort = () => this.interrupt(child, pending, abortError());
+        pending.abort = () => this.cancelRequest(child, pending, abortError());
         signal.addEventListener('abort', pending.abort, { once: true });
       }
       this.pending = pending;
@@ -179,6 +225,16 @@ class WarmWorker {
     this.resetStartup();
     this.launch();
   }
+
+  private cancelRequest(child: ChildProcessWithoutNullStreams, pending: Pending, error: Error) {
+    if (this.child !== child || this.pending !== pending || pending.settled) return;
+    pending.settled = true;
+    pending.abort && pending.signal?.removeEventListener('abort', pending.abort);
+    // Model inference cannot stop mid-call; suppress its output and retain the warm worker.
+    try { child.stdin.write(`${JSON.stringify({ type: 'cancel', id: pending.id })}\n`); }
+    catch { this.interrupt(child, pending, error); return; }
+    pending.reject(error);
+  }
 }
 
 export interface LocalSpeechOptions {
@@ -191,6 +247,12 @@ export function validateSpeechText(text: string) {
     throw new RangeError(`Speech text must contain 1–${MAX_TEXT_CHARS} characters.`);
   }
   return text.trim();
+}
+
+/** A synthesis-only pronunciation alias; displayed text, transcript, and care data remain unchanged. */
+export function kokoroPronunciationInput(text: string) {
+  return text.replace(/\brehab\b/gi, match => match === match.toUpperCase() ? 'REEHAB' :
+    match[0] === match[0].toUpperCase() ? 'Reehab' : 'reehab');
 }
 
 export function validateWav(wav: Buffer) {
@@ -226,6 +288,7 @@ function defaultWorkerSpecs(): { kokoro: ChildSpec; asr: ChildSpec } {
 export class LocalSpeech {
   private readonly kokoro: WarmWorker;
   private readonly asr: WarmWorker;
+  private readonly greetingAudio = new Map<string, { wav: Buffer; expiresAt: number }>();
 
   constructor(options: LocalSpeechOptions = {}) {
     const specs = options.workerSpecs ?? defaultWorkerSpecs();
@@ -238,12 +301,21 @@ export class LocalSpeech {
 
   async synthesize(text: string, signal?: AbortSignal): Promise<Buffer> {
     const clean = validateSpeechText(text);
-    const encoded = await this.kokoro.request({ type: 'synthesize', text: clean }, SYNTHESIS_TIMEOUT_MS, signal);
+    if (isGreetingForCache(clean)) {
+      const cached = this.getCachedGreeting(clean);
+      if (cached) {
+        if (signal?.aborted) throw abortError();
+        return Buffer.from(cached);
+      }
+    }
+    const encoded = await this.kokoro.request({ type: 'synthesize', text: kokoroPronunciationInput(clean) }, SYNTHESIS_TIMEOUT_MS, signal);
+    if (signal?.aborted) throw abortError();
     if (encoded.length > Math.ceil(MAX_WAV_BYTES * 4 / 3) + 8 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded)) {
       throw new Error('Local speech worker returned invalid audio.');
     }
     const wav = Buffer.from(encoded, 'base64');
     validateWav(wav);
+    if (isGreetingForCache(clean) && wav.length <= GREETING_CACHE_MAX_BYTES) this.cacheGreeting(clean, wav);
     return wav;
   }
 
@@ -254,5 +326,33 @@ export class LocalSpeech {
     return text;
   }
 
-  async close() { await Promise.all([this.kokoro.close(), this.asr.close()]); }
+  async close() {
+    this.greetingAudio.clear();
+    await Promise.all([this.kokoro.close(), this.asr.close()]);
+  }
+
+  private getCachedGreeting(text: string) {
+    const now = Date.now();
+    for (const [key, entry] of this.greetingAudio) if (entry.expiresAt <= now) this.greetingAudio.delete(key);
+    const entry = this.greetingAudio.get(text);
+    if (!entry) return undefined;
+    this.greetingAudio.delete(text);
+    this.greetingAudio.set(text, entry); // bounded LRU
+    return entry.wav;
+  }
+
+  private cacheGreeting(text: string, wav: Buffer) {
+    this.greetingAudio.delete(text);
+    while (this.greetingAudio.size >= GREETING_CACHE_MAX_ENTRIES ||
+      [...this.greetingAudio.values()].reduce((total, item) => total + item.wav.length, 0) + wav.length > GREETING_CACHE_MAX_BYTES) {
+      const oldest = this.greetingAudio.keys().next().value as string | undefined;
+      if (oldest === undefined) return;
+      this.greetingAudio.delete(oldest);
+    }
+    this.greetingAudio.set(text, { wav: Buffer.from(wav), expiresAt: Date.now() + GREETING_CACHE_TTL_MS });
+  }
+}
+
+function isGreetingForCache(text: string) {
+  return /^Hi [^,\r\n]{1,80}, what can I help with\?$/i.test(text);
 }

@@ -1,0 +1,170 @@
+{
+  "slice_id": "S01",
+  "status": "implemented_awaiting_device_retest",
+  "implementation_revision": "sha256:20610cbcb13f3b210d7f7969d517dbe469eca54e0c25735986d8e864cb496524",
+  "recorded_at": "2026-10-05T21:47:03.454Z",
+  "owner_feedback": {
+    "source": "Owner reported an integrated conversation trial in this chat.",
+    "reported": [
+      "Opening status switched confusingly between listening and speaking.",
+      "Requested only a personalized greeting before listening.",
+      "Requested mid-sentence interruption.",
+      "Reported incorrect rehab pronunciation and slow latency."
+    ],
+    "limit": "This feedback does not establish completion of either full S01 live scenario or the revised behavior; exact iOS version was not recorded."
+  },
+  "changes": [
+    "Opening is only Hi <preferred name>, what can I help with?; preferred name is configured privately, never hardcoded in the repository.",
+    "Starting/preparing is distinct from actual speaking and listening. An early session handle enables stopping or interrupting the first greeting.",
+    "Voice interruption requires confirmed browser echo cancellation and sustained near-end speech checked against a playback reference. Touch Interrupt Nancy remains available during replies. Interrupted replies and late playback acknowledgements cannot satisfy plan/grocery review.",
+    "Cancellation aborts superseded reasoning and invalidates late model actions while preserving the conversation. Already committed care commands remain durable and are read back rather than silently rolled back.",
+    "Normal speech cancellation discards the pending native inference result and keeps model workers warm; one subsequent request can wait for it to drain.",
+    "Whole-word rehab is rewritten to reehab only in synthesis input; source text and care data are unchanged.",
+    "Exact greeting audio is cached only in bounded server memory (8 entries, 2 MiB, five-minute expiry). No recordings/transcripts are saved.",
+    "End-of-speech pause reduced from 1.2 to 0.9 seconds; an onset buffer preserves the beginning of an interruption within the 45-second input bound.",
+    "Explicit initial planning and view navigation use saved authorized facts without inference; substantive reasoning retains gpt-6-sol/high."
+  ],
+  "automated": {
+    "broad_command": "npm run check",
+    "broad_suite_revision": "sha256:54fd6f5b4d6a960a0fb1640fff0648dcb3655499c0358dafd74d400db060ec90",
+    "test_files_passed": 23,
+    "tests_passed": 158,
+    "tests_skipped": 1,
+    "skip_reason": "Opt-in real-PostgreSQL scenario; database implementation is unchanged in this turn.",
+    "typecheck": "passed",
+    "production_build": "passed",
+    "final_delta": "Only the onset-buffer duration/input cap changed after the broad suite. Final client-voice and speech-activity suites passed 16/16 and production build passed at the recorded final revision."
+  },
+  "https_checks": {
+    "observed_at": "2026-10-05T21:40:14.859Z",
+    "status": "passed",
+    "checks": [
+      {
+        "name": "Practice login",
+        "passed": true
+      },
+      {
+        "name": "Exact concise configured-name greeting without activity suggestions",
+        "passed": true
+      },
+      {
+        "name": "First greeting Heart WAV",
+        "passed": true
+      },
+      {
+        "name": "Repeated greeting Heart WAV",
+        "passed": true
+      },
+      {
+        "name": "Planning entry offers saved breakfast choices",
+        "passed": true
+      },
+      {
+        "name": "Active speech interrupt acknowledged",
+        "passed": true
+      },
+      {
+        "name": "Interrupted reply cannot be fetched again",
+        "passed": true
+      },
+      {
+        "name": "Late played acknowledgement rejected",
+        "passed": true
+      },
+      {
+        "name": "Same conversation works after interruption",
+        "passed": true
+      },
+      {
+        "name": "Thinking turn can be interrupted",
+        "passed": true
+      },
+      {
+        "name": "Interrupted reasoning response does not return a completed reply",
+        "passed": true
+      },
+      {
+        "name": "Conversation survives cancelled reasoning",
+        "passed": true
+      },
+      {
+        "name": "Interruption/navigation did not accept or alter the saved plan",
+        "passed": true
+      }
+    ],
+    "timings_ms": {
+      "first_greeting_http": 1491,
+      "cached_greeting_http": 229,
+      "planning_entry_text": 83,
+      "interrupt_http": 97
+    },
+    "limit": "Synthetic scripted HTTPS checks on the same backend code. Final browser-only echo/onset-buffer refinements were checked separately; no actual iPhone acoustic timing is claimed."
+  },
+  "speech_probe": {
+    "warmup_ms": 6726,
+    "initial_round_trip": {
+      "synthesis_ms": [
+        1335,
+        1467,
+        1393
+      ],
+      "asr_ms": [
+        2230,
+        2127,
+        2040
+      ],
+      "wav_bytes": [
+        121244,
+        139244,
+        139244
+      ],
+      "transcript_nonempty": true
+    },
+    "first_greeting_synthesis_ms": 1432,
+    "repeated_exact_greeting_cache_ms": 0,
+    "cache_policy": "8 entries, 2 MiB total, 5 minute expiry; greeting pattern only"
+  },
+  "synthetic_echo_regression": {
+    "initial_failure": "Coarse lag matching missed delayed playback from actual generated Heart speech; three delayed cases falsely interrupted. Replaced with a full bounded lag scan and averaged decimation.",
+    "final_receipt_created_at": "2026-10-05T21:44:04.646Z",
+    "isolated_echo_cases_passed": 12,
+    "mixed_near_end_speech_scenarios_passed": 3,
+    "formats": [
+      "48000 Hz / 2048 samples",
+      "44100 Hz / 2048 samples",
+      "24000 Hz / 4096 samples"
+    ],
+    "pcm_or_transcripts_saved": false,
+    "limit": "Generated speech with digital delay/gain mixing, not physical speakers/microphones, room acoustics or Safari acceptance."
+  },
+  "real_service_planning_regression": {
+    "observed_at": "2026-10-05T21:40:35.691Z",
+    "status": "passed",
+    "model": "gpt-6-sol",
+    "effort": "high",
+    "voice": "af_heart",
+    "accepted_once": true,
+    "asr_and_exact_acceptance_http_ms": 2335,
+    "substantive_plan_turn_http_ms": 9119,
+    "plan_first_audio_http_ms": 3313,
+    "limit": "Synthetic household fixtures and generated acceptance audio with scripted played acknowledgements. Speech onset and audible listening remain a human check."
+  },
+  "remaining": [
+    "Actual revised iPhone/Safari greeting, REEhab pronunciation, mid-sentence interruption, speaker-echo false-trigger and latency acceptance.",
+    "Substantive Sol-high reasoning remains a latency bottleneck; the 9.1-second planning turn is not an instant conversational response.",
+    "Remaining S01 role/meal-task-identity/wake and intended-participant/data/provider qualification gates."
+  ],
+  "sources": [
+    "https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints/echoCancellation",
+    "https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSettings/echoCancellation"
+  ],
+  "private_evidence_refs": [
+    ".local/probes/voice-feedback-https.json",
+    ".local/probes/voice-feedback-speech.json",
+    ".local/probes/voice-feedback-echo-before.json",
+    ".local/probes/voice-feedback-echo.json",
+    ".local/probes/voice-feedback-full.json"
+  ],
+  "paid_service_changes": false,
+  "slice_completion_claimed": false
+}

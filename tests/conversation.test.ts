@@ -21,7 +21,7 @@ function make(responses: CompletedTurn[] = [textResponse('What would you like fo
 describe('Nancy conversation orchestration', () => {
   it('opens without a check-in write or workflow selection, binds owner and login', async () => {
     const { service, care, respond } = make(); const start = await service.start(session);
-    expect(start.text).toContain('What would you like to do?'); expect(start.text).toContain('breakfast');
+    expect(start.text).toBe('Hi Test, what can I help with?');
     expect(care.command).not.toHaveBeenCalled(); expect(respond).not.toHaveBeenCalled();
     await expect(service.start({ ...session, user_id: randomUUID() })).rejects.toMatchObject({ status: 403 });
     await expect(service.speech(start.session_id, { ...session, session_id: randomUUID() }, start.reply_id)).rejects.toMatchObject({ status: 404 });
@@ -39,6 +39,37 @@ describe('Nancy conversation orchestration', () => {
     const { service, respond } = make(); const start = await service.start(session);
     expect((await service.turn(start.session_id, session, randomUUID(), 'Please show my meals.')).navigate).toBe('meals');
     expect(respond).not.toHaveBeenCalled();
+  });
+  it('starts a requested planning conversation from saved options without a model round trip or write', async () => {
+    const { service, respond, care } = make(); const start = await service.start(session);
+    expect((await service.turn(start.session_id, session, randomUUID(), "Let's plan the day")).text).toContain('breakfast');
+    expect(respond).not.toHaveBeenCalled(); expect(care.command).not.toHaveBeenCalled();
+  });
+  it('invalidates an interrupted review and late played event while keeping the conversation usable', async () => {
+    const { service, care } = make([callResponse('review_day_plan'), textResponse('Please review the plan first.')]);
+    const start = await service.start(session);
+    const review = await service.turn(start.session_id, session, randomUUID(), 'Review');
+    service.interrupt(start.session_id, session);
+    expect(() => service.played(start.session_id, session, review.reply_id)).toThrow();
+    await service.turn(start.session_id, session, randomUUID(), 'Accept this plan');
+    expect(care.command).not.toHaveBeenCalled();
+    expect((await service.turn(start.session_id, session, randomUUID(), 'Show my meals')).navigate).toBe('meals');
+  });
+  it('aborts a thinking turn and suppresses late model writes without killing the next turn', async () => {
+    const { service, respond, care } = make([]);
+    let finish!: (value: unknown) => void;
+    respond.mockReturnValueOnce(new Promise(resolve => { finish = resolve; }));
+    const start = await service.start(session); const key = randomUUID();
+    const pending = service.turn(start.session_id, session, key, 'Please choose my tasks');
+    await vi.waitFor(() => expect(respond).toHaveBeenCalled());
+    service.interrupt(start.session_id, session);
+    expect(respond.mock.calls[0][3].aborted).toBe(true);
+    expect((await service.turn(start.session_id, session, randomUUID(), 'Show my meals')).navigate).toBe('meals');
+    finish(callResponse('propose_day_plan'));
+    await expect(pending).rejects.toMatchObject({ code: 'turn_interrupted' });
+    service.cancelTurn(start.session_id, session, key);
+    expect(care.command).not.toHaveBeenCalled();
+    expect((await service.turn(start.session_id, session, randomUUID(), 'Show my tasks')).navigate).toBe('tasks');
   });
   it('requires completed exact review then explicit acceptance, with idempotent replay', async () => {
     const { service, care } = make([callResponse('review_day_plan')]);
@@ -73,7 +104,7 @@ describe('Nancy conversation orchestration', () => {
     let finish!: (value: unknown) => void;
     respond.mockReturnValue(new Promise(resolve => { finish = resolve; }));
     const start = await service.start(session);
-    const pending = service.turn(start.session_id, session, randomUUID(), 'Plan today');
+    const pending = service.turn(start.session_id, session, randomUUID(), 'Choose my tasks and meals');
     await vi.waitFor(() => expect(respond).toHaveBeenCalled());
     service.end(start.session_id, session); finish(callResponse('propose_day_plan'));
     await expect(pending).rejects.toMatchObject({ code: 'conversation_ended' }); expect(care.command).not.toHaveBeenCalled();

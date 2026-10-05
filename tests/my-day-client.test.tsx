@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../src/client/App';
 import { startLocalVoice } from '../src/client/local-voice';
@@ -63,7 +63,7 @@ describe('My Day client workflow', () => {
     vi.mocked(startLocalVoice).mockImplementation(async options => {
       navigate = options.onNavigate;
       options.onState('listening', 'Nancy is listening.');
-      return { stop, sendText: vi.fn(async () => undefined) };
+      return { stop, sendText: vi.fn(async () => undefined), interrupt: vi.fn() };
     });
     render(<App />);
     fireEvent.click(await screen.findByRole('button', { name: 'Talk to Nancy' }));
@@ -75,6 +75,34 @@ describe('My Day client workflow', () => {
     expect(startLocalVoice).toHaveBeenCalledTimes(1);
     expect(stop).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: 'Stop voice' })).toBeInTheDocument();
+  });
+
+  it('shows greeting startup honestly and lets the participant interrupt before it finishes', async () => {
+    mockRequests();
+    type Handle = Awaited<ReturnType<typeof startLocalVoice>>;
+    let options: (Parameters<typeof startLocalVoice>[0] & { onReady?: (handle: Handle) => void }) | undefined;
+    let finishGreeting!: (handle: Handle) => void;
+    const interrupt = vi.fn();
+    const handle = { stop: vi.fn(async () => undefined), sendText: vi.fn(async () => undefined), interrupt };
+    vi.mocked(startLocalVoice).mockImplementation(request => {
+      options = request;
+      return new Promise(resolve => { finishGreeting = resolve; });
+    });
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Talk to Nancy' }));
+    expect(await screen.findByRole('heading', { name: 'Starting Nancy' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Nancy is listening' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Interrupt Nancy' })).not.toBeInTheDocument();
+    act(() => { options!.onReady?.(handle); options!.onState('speaking', 'Nancy is greeting you.'); });
+    expect(await screen.findByRole('button', { name: 'Interrupt Nancy' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Interrupt Nancy' }));
+    expect(interrupt).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Stop voice' })).toBeInTheDocument();
+    act(() => { options!.onState('listening', 'Nancy is listening.'); finishGreeting(handle); });
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Interrupt Nancy' })).not.toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Tasks' }));
+    expect(screen.getByRole('button', { name: 'Stop voice' })).toBeInTheDocument();
+    expect(handle.stop).not.toHaveBeenCalled();
   });
 
   it('shows task timing, urgency and duration in the plan review', async () => {

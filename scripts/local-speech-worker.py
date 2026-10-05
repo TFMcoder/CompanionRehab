@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import threading
 import wave
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,6 +17,7 @@ MODEL_REVISION = "d1d751a5f8271d482d14ca55d9e2deeebbae577f"
 MAX_WAV_BYTES = 10 * 1024 * 1024
 MAX_SECONDS = 45.0
 CPU_THREADS = 4
+output_lock = threading.Lock()
 
 os.environ["OMP_NUM_THREADS"] = str(CPU_THREADS)
 os.environ["OPENBLAS_NUM_THREADS"] = str(CPU_THREADS)
@@ -25,8 +27,9 @@ os.environ["HF_HUB_DISABLE_IMPLICIT_TOKEN"] = "1"
 
 
 def emit(value: dict) -> None:
-    sys.stdout.write(json.dumps(value, separators=(",", ":"), ensure_ascii=True) + "\n")
-    sys.stdout.flush()
+    with output_lock:
+        sys.stdout.write(json.dumps(value, separators=(",", ":"), ensure_ascii=True) + "\n")
+        sys.stdout.flush()
 
 
 def inspect_wav(raw: bytes) -> None:
@@ -65,7 +68,35 @@ def main() -> int:
     for _ in warm_segments:
         pass
     emit({"type": "ready"})
-    busy = False
+    active: dict | None = None
+    active_lock = threading.Lock()
+
+    def transcribe_job(request_id: str, encoded: str, job: dict) -> None:
+        nonlocal active
+        try:
+            raw = base64.b64decode(encoded, validate=True)
+            inspect_wav(raw)
+            audio = decode_audio(BytesIO(raw), sampling_rate=16000)
+            if not isinstance(audio, np.ndarray) or audio.ndim != 1 or len(audio) == 0 or len(audio) > int(16000 * MAX_SECONDS):
+                raise ValueError("audio_bounds")
+            segments, _metadata = model.transcribe(audio, language="en", beam_size=1, best_of=1, temperature=0.0,
+                                                  condition_on_previous_text=False, vad_filter=False)
+            transcript = " ".join(segment.text.strip() for segment in segments).strip()
+            if len(transcript) > 4000:
+                raise ValueError("transcript_bounds")
+            with active_lock:
+                emit({"type": "cancelled" if job["cancelled"] else "result", "id": request_id,
+                      **({} if job["cancelled"] else {"value": transcript})})
+                if active is job:
+                    active = None
+        except Exception:
+            # Do not print exception text: decoder errors can contain input paths or text.
+            with active_lock:
+                emit({"type": "cancelled" if job["cancelled"] else "error", "id": request_id,
+                      **({} if job["cancelled"] else {"code": "transcription_failed"})})
+                if active is job:
+                    active = None
+
     for line in sys.stdin:
         if len(line) > (MAX_WAV_BYTES * 2):
             continue
@@ -76,27 +107,21 @@ def main() -> int:
         request_id = request.get("id") if isinstance(request, dict) else None
         if not isinstance(request_id, str):
             continue
-        if busy or request.get("type") != "transcribe" or not isinstance(request.get("wav"), str):
-            emit({"type": "error", "id": request_id, "code": "invalid_or_busy"})
+        if request.get("type") == "cancel":
+            with active_lock:
+                if active is not None and active["id"] == request_id:
+                    active["cancelled"] = True
             continue
-        busy = True
-        try:
-            raw = base64.b64decode(request["wav"], validate=True)
-            inspect_wav(raw)
-            audio = decode_audio(BytesIO(raw), sampling_rate=16000)
-            if not isinstance(audio, np.ndarray) or audio.ndim != 1 or len(audio) == 0 or len(audio) > int(16000 * MAX_SECONDS):
-                raise ValueError("audio_bounds")
-            segments, _metadata = model.transcribe(audio, language="en", beam_size=1, best_of=1, temperature=0.0,
-                                                  condition_on_previous_text=False, vad_filter=False)
-            transcript = " ".join(segment.text.strip() for segment in segments).strip()
-            if len(transcript) > 4000:
-                raise ValueError("transcript_bounds")
-            emit({"type": "result", "id": request_id, "value": transcript})
-        except Exception:
-            # Do not print exception text: decoder errors can contain input paths or text.
-            emit({"type": "error", "id": request_id, "code": "transcription_failed"})
-        finally:
-            busy = False
+        if request.get("type") != "transcribe" or not isinstance(request.get("wav"), str):
+            emit({"type": "error", "id": request_id, "code": "invalid_request"})
+            continue
+        job = {"id": request_id, "cancelled": False}
+        with active_lock:
+            if active is not None:
+                emit({"type": "error", "id": request_id, "code": "busy"})
+                continue
+            active = job
+        threading.Thread(target=transcribe_job, args=(request_id, request["wav"], job), daemon=True).start()
     return 0
 
 

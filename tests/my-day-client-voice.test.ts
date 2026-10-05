@@ -1,21 +1,23 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '../src/client/api';
-import { startLocalVoice, wavPcm16 } from '../src/client/local-voice';
+import { startLocalVoice, wavPcm16, type LocalVoiceHandle } from '../src/client/local-voice';
 
 class FakeAudioContext {
   sampleRate = 48_000;
   destination = {};
   gain = { value: 1 };
   source: { onended?: () => void; stop: () => void } | undefined;
+  processor = { connect: vi.fn(), disconnect: vi.fn(), onaudioprocess: null as ((event: AudioProcessingEvent) => void) | null };
   resume = vi.fn(async () => undefined);
   close = vi.fn(async () => undefined);
   decodeAudioData = vi.fn(async () => ({}));
   createMediaStreamSource() { return { connect: vi.fn(), disconnect: vi.fn() }; }
-  createScriptProcessor() { return { connect: vi.fn(), disconnect: vi.fn(), onaudioprocess: null }; }
-  createGain() { return { gain: this.gain, connect: vi.fn() }; }
+  createScriptProcessor() { return this.processor; }
+  createChannelMerger() { return { connect: vi.fn(), disconnect: vi.fn() }; }
+  createGain() { return { gain: this.gain, connect: vi.fn(), disconnect: vi.fn() }; }
   createBufferSource() {
-    const source = { buffer: null, connect: vi.fn(), start: vi.fn(), stop: vi.fn(() => source.onended?.()), onended: undefined as (() => void) | undefined };
+    const source = { buffer: null, connect: vi.fn(), disconnect: vi.fn(), start: vi.fn(), stop: vi.fn(() => source.onended?.()), onended: undefined as (() => void) | undefined };
     this.source = source;
     return source;
   }
@@ -27,11 +29,12 @@ describe('local Nancy voice', () => {
     context = new FakeAudioContext();
     Object.defineProperty(window, 'isSecureContext', { configurable: true, value: true });
     vi.stubGlobal('AudioContext', class extends FakeAudioContext { constructor() { super(); context = this; } });
-    Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: vi.fn() }] })) } });
+    Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: vi.fn() }], getAudioTracks: () => [{ getSettings: () => ({echoCancellation:true}) }] })) } });
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) })));
     vi.spyOn(api, 'conversationStart').mockResolvedValue({ session_id: 's1', text: 'Good morning.', reply_id: 'r1' });
     vi.spyOn(api, 'conversationPlayed').mockResolvedValue({ ok: true });
     vi.spyOn(api, 'conversationEnd').mockResolvedValue({ ok: true });
+    vi.spyOn(api, 'conversationInterrupt').mockResolvedValue({ ok: true });
   });
   afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
@@ -52,6 +55,7 @@ describe('local Nancy voice', () => {
     await vi.waitFor(() => expect(context.source).toBeDefined());
     expect(fetch).toHaveBeenCalledWith('/api/conversation/s1/speech?turn_id=r1', expect.any(Object));
     expect(api.conversationPlayed).not.toHaveBeenCalled();
+    expect(states).not.toContain('listening');
     context.source!.onended?.();
     const handle = await starting;
     expect(api.conversationPlayed).toHaveBeenCalledWith('s1', 'r1', expect.any(AbortSignal));
@@ -102,6 +106,41 @@ describe('local Nancy voice', () => {
     expect(api.conversationPlayed).not.toHaveBeenCalled();
   });
 
+  it('interrupts the first greeting without ending the session or acknowledging unheard review', async () => {
+    let early!: LocalVoiceHandle;
+    const states: string[] = [];
+    const starting = startLocalVoice({ onReady: h => { early = h; }, onState: s => states.push(s), onTranscript: vi.fn(), onChange: vi.fn(), onNavigate: vi.fn() });
+    await vi.waitFor(() => expect(context.source).toBeDefined());
+    const audio = context.source!; early.interrupt();
+    expect(audio.stop).toHaveBeenCalled(); expect(states.at(-1)).toBe('listening');
+    const handle = await starting;
+    expect(api.conversationInterrupt).toHaveBeenCalledWith('s1', expect.any(AbortSignal));
+    expect(api.conversationPlayed).not.toHaveBeenCalled(); expect(api.conversationEnd).not.toHaveBeenCalled();
+    await handle.stop();
+  });
+  it('allows sustained near-end microphone speech to interrupt playback when echo cancellation is active', async () => {
+    const starting = startLocalVoice({ onState: vi.fn(), onTranscript: vi.fn(), onChange: vi.fn(), onNavigate: vi.fn() });
+    await vi.waitFor(() => expect(context.source).toBeDefined());
+    const audio = context.source!;
+    for (let n=0;n<12;n++) {
+      const mic=Float32Array.from({length:2048},(_,i)=>0.12*Math.sin((i+n*2048)*0.037)+0.07*Math.sin((i+n*2048)*0.051));
+      context.processor.onaudioprocess?.({inputBuffer:{numberOfChannels:2,getChannelData:(channel:number)=>channel===0?mic:new Float32Array(2048)}} as unknown as AudioProcessingEvent);
+    }
+    await vi.waitFor(() => expect(audio.stop).toHaveBeenCalled());
+    expect(api.conversationPlayed).not.toHaveBeenCalled(); expect(api.conversationInterrupt).toHaveBeenCalledTimes(1);
+    const handle=await starting; await handle.stop();
+  });
+  it('waits for interrupt confirmation before sending the next typed turn and drops late speech', async () => {
+    let early!: LocalVoiceHandle, confirm!: (value:{ok:true})=>void;
+    vi.mocked(api.conversationInterrupt).mockReturnValue(new Promise(resolve=>{confirm=resolve;}));
+    vi.spyOn(api,'conversationTurn').mockResolvedValue({text:'Next answer.',reply_id:'r2'});
+    const starting = startLocalVoice({ onReady:h=>{early=h;},onState:vi.fn(),onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn() });
+    await vi.waitFor(()=>expect(context.source).toBeDefined());
+    const first=context.source;early.interrupt();const next=early.sendText('Different topic');
+    await starting;expect(api.conversationTurn).not.toHaveBeenCalled();confirm({ok:true});
+    await vi.waitFor(()=>expect(context.source).not.toBe(first));context.source!.onended?.();await next;
+    expect(api.conversationPlayed).toHaveBeenCalledTimes(1);expect(api.conversationPlayed).toHaveBeenCalledWith('s1','r2',expect.any(AbortSignal));await early.stop();
+  });
   it('releases audio immediately when stopped during a pending microphone prompt', async () => {
     let release!: (stream: MediaStream) => void;
     const pendingStream = new Promise<MediaStream>(resolve => { release = resolve; });

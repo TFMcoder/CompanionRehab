@@ -2,7 +2,7 @@ import { ApiError } from './errors.js';
 import { PlanStore, accountKey } from './chatgpt-plan/storage.js';
 import { requestSolHigh, refreshCredential, PlanRequestError, type OutputItem, type CompletedTurn } from './chatgpt-plan/inference.js';
 
-export interface Reasoner { respond(input: OutputItem[], instructions: string, tools: OutputItem[]): Promise<CompletedTurn> }
+export interface Reasoner { respond(input: OutputItem[], instructions: string, tools: OutputItem[], signal?: AbortSignal): Promise<CompletedTurn> }
 
 /** One explicitly bound application user, one app-specific OAuth account; no shared fallback. */
 export class PlanReasoner implements Reasoner {
@@ -12,7 +12,8 @@ export class PlanReasoner implements Reasoner {
     try { const state = await this.store.load(); return !!(state.activeKey && state.accounts[state.activeKey]?.refreshToken); }
     catch { return false; }
   }
-  async respond(input: OutputItem[], instructions: string, tools: OutputItem[]) {
+  async respond(input: OutputItem[], instructions: string, tools: OutputItem[], signal?: AbortSignal) {
+    signal?.throwIfAborted();
     if (this.busy) throw new ApiError(409, 'reasoning_busy', 'Nancy is finishing another response. Please try again in a moment.');
     this.busy = true;
     try {
@@ -31,7 +32,8 @@ export class PlanReasoner implements Reasoner {
           }
         } finally { await unlock(); }
       }
-      return await requestSolHigh(account, input, { instructions, tools, tool_choice: 'auto' });
+      signal?.throwIfAborted();
+      return await requestSolHigh(account, input, { instructions, tools, tool_choice: 'auto' }, fetch, undefined, signal);
     } catch (error) {
       if (error instanceof ApiError) throw error;
       if (error instanceof PlanRequestError && error.code.includes('usage_limit')) throw new ApiError(429, 'reasoning_limit', 'The ChatGPT plan usage limit was reached. You can continue using the buttons.');

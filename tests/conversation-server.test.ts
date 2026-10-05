@@ -27,6 +27,13 @@ describe('authenticated local voice routes', () => {
       expect((await app.inject({ url: path, headers: { ...headers, cookie: `nancy_session=${sealSession({ ...session, session_id: randomUUID() }, config.sessionKey!)}` } })).statusCode).toBe(404);
       expect((await app.inject({ url: path, headers })).statusCode).toBe(200);
       expect((await app.inject({ url: path, headers })).statusCode).toBe(200); expect(synthesize).toHaveBeenCalledTimes(1);
+      const interruptPath = `/api/conversation/${reply.session_id}/interrupt`;
+      expect((await app.inject({ method:'POST',url:interruptPath,headers:{...headers,cookie:''},payload:{} })).statusCode).toBe(401);
+      expect((await app.inject({ method:'POST',url:interruptPath,headers:{...headers,cookie:`nancy_session=${sealSession({...session,session_id:randomUUID()},config.sessionKey!)}`},payload:{} })).statusCode).toBe(404);
+      expect((await app.inject({ method:'POST',url:interruptPath,headers,payload:{} })).statusCode).toBe(200);
+      expect((await app.inject({ url:path,headers })).statusCode).toBe(404);
+      expect((await app.inject({ method:'POST',url:`/api/conversation/${reply.session_id}/played`,headers,payload:{reply_id:reply.reply_id} })).statusCode).toBe(404);
+      expect((await app.inject({ method:'POST',url:`/api/conversation/${reply.session_id}/turn`,headers,payload:{turn_id:randomUUID(),text:'Show my meals'} })).statusCode).toBe(200);
       expect((await app.inject({ method: 'POST', url: '/api/voice', headers, payload: { sdp: 'legacy-offer' } })).statusCode).toBe(410);
       await app.inject({ method: 'POST', url: '/api/auth/logout', headers, payload: {} });
       expect((await app.inject({ url: path, headers })).statusCode).toBe(401);

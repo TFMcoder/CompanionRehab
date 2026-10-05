@@ -69,7 +69,7 @@ interface StreamTimingObserver {
 }
 export async function requestSolHigh(account: PlanCredential, input: OutputItem[],
   options: { tools?: OutputItem[]; tool_choice?: 'required' | 'none' | 'auto'; instructions?: string } = {}, fetcher: typeof fetch = fetch,
-  timing?: StreamTimingObserver): Promise<CompletedTurn> {
+  timing?: StreamTimingObserver, signal?: AbortSignal): Promise<CompletedTurn> {
   if (!account.scopes.includes(requiredScope)) throw new Error('ChatGPT plan use was not granted for this connection.');
   const started = performance.now();
   let observedText = '';
@@ -82,7 +82,7 @@ export async function requestSolHigh(account: PlanCredential, input: OutputItem[
     body: JSON.stringify({ model: selectedModel, reasoning: { effort: selectedEffort },
       input, ...options,
       store: false, stream: true }),
-    signal: AbortSignal.timeout(45000),
+    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(45000)]) : AbortSignal.timeout(45000),
   });
   const requestId = response.headers.get('x-request-id') || undefined;
   if (!response.ok) {

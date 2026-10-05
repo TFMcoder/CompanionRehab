@@ -118,7 +118,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     limit(request, `turn:${sessions.get(request)!.user_id}`, 20);
     const id = conversationId(request), session = sessions.get(request)!;
     const active = localConversation().conversation;
-    reply.raw.once('close', () => { if (!reply.raw.writableFinished) active.end(id, session); });
+    reply.raw.once('close', () => { if (!reply.raw.writableFinished) active.cancelTurn(id, session, turn_id); });
     return active.turn(id, session, turn_id, text);
   });
   app.post('/api/conversation/:id/audio', { bodyLimit: 2100000 }, async (request, reply) => {
@@ -130,7 +130,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     const controller = new AbortController(), key = `${session.session_id}:${id}:asr`;
     if (speaking.has(key)) throw new ApiError(409, 'speech_busy', 'Nancy is still listening to the last turn.');
     speaking.set(key, controller);
-    reply.raw.once('close', () => { if (!reply.raw.writableFinished) { controller.abort(); conversation.end(id, session); } });
+    reply.raw.once('close', () => { if (!reply.raw.writableFinished) { controller.abort(); conversation.cancelTurn(id, session, turn_id); } });
     try { return await conversation.turn(id, session, turn_id, () => speech.transcribe(audio, controller.signal), createHash('sha256').update(audio).digest('hex')); }
     finally { if (speaking.get(key) === controller) speaking.delete(key); }
   });
@@ -159,6 +159,14 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   app.post('/api/conversation/:id/played', async request => {
     const { reply_id } = z.object({ reply_id: uuid }).strict().parse(request.body);
     localConversation().conversation.played(conversationId(request), sessions.get(request)!, reply_id); return { ok: true };
+  });
+  app.post('/api/conversation/:id/interrupt', async request => {
+    z.object({}).strict().parse(request.body);
+    const id = conversationId(request), session = sessions.get(request)!;
+    localConversation().conversation.interrupt(id, session);
+    for (const [key, controller] of speaking) if (key.startsWith(`${session.session_id}:${id}:`)) { speaking.delete(key); controller.abort(); }
+    for (const key of audioCache.keys()) if (key.startsWith(`${session.session_id}:${id}:`)) audioCache.delete(key);
+    return { ok: true };
   });
   app.delete('/api/conversation/:id', async request => {
     const id = conversationId(request), session = sessions.get(request)!;

@@ -6,11 +6,13 @@ const root = process.cwd();
 const runtime = resolve(process.env.KOKORO_RUNTIME || join(root, '.local/speech/kokoro-runtime'));
 const cache = resolve(process.env.KOKORO_CACHE || join(root, '.local/speech/kokoro-cache'));
 const localImport = name => import(pathToFileURL(join(runtime, 'node_modules', name)).href);
-const maxTextChars = 1500;
+// The parent validates at 1,500 source characters; the narrow "rehab" ->
+// "reehab" synthesis alias can expand an all-matching input by at most 20%.
+const maxTextChars = 1800;
 const maxAudioSeconds = 45;
 const maxWavBytes = 10 * 1024 * 1024;
 let tts;
-let busy = false;
+let active = null;
 
 function output(value) { process.stdout.write(`${JSON.stringify(value)}\n`); }
 function validateAudio(audio) {
@@ -57,23 +59,32 @@ async function main() {
   validateAudio(await tts.generate('This is a synthetic voice service warmup.', { voice: 'af_heart', speed: 1 }));
   output({ type: 'ready' });
   const lines = createInterface({ input: process.stdin });
-  for await (const line of lines) {
+  lines.on('line', line => {
     let request;
-    try { request = JSON.parse(line); } catch { continue; }
-    if (request?.type !== 'synthesize' || typeof request.id !== 'string' || typeof request.text !== 'string' ||
-        request.text.trim().length === 0 || request.text.length > maxTextChars || busy) {
-      if (typeof request?.id === 'string') output({ type: 'error', id: request.id, code: 'invalid_or_busy' });
-      continue;
+    try { request = JSON.parse(line); } catch { return; }
+    if (request?.type === 'cancel' && typeof request.id === 'string') {
+      if (active?.id === request.id) active.cancelled = true;
+      return;
     }
-    busy = true;
-    try {
-      const audio = await tts.generate(request.text, { voice: 'af_heart', speed: 1 });
-      const wav = validateAudio(audio);
-      output({ type: 'result', id: request.id, value: wav.toString('base64') });
-    } catch {
-      output({ type: 'error', id: request.id, code: 'synthesis_failed' });
-    } finally { busy = false; }
-  }
+    if (request?.type !== 'synthesize' || typeof request.id !== 'string' || typeof request.text !== 'string' ||
+        request.text.trim().length === 0 || request.text.length > maxTextChars || active) {
+      if (typeof request?.id === 'string') output({ type: 'error', id: request.id, code: 'invalid_or_busy' });
+      return;
+    }
+    const job = { id: request.id, cancelled: false };
+    active = job;
+    void (async () => {
+      try {
+        const audio = await tts.generate(request.text, { voice: 'af_heart', speed: 1 });
+        const wav = validateAudio(audio);
+        if (job.cancelled) output({ type: 'cancelled', id: request.id });
+        else output({ type: 'result', id: request.id, value: wav.toString('base64') });
+      } catch {
+        output({ type: 'error', id: request.id, code: 'synthesis_failed' });
+      } finally { if (active === job) active = null; }
+    })();
+  });
+  await new Promise(resolveClosed => lines.once('close', resolveClosed));
 }
 
 main().catch(() => { process.exitCode = 1; });

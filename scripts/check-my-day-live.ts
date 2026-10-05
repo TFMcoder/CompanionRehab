@@ -32,7 +32,8 @@ async function speak(reply: { reply_id: string; speech_parts?: number }) {
 try {
   await call('/api/auth/login', { email: login.email, password: login.password });
   const today = await call('/api/today');
-  if (today.profile.display_name !== 'Practice Day') throw new Error('Only the explicitly synthetic profile may run this probe.');
+  const config = await call('/api/config');
+  if (!config.synthetic || !today.profile.preferences.startsWith('Synthetic demonstration only.')) throw new Error('Only the explicitly synthetic profile may run this probe.');
   const start = await call('/api/conversation', {}); active = start.session_id;
   observations.greeting_first_audio_ms = await speak(start);
   const navigate = await call(`/api/conversation/${active}/turn`, { turn_id: randomUUID(), text: 'Please show my meals.' });

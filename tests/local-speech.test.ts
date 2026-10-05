@@ -2,15 +2,15 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { LocalSpeech, validateSpeechText, validateWav } from '../src/server/local-speech.js';
+import { LocalSpeech, kokoroPronunciationInput, validateSpeechText, validateWav } from '../src/server/local-speech.js';
 
 const dirs: string[] = [];
 function fakeWav() {
-  const wav = Buffer.alloc(44);
-  wav.write('RIFF', 0); wav.writeUInt32LE(36, 4); wav.write('WAVE', 8);
+  const wav = Buffer.alloc(46);
+  wav.write('RIFF', 0); wav.writeUInt32LE(38, 4); wav.write('WAVE', 8);
   wav.write('fmt ', 12); wav.writeUInt32LE(16, 16); wav.writeUInt16LE(1, 20);
   wav.writeUInt16LE(1, 22); wav.writeUInt32LE(24000, 24); wav.writeUInt32LE(48000, 28);
-  wav.writeUInt16LE(2, 32); wav.writeUInt16LE(16, 34); wav.write('data', 36); wav.writeUInt32LE(0, 40);
+  wav.writeUInt16LE(2, 32); wav.writeUInt16LE(16, 34); wav.write('data', 36); wav.writeUInt32LE(2, 40); wav.writeInt16LE(1, 44);
   return wav;
 }
 
@@ -22,11 +22,27 @@ async function makeService() {
   await writeFile(script, `import { createInterface } from 'node:readline';
 const kind=process.argv[2];
 console.log(JSON.stringify({type:'ready'}));
-for await (const line of createInterface({input:process.stdin})) {
+let active;
+let synthCount=0;
+createInterface({input:process.stdin}).on('line', line => {
   const r=JSON.parse(line);
-  if (r.text==='wait') await new Promise(resolve=>setTimeout(resolve,10000));
-  console.log(JSON.stringify({type:'result',id:r.id,value:kind==='kokoro'?${JSON.stringify(audio)}:'Synthetic hello.'}));
-}
+  if(r.type==='cancel') { if(active?.id===r.id) active.cancelled=true; return; }
+  const job={id:r.id,cancelled:false}; active=job;
+  setTimeout(()=>{
+    if(job.cancelled) console.log(JSON.stringify({type:'cancelled',id:r.id}));
+    else {
+      let value='Synthetic hello.';
+      if(kind==='kokoro') {
+        const wav=Buffer.from(${JSON.stringify(audio)},'base64');
+        wav.writeUInt32LE(2,40); wav.writeUInt32LE(38,4);
+        wav.writeInt16LE(++synthCount,44);
+        value=wav.toString('base64');
+      }
+      console.log(JSON.stringify({type:'result',id:r.id,value}));
+    }
+    if(active===job) active=undefined;
+  },r.text==='wait'?180:5);
+});
 `, 'utf8');
   const spec = (kind: string) => ({ executable: process.execPath, args: [script, kind], cwd: dir, env: process.env });
   return new LocalSpeech({ workerSpecs: { kokoro: spec('kokoro'), asr: spec('asr') } });
@@ -45,6 +61,11 @@ describe('LocalSpeech input bounds and worker lifecycle', () => {
     expect(() => validateWav(Buffer.from('not audio'))).toThrow(RangeError);
   });
 
+  it('applies REEhab pronunciation only to the synthesis input', () => {
+    expect(kokoroPronunciationInput('Rehab helps after rehab.')).toBe('Reehab helps after reehab.');
+    expect(kokoroPronunciationInput('rehabilitation and prehab')).toBe('rehabilitation and prehab');
+  });
+
   it('keeps each worker warm and returns audio/transcript without writing request content', async () => {
     const service = await makeService();
     try {
@@ -55,7 +76,20 @@ describe('LocalSpeech input bounds and worker lifecycle', () => {
     } finally { await service.close(); }
   });
 
-  it('aborts an in-flight worker and warms a replacement before the next request', async () => {
+  it('caches only exact greeting audio in bounded memory and returns a defensive copy', async () => {
+    const service = await makeService();
+    try {
+      await service.ready();
+      const first = await service.synthesize('Hi Sam, what can I help with?');
+      const second = await service.synthesize('Hi Sam, what can I help with?');
+      expect(first).toEqual(second);
+      first[44] = 0;
+      expect(second[44]).toBe(1);
+      expect(await service.synthesize('Please help with exercise.')).not.toEqual(second);
+    } finally { await service.close(); }
+  });
+
+  it('suppresses cancelled output and queues one next request behind the still-warm worker', async () => {
     const service = await makeService();
     const controller = new AbortController();
     try {
@@ -64,8 +98,10 @@ describe('LocalSpeech input bounds and worker lifecycle', () => {
       await new Promise(resolve => setTimeout(resolve, 30));
       controller.abort();
       await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
-      await service.ready();
+      // The native call is still draining; one following request waits rather than
+      // killing/reloading the expensive warm model or failing as busy.
       expect(await service.synthesize('The worker recovered.')).toEqual(fakeWav());
+      expect(service.readiness()).toEqual({ kokoro: 'ready', asr: 'ready' });
     } finally { await service.close(); }
   });
 });

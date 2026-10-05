@@ -65,5 +65,6 @@ export const api = {
   conversationTurn: (id: string, text: string, turnId: string, signal?: AbortSignal) => request<ConversationReply>(`/api/conversation/${encodeURIComponent(id)}/turn`, { method: "POST", body: JSON.stringify({ text, turn_id: turnId }), signal }, 90_000),
   conversationAudio: (id: string, wav: string, turnId: string, signal?: AbortSignal) => request<ConversationReply>(`/api/conversation/${encodeURIComponent(id)}/audio`, { method: "POST", body: JSON.stringify({ wav, turn_id: turnId }), signal }, 90_000),
   conversationPlayed: (id: string, replyId: string, signal?: AbortSignal) => request<{ ok: true }>(`/api/conversation/${encodeURIComponent(id)}/played`, { method: "POST", body: JSON.stringify({ reply_id: replyId }), signal }),
+  conversationInterrupt: (id: string, signal?: AbortSignal) => request<{ ok: true }>(`/api/conversation/${encodeURIComponent(id)}/interrupt`, { method: "POST", body: "{}", signal }),
   conversationEnd: (id: string) => request<{ ok: true }>(`/api/conversation/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };

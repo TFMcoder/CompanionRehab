@@ -262,7 +262,7 @@ function TodayView({ today, voiceAvailable, voiceTransport, synthetic, onRefresh
   const [transcript, setTranscript] = useState<Transcript[]>([]);
   const [view, setView] = useState<ClientView>('my_day');
   const [typedTurn, setTypedTurn] = useState('');
-  const voiceHandle = useRef<{ stop: () => Promise<void>; sendText?: (text: string) => Promise<void> } | null>(null);
+  const voiceHandle = useRef<{ stop: () => Promise<void>; sendText?: (text: string) => Promise<void>; interrupt?: () => void } | null>(null);
   const voiceAbort = useRef<AbortController | null>(null);
   const active = useRef(true);
   const currentCheckin = useRef(today.checkin?.id ?? null);
@@ -349,7 +349,7 @@ function TodayView({ today, voiceAvailable, voiceTransport, synthetic, onRefresh
     voiceAbort.current = controller;
     setVoice("connecting"); setVoiceMessage("Connecting to Nancy…");
     try {
-      const handle = await (voiceTransport === 'local' ? startLocalVoice : startVoice)({
+      const options = {
         signal: controller.signal,
         onState: (state: VoiceState, message?: string) => {
           if (!active.current || attempt !== voiceAttempt.current) return;
@@ -364,7 +364,14 @@ function TodayView({ today, voiceAvailable, voiceTransport, synthetic, onRefresh
           if (!active.current || attempt !== voiceAttempt.current) return;
           if (destination === 'my_day' || destination === 'tasks' || destination === 'meals' || destination === 'groceries') setView(destination);
         },
-      });
+      };
+      const onReady = (handle: { stop: () => Promise<void>; sendText?: (text: string) => Promise<void>; interrupt?: () => void }) => {
+        if (!active.current || attempt !== voiceAttempt.current) { void handle.stop(); return; }
+        voiceHandle.current = handle;
+        setVoiceSessionActive(true);
+      };
+      const localOptions = { ...options, onReady };
+      const handle = await (voiceTransport === 'local' ? startLocalVoice(localOptions) : startVoice(options));
       if (!active.current || attempt !== voiceAttempt.current) {
         await handle.stop();
         return;
@@ -374,7 +381,7 @@ function TodayView({ today, voiceAvailable, voiceTransport, synthetic, onRefresh
       voiceAbort.current = null;
     } catch (error) {
       if (controller.signal.aborted || !active.current || attempt !== voiceAttempt.current) return;
-      if (active.current && attempt === voiceAttempt.current) { setVoice("error"); setVoiceMessage(friendlyError(error)); }
+      if (active.current && attempt === voiceAttempt.current) { voiceHandle.current = null; setVoiceSessionActive(false); setVoice("error"); setVoiceMessage(friendlyError(error)); }
     }
   };
   const stopSpeaking = async () => {
@@ -384,7 +391,7 @@ function TodayView({ today, voiceAvailable, voiceTransport, synthetic, onRefresh
     const handle = voiceHandle.current;
     voiceHandle.current = null;
     setVoiceSessionActive(false);
-    setVoice("stopped"); setVoiceMessage("Nancy is paused.");
+    setVoice("stopped"); setVoiceMessage("Conversation ended.");
     await handle?.stop();
   };
   const signOut = async () => {
@@ -398,6 +405,7 @@ function TodayView({ today, voiceAvailable, voiceTransport, synthetic, onRefresh
     await onLogout();
   };
   const editLocked = save.kind === "saving" || save.kind === "unconfirmed" || save.kind === "conflict";
+  const voiceHeading = voice === 'connecting' ? 'Starting Nancy' : voice === 'thinking' ? 'Nancy is thinking' : voice === 'listening' ? 'Nancy is listening' : voice === 'speaking' ? 'Nancy is speaking' : voice === 'closing' ? 'Nancy is waiting' : voice === 'error' ? 'Nancy needs a moment' : 'Ready when you are';
   const submitTypedTurn = (event: FormEvent) => {
     event.preventDefault();
     if (!voiceHandle.current?.sendText || !typedTurn.trim() || voice === 'thinking' || voice === 'speaking') return;
@@ -407,8 +415,8 @@ function TodayView({ today, voiceAvailable, voiceTransport, synthetic, onRefresh
 
   return <main className="today-shell">{synthetic && <p className="practice-banner" role="status">Practice account · sample data only</p>}<header className="today-header"><div><p className="eyebrow">Nancy · your day</p><h1>{today.priority_context?.greeting || `Hello, ${today.profile!.display_name}.`}</h1><p className="date-line">{date}</p></div><div className="header-actions"><button className="text-button" onClick={onEditChoices} disabled={editLocked}>Edit choices</button><button className="text-button" onClick={() => void refresh()} disabled={refreshing}>{refreshing ? "Refreshing…" : "Refresh"}</button><button className="text-button" onClick={() => void signOut()}>Sign out</button></div></header>
     <nav className="day-tabs" aria-label="My Day views">{([['my_day', 'My Day'], ['tasks', 'Tasks'], ['meals', 'Meals'], ['groceries', 'Groceries']] as const).map(([id, label]) => <button key={id} type="button" aria-current={view === id ? 'page' : undefined} onClick={() => setView(id)}>{label}</button>)}</nav>
-    <section className="voice-panel" aria-label="Talk to Nancy"><div><p className="eyebrow">Talk together</p><h2>{voice === "listening" ? "Nancy is listening" : voice === "speaking" ? "Nancy is speaking" : "Ready when you are"}</h2><p>{voiceAvailable ? voiceMessage ?? (voice === "listening" ? "After you have reviewed the plan, you can say, “Nancy, accept this plan.”" : "Start a conversation and choose what matters today. You’re always in control.") : "Voice is not available right now. You can still review today using the buttons below."}</p></div>
-      {voiceSessionActive || voice === "connecting" ? <button className="stop-button" onClick={() => void stopSpeaking()}>Stop voice</button> : <button className="talk-button" onClick={() => void startSpeaking()} disabled={!voiceAvailable || editLocked}>{"Talk to Nancy"}</button>}
+    <section className="voice-panel" aria-label="Talk to Nancy"><div><p className="eyebrow">Talk together</p><h2 aria-live="polite">{voiceHeading}</h2><p>{voiceAvailable ? voiceMessage ?? (voice === "listening" ? "After you have reviewed the plan, you can say, “Nancy, accept this plan.”" : "Start a conversation and choose what matters today. You’re always in control.") : "Voice is not available right now. You can still review today using the buttons below."}</p></div>
+      <div className="voice-actions">{voiceSessionActive || voice === "connecting" ? <>{voiceTransport === 'local' && voiceSessionActive && (voice === 'speaking' || voice === 'thinking') && voiceHandle.current?.interrupt && <button className="interrupt-button" onClick={() => voiceHandle.current?.interrupt?.()}>Interrupt Nancy</button>}<button className="stop-button" onClick={() => void stopSpeaking()}>Stop voice</button></> : <button className="talk-button" onClick={() => void startSpeaking()} disabled={!voiceAvailable || editLocked}>Talk to Nancy</button>}</div>
     </section>
     {voiceTransport === 'local' && voiceSessionActive && <form className="typed-turn" onSubmit={submitTypedTurn}><label>Type to Nancy<input value={typedTurn} onChange={event => setTypedTurn(event.target.value)} maxLength={2000} disabled={voice === 'thinking' || voice === 'speaking'} placeholder="Ask Nancy about your day" /></label><button className="secondary-button" disabled={!typedTurn.trim() || voice === 'thinking' || voice === 'speaking'}>Send</button></form>}
     {transcript.length > 0 && <section className="transcript" aria-live="polite" aria-label="Recent conversation">{transcript.map((line, index) => <p key={`${line.speaker}-${index}`} className={line.speaker}><strong>{line.speaker === "nancy" ? "Nancy" : "You"}</strong>{line.text}</p>)}</section>}

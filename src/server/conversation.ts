@@ -12,7 +12,8 @@ import { splitSpeechParts } from '../shared/speech-parts.js';
 export interface ConversationReply { session_id: string; reply_id: string; text: string; speech_parts: number; changed: boolean; navigate?: ClientView; transcript?: string }
 interface Turn { signature: string; reply?: ConversationReply; failed?: boolean }
 interface Conversation {
-  user: string; login: string; expires: number; busy: boolean; closed: boolean;
+  user: string; login: string; expires: number; busy: boolean; closed: boolean; generation: number;
+  active?: { id: string; controller: AbortController };
   history: OutputItem[]; turns: Map<string, Turn>; replies: Map<string, string>;
   review?: { reply: string; proposal: string; revision: number; date: string; played: boolean };
   grocery?: { name: string; quantity?: string; reply: string; played: boolean };
@@ -72,11 +73,9 @@ export class ConversationService {
     for (const [id, state] of this.sessions) if (state.user === session.user_id) this.endState(id, state);
     if (this.sessions.size >= 10) throw new ApiError(429, 'conversation_limit', 'Please try again in a moment.');
     const id = randomUUID();
-    const state: Conversation = { user: session.user_id, login: session.session_id, expires: Date.now() + 20 * 60000, busy: false, closed: false, history: [], turns: new Map(), replies: new Map() };
+    const state: Conversation = { user: session.user_id, login: session.session_id, expires: Date.now() + 20 * 60000, busy: false, closed: false, generation: 0, history: [], turns: new Map(), replies: new Map() };
     this.sessions.set(id, state);
-    const context = priorityContext(today, this.now());
-    const choices = context.suggestions.map(s => s.label).join(' or ');
-    const text = `${context.greeting}, ${today.profile!.display_name}. What would you like to do? We could start with ${choices}.`;
+    const text = `Hi ${today.profile!.display_name}, what can I help with?`;
     state.history.push({ role: 'assistant', content: text });
     return this.reply(id, state, text);
   }
@@ -92,6 +91,18 @@ export class ConversationService {
     if (state.review?.reply === replyId) state.review.played = true;
     if (state.grocery?.reply === replyId) state.grocery.played = true;
   }
+  interrupt(id: string, session: Session) {
+    const state = this.state(id, session);
+    state.generation++; state.active?.controller.abort(); state.active = undefined; state.busy = false;
+    // An interrupted review cannot be accepted by a late playback acknowledgement.
+    state.review = undefined; state.grocery = undefined; state.replies.clear();
+    state.history.push({ role: 'developer', content: 'The listener interrupted. The previous reply may not have been heard in full. Follow their new request using fresh saved facts; do not assume a review was completed.' });
+    if (state.history.length > 24) state.history = state.history.slice(-24);
+  }
+  cancelTurn(id: string, session: Session, turnId: string) {
+    const state = this.sessions.get(id);
+    if (state?.user === session.user_id && state.login === session.session_id && state.active?.id === turnId) this.interrupt(id, session);
+  }
   async turn(id: string, session: Session, turnId: string, input: string | (() => Promise<string>), signature?: string) {
     const state = this.state(id, session);
     const fingerprint = signature || createHash('sha256').update(String(input)).digest('hex');
@@ -104,19 +115,30 @@ export class ConversationService {
     if (state.busy) throw new ApiError(409, 'conversation_busy', 'Nancy is still responding.');
     if (state.turns.size >= 60) { this.endState(id, state); throw new ApiError(409, 'conversation_limit', 'Let’s pause here. Tap Talk to Nancy to continue with your saved plan.'); }
     state.busy = true;
+    const generation = state.generation;
+    const controller = new AbortController(); state.active = { id: turnId, controller };
     const turn: Turn = { signature: fingerprint }; state.turns.set(turnId, turn);
     try {
       let today = await this.authorize(session);
       const text = z.string().trim().min(1).max(2000).parse(typeof input === 'string' ? input : await input());
-      const ensureOpen = () => { if (state.closed || !this.sessions.has(id)) throw new ApiError(409, 'conversation_ended', 'The conversation ended. Check any saved changes in My Day.'); };
+      const ensureOpen = () => {
+        if (state.closed || !this.sessions.has(id)) throw new ApiError(409, 'conversation_ended', 'The conversation ended. Check any saved changes in My Day.');
+        if (state.generation !== generation) throw new ApiError(409, 'turn_interrupted', 'That reply was interrupted. Check My Day for any changes already saved.');
+      };
       ensureOpen(); state.expires = Date.now() + 20 * 60000;
       const words = text.toLowerCase().replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
       let reply: ConversationReply | undefined;
       const navigation = words.match(/^(?:please )?(?:show(?: me)?|open|go to) (?:my |the )?(meals?|tasks?|grocer(?:ies|y list)|my day|day|home)(?: please)?$/);
+      const planningEntry = /^(?:nancy )?(?:lets |let us |help me |please )?(?:plan (?:my |the )?(?:day|today)|plan the day today)(?: please)?$/.test(words);
       if (navigation) {
         const target = navigation[1];
         const view: ClientView = target.startsWith('meal') ? 'meals' : target.startsWith('task') ? 'tasks' : target.startsWith('grocer') ? 'groceries' : 'my_day';
         reply = this.reply(id, state, `Here ${view === 'my_day' ? 'is My Day' : 'are your ' + view}. What would you like to do next?`, false, view);
+        state.history.push({ role: 'user', content: text });
+      } else if (planningEntry) {
+        state.review = undefined; state.grocery = undefined;
+        const breakfast = today.meal_options.filter(m => m.slots.includes('breakfast')).slice(0, 3).map(m => m.name);
+        reply = this.reply(id, state, breakfast.length ? `Let's plan together. For breakfast, would you like ${breakfast.join(', or ')}? We can choose something else too.` : 'Let’s plan together. What would you like to have for breakfast?');
         state.history.push({ role: 'user', content: text });
       } else if (state.review?.played && ['nancy accept this plan', 'accept this plan', 'yes accept this plan'].includes(words)) {
         const review = state.review; state.review = undefined;
@@ -136,7 +158,7 @@ export class ConversationService {
         let changed = false; let navigate: ClientView | undefined;
         for (let round = 0; round < 5 && !reply; round++) {
           ensureOpen();
-          const response = await this.reasoner.respond(inputItems, instructions + '\n' + freshContextInstruction, definitions);
+          const response = await this.reasoner.respond(inputItems, instructions + '\n' + freshContextInstruction, definitions, controller.signal);
           ensureOpen();
           if (response.model !== 'gpt-6-sol' || response.effort !== 'high' || !response.completed) throw new ApiError(503, 'wrong_model', 'The selected reasoning model was not used.');
           const calls = response.output.filter(item => item.type === 'function_call');
@@ -168,6 +190,7 @@ export class ConversationService {
               } else if (call.name === 'propose_day_plan' || call.name === 'revise_day_plan') {
                 const parsed = planInput.extend({ expected_revision: z.number().int().nonnegative() }).parse(args);
                 if (!today.checkin) await this.care.command(session, { type: 'start_or_resume_checkin', idempotency_key: this.key(turnId, 'start'), local_date: today.local_date, expected_revision: 0, payload: {} });
+                ensureOpen();
                 const { expected_revision, ...payload } = parsed;
                 output = await this.care.command(session, { type: call.name, idempotency_key: this.key(turnId, call.call_id), local_date: today.local_date, expected_revision, payload }); changed = true;
                 ensureOpen(); reply = this.reviewReply(id, state, await this.authorize(session), changed, navigate); break;
@@ -187,10 +210,10 @@ export class ConversationService {
       reply.transcript = text; turn.reply = reply;
       return reply;
     } catch (error) { turn.failed = true; throw error; }
-    finally { state.busy = false; }
+    finally { if (state.active?.id === turnId) { state.busy = false; state.active = undefined; } }
   }
   private key(turn: string, call: string) { const b = createHash('sha256').update(`${turn}:${call}`).digest().subarray(0, 16); b[6] = b[6] & 15 | 64; b[8] = b[8] & 63 | 128; const h = b.toString('hex'); return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`; }
-  private endState(id: string, state: Conversation) { state.closed = true; state.history = []; state.replies.clear(); state.turns.clear(); this.sessions.delete(id); }
+  private endState(id: string, state: Conversation) { state.closed = true; state.active?.controller.abort(); state.history = []; state.replies.clear(); state.turns.clear(); this.sessions.delete(id); }
   end(id: string, session: Session) { const state = this.sessions.get(id); if (state?.user === session.user_id && state.login === session.session_id) this.endState(id, state); }
   endLogin(login: string) { for (const [id, state] of this.sessions) if (state.login === login) this.endState(id, state); }
   close() { clearInterval(this.timer); for (const [id, state] of this.sessions) this.endState(id, state); }
