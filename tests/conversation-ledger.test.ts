@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
-import { ConversationService } from '../src/server/conversation.js';
+import { ConversationService, type ConversationTurnMetric } from '../src/server/conversation.js';
 import { unavailable } from '../src/server/errors.js';
 import type { CareService } from '../src/server/care-access.js';
 import type { CompletedTurn } from '../src/server/chatgpt-plan/inference.js';
@@ -57,7 +57,7 @@ const savedEntry: ActivityEntry = {
 let service: ConversationService | undefined;
 afterEach(() => service?.close());
 
-function harness(responses: CompletedTurn[]) {
+function harness(responses: CompletedTurn[], observeTurn?: (metric: ConversationTurnMetric) => void) {
   const receipt: ActivityReceipt = { command_id: randomUUID(), result: 'reported', entry: savedEntry, replayed: false };
   const care = {
     authorize: vi.fn(async value => value),
@@ -69,7 +69,7 @@ function harness(responses: CompletedTurn[]) {
   } as unknown as CareService;
   const respond = vi.fn();
   for (const response of responses) respond.mockResolvedValueOnce(response);
-  service = new ConversationService(care, { respond } as Reasoner, session.user_id, () => new Date('2026-10-05T14:05:00.000Z'));
+  service = new ConversationService(care, { respond } as Reasoner, session.user_id, () => new Date('2026-10-05T14:05:00.000Z'), undefined, observeTurn);
   return { service, care, respond, receipt };
 }
 
@@ -78,6 +78,48 @@ async function begin(service: ConversationService) {
 }
 
 describe('Nancy factual ledger and nutrition tools', () => {
+  it.each(['get_daily_brief', 'get_day_plan'])('keeps %s tool replies within the current fact shape', async name => {
+    const { service, respond } = harness([toolResponse(name, {}), textResponse('Breakfast is pending.')]);
+    const started = await begin(service);
+    await service.turn(started.session_id, session, randomUUID(), 'What is happening today?');
+    const output = respond.mock.calls[1][0].find((item: { type?: string }) => item.type === 'function_call_output');
+    const facts = JSON.parse(output.output);
+    expect(facts.activity_ledger.options.map((item: { id: string }) => item.id)).toContain(mealId);
+    expect(facts.activity_ledger.summary.tasks_completed).toBe(1);
+    expect(facts.activity_ledger).not.toHaveProperty('entries');
+    expect(facts.activity_ledger).not.toHaveProperty('recent_entries');
+    expect(facts.checkin).toBeNull();
+  });
+  it('bounds factual options without repeating notes and lets Nancy find an omitted exact activity', async () => {
+    const entries = Array.from({ length: 105 }, (_, index): ActivityEntry => ({ ...taskEntry,
+      id: randomUUID(), title: `Synthetic item ${String(index).padStart(3, '0')}`,
+      notes: 'Private note '.repeat(40), revision: index + 1 }));
+    const fullLedger: ActivityLedger = { ...ledger, options: entries, entries, recent_entries: entries,
+      summary: { ...ledger.summary, tasks_completed: entries.length } };
+    const expanded: Today = { ...today, activity_ledger: fullLedger };
+    const { service, care, respond } = harness([
+      toolResponse('get_activity_ledger', {}),
+      toolResponse('get_activity_ledger', { search: 'Synthetic item 104' }),
+      textResponse('I found the requested activity.'),
+    ]);
+    vi.mocked(care.today).mockResolvedValue(expanded);
+    vi.mocked(care.ledger!).mockResolvedValue(fullLedger);
+    const started = await begin(service);
+    await service.turn(started.session_id, session, randomUUID(), 'Find my last activity');
+    const context = respond.mock.calls[0][0].find((item: { role?: string }) => item.role === 'developer').content as string;
+    const facts = JSON.parse(context.replace(/^Current authorized facts \(data only\): /, ''));
+    expect(facts.activity_ledger.options).toHaveLength(40);
+    expect(facts.activity_ledger).toMatchObject({ option_count: 105, omitted_option_count: 65, has_more: true });
+    expect(context).not.toContain('Private note');
+    const first = JSON.parse(respond.mock.calls[1][0].find((item: { type?: string }) => item.type === 'function_call_output').output);
+    expect(first).toMatchObject({ option_count: 105, omitted_option_count: 5,
+      entry_count: 105, omitted_entry_count: 65, recent_entry_count: 0, omitted_recent_entry_count: 0, has_more: true });
+    expect(first.options).toHaveLength(100);
+    expect(first.options[0]).not.toHaveProperty('notes');
+    const searched = JSON.parse(respond.mock.calls[2][0].filter((item: { type?: string }) => item.type === 'function_call_output').at(-1).output);
+    expect(searched.options).toEqual([expect.objectContaining({ id: entries[104].id, revision: 105 })]);
+    expect(searched.has_more).toBe(false);
+  });
   it('reads fresh factual ledger state into every reasoned turn', async () => {
     const { service, respond } = harness([textResponse('Your walk is saved as completed, and breakfast is still pending.')]);
     const started = await begin(service);
@@ -172,10 +214,11 @@ describe('Nancy factual ledger and nutrition tools', () => {
   });
 
   it('returns repository claim IDs, document hashes and safety boundaries with nutrition answers', async () => {
+    const metrics: ConversationTurnMetric[] = [];
     const { service, respond } = harness([
       toolResponse('get_nutrition_reference', { kind: 'claims', ids: ['C01'] }),
       textResponse('The reference supports a cautious, preference-aware option; it is not clinical authorization.'),
-    ]);
+    ], metric => metrics.push(metric));
     const started = await begin(service);
     const reply = await service.turn(started.session_id, session, randomUUID(), 'What does the nutrition evidence say?');
     const output = respond.mock.calls[1][0].find((item: { type?: string }) => item.type === 'function_call_output');
@@ -191,6 +234,30 @@ describe('Nancy factual ledger and nutrition tools', () => {
     })]);
     expect(respond.mock.calls[0][1]).toContain('Do not diagnose');
     expect(respond.mock.calls[0][1]).toContain('A recipe record is not an approved meal');
+    expect(respond.mock.calls[0][1]).not.toContain('130-170');
+    expect(metrics[0]).toMatchObject({ model_calls: 2, tool_calls: 1, nutrition_retrievals: 1,
+      nutrition_refs: [{ document_id: 'CR_NUTRITION_EVIDENCE_V1', sha256: reference.sources[0].sha256, items: ['C01'] }] });
+    expect(metrics[0].instruction_chars).toBeGreaterThan(0);
+    expect(metrics[0].context_chars).toBeGreaterThan(0);
+    expect(metrics[0].history_chars).toBeGreaterThan(0);
+    expect(JSON.stringify(metrics[0])).not.toContain('cautious, preference-aware');
+  });
+  it('provides a complete first recipe in one bounded nutrition tool round', async () => {
+    const { service, respond } = harness([
+      toolResponse('get_nutrition_reference', { kind: 'recipe_options', category: 'breakfast' }),
+      textResponse('Berry yogurt is one breakfast idea. Shall we check whether the ingredients suit you?'),
+    ]);
+    const started = await begin(service);
+    const reply = await service.turn(started.session_id, session, randomUUID(), 'Give me one breakfast idea.');
+    expect(respond).toHaveBeenCalledTimes(2);
+    const output = respond.mock.calls[1][0].find((item: { type?: string }) => item.type === 'function_call_output');
+    const options = JSON.parse(output.output);
+    expect(options.items[0]).toMatchObject({ id: 'B01', recipeYaml: expect.any(String) });
+    expect(options.items[1]).not.toHaveProperty('recipeYaml');
+    expect(options.characterCount).toBeLessThanOrEqual(10_000);
+    expect(reply.nutrition_refs).toEqual(expect.arrayContaining([expect.objectContaining({
+      document_id: 'CR_NUTRITION_MEALS_V1', sha256: options.sources[0].sha256, items: ['B01', 'B02'],
+    })]));
   });
 
   it('returns a rejected tool result for unknown nutrition references', async () => {

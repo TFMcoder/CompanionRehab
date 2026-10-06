@@ -1,7 +1,7 @@
 import { createCipheriv, createDecipheriv, randomBytes, createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 export const backupTables = ['participant_profiles', 'role_grants', 'task_definitions', 'meal_options', 'daily_checkins', 'day_plan_proposals', 'accepted_day_plan_versions', 'command_receipts', 'domain_events'] as const;
-export const localBackupTables = ['accounts', 'participant_profiles', 'role_grants', 'task_definitions', 'meal_options', 'daily_checkins', 'day_plan_proposals', 'accepted_day_plan_versions', 'command_receipts', 'domain_events', 'grocery_items', 'appointments', 'append_only_mutations', 'activity_records'] as const;
+export const localBackupTables = ['accounts', 'participant_profiles', 'role_grants', 'task_definitions', 'meal_options', 'daily_checkins', 'day_plan_proposals', 'accepted_day_plan_versions', 'command_receipts', 'domain_events', 'grocery_items', 'appointments', 'append_only_mutations', 'activity_records', 'actuation_targets', 'external_resource_links', 'actuation_intents', 'runtime_events'] as const;
 export type BackupSchema = 'private' | 'companion_local';
 export interface Database {
   query(sql: string, params?: any[]): Promise<{ rows: any[] }>;
@@ -15,7 +15,7 @@ const schemaFile: Record<BackupSchema, string> = { private: '../../db/001_s01.sq
 const tableSets: Record<BackupSchema, readonly string[]> = { private: backupTables, companion_local: localBackupTables };
 export function schemaHash(schema: BackupSchema = 'private') {
   const hash=createHash('sha256').update(readFileSync(new URL(schemaFile[schema], import.meta.url)));
-  if(schema==='companion_local')hash.update(readFileSync(new URL('../../db/003_activity_ledger.sql', import.meta.url)));
+  if(schema==='companion_local')for(const file of ['003_activity_ledger.sql','004_client_readiness.sql','005_runtime_observability.sql'])hash.update(readFileSync(new URL('../../db/'+file, import.meta.url)));
   return hash.digest('hex');
 }
 export function databaseIdentity(url: string) {

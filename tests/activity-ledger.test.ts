@@ -90,6 +90,7 @@ describe('durable factual activity ledger', () => {
     db = new PGlite();
     await db.exec(await readFile(new URL('../db/002_local_care.sql', import.meta.url), 'utf8'));
     await db.exec(await readFile(new URL('../db/003_activity_ledger.sql', import.meta.url), 'utf8'));
+    await db.exec(await readFile(new URL('../db/004_client_readiness.sql', import.meta.url), 'utf8'));
     care = new LocalCare({ pool: pglitePool(db) as any, clock: () => new Date(NOW) });
     owner = await createParticipant(care, 'owner');
     other = await createParticipant(care, 'other');
@@ -250,5 +251,49 @@ describe('durable factual activity ledger', () => {
     expect(await restarted.activityReceipt(owner.session, backdatedKey)).toEqual(backdated);
     const afterRestart = await restarted.ledger(owner.session, '2026-10-04');
     expect(afterRestart.entries.find(entry => entry.id === backdated.entry.id)).toMatchObject({ title: 'Synthetic late snack', status: 'completed', portion: 'small bowl' });
+  });
+
+  it('keeps the latest actor and command beside the factual projection and refuses a key reused across command families', async () => {
+    const task = option((await care.ledger(other.session)).options, 'task', 'walk');
+    const key = uuid();
+    const first = await care.activityCommand(other.session, record(task, { idempotency_key: key }));
+    const participant = (await care.pool.query('select participant_id from companion_local.role_grants where actor_id=$1', [other.session.user_id])).rows[0].participant_id;
+    const projected = (await care.pool.query('select last_actor_id,last_command_id from companion_local.activity_records where participant_id=$1 and id=$2', [participant,task.id])).rows[0];
+    expect(projected).toEqual({ last_actor_id: other.session.user_id, last_command_id: key });
+    expect((await care.pool.query('select actor_id,command_id from companion_local.domain_events where participant_id=$1 and command_id=$2', [participant,key])).rows)
+      .toEqual([{ actor_id: other.session.user_id, command_id: key }]);
+    expect((await care.pool.query("select data->>'time_zone' as time_zone from companion_local.domain_events where participant_id=$1 and command_id=$2", [participant,key])).rows)
+      .toEqual([{time_zone:'America/Toronto'}]);
+    await expect(care.command(other.session, {
+      type: 'start_or_resume_checkin', idempotency_key: key, local_date: TODAY, expected_revision: 0, payload: {},
+    })).rejects.toMatchObject({ status: 409, code: 'conflict' });
+    expect(await care.activityReceipt(other.session,key)).toEqual(first);
+  });
+
+  it('holds future external intents behind participant-scoped targets with no delivery state', async () => {
+    const actor = other.session.user_id;
+    const participant = (await care.pool.query('select participant_id from companion_local.role_grants where actor_id=$1', [actor])).rows[0].participant_id;
+    const ownerParticipant = (await care.pool.query('select participant_id from companion_local.role_grants where actor_id=$1', [owner.session.user_id])).rows[0].participant_id;
+    const event = (await care.pool.query('select id from companion_local.domain_events where participant_id=$1 order by created_at,id limit 1', [participant])).rows[0];
+    const targetId = uuid();
+    await care.pool.query(`insert into companion_local.actuation_targets(id,participant_id,system,provider,destination_ref,created_by)
+      values($1,$2,'calendar','future-provider','opaque-test-target',$3)`, [targetId,participant,actor]);
+    await expect(care.pool.query(`insert into companion_local.actuation_targets(participant_id,system,provider,destination_ref,created_by)
+      values($1,'email','future-provider','opaque-wrong-actor',$2)`, [participant,owner.session.user_id])).rejects.toBeTruthy();
+    await care.pool.query(`insert into companion_local.external_resource_links(participant_id,target_id,local_kind,local_id,remote_id,linked_by)
+      values($1,$2,'task_definition',$3,'remote-task-1',$4)`, [participant,targetId,other.taskId,actor]);
+    await expect(care.pool.query(`insert into companion_local.external_resource_links(participant_id,target_id,local_kind,local_id,remote_id,linked_by)
+      values($1,$2,'task_definition',$3,'cross-client-task',$4)`, [participant,targetId,owner.taskId,actor])).rejects.toBeTruthy();
+    await expect(care.pool.query(`insert into companion_local.external_resource_links(participant_id,target_id,local_kind,local_id,remote_id,linked_by)
+      values($1,$2,'appointment',$3,'unknown-local-id',$4)`, [participant,targetId,uuid(),actor])).rejects.toBeTruthy();
+    const intentId = uuid();
+    await care.pool.query(`insert into companion_local.actuation_intents(id,participant_id,event_id,target_id,operation,request,requested_by)
+      values($1,$2,$3,$4,'create',$5,$6)`, [intentId,participant,event.id,targetId,JSON.stringify({ local_id: uuid() }),actor]);
+    expect((await care.pool.query('select state from companion_local.actuation_intents where id=$1', [intentId])).rows[0].state).toBe('held');
+    await expect(care.pool.query(`insert into companion_local.actuation_intents(participant_id,event_id,target_id,operation,request,requested_by)
+      values($1,$2,$3,'create','{}',$4)`, [participant,event.id,targetId,actor])).rejects.toBeTruthy();
+    await expect(care.pool.query(`insert into companion_local.actuation_intents(participant_id,event_id,target_id,operation,request,requested_by)
+      values($1,$2,$3,'notify','{}',$4)`, [ownerParticipant,event.id,targetId,owner.session.user_id])).rejects.toBeTruthy();
+    await expect(care.pool.query("update companion_local.actuation_intents set state='sent' where id=$1", [intentId])).rejects.toBeTruthy();
   });
 });

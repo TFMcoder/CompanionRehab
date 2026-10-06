@@ -53,8 +53,9 @@ describe('My Day client workflow', () => {
     mockRequests(); render(<App />);
     expect(await screen.findByRole('heading', { name: 'Start today’s check-in' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Hello, Pat.' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'What would help now?' })).toBeInTheDocument();
-    expect(screen.getByText('Review this item and update it when you are ready.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Your day' })).toBeInTheDocument();
+    expect(screen.getByText('Today at 10:30 · high urgency')).toBeInTheDocument();
+    expect(screen.getAllByText(/No meal chosen/)).toHaveLength(3);
     expect(screen.getByText('Fold laundry')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Tasks' }));
     const taskView = screen.getByRole('heading', { name: 'Tasks' }).closest('section')!;
@@ -64,11 +65,12 @@ describe('My Day client workflow', () => {
     expect(screen.getByRole('button', { name: 'Talk to Nancy' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Meals' }));
     expect(screen.getByRole('heading', { name: 'Meals' })).toBeInTheDocument();
-    expect(screen.getByText('Oatmeal')).toBeInTheDocument();
+    expect(screen.getAllByText('No meal chosen')).toHaveLength(3);
+    expect(screen.queryByText('Oatmeal')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Talk to Nancy' })).toBeInTheDocument();
   });
 
-  it('uses client-facing suggestion copy and accepted task overrides', async () => {
+  it('shows accepted task timing and only saved meal choices', async () => {
     const acceptedTask = { ...day.tasks[0], scheduled_time: '12:45', urgency: 'low' as const, duration_minutes: 35 };
     const accepted = {
       id: '99999999-9999-4999-8999-999999999999', version: 1, task_ids: [acceptedTask.id], tasks: [acceptedTask],
@@ -82,12 +84,55 @@ describe('My Day client workflow', () => {
       priority_context: { greeting: 'Hello, Pat.', period: 'afternoon', local_time: '12:30', local_date: day.local_date,
         suggestions: [{ kind: 'task', label: 'Fold laundry', reason: 'Planned for 12:45; ask about its current status.' }] } });
     render(<App />);
-    expect(await screen.findByText('Review this item and update it when you are ready.')).toBeInTheDocument();
+    expect(await screen.findByText('Today at 12:45 · low urgency')).toBeInTheDocument();
     expect(screen.queryByText(/ask about its current status/i)).not.toBeInTheDocument();
-    expect(screen.getByText('12:45 · low urgency')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Tasks' }));
-    expect(screen.getByText('12:45 · 35 min')).toBeInTheDocument();
+    expect(screen.getByText('Today at 12:45 · 35 min')).toBeInTheDocument();
     expect(screen.getByText('low urgency')).toBeInTheDocument();
+    expect(screen.getByText('Breakfast · Oatmeal')).toBeInTheDocument();
+  });
+
+  it('keeps an accepted plan visible while a different revision waits for review', async () => {
+    const accepted = {
+      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', version: 1, task_ids: [day.tasks[0].id], tasks: day.tasks,
+      meals: [
+        { slot: 'breakfast' as const, option_id: day.meal_options[0].id, name: 'Oatmeal' },
+        { slot: 'lunch' as const, option_id: day.meal_options[1].id, name: 'Soup' },
+        { slot: 'dinner' as const, option_id: day.meal_options[2].id, name: 'Pasta' },
+      ], created_at: '2026-10-05T12:00:00Z', accepted_at: '2026-10-05T12:01:00Z',
+    };
+    const revised = { ...accepted, id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', tasks: [{ ...day.tasks[0], scheduled_time: '15:00' }], meals: [{ slot: 'breakfast' as const, option_id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', name: 'Toast' }, ...accepted.meals.slice(1)] };
+    mockRequests({ ...day, meal_options: [...day.meal_options, { id: revised.meals[0].option_id, name: 'Toast', slots: ['breakfast'] }], checkin: { id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', local_date: day.local_date, revision: 3, accepted, proposal: revised } });
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Meals' }));
+    expect(screen.getByText('Oatmeal')).toBeInTheDocument();
+    expect(screen.queryByText('Toast')).not.toBeInTheDocument();
+    expect(screen.getByText('A new plan is ready for review. Your accepted plan is still shown here.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Review new plan' }));
+    const review = screen.getByRole('heading', { name: 'Review this plan' }).closest('section')!;
+    expect(within(review).getByText('Toast')).toBeInTheDocument();
+    expect(within(review).getByText('15:00 · high urgency · 20 min')).toBeInTheDocument();
+    expect(within(review).getByRole('button', { name: 'Accept this plan' })).toBeInTheDocument();
+  });
+
+  it('keeps an unplanned eaten meal separate from a different planned meal in the same slot', async () => {
+    const accepted = {
+      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', version: 1, task_ids: [], tasks: [],
+      meals: [
+        { slot: 'breakfast' as const, option_id: day.meal_options[0].id, name: 'Oatmeal' },
+        { slot: 'lunch' as const, option_id: day.meal_options[1].id, name: 'Soup' },
+        { slot: 'dinner' as const, option_id: day.meal_options[2].id, name: 'Pasta' },
+      ], created_at: '2026-10-05T12:00:00Z', accepted_at: '2026-10-05T12:01:00Z',
+    };
+    const toast: ActivityEntry = { ...activityLedger.options[1], id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', title: 'Toast', source_id: null, unplanned: true, status: 'completed', occurred_at: '2026-10-05T13:15:00Z', recorded_at: '2026-10-05T13:16:00Z', updated_at: '2026-10-05T13:16:00Z', notes: '', portion: null, last_action: 'reported' };
+    mockRequests({ ...day, checkin: { id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', local_date: day.local_date, revision: 2, accepted, proposal: null }, activity_ledger: { ...activityLedger, options: [toast], entries: [toast], recent_entries: [] } });
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Meals' }));
+    const breakfast = screen.getByRole('heading', { name: 'Breakfast' }).closest('section')!;
+    expect(within(breakfast).getByText('Oatmeal')).toBeInTheDocument();
+    expect(within(breakfast).getByText('In accepted plan · No time set')).toBeInTheDocument();
+    expect(screen.getByText('Toast')).toBeInTheDocument();
+    expect(screen.getByText('Meal eaten · Oct 5, 9:15 a.m.')).toBeInTheDocument();
   });
 
   it('keeps one local conversation mounted while tabs and voice navigation change', async () => {
@@ -400,7 +445,7 @@ describe('My Day client workflow', () => {
         { id: 'far', title: 'Later appointment', starts_at: '2026-10-30T14:00:00Z' },
       ] };
     mockRequests(current); render(<App />);
-    const glance = (await screen.findByRole('heading', { name: 'Tasks to consider' })).closest('div')!;
+    const glance = (await screen.findByRole('button', { name: 'See tasks' })).closest<HTMLElement>('.day-task-glance')!;
     expect(within(glance).queryByText('Fold laundry')).not.toBeInTheDocument();
     expect(within(glance).getByText('No tasks are waiting for you.')).toBeInTheDocument();
     const appointments = screen.getByRole('heading', { name: 'Appointments' }).closest('div')!;
@@ -412,7 +457,8 @@ describe('My Day client workflow', () => {
     expect(screen.getByText(/Task done · Oct 5, 10:00 a.m./)).toBeInTheDocument();
     expect(screen.getByText('Done')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Meals' }));
-    expect(screen.getByText(/Oatmeal · Meal eaten · Oct 5, 9:15 a.m. · one bowl/)).toBeInTheDocument();
+    expect(screen.getByText('Oatmeal')).toBeInTheDocument();
+    expect(screen.getByText('Meal eaten · Oct 5, 9:15 a.m. · one bowl')).toBeInTheDocument();
   });
 
   it('reopens a voided planned item and reads a prior activity date', async () => {

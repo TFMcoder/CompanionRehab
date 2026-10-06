@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
-import { ConversationService } from '../src/server/conversation.js';
+import { ConversationService, type ConversationTurnMetric } from '../src/server/conversation.js';
 import { navigationIntent, navigationReply } from '../src/server/navigation-intent.js';
 import type { CareService } from '../src/server/care-access.js';
 import type { Reasoner } from '../src/server/plan-reasoner.js';
@@ -13,10 +13,11 @@ const textResponse = (text: string) => ({ completed: true as const, model: 'gpt-
 const callResponse = (name: string, args = {}) => ({ ...textResponse(''), output: [{ type: 'function_call', name, call_id: randomUUID(), arguments: JSON.stringify(args) }] });
 let service: ConversationService | undefined;
 afterEach(() => service?.close());
-function make(responses: CompletedTurn[] = [textResponse('What would you like for breakfast?')]) {
-  const care = { authorize: vi.fn(async s => s), today: vi.fn(async () => structuredClone(today)), command: vi.fn(async () => ({ result: 'accepted' })), addGrocery: vi.fn(async () => ({ item: { id: randomUUID(), name: 'Milk' } })) } as unknown as CareService;
+function make(responses: CompletedTurn[] = [textResponse('What would you like for breakfast?')], observeTurn?: (metric: ConversationTurnMetric) => void) {
+  const care = { authorize: vi.fn(async s => s), today: vi.fn(async () => structuredClone(today)), command: vi.fn(async () => ({ result: 'accepted' })),
+    groceries: vi.fn(async () => ({ items: [] })), addGrocery: vi.fn(async () => ({ item: { id: randomUUID(), name: 'Milk' } })) } as unknown as CareService;
   const respond = vi.fn(); for (const response of responses) respond.mockResolvedValueOnce(response);
-  service = new ConversationService(care, { respond } as Reasoner, session.user_id, () => new Date('2026-10-05T14:00:00Z'));
+  service = new ConversationService(care, { respond } as Reasoner, session.user_id, () => new Date('2026-10-05T14:00:00Z'), undefined, observeTurn);
   return { care, respond, service };
 }
 describe('Nancy conversation orchestration', () => {
@@ -76,6 +77,49 @@ describe('Nancy conversation orchestration', () => {
     expect(reply.text).toBe('You have one task due this morning.');
     expect(respond).toHaveBeenCalledTimes(1);
     expect(respond.mock.calls[0][1]).toContain('normally with one short sentence or question');
+  });
+  it('bounds old dialogue, sends current authorized facts and emits metadata only', async () => {
+    const metrics: ConversationTurnMetric[] = [];
+    const { service, respond } = make([], metric => metrics.push(metric));
+    respond.mockResolvedValue(textResponse('What would you like to do next?'));
+    const started = await service.start(session);
+    for (let index = 0; index < 10; index++) {
+      await service.turn(started.session_id, session, randomUUID(), `Please discuss topic ${index}`);
+    }
+    const [input, instructions] = respond.mock.calls.at(-1)!;
+    const serialized = JSON.stringify(input);
+    expect(serialized).toContain('Please discuss topic 9');
+    expect(serialized).not.toContain('Please discuss topic 0');
+    expect(serialized).toContain('Current authorized facts');
+    expect((input as {role?: string; content?: string}[]).find(item => item.role === 'developer')?.content).toContain('"revision":2');
+    expect(instructions).toContain('grocery');
+    expect(metrics).toHaveLength(10);
+    expect(metrics.at(-1)).toMatchObject({ conversation_id: started.session_id, actor_id: session.user_id,
+      outcome: 'completed', model_calls: 1, tool_calls: 0, nutrition_retrievals: 0 });
+    expect(JSON.stringify(metrics)).not.toContain('Please discuss topic');
+  });
+  it('bounds appointments and groceries while allowing an omitted grocery name to be found', async () => {
+    const groceryItems = Array.from({ length: 75 }, (_, index) => ({ id: randomUUID(), name: `Item ${String(index).padStart(2, '0')}` }));
+    const appointments = Array.from({ length: 25 }, (_, index) => ({ id: randomUUID(), title: `Visit ${index}`,
+      starts_at: new Date(Date.parse('2026-10-05T15:00:00Z') + index * 3600000).toISOString() }));
+    const { service, respond, care } = make([
+      callResponse('get_grocery_list'), callResponse('get_grocery_list', { search: 'Item 74' }), textResponse('I found it.'),
+    ]);
+    vi.mocked(care.today).mockResolvedValue({ ...today, groceries: groceryItems, appointments });
+    vi.mocked(care.groceries!).mockResolvedValue({ items: groceryItems });
+    const started = await service.start(session);
+    await service.turn(started.session_id, session, randomUUID(), 'Is Item 74 on my grocery list?');
+    const developer = respond.mock.calls[0][0].find((item: { role?: string }) => item.role === 'developer').content as string;
+    const facts = JSON.parse(developer.replace(/^Current authorized facts \(data only\): /, ''));
+    expect(facts.appointments).toHaveLength(20);
+    expect(facts).toMatchObject({ appointment_count: 25, omitted_appointment_count: 5,
+      grocery_count: 75, omitted_grocery_count: 45 });
+    expect(facts.groceries).toHaveLength(30);
+    const first = JSON.parse(respond.mock.calls[1][0].find((item: { type?: string }) => item.type === 'function_call_output').output);
+    expect(first).toMatchObject({ item_count: 75, omitted_item_count: 25, has_more: true });
+    expect(first.items).toHaveLength(50);
+    const second = JSON.parse(respond.mock.calls[2][0].filter((item: { type?: string }) => item.type === 'function_call_output').at(-1).output);
+    expect(second).toMatchObject({ item_count: 1, omitted_item_count: 0, has_more: false, items: [groceryItems[74]] });
   });
   it('does not discard other model tool actions when navigation is one of multiple calls', async () => {
     const first = { ...textResponse(''), output: [

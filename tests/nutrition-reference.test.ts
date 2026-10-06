@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { copyFileSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
-import { loadNutritionReference, NutritionReferenceError } from '../src/server/nutrition-reference.js';
+import { createNutritionReferenceCache, loadNutritionReference, NutritionReferenceError } from '../src/server/nutrition-reference.js';
 
 const docsDir = resolve('docs/nutrition');
 
@@ -63,6 +64,16 @@ describe('nutrition reference', () => {
     expect(dinner.limitations.join(' ')).toContain('not approved meals');
     expect(dinner.limitations.join(' ')).toContain('planned meal is not a consumed meal');
   });
+  it('includes one exact recipe with meal options under the existing provenance and size limits', () => {
+    const reference = loadNutritionReference({ docsDir });
+    const options = reference.recipeOptions({ category: 'breakfast', limit: 2 });
+    expect(options.items.map(item => item.id)).toEqual(['B01', 'B02']);
+    expect(options.items[0]).toMatchObject({ id: 'B01', recipeYaml: expect.stringContaining('yield_servings: 1') });
+    expect(options.items[1]).not.toHaveProperty('recipeYaml');
+    expect(options.sources.map(source => source.sha256)).toHaveLength(2);
+    expect(options.limitations.join(' ')).toContain('not approved meals');
+    expect(options.characterCount).toBeLessThanOrEqual(10_000);
+  });
 
   it('fails closed for unknown IDs, duplicate IDs and oversized detail requests', () => {
     const reference = loadNutritionReference({ docsDir });
@@ -85,5 +96,22 @@ describe('nutrition reference', () => {
     expect(result.limitations).toHaveLength(3);
     expect(result.limitations.join(' ')).toContain('allergies/cross-contact');
     expect(result.limitations.join(' ')).toContain('grocery proposal is not an order');
+  });
+  it('reuses the parsed index until a source changes, then serves the updated repository document', () => {
+    const temp = mkdtempSync(resolve(tmpdir(), 'nancy-nutrition-'));
+    try {
+      for (const name of ['research-knowledge-base.md', 'meal-library.md']) copyFileSync(resolve(docsDir, name), resolve(temp, name));
+      const current = createNutritionReferenceCache({ docsDir: temp });
+      const initial = current();
+      expect(current()).toBe(initial);
+      const path = resolve(temp, 'meal-library.md');
+      writeFileSync(path, readFileSync(path, 'utf8').replace('Berry-vanilla yogurt crunch', 'Berry yogurt crunch'));
+      const future = new Date(Date.now() + 5_000);
+      utimesSync(path, future, future);
+      const changed = current();
+      expect(changed).not.toBe(initial);
+      expect(changed.getRecipes(['B01']).items[0].title).toBe('Berry yogurt crunch');
+      expect(changed.authorityContext().sources[1].sha256).not.toBe(initial.authorityContext().sources[1].sha256);
+    } finally { rmSync(temp, { recursive: true, force: true }); }
   });
 });

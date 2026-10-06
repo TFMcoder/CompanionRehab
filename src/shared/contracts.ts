@@ -38,8 +38,8 @@ export const setupSchema = z.object({
     scheduled_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().optional(),
     category: z.enum(['task', 'exercise', 'rehab']).optional(),
     duration_minutes: z.number().int().min(1).max(480).nullable().optional(),
-  }).strict()).min(1).max(20),
-  meal_options: z.array(z.object({ id: uuid.optional(), name: z.string().trim().min(1).max(160), slots: z.array(z.enum(mealSlots)).min(1).max(3) }).strict()).min(3).max(30),
+  }).strict()).max(20),
+  meal_options: z.array(z.object({ id: uuid.optional(), name: z.string().trim().min(1).max(160), slots: z.array(z.enum(mealSlots)).min(1).max(3) }).strict()).max(30),
 }).strict();
 export type SetupInput = z.infer<typeof setupSchema>;
 export interface Task { id: string; title: string; time_hint: string | null; urgency?: 'high' | 'medium' | 'low'; scheduled_date?: string | null; scheduled_time?: string | null; category?: 'task' | 'exercise' | 'rehab'; duration_minutes?: number | null }

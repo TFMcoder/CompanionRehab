@@ -17,12 +17,13 @@ import type { ConversationService } from './conversation.js';
 import type { LocalSpeech } from './local-speech.js';
 import { groceryInput } from '../shared/contracts.js';
 import { priorityContext } from '../shared/priority-context.js';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
+import type { RuntimeLog } from './telemetry.js';
 import { splitSpeechParts } from '../shared/speech-parts.js';
 import { activityCommandSchema, activityDate } from '../shared/activity-contracts.js';
 
-export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; staticRoot?: string; revocations?: SessionRevocations } = {}) {
-  const app = Fastify({ logger: false, bodyLimit: 100000, trustProxy: false, requestTimeout: 120000 });
+export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog } = {}) {
+  const app = Fastify({ logger: false, bodyLimit: 100000, trustProxy: false, requestTimeout: 120000, genReqId: () => randomUUID(), requestIdHeader: false });
   const care: CareService = dependencies.care || (config.databaseUrl ? new LocalCare({ connectionString: config.databaseUrl }) : new Supabase(config));
   const voice = dependencies.voice || new VoiceService(config, care);
   const conversation = dependencies.conversation;
@@ -31,6 +32,18 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   const audioCache = new Map<string, Buffer>();
   const root = resolve(dependencies.staticRoot || 'dist/client');
   const sessions = new WeakMap<FastifyRequest, Session>();
+  const started = new WeakMap<FastifyRequest, number>();
+  app.addHook('onRequest', async request => { started.set(request, performance.now()); });
+  app.addHook('onResponse', async (request, reply) => {
+    if (!request.routeOptions.url?.startsWith('/api/')) return;
+    const params = request.params as { id?: string } | undefined;
+    const body = request.body as { turn_id?: string } | undefined;
+    dependencies.runtimeLog?.record({ kind: 'http', outcome: reply.statusCode >= 400 ? 'error' : 'ok',
+      actor_id: sessions.get(request)?.user_id, request_id: request.id,
+      ...(request.routeOptions.url.startsWith('/api/conversation/') ? { conversation_id: params?.id, turn_id: body?.turn_id } : {}),
+      measurements: { route: request.routeOptions.url, method: request.method, status_code: reply.statusCode, duration_ms: performance.now() - (started.get(request) ?? performance.now()) },
+    });
+  });
   const revoked = dependencies.revocations || new SessionRevocations(resolve('.local/runtime/revoked-sessions.json'));
   const limits = new Map<string, { starts: number; count: number }>();
   const limiter = setInterval(() => {
@@ -238,6 +251,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     let pathname: string;
     try { pathname = decodeURIComponent(new URL(request.url, config.origin).pathname); } catch { return reply.code(400).send(); }
     if (pathname.includes('\\') || pathname.includes('\0') || pathname.includes(':')) return reply.code(404).send();
+    if (/^\/preview(?:[/.]|$)/i.test(pathname) || /^\/assets\/(?:preview|DevicePreview|StreamingAudition)[-.]/i.test(pathname)) return reply.code(404).send();
     const path = resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
     if (!path.startsWith(root + sep)) return reply.code(404).send();
     try {
@@ -245,8 +259,8 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
       const mime: Record<string, string> = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' };
       if (!mime[extname(path)]) return reply.code(404).send();
       return reply.type(mime[extname(path)]).send(await readFile(path));
-    } catch { return reply.code(404).type('text/plain').send('Build Nancy first: npm run build'); }
+    } catch { return reply.code(404).type('text/plain').send('This page is unavailable.'); }
   });
-  app.addHook('onClose', async () => { clearInterval(limiter); for (const controller of speaking.values()) controller.abort(); audioCache.clear(); conversation?.close(); await speech?.close(); await voice.close(); await care.close?.(); });
+  app.addHook('onClose', async () => { clearInterval(limiter); for (const controller of speaking.values()) controller.abort(); audioCache.clear(); conversation?.close(); await speech?.close(); await voice.close(); await dependencies.runtimeLog?.close(); await care.close?.(); });
   return app;
 }

@@ -8,7 +8,7 @@ vi.mock("../src/client/voice", () => ({ startVoice: vi.fn() }));
 import { App } from "../src/client/App";
 import { api, ApiError } from "../src/client/api";
 import { startVoice } from "../src/client/voice";
-import type { Today } from "../src/shared/contracts";
+import { setupSchema, type Today } from "../src/shared/contracts";
 
 const ids = {
   profile: "11111111-1111-4111-8111-111111111111",
@@ -183,6 +183,27 @@ describe("S01 participant plan UI", () => {
     ]));
   });
 
+  it('saves one real task without requiring invented meal choices', async () => {
+    let setupPayload: Record<string, unknown> | undefined;
+    const empty: Today = { ...today(), profile: null, tasks: [], meal_options: [], checkin: null };
+    vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => {
+      if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
+      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/today') return response(empty);
+      if (path === '/api/setup') { setupPayload = JSON.parse(String(init?.body)); return response({ ...empty, profile: today().profile, tasks: [{ id: ids.task, title: 'Call the clinic', time_hint: null }] }); }
+      throw new Error(`Unexpected request ${path}`);
+    }));
+    render(<App />);
+    fireEvent.change(await screen.findByLabelText('What should Nancy call you?'), { target: { value: 'Pat' } });
+    fireEvent.change(screen.getByLabelText('Tasks to choose from'), { target: { value: 'Call the clinic' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Continue to today' }));
+    await waitFor(() => expect(setupPayload).toBeDefined());
+    expect(setupPayload).toMatchObject({ tasks: [{ title: 'Call the clinic' }], meal_options: [] });
+    expect(setupSchema.safeParse(setupPayload).success).toBe(true);
+    expect(await screen.findByRole('heading', { name: 'Add meal choices to plan today' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add choices' })).toBeInTheDocument();
+  });
+
   it("aborts a still-connecting voice start and stops its late handle", async () => {
     let resolveVoice: ((value: { stop: () => Promise<void> }) => void) | undefined;
     const stop = vi.fn().mockResolvedValue(undefined);
@@ -203,6 +224,24 @@ describe("S01 participant plan UI", () => {
     expect(options.signal?.aborted).toBe(true);
     resolveVoice!({ stop });
     await waitFor(() => expect(stop).toHaveBeenCalledTimes(1));
+  });
+
+  it('rechecks a warming voice when Talk to Nancy is pressed', async () => {
+    let configReads = 0;
+    const stop = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(startVoice).mockResolvedValue({ stop });
+    vi.stubGlobal('fetch', vi.fn(async (path: string) => {
+      if (path === '/api/config') return response({ configured: true, voice_available: ++configReads > 1, assistant_name: 'Nancy', missing: [] });
+      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/today') return response(today());
+      throw new Error(`Unexpected request ${path}`);
+    }));
+    render(<App />);
+    expect(await screen.findByText(/Nancy’s voice is warming up/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Talk to Nancy' }));
+    await waitFor(() => expect(startVoice).toHaveBeenCalledTimes(1));
+    expect(configReads).toBe(2);
+    expect(screen.getByRole('button', { name: 'Stop voice' })).toBeInTheDocument();
   });
 
   it("treats a timed-out write as unconfirmed", async () => {

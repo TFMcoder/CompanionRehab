@@ -1,0 +1,156 @@
+{
+  "evidence_id": "S01-S02-CLIENT-READINESS-2026-10-06",
+  "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
+  "recorded_at": "2026-10-06T20:58:11.301Z",
+  "status": "engineering_verified_awaiting_participant",
+  "observed_by": "Codex engineering checks; no physical iPhone or participant acceptance",
+  "scope": [
+    "Client-only production bundle with preview routes denied",
+    "Separate empty client database; original practice database preserved",
+    "Simple task, meal, appointment and actual activity views",
+    "Actor/command/time-zone provenance with cross-command idempotency",
+    "Dormant participant-scoped external mappings and held intents; no outbound worker",
+    "Bounded runtime context and cached repository nutrition",
+    "Asynchronous metadata logging and HTTP before speech warmup"
+  ],
+  "automated": {
+    "command": "npm run check",
+    "typecheck": "pass",
+    "test_files_passed": 30,
+    "tests_passed": 245,
+    "tests_skipped": 1,
+    "skip_reason": "Optional separately configured PostgreSQL integration case; actual PostgreSQL exercised by the disposable probe.",
+    "build": "pass"
+  },
+  "postgres": {
+    "version": "17.11",
+    "checks_passed": 42,
+    "checks_total": 42,
+    "encrypted_restore": "pass",
+    "data_policy": "disposable_live",
+    "private_evidence_ref": ".local/probes/activity-ledger-live.json"
+  },
+  "live_services": {
+    "checks": {
+      "client_database_selected": true,
+      "preview_removed__preview": true,
+      "preview_removed__preview.html": true,
+      "care_requires_sign_in": true,
+      "no_sample_care_data": true,
+      "selected_voice_ready": true,
+      "heart_greeting": true,
+      "direct_navigation": true,
+      "actual_local_asr": true,
+      "repo_nutrition_provenance": true,
+      "nutrition_heart_audio": true,
+      "logout_revokes_access": true,
+      "turn_metadata_persisted": true,
+      "no_activity_invented": true
+    },
+    "timings_ms": {
+      "greeting_first_audio_ms": 1028,
+      "navigation_audio_ms": 269,
+      "generated_audio_turn_ms": 3681,
+      "nutrition_reply_ms": 8334
+    },
+    "model": "gpt-6-sol",
+    "reasoning_effort": "high",
+    "voice": "Kokoro af_heart",
+    "speech_input": "local faster-whisper small.en CUDA",
+    "nutrition_metadata": {
+      "tool_calls": 1,
+      "duration_ms": 8226,
+      "input_chars": 37761,
+      "model_calls": 2,
+      "context_chars": 862,
+      "history_chars": 424,
+      "nutrition_refs": [
+        {
+          "items": [
+            "B01",
+            "B02"
+          ],
+          "sha256": "28a51b6348c72a031348a608d270ead839c9b6bc37173144de5d96d0777ee8a9",
+          "document_id": "CR_NUTRITION_MEALS_V1"
+        },
+        {
+          "items": [],
+          "sha256": "1916edb1197bf9bee4e71560d74b02cf743f9cc262fecd516f9e2e46ddd7a3a3",
+          "document_id": "CR_NUTRITION_EVIDENCE_V1"
+        }
+      ],
+      "instruction_chars": 4679,
+      "model_duration_ms": 8216,
+      "nutrition_retrievals": 1
+    },
+    "data_policy": "Read-only fixed engineering prompts on the empty owner-operated workspace. Generated speech tested recognition; no participant microphone recording."
+  },
+  "nutrition_comparison": {
+    "before": {
+      "model_calls": 3,
+      "tool_calls": 2,
+      "reply_ms": 14942
+    },
+    "after": {
+      "model_calls": 2,
+      "tool_calls": 1,
+      "reply_ms": 8334
+    },
+    "limits": "One prompt with variable provider latency. Structural round reduction is implemented; no percentile or general response-time guarantee."
+  },
+  "database_preparation": {
+    "client_database": "nancy_client_trial",
+    "practice_database_preserved": "nancy_myday",
+    "tasks": 0,
+    "meal_options": 0,
+    "appointments": 0,
+    "activity_records": 0,
+    "actuation_intents": 0,
+    "accounts": "Existing owner identity only; another participant eligibility is not inferred",
+    "backup": "Encrypted snapshot saved privately with key stored separately"
+  },
+  "browser": {
+    "status": "pass",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "document_width": 375,
+    "all_navigation_buttons_visible": true,
+    "views": [
+      "My Day",
+      "Tasks",
+      "Meals",
+      "Activity"
+    ],
+    "screenshot_ref": ".local/probes/client-my-day-mobile.png",
+    "limitations": "Desktop browser at phone dimensions; not physical iPhone/Safari acoustic acceptance"
+  },
+  "context": {
+    "engineering_markdown_in_prompt": false,
+    "history_items": 8,
+    "history_chars": 6000,
+    "activity_options": 40,
+    "appointments": 20,
+    "groceries": 30,
+    "retrieval_result_chars": 10000,
+    "ledger_tool": "100 options/40 current entries/20 distinct recent entries, with exact-title search and omitted counts"
+  },
+  "logging": {
+    "location": "companion_local.runtime_events",
+    "retention_days": 14,
+    "queue_max": 512,
+    "batch_max": 64,
+    "flush_interval_ms": 2000,
+    "contents": "Whitelisted timings/status, internal actor/request/turn IDs, source IDs and hashes. No transcripts, audio, passwords or tokens.",
+    "care_audit": "Domain events and receipts remain transactional and durable; expiring performance metadata does not replace them."
+  },
+  "launch_limits": [
+    "Participant consent, genuine tasks/meal choices and time-zone confirmation remain open.",
+    "Intended participant reasoning access and deployment eligibility remain unverified; current sign-in is owner-operated.",
+    "Physical iPhone/Safari conversation, interruption and genuine-day review are still required.",
+    "Temporary HTTPS depends on this computer and processes staying online. No unattended or stable deployment claim.",
+    "Email and Asana deferred until access; Outlook calendar not connected; no external write or sending.",
+    "S01 and S02 completion gates remain open; no genuine care activity was invented."
+  ]
+}

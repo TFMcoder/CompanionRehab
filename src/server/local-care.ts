@@ -86,7 +86,7 @@ export async function bootstrapLocalUser(pool: Pool, input: BootstrapLocalUserIn
       await client.query('insert into companion_local.accounts(id,email,password_salt,password_hash) values($1,lower($2),$3,$4)', [userId, parsed.email, salt, digest]);
       if (input.role === 'client' && !input.participant_id) {
         await client.query(`insert into companion_local.participant_profiles(id,display_name,time_zone,preferences)
-          values($1,$2,$3,$4)`, [participantId, (input.display_name || 'Local test participant').trim(), zone, input.preferences || '']);
+          values($1,$2,$3,$4)`, [participantId, (input.display_name || 'Client').trim(), zone, input.preferences || '']);
       } else if (input.role === 'administrator' && !input.participant_id) {
         // Administrators receive a private empty scope; they are not implicitly granted access to another participant.
         await client.query('insert into companion_local.participant_profiles(id,display_name,time_zone) values($1,$2,$3)', [participantId, 'Administrator scope', zone]);
@@ -248,8 +248,8 @@ export class LocalCare implements CareAccess {
       return await transaction(this.pool,async client=>{
         const {participantId,actorId}=await this.clientContext(session,client);
         const profile=(await client.query('select id,time_zone from companion_local.participant_profiles where id=$1 for update',[participantId])).rows[0];
-        const old=(await client.query('select command,result from companion_local.append_only_mutations where participant_id=$1 and command_id=$2',[participantId,input.idempotency_key])).rows[0];
-        if(old){if(canonical(old.command)!==canonical(input))fail('conflict','That request key was already used for a different change.');return {...old.result,replayed:true};}
+        const old=await this.priorMutation(client,participantId,input.idempotency_key);
+        if(old){if(old.family!=='other'||canonical(old.command)!==canonical(input))fail('conflict','That request key was already used for a different change.');return {...old.result,replayed:true};}
         const now=this.clock(),currentDate=dateInZone(now,profile.time_zone);
         if(input.type!=='reschedule_activity'&&input.local_date>currentDate)fail('invalid_activity_time','An actual report cannot be dated in the future.',400);
         const snapshot=await this.todayFor(client,participantId,input.local_date);
@@ -286,15 +286,16 @@ export class LocalCare implements CareAccess {
         }
         const fields=[entry.id,participantId,entry.local_date,entry.kind,entry.title,entry.source_id,entry.meal_slot,entry.plan_id,entry.unplanned,entry.scheduled_at,
           entry.status,entry.occurred_at,entry.notes,entry.portion,entry.revision,entry.last_action,entry.recorded_at,entry.updated_at];
-        await client.query(`insert into companion_local.activity_records(id,participant_id,local_date,kind,title,source_id,meal_slot,plan_id,unplanned,scheduled_at,status,occurred_at,notes,portion,revision,last_action,recorded_at,updated_at)
-          values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+        await client.query(`insert into companion_local.activity_records(id,participant_id,local_date,kind,title,source_id,meal_slot,plan_id,unplanned,scheduled_at,status,occurred_at,notes,portion,revision,last_action,recorded_at,updated_at,last_actor_id,last_command_id)
+          values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
           on conflict(id) do update set status=excluded.status,occurred_at=excluded.occurred_at,scheduled_at=excluded.scheduled_at,notes=excluded.notes,
-            portion=excluded.portion,revision=excluded.revision,last_action=excluded.last_action,updated_at=excluded.updated_at`,fields);
+            portion=excluded.portion,revision=excluded.revision,last_action=excluded.last_action,updated_at=excluded.updated_at,
+            last_actor_id=excluded.last_actor_id,last_command_id=excluded.last_command_id`,[...fields,actorId,input.idempotency_key]);
         const eventType=input.type==='record_activity'?'ActivityReported':input.type==='correct_activity'?'ActivityCorrected':'ActivityRescheduled';
         const result:ActivityReceipt={command_id:input.idempotency_key,result:entry.last_action,entry,replayed:false};
         await client.query('insert into companion_local.append_only_mutations(participant_id,command_id,command,result,event_type,actor_id) values($1,$2,$3,$4,$5,$6)',[participantId,input.idempotency_key,JSON.stringify(input),JSON.stringify(result),eventType,actorId]);
         await client.query('insert into companion_local.domain_events(participant_id,actor_id,command_id,event_type,local_date,data) values($1,$2,$3,$4,$5,$6)',
-          [participantId,actorId,input.idempotency_key,eventType,input.local_date,JSON.stringify({activity_id:entry.id,kind:entry.kind,before:prior??target,after:entry,
+          [participantId,actorId,input.idempotency_key,eventType,input.local_date,JSON.stringify({activity_id:entry.id,kind:entry.kind,time_zone:profile.time_zone,before:prior??target,after:entry,
             reason:'reason' in input.payload?input.payload.reason:null,old_scheduled_at:target.scheduled_at,new_scheduled_at:entry.scheduled_at})]);
         return result;
       });
@@ -347,10 +348,10 @@ export class LocalCare implements CareAccess {
         const { rows: profiles } = await client.query('select id,time_zone,revision from companion_local.participant_profiles where id=$1 for update', [participantId]);
         const profile = profiles[0];
         if (!profile) throw new ApiError(409, 'setup_required', 'Complete participant setup before planning the day.');
-        const { rows: receiptRows } = await client.query('select command,result from companion_local.command_receipts where participant_id=$1 and command_id=$2', [participantId, input.idempotency_key]);
-        if (receiptRows[0]) {
-          if (canonical(receiptRows[0].command) !== canonical(input)) throw new ApiError(409, 'conflict', 'This request key was already used for another change.');
-          return { ...receiptRows[0].result, replayed: true };
+        const old = await this.priorMutation(client,participantId,input.idempotency_key);
+        if (old) {
+          if (old.family!=='plan'||canonical(old.command) !== canonical(input)) throw new ApiError(409, 'conflict', 'This request key was already used for another change.');
+          return { ...old.result, replayed: true };
         }
         const day = await this.localDate(client, participantId);
         if (input.local_date !== day) throw new ApiError(409, 'conflict', 'The local day changed. Refresh and review before continuing.');
@@ -421,6 +422,14 @@ export class LocalCare implements CareAccess {
     await client.query(`insert into companion_local.domain_events(participant_id,checkin_id,actor_id,command_id,event_type,local_date,data) values($1,$2,$3,$4,$5,$6,$7)`,
       [participantId, checkinId, actorId, result.command_id, eventType, day, JSON.stringify(data)]);
   }
+  private async priorMutation(client:PoolClient,participantId:string,key:string):Promise<{family:'plan'|'other';command:any;result:any}|null> {
+    const row=(await client.query(`select family,command,result from (
+      select 'plan' as family,command,result from companion_local.command_receipts where participant_id=$1 and command_id=$2
+      union all
+      select 'other' as family,command,result from companion_local.append_only_mutations where participant_id=$1 and command_id=$2
+    ) prior`,[participantId,key])).rows[0];
+    return row??null;
+  }
   async receipt(session: Session, key: string): Promise<Receipt | null> {
     try {
       const { participantId } = await this.clientContext(session);
@@ -443,9 +452,9 @@ export class LocalCare implements CareAccess {
         const { actorId, participantId } = await this.clientContext(session, client);
         await client.query('select id from companion_local.participant_profiles where id=$1 for update', [participantId]);
         const command = { type: 'add_grocery_item', ...parsed };
-        const old = (await client.query('select command,result from companion_local.append_only_mutations where participant_id=$1 and command_id=$2', [participantId, parsed.idempotency_key])).rows[0];
+        const old = await this.priorMutation(client,participantId,parsed.idempotency_key);
         if (old) {
-          if (canonical(old.command) !== canonical(command)) throw new ApiError(409, 'conflict', 'This request key was already used for another change.');
+          if (old.family!=='other'||canonical(old.command) !== canonical(command)) throw new ApiError(409, 'conflict', 'This request key was already used for another change.');
           return old.result;
         }
         const item = (await client.query('insert into companion_local.grocery_items(participant_id,name,quantity,created_by) values($1,$2,$3,$4) returning id,name,quantity', [participantId, parsed.name, parsed.quantity || null, actorId])).rows[0];
@@ -471,9 +480,9 @@ export class LocalCare implements CareAccess {
         const { actorId, participantId } = await this.clientContext(session, client);
         await client.query('select id from companion_local.participant_profiles where id=$1 for update', [participantId]);
         const command = { type: 'set_local_appointment', ...parsed };
-        const old = (await client.query('select command,result from companion_local.append_only_mutations where participant_id=$1 and command_id=$2', [participantId, parsed.idempotency_key])).rows[0];
+        const old = await this.priorMutation(client,participantId,parsed.idempotency_key);
         if (old) {
-          if (canonical(old.command) !== canonical(command)) throw new ApiError(409, 'conflict', 'This request key was already used for another change.');
+          if (old.family!=='other'||canonical(old.command) !== canonical(command)) throw new ApiError(409, 'conflict', 'This request key was already used for another change.');
           return old.result;
         }
         const row = (await client.query('insert into companion_local.appointments(participant_id,title,starts_at,created_by) values($1,$2,$3,$4) returning id,title,starts_at', [participantId, parsed.title, parsed.starts_at, actorId])).rows[0];

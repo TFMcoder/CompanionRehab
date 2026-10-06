@@ -73,7 +73,11 @@ function shiftedDate(date: string, days: number) {
 }
 
 function effectiveActivity(today: Today, kind: ActivityKind, sourceId?: string | null, mealSlot?: MealSlot) {
-  return today.activity_ledger?.options.find(item => item.kind === kind && (sourceId && item.source_id === sourceId || mealSlot && item.meal_slot === mealSlot));
+  return today.activity_ledger?.options.find(item => item.kind === kind && (sourceId ? item.source_id === sourceId && (!mealSlot || item.meal_slot === mealSlot) : mealSlot ? item.unplanned && item.meal_slot === mealSlot : false));
+}
+
+function unplannedMeal(today: Today, slot: MealSlot) {
+  return today.activity_ledger?.entries.find(item => item.kind === 'meal' && item.unplanned && item.meal_slot === slot && item.status !== 'voided');
 }
 
 function effectiveEntry(today: Today, activity?: ActivityOption) {
@@ -100,13 +104,14 @@ function displayedTasks(today: Today) {
   return today.tasks.map(task => accepted.get(task.id) ?? task);
 }
 
-function clientSuggestionText(kind: string) {
-  if (kind === "appointment") return "This appointment is coming up soon.";
-  if (kind === "breakfast" || kind === "lunch" || kind === "dinner" || kind === "meals") return "Review your meal choices and what has already happened.";
-  if (kind === "task" || kind === "tasks" || kind === "exercise" || kind === "rehab") return "Review this item and update it when you are ready.";
-  if (kind === "groceries") return "Review or add something to your grocery list.";
-  if (kind === "activity") return "See what you have recorded for today.";
-  return "Choose what would help you now.";
+function taskTiming(task: Today['tasks'][number], today: Today) {
+  if (!task.scheduled_time) return 'No time set';
+  const date = task.scheduled_date ?? today.local_date;
+  return `${date === today.local_date ? 'Today' : formatDay(date, today.profile!.time_zone)} at ${task.scheduled_time}`;
+}
+
+function mealTiming(activity: ActivityOption | undefined, zone: string) {
+  return activity?.scheduled_at ? displayInstant(activity.scheduled_at, zone) : 'No time set';
 }
 
 export function App() {
@@ -168,6 +173,27 @@ export function App() {
     }
   };
 
+  const checkVoice = async () => {
+    const next = await api.config();
+    if (next.configured) setConfig(next);
+    return next;
+  };
+
+  useEffect(() => {
+    if (screen !== 'today' || config?.voice_available) return;
+    let checks = 0;
+    let busy = false;
+    const check = async () => {
+      if (busy || checks >= 20) return;
+      busy = true; checks += 1;
+      try { await checkVoice(); } catch { /* The button remains available for another check. */ }
+      finally { busy = false; }
+    };
+    const timer = window.setInterval(() => { void check(); }, 2_000);
+    window.addEventListener('focus', check);
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', check); };
+  }, [screen, config?.voice_available]);
+
   useEffect(() => {
     void (async () => {
       try {
@@ -210,7 +236,7 @@ export function App() {
     setScreen(next.profile ? "today" : "setup");
   }} />;
   if (screen === "setup") return <Setup initialToday={today} onSaved={next => { setToday(next); setScreen("today"); }} />;
-  return <TodayView today={today!} voiceAvailable={config?.voice_available ?? false} voiceTransport={config?.voice_transport} onRefresh={refreshToday} onReceipt={applyReceipt} onEditChoices={() => { todayRequest.current += 1; setScreen("setup"); }} onLogout={signOut} />;
+  return <TodayView today={today!} voiceAvailable={config?.voice_available ?? false} voiceTransport={config?.voice_transport} onCheckVoice={checkVoice} onRefresh={refreshToday} onReceipt={applyReceipt} onEditChoices={() => { todayRequest.current += 1; setScreen("setup"); }} onLogout={signOut} />;
 }
 
 function Loading() {
@@ -309,13 +335,13 @@ function Setup({ initialToday, onSaved }: { initialToday: Today | null; onSaved:
     finally { setChecking(false); }
   };
   const editing = Boolean(profile);
-  return <main className="setup-page"><section className="setup-intro"><div className="sun-mark" aria-hidden="true">☀</div><p className="eyebrow">{editing ? "Your choices" : "A gentle beginning"}</p><h1>{editing ? "Keep your choices current." : "Let’s make today easier."}</h1><p>List practical tasks and meal choices. You can change today’s plan before you accept it.</p></section>
+  return <main className="setup-page"><section className="setup-intro"><div className="sun-mark" aria-hidden="true">☀</div><p className="eyebrow">{editing ? "Your choices" : "Getting started"}</p><h1>{editing ? "Keep your choices current." : "Let’s get started."}</h1><p>Add the tasks and meals you know now. You can add more later.</p></section>
     <form className="setup-form" onSubmit={submit} aria-label={editing ? "Edit Nancy choices" : "Set up Nancy"}>
       <label>What should Nancy call you?<input value={name} onChange={event => setName(event.target.value)} maxLength={60} required /></label>
-      <label>Your time zone<input value={zone} onChange={event => setZone(event.target.value)} maxLength={80} required aria-describedby="timezone-help" /></label><p id="timezone-help" className="field-help">This keeps “today” and your 10 AM check-in in the right local day.</p>
-      <label>Tasks to choose from<textarea value={tasksText} onChange={event => setTasksText(event.target.value)} maxLength={3200} rows={4} required placeholder={"For example:\nFold laundry\nWater the plants"} /></label><p className="field-help">One task per line.</p>
+      <label>Your time zone<input value={zone} onChange={event => setZone(event.target.value)} maxLength={80} required aria-describedby="timezone-help" /></label><p id="timezone-help" className="field-help">Times in your plan use this time zone.</p>
+      <label>Tasks to choose from<textarea value={tasksText} onChange={event => setTasksText(event.target.value)} maxLength={3200} rows={4} placeholder="One task per line" /></label><p className="field-help">Add only tasks you want Nancy to know about.</p>
       {lines(tasksText).length > 0 && <fieldset className="task-details"><legend>Task timing and priority <span className="optional">Optional</span></legend>{lines(tasksText).map((title, index) => <div className="task-detail" key={`${title}-${index}`}><h3>{title}</h3><div><label>Urgency for {title}<select value={taskDetails[title]?.urgency ?? ''} onChange={event => updateTaskDetail(title, { urgency: event.target.value ? event.target.value as 'high' | 'medium' | 'low' : undefined })}><option value="">Not set</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label><label>Time for {title}<input type="time" value={taskDetails[title]?.scheduled_time ?? ''} onChange={event => updateTaskDetail(title, { scheduled_time: event.target.value || null })} /></label><label>Category for {title}<select value={taskDetails[title]?.category ?? 'task'} onChange={event => updateTaskDetail(title, { category: event.target.value as 'task' | 'exercise' | 'rehab' })}><option value="task">Task</option><option value="exercise">Approved exercise</option><option value="rehab">Approved rehab</option></select></label><label>Minutes for {title}<input type="number" min="1" max="480" value={taskDetails[title]?.duration_minutes ?? ''} onChange={event => updateTaskDetail(title, { duration_minutes: event.target.value ? Number(event.target.value) : null })} /></label></div></div>)}</fieldset>}
-      <fieldset><legend>Practical meal choices</legend>{mealSlots.map(slot => <label key={slot}>{labelForSlot[slot]}<textarea value={meals[slot]} onChange={event => setMeals(current => ({ ...current, [slot]: event.target.value }))} maxLength={3200} rows={3} required placeholder={`One ${slot} choice per line`} /></label>)}</fieldset>
+      <fieldset><legend>Meal choices</legend>{mealSlots.map(slot => <label key={slot}>{labelForSlot[slot]}<textarea value={meals[slot]} onChange={event => setMeals(current => ({ ...current, [slot]: event.target.value }))} maxLength={3200} rows={3} placeholder={`One ${slot} choice per line`} /></label>)}</fieldset>
       <label>Anything Nancy should keep in mind? <span className="optional">Optional</span><textarea value={preferences} onChange={event => setPreferences(event.target.value)} maxLength={1000} rows={3} placeholder="Preferences or practical notes" /></label>
       {error && <p className="notice error" role="alert">{error}</p>}
       {unconfirmed ? <button type="button" className="secondary-button" disabled={checking} onClick={() => void checkSavedSetup()}>{checking ? "Checking saved choices…" : "Check saved choices"}</button> : <button className="primary-button" disabled={busy}>{busy ? "Saving your choices…" : editing ? "Save choices" : "Continue to today"}</button>}
@@ -323,7 +349,7 @@ function Setup({ initialToday, onSaved }: { initialToday: Today | null; onSaved:
   </main>;
 }
 
-function TodayView({ today, voiceAvailable, voiceTransport, onRefresh, onEditChoices, onLogout, onReceipt }: { today: Today; voiceAvailable: boolean; voiceTransport?: AppConfig['voice_transport']; onRefresh: () => Promise<Today>; onEditChoices: () => void; onLogout: () => Promise<void>; onReceipt: (receipt: Receipt, date: string) => void }) {
+function TodayView({ today, voiceAvailable, voiceTransport, onCheckVoice, onRefresh, onEditChoices, onLogout, onReceipt }: { today: Today; voiceAvailable: boolean; voiceTransport?: AppConfig['voice_transport']; onCheckVoice: () => Promise<AppConfig>; onRefresh: () => Promise<Today>; onEditChoices: () => void; onLogout: () => Promise<void>; onReceipt: (receipt: Receipt, date: string) => void }) {
   const [editing, setEditing] = useState(false);
   const [save, setSave] = useState<SaveState>({ kind: "idle" });
   const [refreshing, setRefreshing] = useState(false);
@@ -414,13 +440,16 @@ function TodayView({ today, voiceAvailable, voiceTransport, onRefresh, onEditCho
     }
   };
   const startSpeaking = async () => {
-    if (!voiceAvailable || voiceHandle.current || save.kind === "unconfirmed" || save.kind === "conflict") return;
+    if (voiceHandle.current || save.kind === "unconfirmed" || save.kind === "conflict") return;
     const attempt = ++voiceAttempt.current;
     const controller = new AbortController();
     voiceAbort.current?.abort();
     voiceAbort.current = controller;
     setVoice("connecting"); setVoiceMessage("Connecting to Nancy…");
     try {
+      const ready = voiceAvailable ? { voice_available: true, voice_transport: voiceTransport } : await onCheckVoice();
+      if (!ready.voice_available) { setVoice('stopped'); setVoiceMessage('Nancy’s voice is warming up. Try again in a moment.'); return; }
+      if (controller.signal.aborted || !active.current || attempt !== voiceAttempt.current) return;
       const options = {
         signal: controller.signal,
         onState: (state: VoiceState, message?: string) => {
@@ -443,7 +472,7 @@ function TodayView({ today, voiceAvailable, voiceTransport, onRefresh, onEditCho
         setVoiceSessionActive(true);
       };
       const localOptions = { ...options, onReady };
-      const handle = await (voiceTransport === 'local' ? startLocalVoice(localOptions) : startVoice(options));
+      const handle = await (ready.voice_transport === 'local' ? startLocalVoice(localOptions) : startVoice(options));
       if (!active.current || attempt !== voiceAttempt.current) {
         await handle.stop();
         return;
@@ -477,7 +506,7 @@ function TodayView({ today, voiceAvailable, voiceTransport, onRefresh, onEditCho
     await onLogout();
   };
   const editLocked = save.kind === "saving" || save.kind === "unconfirmed" || save.kind === "conflict";
-  const voiceHeading = voice === 'connecting' ? 'Starting Nancy' : voice === 'thinking' ? 'Nancy is thinking' : voice === 'listening' ? 'Nancy is listening' : voice === 'speaking' ? 'Nancy is speaking' : voice === 'closing' ? 'Nancy is waiting' : voice === 'error' ? 'Nancy needs a moment' : 'Ready when you are';
+  const voiceHeading = voice === 'connecting' ? 'Starting Nancy' : voice === 'thinking' ? 'Nancy is thinking' : voice === 'listening' ? 'Nancy is listening' : voice === 'speaking' ? 'Nancy is speaking' : voice === 'closing' ? 'Nancy is waiting' : voice === 'error' ? 'Nancy needs a moment' : voiceAvailable ? 'Ready when you are' : 'Nancy is warming up';
   const submitTypedTurn = (event: FormEvent) => {
     event.preventDefault();
     if (!voiceHandle.current?.sendText || !typedTurn.trim() || voice === 'thinking' || voice === 'speaking') return;
@@ -490,15 +519,15 @@ function TodayView({ today, voiceAvailable, voiceTransport, onRefresh, onEditCho
 
   return <main className="today-shell"><header className="today-header"><div><p className="eyebrow">Nancy · your day</p><h1>{today.priority_context?.greeting || `Hello, ${today.profile!.display_name}.`}</h1><p className="date-line">{date}</p></div><div className="header-actions"><button className="text-button" onClick={onEditChoices} disabled={editLocked}>Edit choices</button><button className="text-button" onClick={() => void refresh()} disabled={refreshing}>{refreshing ? "Refreshing…" : "Refresh"}</button><button className="text-button" onClick={() => void signOut()}>Sign out</button></div></header>
     <nav className="day-tabs" aria-label="My Day views">{([['my_day', 'My Day'], ['activity', 'Activity'], ['tasks', 'Tasks'], ['meals', 'Meals'], ['groceries', 'Groceries']] as const).map(([id, label]) => <button key={id} type="button" aria-current={view === id ? 'page' : undefined} onClick={() => setView(id)}>{label}</button>)}</nav>
-    <section className="voice-panel" aria-label="Talk to Nancy"><div><p className="eyebrow">Talk together</p><h2 aria-live="polite">{voiceHeading}</h2><p>{voiceAvailable ? voiceMessage ?? (voice === "listening" ? "After you have reviewed the plan, you can say, “Nancy, accept this plan.”" : "Start a conversation and choose what matters today. You’re always in control.") : "Voice is not available right now. You can still review today using the buttons below."}</p></div>
-      <div className="voice-actions">{voiceSessionActive || voice === "connecting" ? <>{voiceTransport === 'local' && voiceSessionActive && (voice === 'speaking' || voice === 'thinking') && voiceHandle.current?.interrupt && <button className="interrupt-button" onClick={() => voiceHandle.current?.interrupt?.()}>Interrupt Nancy</button>}<button className="stop-button" onClick={() => void stopSpeaking()}>Stop voice</button></> : <button className="talk-button" onClick={() => void startSpeaking()} disabled={!voiceAvailable || editLocked}>Talk to Nancy</button>}</div>
+    <section className="voice-panel" aria-label="Talk to Nancy"><div><p className="eyebrow">Talk to Nancy</p><h2 aria-live="polite">{voiceHeading}</h2><p>{voiceMessage ?? (voiceAvailable ? "Ask Nancy about your day, meals, or anything you need help with." : "Nancy’s voice is warming up. You can review your day while you wait.")}</p></div>
+      <div className="voice-actions">{voiceSessionActive || voice === "connecting" ? <>{voiceTransport === 'local' && voiceSessionActive && (voice === 'speaking' || voice === 'thinking') && voiceHandle.current?.interrupt && <button className="interrupt-button" onClick={() => voiceHandle.current?.interrupt?.()}>Interrupt Nancy</button>}<button className="stop-button" onClick={() => void stopSpeaking()}>Stop voice</button></> : <button className="talk-button" onClick={() => void startSpeaking()} disabled={editLocked}>Talk to Nancy</button>}</div>
     </section>
     {voiceTransport === 'local' && voiceSessionActive && <form className="typed-turn" onSubmit={submitTypedTurn}><label>Type to Nancy<input value={typedTurn} onChange={event => setTypedTurn(event.target.value)} maxLength={2000} disabled={voice === 'thinking' || voice === 'speaking'} placeholder="Ask Nancy about your day" /></label><button className="secondary-button" disabled={!typedTurn.trim() || voice === 'thinking' || voice === 'speaking'}>Send</button></form>}
     {transcript.length > 0 && <section className="transcript" aria-live="polite" aria-label="Recent conversation">{earlierTranscript.length > 0 && <details className="transcript-history"><summary>Earlier conversation ({earlierTranscript.length})</summary>{earlierTranscript.map(transcriptLine)}</details>}{recentTranscript.map((line, index) => transcriptLine(line, earlierTranscript.length + index))}</section>}
     <DayOverview today={today} onView={setView} onRefresh={onRefresh} visible={view === 'my_day'} />
-    {view === 'my_day' && (!today.checkin ? <section className="empty-plan"><h2>Start today’s check-in</h2><p>Review your task and meal choices, then decide on the plan that suits today.</p><button className="primary-button" onClick={() => void begin()} disabled={save.kind === "saving" || save.kind === "unconfirmed" || save.kind === "conflict"}>Begin today’s check-in</button></section> : <PlanWorkspace today={today} editing={editing} setEditing={setEditing} save={save} onIssue={issue} />)}
-    {view === 'tasks' && <TasksView today={today} />}
-    {view === 'meals' && <MealsView today={today} />}
+    {view === 'my_day' && (!today.checkin?.accepted && !today.checkin?.proposal && !mealSlots.every(slot => today.meal_options.some(option => option.slots.includes(slot))) ? <section className="empty-plan"><h2>Add meal choices to plan today</h2><p>You can review saved tasks now. Add a choice for breakfast, lunch, and dinner when you are ready to make a day plan.</p><button className="primary-button" onClick={onEditChoices}>Add choices</button></section> : !today.checkin ? <section className="empty-plan"><h2>Start today’s check-in</h2><p>Review your task and meal choices, then decide on the plan that suits today.</p><button className="primary-button" onClick={() => void begin()} disabled={save.kind === "saving" || save.kind === "unconfirmed" || save.kind === "conflict"}>Begin today’s check-in</button></section> : <PlanWorkspace today={today} editing={editing} setEditing={setEditing} save={save} onIssue={issue} />)}
+    {view === 'tasks' && <TasksView today={today} onReview={() => setView('my_day')} />}
+    {view === 'meals' && <MealsView today={today} onReview={() => setView('my_day')} />}
     {view === 'activity' && <ActivityView initial={today.activity_ledger} localDate={today.local_date} timeZone={today.profile!.time_zone} onTodayRefresh={onRefresh} />}
     <GroceriesView initial={today.groceries} visible={view === 'groceries'} />
     <SaveNotice state={save} onReconcile={() => void reconcile()} onRefresh={() => void refresh()} />
@@ -507,7 +536,6 @@ function TodayView({ today, voiceAvailable, voiceTransport, onRefresh, onEditCho
 }
 
 function DayOverview({ today, onView, onRefresh, visible }: { today: Today; onView: (view: ClientView) => void; onRefresh: () => Promise<Today>; visible: boolean }) {
-  const context = today.priority_context;
   const [appointmentTitle, setAppointmentTitle] = useState('');
   const [appointmentStart, setAppointmentStart] = useState('');
   const [appointmentBusy, setAppointmentBusy] = useState(false);
@@ -551,18 +579,13 @@ function DayOverview({ today, onView, onRefresh, visible }: { today: Today; onVi
     catch (error) { setAppointmentNotice(error instanceof ApiError && error.code === 'connection_unconfirmed' ? 'Save remains unconfirmed. The same request was used; check appointments again.' : friendlyError(error)); }
     finally { setAppointmentBusy(false); }
   };
-  const suggestions = context?.suggestions?.length ? context.suggestions : [
-    { kind: 'tasks', label: 'See today’s tasks', reason: 'Choose what matters first at your pace.' },
-    { kind: 'meals', label: 'Look at meal choices', reason: 'Breakfast, lunch and dinner are ready to review.' },
-  ];
   const visibleTasks = displayedTasks(today).flatMap(task => {
     const activity = effectiveActivity(today, 'task', task.id);
     if (activity?.status === 'completed') return [];
     const detail = activityDetail(today, activity, today.profile!.time_zone);
-    const timing = effectiveEntry(today, activity)?.last_action === 'rescheduled' && activity?.scheduled_at
-      ? `Rescheduled for ${displayInstant(activity.scheduled_at, today.profile!.time_zone)}` : task.scheduled_time;
-    return [{ task, detail: detail ?? [timing, task.urgency ? `${task.urgency} urgency` : null].filter(Boolean).join(' · ') }];
+    return [{ task, detail: detail ?? [taskTiming(task, today), task.urgency ? `${task.urgency} urgency` : null].filter(Boolean).join(' · ') }];
   });
+  const plan = today.checkin?.accepted ?? today.checkin?.proposal;
   const appointmentThrough = shiftedDate(today.local_date, 7);
   const visibleAppointments = (today.appointments ?? []).flatMap(item => {
     const activity = effectiveActivity(today, 'appointment', item.id);
@@ -571,36 +594,44 @@ function DayOverview({ today, onView, onRefresh, visible }: { today: Today; onVi
     if (effectiveDate < today.local_date || effectiveDate > appointmentThrough || activity?.status === 'completed' && effectiveDate !== today.local_date) return [];
     return [{ item, activity, effectiveTime }];
   }).sort((a, b) => a.effectiveTime.localeCompare(b.effectiveTime));
-  return <section className="day-overview" aria-labelledby="day-overview-title" hidden={!visible}><div className="section-heading"><div><p className="eyebrow">Your day at a glance</p><h2 id="day-overview-title">What would help now?</h2></div>{context?.local_time && <span className="review-chip">{context.local_time}</span>}</div>
-    <div className="overview-grid">{suggestions.map((suggestion, index) => <div className="overview-card" key={`${suggestion.kind}-${index}`}><h3>{suggestion.label}</h3><p>{clientSuggestionText(suggestion.kind)}</p>{(suggestion.kind === 'tasks' || suggestion.kind === 'meals' || suggestion.kind === 'groceries' || suggestion.kind === 'activity') && <button className="text-button" onClick={() => onView(suggestion.kind as ClientView)}>Open {suggestion.kind}</button>}</div>)}</div>
-    <div className="day-task-glance"><h3>Tasks to consider</h3>{visibleTasks.length ? <ul>{visibleTasks.map(({ task, detail }) => <li key={task.id}><span>{task.title}</span><small>{detail || 'Any time today'}</small></li>)}</ul> : <p>No tasks are waiting for you.</p>}</div>
-    <div className="appointment-list"><h3>Appointments</h3>{visibleAppointments.length ? <ul>{visibleAppointments.map(({ item, activity, effectiveTime }) => <li key={item.id}>{item.title} · {displayInstant(effectiveTime, today.profile!.time_zone)}{activityDetail(today, activity, today.profile!.time_zone) ? ` · ${activityDetail(today, activity, today.profile!.time_zone)}` : ''}</li>)}</ul> : <p>No appointments today or in the next seven days.</p>}
+  return <section className="day-overview" aria-labelledby="day-overview-title" hidden={!visible}><h2 id="day-overview-title">Your day</h2>
+    <div className="day-task-glance"><div className="glance-heading"><h3>Tasks</h3><button className="text-button" onClick={() => onView('tasks')}>See tasks</button></div>{visibleTasks.length ? <ul>{visibleTasks.map(({ task, detail }) => <li key={task.id}><span>{task.title}</span><small>{detail}</small></li>)}</ul> : <p>{today.tasks.length ? 'No tasks are waiting for you.' : 'No tasks have been added.'}</p>}</div>
+    <div className="day-task-glance"><div className="glance-heading"><h3>Meals</h3><button className="text-button" onClick={() => onView('meals')}>See meals</button></div><ul>{mealSlots.map(slot => { const meal = plan?.meals.find(item => item.slot === slot); const activity = meal ? effectiveActivity(today, 'meal', meal.option_id, slot) : unplannedMeal(today, slot); return <li key={slot}><span><strong>{labelForSlot[slot]}</strong> · {meal?.name ?? activity?.title ?? 'No meal chosen'}</span><small>{activityDetail(today, activity, today.profile!.time_zone) ?? mealTiming(activity, today.profile!.time_zone)}</small></li>; })}</ul></div>
+    <div className="appointment-list"><h3>Appointments</h3>{visibleAppointments.length ? <ul>{visibleAppointments.map(({ item, activity, effectiveTime }) => <li key={item.id}>{item.title} · {displayInstant(effectiveTime, today.profile!.time_zone)}{activityDetail(today, activity, today.profile!.time_zone) ? ` · ${activityDetail(today, activity, today.profile!.time_zone)}` : ''}</li>)}</ul> : <p>No appointments saved for the next seven days.</p>}
       {appointmentNotice && <p className="notice" role="status">{appointmentNotice}</p>}
       {appointmentPending ? <div className="pending-actions"><button className="secondary-button" disabled={appointmentBusy} onClick={() => void refreshAppointments()}>Check appointments</button><button className="secondary-button" disabled={appointmentBusy} onClick={() => void retryAppointment()}>Retry same appointment add</button></div> : <details className="appointment-entry"><summary>Add an appointment</summary><form className="appointment-form" onSubmit={addAppointment}><label>Appointment title<input value={appointmentTitle} onChange={event => setAppointmentTitle(event.target.value)} maxLength={160} required placeholder="For example, clinic visit" /></label><label>Date and time in {today.profile!.time_zone}<input type="datetime-local" value={appointmentStart} onChange={event => setAppointmentStart(event.target.value)} required aria-describedby="appointment-time-help" /></label><p id="appointment-time-help" className="field-help">Use the date and time where you live. If the clocks change at that time, Nancy will ask you to choose another.</p><button className="secondary-button" disabled={appointmentBusy}>Add appointment</button></form></details>}
     </div>
   </section>;
 }
 
-function TasksView({ today }: { today: Today }) {
+function PendingPlanNotice({ today, onReview }: { today: Today; onReview: () => void }) {
+  if (!planIsPending(today)) return null;
+  return <div className="notice unconfirmed" role="status"><p>{today.checkin?.accepted ? 'A new plan is ready for review. Your accepted plan is still shown here.' : 'A plan is ready for review. Nothing has been accepted yet.'}</p><button className="secondary-button" onClick={onReview}>Review new plan</button></div>;
+}
+
+function TasksView({ today, onReview }: { today: Today; onReview: () => void }) {
   const selected = new Set(today.checkin?.accepted?.task_ids ?? today.checkin?.proposal?.task_ids ?? []);
-  return <section className="data-view" aria-labelledby="tasks-title"><p className="eyebrow">Your choices and actuals</p><h2 id="tasks-title">Tasks</h2><p>Planned tasks and saved results are shown separately. A plan does not mark a task done.</p><ul className="item-list">{displayedTasks(today).map(task => {
+  const plan = today.checkin?.accepted ?? today.checkin?.proposal;
+  return <section className="data-view" aria-labelledby="tasks-title"><h2 id="tasks-title">Tasks</h2><p>A task is marked done only after you report it.</p><PendingPlanNotice today={today} onReview={onReview} /><ul className="item-list">{displayedTasks(today).map(task => {
     const activity = effectiveActivity(today, 'task', task.id);
     const entry = effectiveEntry(today, activity);
     const result = activityDetail(today, activity, today.profile!.time_zone);
-    const timing = entry?.last_action === 'rescheduled' && activity?.scheduled_at ? `Rescheduled for ${displayInstant(activity.scheduled_at, today.profile!.time_zone)}` : task.scheduled_time;
-    return <li key={task.id} className={activity?.status === 'completed' ? 'activity-complete' : undefined}><div><h3>{task.title}</h3><p>{result ?? ([timing, task.time_hint, task.duration_minutes ? `${task.duration_minutes} min` : null, task.category && task.category !== 'task' ? task.category : null].filter(Boolean).join(' · ') || 'Any time today')}</p></div><div className="item-tags">{activity?.status === 'completed' ? <span>Done</span> : activity?.status === 'deferred' ? <span>Deferred</span> : activity?.status === 'voided' ? <span>Ready to report</span> : task.urgency && <span>{task.urgency} urgency</span>}{selected.has(task.id) && <span>{today.checkin?.accepted ? 'In accepted plan' : 'In proposed plan'}</span>}</div></li>;
-  })}</ul></section>;
+    const timing = entry?.last_action === 'rescheduled' && activity?.scheduled_at ? `Rescheduled for ${displayInstant(activity.scheduled_at, today.profile!.time_zone)}` : taskTiming(task, today);
+    return <li key={task.id} className={activity?.status === 'completed' ? 'activity-complete' : undefined}><div><h3>{task.title}</h3><p>{result ?? ([timing, task.time_hint, task.duration_minutes ? `${task.duration_minutes} min` : null, task.category && task.category !== 'task' ? task.category : null].filter(Boolean).join(' · '))}</p></div><div className="item-tags">{activity?.status === 'completed' ? <span>Done</span> : activity?.status === 'deferred' ? <span>Deferred</span> : activity?.status === 'voided' ? <span>Ready to report</span> : task.urgency && <span>{task.urgency} urgency</span>}{selected.has(task.id) && <span>{today.checkin?.accepted ? 'In accepted plan' : 'In proposed plan'}</span>}</div></li>;
+  })}</ul>{today.tasks.length === 0 && <p>No tasks have been added.</p>}
+    <h3 className="list-subheading">Meals</h3><ul className="item-list">{mealSlots.map(slot => { const meal = plan?.meals.find(item => item.slot === slot); if (!meal) return null; const activity = effectiveActivity(today, 'meal', meal.option_id, slot); return <li key={slot}><div><h3>{labelForSlot[slot]} · {meal.name}</h3><p>{activityDetail(today, activity, today.profile!.time_zone) ?? mealTiming(activity, today.profile!.time_zone)}</p></div><div className="item-tags"><span>{today.checkin?.accepted ? 'In accepted plan' : 'In proposed plan'}</span></div></li>; })}{(today.activity_ledger?.entries ?? []).filter(item => item.kind === 'meal' && item.unplanned && item.status !== 'voided').map(item => <li key={item.id}><div><h3>{item.title}</h3><p>{activityDetail(today, item, today.profile!.time_zone)}</p></div><div className="item-tags"><span>Reported meal</span></div></li>)}</ul>{!plan && <p>No meals are in today’s plan.</p>}
+  </section>;
 }
 
-function MealsView({ today }: { today: Today }) {
+function MealsView({ today, onReview }: { today: Today; onReview: () => void }) {
   const planned = today.checkin?.accepted ?? today.checkin?.proposal;
-  return <section className="data-view" aria-labelledby="meals-title"><p className="eyebrow">Your choices and actuals</p><h2 id="meals-title">Meals</h2><p>Meal choices stay separate from saved meal reports.</p><div className="meal-cards">{mealSlots.map(slot => {
+  return <section className="data-view" aria-labelledby="meals-title"><h2 id="meals-title">Meals</h2><p>Chosen meals and meals eaten are shown here.</p><PendingPlanNotice today={today} onReview={onReview} /><div className="meal-cards">{mealSlots.map(slot => {
     const meal = planned?.meals.find(item => item.slot === slot);
-    const activity = meal ? effectiveActivity(today, 'meal', meal.option_id, slot) : effectiveActivity(today, 'meal', null, slot);
+    const activity = meal ? effectiveActivity(today, 'meal', meal.option_id, slot) : unplannedMeal(today, slot);
     const result = activityDetail(today, activity, today.profile!.time_zone);
     const portion = effectiveEntry(today, activity)?.portion;
-    return <section key={slot} className={activity?.status === 'completed' ? 'activity-complete' : undefined}><h3>{labelForSlot[slot]}</h3>{meal?.name && <p className="planned-meal">{result ? `${meal.name} · ${result}${portion ? ` · ${portion}` : ''}` : `${today.checkin?.accepted ? 'Accepted' : 'Proposed'}: ${meal.name}`}</p>}<ul>{today.meal_options.filter(option => option.slots.includes(slot)).map(option => <li key={option.id}>{option.name}</li>)}</ul></section>;
-  })}</div></section>;
+    return <section key={slot} className={activity?.status === 'completed' ? 'activity-complete' : undefined}><h3>{labelForSlot[slot]}</h3><p className="meal-name">{meal?.name ?? activity?.title ?? 'No meal chosen'}</p><p>{result ? `${result}${portion ? ` · ${portion}` : ''}` : meal ? `${today.checkin?.accepted ? 'In accepted plan' : 'In proposed plan'} · ${mealTiming(activity, today.profile!.time_zone)}` : 'Choose a meal with Nancy or in My Day.'}</p></section>;
+  })}</div>{(today.activity_ledger?.entries ?? []).filter(item => item.kind === 'meal' && item.unplanned && item.status !== 'voided' && (!item.meal_slot || planned?.meals.some(meal => meal.slot === item.meal_slot))).map(item => <div className="reported-meal" key={item.id}><h3>{item.title}</h3><p>{activityDetail(today, item, today.profile!.time_zone)}{item.portion ? ` · ${item.portion}` : ''}</p></div>)}</section>;
 }
 
 function ActivityView({ initial, localDate, timeZone, onTodayRefresh }: { initial?: ActivityLedger; localDate: string; timeZone: string; onTodayRefresh: () => Promise<Today> }) {
@@ -816,7 +847,7 @@ function PlanWorkspace({ today, editing, setEditing, save, onIssue }: { today: T
   const proposal = today.checkin?.proposal;
   const [choice, setChoice] = useState(() => selectedPlan(today));
   useEffect(() => { setChoice(selectedPlan(today)); }, [today.checkin?.revision, today.checkin?.proposal?.id, today.checkin?.accepted?.id]);
-  const canSave = choice.taskIds.length > 0 && mealSlots.every(slot => Boolean(choice.meals[slot]));
+  const canSave = mealSlots.every(slot => Boolean(choice.meals[slot]));
   const locked = save.kind === "saving" || save.kind === "unconfirmed" || save.kind === "conflict";
   const saveForReview = async () => {
     const type = accepted ? "revise_day_plan" : "propose_day_plan";

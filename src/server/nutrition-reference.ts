@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -68,6 +68,7 @@ export interface NutritionReference {
   claimIndex(): NutritionReferenceResult<ClaimIndexEntry>;
   getClaims(ids: string[]): NutritionReferenceResult<NutritionClaim>;
   listRecipes(options?: { category?: MealCategory; limit?: number }): NutritionReferenceResult<RecipeSummary>;
+  recipeOptions(options?: { category?: MealCategory; limit?: number }): NutritionReferenceResult<RecipeSummary | NutritionRecipe>;
   getRecipes(ids: string[]): NutritionReferenceResult<NutritionRecipe>;
 }
 
@@ -281,6 +282,13 @@ export function loadNutritionReference(options: { docsDir?: string; maxResultCha
 
   const evidenceSources = [evidence.source];
   const recipeSources = [meals.source, evidence.source];
+  const selectRecipes = (options: { category?: MealCategory; limit?: number }) => {
+    if (options.category && !['breakfast', 'lunch', 'snack', 'dinner'].includes(options.category)) throw new NutritionReferenceError('invalid_reference_request', 'Unknown meal category.');
+    const limit = options.limit ?? 5;
+    if (!Number.isInteger(limit) || limit < 1 || limit > 10) throw new NutritionReferenceError('invalid_reference_request', 'Recipe summary limit must be from 1 to 10.');
+    return [...recipes.values()].filter(recipe => !options.category || recipe.category === options.category).slice(0, limit);
+  };
+  const summary = ({ recipeVersion: _version, recipeYaml: _yaml, ...item }: NutritionRecipe): RecipeSummary => item;
   return {
     authorityContext: () => ({ text: authorityText, sources: [evidence.source, meals.source] }),
     claimIndex: () => result([...claims.values()].map(({ id, title, sourceIds, sourceStatuses }) => ({ id, title, sourceIds, sourceStatuses })), evidenceSources, evidenceLimitations, maxResultChars),
@@ -291,12 +299,16 @@ export function loadNutritionReference(options: { docsDir?: string; maxResultCha
       return result(normalized.map(id => claims.get(id)!), evidenceSources, evidenceLimitations, maxResultChars, normalized.length);
     },
     listRecipes: (options = {}) => {
-      if (options.category && !['breakfast', 'lunch', 'snack', 'dinner'].includes(options.category)) throw new NutritionReferenceError('invalid_reference_request', 'Unknown meal category.');
-      const limit = options.limit ?? 5;
-      if (!Number.isInteger(limit) || limit < 1 || limit > 10) throw new NutritionReferenceError('invalid_reference_request', 'Recipe summary limit must be from 1 to 10.');
-      const matching = [...recipes.values()].filter(recipe => !options.category || recipe.category === options.category);
-      const selected = matching.slice(0, limit).map(({ recipeVersion: _version, recipeYaml: _yaml, ...summary }) => summary);
-      return result(selected, recipeSources, recipeLimitations, maxResultChars, Math.min(limit, matching.length));
+      const selected = selectRecipes(options).map(summary);
+      return result(selected, recipeSources, recipeLimitations, maxResultChars, selected.length);
+    },
+    recipeOptions: (options = {}) => {
+      const selected = selectRecipes(options);
+      // One exact recipe travels with the short option list so an ordinary
+      // one-idea request does not require another model and tool round trip.
+      const items = selected.map((recipe, index) => index === 0 ? recipe : summary(recipe));
+      const detailed = result(items, recipeSources, recipeLimitations, maxResultChars, items.length);
+      return detailed.items.length ? detailed : result(selected.map(summary), recipeSources, recipeLimitations, maxResultChars, selected.length);
     },
     getRecipes: (ids) => {
       const normalized = normalizeIds(ids, 'recipe');
@@ -306,3 +318,20 @@ export function loadNutritionReference(options: { docsDir?: string; maxResultCha
     },
   };
 }
+
+// Shipped documents are immutable during a normal server run. A changed file
+// stamp rebuilds the index on the next turn during development or deployment.
+export function createNutritionReferenceCache(options: { docsDir?: string; maxResultChars?: number } = {}) {
+  const docsDir = options.docsDir ?? DEFAULT_DOCS_DIR;
+  const names = ['research-knowledge-base.md', 'meal-library.md'];
+  let cache: { stamp: string; reference: NutritionReference } | undefined;
+  return (): NutritionReference => {
+    const stamp = names.map(name => {
+      const stat = statSync(join(docsDir, name));
+      return `${name}:${stat.mtimeMs}:${stat.size}`;
+    }).join('|');
+    if (!cache || cache.stamp !== stamp) cache = { stamp, reference: loadNutritionReference(options) };
+    return cache.reference;
+  };
+}
+export const currentNutritionReference = createNutritionReferenceCache();

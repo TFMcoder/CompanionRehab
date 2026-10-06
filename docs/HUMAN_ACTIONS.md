@@ -1,6 +1,6 @@
 # Human actions by implementation stage
 
-Updated: 2026-10-05. Generated from the canonical roadmap; all statuses below come from that file.
+Updated: 2026-10-06. Generated from the canonical roadmap; all statuses below come from that file.
 
 Source: [roadmap.json](roadmap/roadmap.json), in each slice's human_actions array. Edit the JSON, then run the renderer; do not maintain a separate checklist here. See [ROADMAP.md](ROADMAP.md) for feature scope and live tests.
 
@@ -13,7 +13,7 @@ Source: [roadmap.json](roadmap/roadmap.json), in each slice's human_actions arra
 - A slice cannot be done while an applicable slice_completion human action is unfinished. Paid-commitment, daily-reliance, clinical-use and release-gate items block only that named operation/gate, not unrelated free or supervised feature work.
 - Done requires an actual completion reference and timestamp; record private or sanitized references, not names, credentials, clinical records or invented signoffs.
 - Human-action owner labels describe responsibilities, not application permissions. The application has exactly four roles: administrator, client, family/friend and clinician. One person may hold several responsibilities; the project owner is confirmed as both administrator and technical lead. Keep account identities private.
-- Company Outlook/IT consent is required only for the deferred Outlook integration; it is not a prerequisite for these MVP slices.
+- Microsoft 365 Outlook calendar and Asana access are deferred until available; email delivery is also deferred. Their authorization is not a prerequisite for the October 6 local client trial.
 
 Routine coding, technical service configuration, database work, synthetic tests and evidence collection belong to the agent. The human supplies real-world decisions, restricted account interactions and participation that the agent cannot substitute for.
 
@@ -423,7 +423,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Outlook is already selected. Confirm personal Microsoft or work/school account, identify the intended calendar privately, and approve only the prepared calendar read scope; organization approval is conditional on the actual tenant policy.
+  - Outlook and a Microsoft 365 work/school account are already confirmed. When access is available, identify the intended calendar privately and approve only the prepared calendar read scope; organization approval is conditional on the actual tenant policy.
   - Complete any required sign-in/MFA or consent; review which participant appointments may be visible to Nancy.
 
   **Agent prepares or handles:** Prepare Microsoft Graph delegated Calendars.ReadBasic and bounded calendarView reads first; validate the required fields, account support, costs and retention before asking for sign-in or consent. Test stale, deleted and denied events on disposable appointments before the genuine trial.

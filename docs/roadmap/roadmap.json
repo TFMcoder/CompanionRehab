@@ -2,7 +2,7 @@
   "$schema": "./roadmap.schema.json",
   "roadmap_id": "companion-rehab",
   "schema_version": "1.5.0",
-  "updated_at": "2026-10-05",
+  "updated_at": "2026-10-06",
   "planning_status": "ready_for_implementation",
   "implementation_status": "in_progress",
   "source_of_truth": "docs/roadmap/roadmap.json",
@@ -38,7 +38,11 @@
     "The morning routine window is 08:00 inclusive to 11:00 exclusive in the participant profile time zone, covering breakfast, planning the day, post-breakfast exercise and rehab. These are flexible planned activities, not fixed appointment times or automatic completion. Suggest only relevant pending items, prioritize imminent appointments, and use known meal/activity reports; if breakfast or completion state is unknown, ask. Post-breakfast exercise follows confirmed breakfast in suggestions. Use only supplied approved exercise/rehab tasks; guided protocol execution remains S07/S08. Outside this window the same master button works and Nancy adapts to the current day. The prior 10:00 routine is a preference, never an access restriction.",
     "October 5 owner live feedback: opening state was confusing, greeting was too long, rehab pronunciation was wrong and latency was slow. Use the short preferred-name greeting only, support mid-sentence interruption without ending the session, correct REEhab in synthesis only, and improve measured latency while retaining Heart and GPT-6 Sol high. Acoustic interruption must reject playback echo; a visible Interrupt Nancy button is always available during replies. Actual revised Safari behavior requires another owner trial.",
     "October 5 latency follow-up: owner still finds Nancy too slow. The diagnostic at docs/evidence/S01-LATENCY-DIAGNOSIS-2026-10-05.json confirms sequential CPU speech and completed-model waits, plus a natural-navigation fast-path miss causing two GPT calls and a long first speech part. Prioritize these measured delays within S01; preserve Heart, GPT-6 Sol/high, authorization and explicit plan acceptance. Do not claim voice latency accepted or S01 complete.",
-    "October 5 latest owner feedback: the faster response is accepted for advancing the MVP. Remove engineering/test clutter from the participant UI, add a durable actual task/meal/appointment ledger and ground nutrition conversation in the repository research and meal library. This feedback does not complete S01 actual-device, consent, deployment or clinical-use gates."
+    "October 5 latest owner feedback: the faster response is accepted for advancing the MVP. Remove engineering/test clutter from the participant UI, add a durable actual task/meal/appointment ledger and ground nutrition conversation in the repository research and meal library. This feedback does not complete S01 actual-device, consent, deployment or clinical-use gates.",
+    "October 6 owner direction: prepare a simple client-facing MVP trial with an empty, isolated client database; preserve the practice database separately. Remove testing and synthetic artifacts from the product build. Show simple meals, tasks, timing and actual results in their direct views, with one Talk to Nancy entry across them.",
+    "Keep the factual ledger queryable with actor, command, time, version and correction history. Store scoped, held records needed for later external email, calendar and PM actuation without enabling a connector, worker or outbound delivery now.",
+    "Defer email and Asana connections until access is available. The selected Outlook account is Microsoft 365 work/school; its calendar connection also waits for scoped authorization. Continue local appointments and task/meal planning without external access.",
+    "Keep Nancy turns quick through bounded current context and repository nutrition retrieval. Log operational metadata consistently for 14 days separately from durable care events and receipts; do not retain transcripts or audio in runtime logs."
   ],
   "constraints": {
     "budget": {
@@ -220,9 +224,9 @@
     {
       "id": "I-ASANA",
       "status": "unresolved",
-      "default": "Asana Personal with household manager and dedicated integration identity.",
+      "default": "Asana access is unavailable for the October 6 client-readiness trial. Keep the S06 dedicated project and scoped identity plan; no connection or outbound task update is enabled.",
       "needed_for": "S06 live integration; does not block S01-S05",
-      "question": "Confirm dedicated project, identity, free-plan access and OAuth consent.",
+      "question": "When access is available, confirm the dedicated project, identity, free-plan access and OAuth consent for S06.",
       "resolution_ref": null
     },
     {
@@ -332,9 +336,9 @@
     {
       "id": "I-CALENDAR-EXTERNAL",
       "status": "unresolved",
-      "default": "Outlook is selected by the owner on 2026-10-05. Account type, selected calendar, underlying Microsoft calendar hosting and scoped authorization remain unqualified. Qualify Microsoft Graph delegated Calendars.ReadBasic first for appointment context; request broader permission only for an evidenced need. S01 local appointments remain usable without external OAuth.",
+      "default": "Outlook is selected and the account is Microsoft 365 work/school. Access to the intended calendar and scoped authorization remain unavailable for the October 6 client-readiness trial. Qualify Microsoft Graph delegated Calendars.ReadBasic first when access is available; request broader permission only for an evidenced need. S01 local appointments remain usable without external OAuth.",
       "needed_for": "S06 scoped external calendar connector and live integration",
-      "question": "Reuse Outlook as the selected calendar. Confirm personal Microsoft versus work/school account, identify the intended calendar privately and complete the prepared scoped authorization when ready; do not ask for the provider again.",
+      "question": "Reuse the selected Microsoft 365 work/school Outlook calendar. Identify the intended calendar privately and complete scoped authorization when access is available; do not ask for the provider or account type again.",
       "resolution_ref": "docs/architecture/VOICE_AND_DAILY_COMPANION_2026-10-05.md#confirmed-device-and-calendar"
     }
   ],
@@ -436,7 +440,9 @@
         "One-tap continuous conversation using the owner-selected Heart voice, configurable end-of-turn silence, idle grace, explicit End and tested interruption/echo handling; no further voice audition",
         "Opt-in foreground Hey Nancy listener with visible status and stop control on a qualified browser/local-service path; button remains usable when wake listening is unsupported or disabled",
         "The morning routine window is 08:00 inclusive to 11:00 exclusive in the participant profile time zone, covering breakfast, planning the day, post-breakfast exercise and rehab. These are flexible planned activities, not fixed appointment times or automatic completion. Suggest only relevant pending items, prioritize imminent appointments, and use known meal/activity reports; if breakfast or completion state is unknown, ask. Post-breakfast exercise follows confirmed breakfast in suggestions. Use only supplied approved exercise/rehab tasks; guided protocol execution remains S07/S08. Outside this window the same master button works and Nancy adapts to the current day. The prior 10:00 routine is a preference, never an access restriction.",
-        "Several meal choices and collaborative alternatives using known ingredients/preferences, portion discussion within approved boundaries, and confirmed missing-ingredient capture in a minimal grocery list"
+        "Several meal choices and collaborative alternatives using known ingredients/preferences, portion discussion within approved boundaries, and confirmed missing-ingredient capture in a minimal grocery list",
+        "October 6 client readiness: keep the client-facing build free of preview, testing and synthetic artifacts; prepare an empty client database isolated from the preserved practice database; show tasks, meals and their known timing in the matching direct views using short everyday labels. Do not create fictional real tasks or meals.",
+        "Use bounded current context for Nancy startup and turns; retain durable care events and receipts while keeping operational metadata logs separate, without transcripts or audio, for 14 days."
       ],
       "out_of_scope": [
         "Meal intake reporting and task completion history (S02)",
@@ -737,7 +743,7 @@
         "S03",
         "S04"
       ],
-      "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
+      "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
       "blockers": [
         "October 5 latency fixes deployed; see docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Natural navigation now avoids two GPT calls, fixed Heart acknowledgements are primed, CUDA ASR is qualified on six synthetic phrases and validated first-part preparation overlaps some model output. Public exact-navigation estimates improved from 4.58-4.82s to 1.83-1.85s; natural navigation was 1.93s through HTTPS. General GPT answers remain variable (one public sample 9.17s). The owner subsequently accepted the faster response for advancing the MVP. Actual revised iPhone/Safari latency, interruption and participant acceptance are still required. Preserve Heart and Sol/high; S01 is not complete.",
         "S01-LIVE2 is partial: encrypted restore and integrated planning passed, but the complete provider-loss/revocation/allowance, device and full-role scenario remains open. S01-LIVE1 has not run on the consenting participant's iPhone/Safari with genuine tasks/meals.",
@@ -745,30 +751,31 @@
         "The intended participant account/deployment eligibility and live credential lifecycle are not established by owner-only synthetic inference. No paid API/model fallback is enabled.",
         "Participant consent, care-data retention/region, real day content, approved restrictions and timezone confirmation remain prerequisites for genuine care use.",
         "Remaining S01 engineering includes foreground Hey Nancy qualification, the other three scoped role landing experiences, shared meal/task occurrence identity and richer pantry/portion/alternative-meal behavior. Current navigation and manual appointment entry do not imply Outlook/Asana sync.",
-        "Actual task completion and meal reporting are S02; accepting a plan records intentions only. Daily reliance, operational recovery and background reminders remain gated."
+        "Actual task completion and meal reporting are S02; accepting a plan records intentions only. Daily reliance, operational recovery and background reminders remain gated.",
+        "October 6 client readiness is engineering-verified in docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json. The separate client database starts empty and the practice database is preserved. Participant/account eligibility, consent, real content and physical-device/genuine-day acceptance remain open."
       ],
       "test_results": [
         {
           "test_id": "S01-AUTO1",
           "outcome": "pass",
-          "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
-          "executed_at": "2026-10-05T23:08:36.984Z",
+          "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
+          "executed_at": "2026-10-06T20:58:11.301Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
-          "notes": "Final regression suite: 225 pass, one optional PostgreSQL test skipped; typecheck/build pass. S01 planning, audio, interruption and authorization tests remain green."
+          "evidence_ref": "docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json",
+          "notes": "245 automated tests pass across 30 files, plus typecheck/build. Client empty/partial setup, exact plan/meal identity, ledger provenance, restore-safe future mappings, bounded nutrition/context and metadata privacy included. Actual service evidence is recorded separately."
         },
         {
           "test_id": "S01-LIVE2",
           "outcome": "blocked",
-          "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
-          "executed_at": "2026-10-05T23:08:36.984Z",
+          "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
+          "executed_at": "2026-10-06T20:58:11.301Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
           "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
-          "notes": "Current increment exercised real Sol-high/Heart/ASR, local PostgreSQL, HTTPS authentication/history and browser readback. Earlier planning evidence is retained in prior evidence files. This does not close the complete S01 provider/device/lifecycle/role scenario."
+          "evidence_ref": "docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json",
+          "notes": "Partial live evidence: PostgreSQL 42/42 with encrypted restore; live HTTPS/Sol-high/Heart/ASR/nutrition/logging 14/14; phone-width browser views verified. Full slice live branches, actual iPhone and genuine participant day remain unperformed."
         }
       ],
       "human_actions": [
@@ -1036,7 +1043,7 @@
       ],
       "implementation_authorization": {
         "decision_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
-        "reason": "On 2026-10-05 the owner explicitly asked to advance the MVP with UI cleanup, a factual task/meal/appointment ledger and repository-grounded nutrition while S01 actual-device and clinical-use gates remain open. This authorizes overlapping implementation and awaiting-live-test status only; S01 completion remains required before S02 can be done."
+        "reason": "On 2026-10-05 the owner explicitly asked to advance the MVP with UI cleanup, a factual task/meal/appointment ledger and repository-grounded nutrition. On 2026-10-06 the owner further authorized client-facing cleanup, ledger and future actuation readiness, simple visible meal/task/timing results, bounded nutrition and faster Nancy context/logging. These directions authorize overlapping implementation and awaiting-live-test status only; S01 actual-device and clinical-use gates remain open, and S01 completion remains required before S02 can be done."
       },
       "required_inputs": [],
       "outcome": "The participant reports tasks actually completed, meals actually eaten and appointments actually attended, corrects or voids mistakes, defers or reschedules pending work and sees a factual durable ledger. Nancy prioritizes from committed actuals and effective schedules, uses bounded repository nutrition references with provenance and limitations, and keeps the ordinary My Day surface free of engineering test clutter.",
@@ -1048,7 +1055,8 @@
         "ActivityOption, ActivityEntry and ActivityLedger projections plus authenticated HTTP ledger, command and receipt endpoints",
         "Session-start and current/next priority from committed actuals so completed, eaten, attended or deferred entries are not suggested as pending",
         "Removal of engineering and test-only clutter from the participant-facing My Day surface",
-        "Server-owned bounded access to docs/nutrition/research-knowledge-base.md and docs/nutrition/meal-library.md, including G01-G08 authority limits, exact claim/recipe retrieval, document status and SHA-256 provenance"
+        "Server-owned bounded access to docs/nutrition/research-knowledge-base.md and docs/nutrition/meal-library.md, including G01-G08 authority limits, exact claim/recipe retrieval, document status and SHA-256 provenance",
+        "October 6 client readiness: display actual task, meal and appointment results with timing in their appropriate direct views, keep plain language, and preserve actor, command, local time, revision, correction and event provenance. Prepare scoped external target/link and held intent records for future actuation; no email, calendar or PM dispatch is enabled."
       ],
       "out_of_scope": [
         "A second day-plan engine or treating an accepted plan, calendar event or suggestion as a performed activity",
@@ -1223,55 +1231,56 @@
         "A05",
         "A06"
       ],
-      "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
+      "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
       "blockers": [
         "S02-LIVE1 has not run through a genuine participant day; code and synthetic/disposable evidence do not complete the slice.",
-        "S01 is unfinished. The explicit implementation authorization permits overlap and awaiting-live-test status only; S01 completion remains required before S02 can be done."
+        "S01 is unfinished. The explicit implementation authorization permits overlap and awaiting-live-test status only; S01 completion remains required before S02 can be done.",
+        "October 6 client readiness is engineering-verified in docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json. The separate client database starts empty and the practice database is preserved. Participant/account eligibility, consent, real content and physical-device/genuine-day acceptance remain open."
       ],
       "test_results": [
         {
           "test_id": "S02-AUTO1",
           "outcome": "pass",
-          "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
-          "executed_at": "2026-10-05T23:08:36.984Z",
+          "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
+          "executed_at": "2026-10-06T20:58:11.301Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
-          "notes": "225 tests pass across 28 files; ledger, auth/routes, explicit voice confirmation, nutrition provenance/bounds, priority, client history/corrections and backup regressions included. Actual PostgreSQL and provider checks are separately recorded."
+          "evidence_ref": "docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json",
+          "notes": "245 automated tests pass across 30 files, plus typecheck/build. Client empty/partial setup, exact plan/meal identity, ledger provenance, restore-safe future mappings, bounded nutrition/context and metadata privacy included. Actual service evidence is recorded separately."
         },
         {
           "test_id": "S02-AUTO2",
           "outcome": "pass",
-          "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
-          "executed_at": "2026-10-05T23:08:36.984Z",
+          "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
+          "executed_at": "2026-10-06T20:58:11.301Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
-          "notes": "225 tests pass across 28 files; ledger, auth/routes, explicit voice confirmation, nutrition provenance/bounds, priority, client history/corrections and backup regressions included. Actual PostgreSQL and provider checks are separately recorded."
+          "evidence_ref": "docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json",
+          "notes": "245 automated tests pass across 30 files, plus typecheck/build. Client empty/partial setup, exact plan/meal identity, ledger provenance, restore-safe future mappings, bounded nutrition/context and metadata privacy included. Actual service evidence is recorded separately."
         },
         {
           "test_id": "S02-AUTO3",
           "outcome": "pass",
-          "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
-          "executed_at": "2026-10-05T23:08:36.984Z",
+          "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
+          "executed_at": "2026-10-06T20:58:11.301Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
-          "notes": "225 tests pass across 28 files; ledger, auth/routes, explicit voice confirmation, nutrition provenance/bounds, priority, client history/corrections and backup regressions included. Actual PostgreSQL and provider checks are separately recorded."
+          "evidence_ref": "docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json",
+          "notes": "245 automated tests pass across 30 files, plus typecheck/build. Client empty/partial setup, exact plan/meal identity, ledger provenance, restore-safe future mappings, bounded nutrition/context and metadata privacy included. Actual service evidence is recorded separately."
         },
         {
           "test_id": "S02-LIVE2",
           "outcome": "blocked",
-          "implementation_revision": "sha256:697463fe0ac08e367f21cf3279e6c234cdf4a072ffbcbd65b0f009dd27b558f3",
-          "executed_at": "2026-10-05T23:08:36.984Z",
+          "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
+          "executed_at": "2026-10-06T20:58:11.301Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
           "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
-          "notes": "Partial live acceptance: PostgreSQL42/42 including immutable audit and encrypted restore; selected Sol-high/Heart/ASR7/7; HTTPS8/8 and browser history/control checks. Full live branch coverage and physical second-device behavior are not claimed."
+          "evidence_ref": "docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json",
+          "notes": "Partial live evidence: PostgreSQL 42/42 with encrypted restore; live HTTPS/Sol-high/Heart/ASR/nutrition/logging 14/14; phone-width browser views verified. Full slice live branches, actual iPhone and genuine participant day remain unperformed."
         }
       ],
       "human_actions": [
@@ -2292,7 +2301,7 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Outlook is already selected. Confirm personal Microsoft or work/school account, identify the intended calendar privately, and approve only the prepared calendar read scope; organization approval is conditional on the actual tenant policy.",
+            "Outlook and a Microsoft 365 work/school account are already confirmed. When access is available, identify the intended calendar privately and approve only the prepared calendar read scope; organization approval is conditional on the actual tenant policy.",
             "Complete any required sign-in/MFA or consent; review which participant appointments may be visible to Nancy."
           ],
           "agent_can_do": [
@@ -3557,7 +3566,15 @@
   "deferred": [
     {
       "id": "D-OUTLOOK",
-      "reason": "Broad Outlook email ingestion, appointment extraction from messages, invitations and writeback remain deferred. The selected Outlook calendar read integration is now in S06; company IT consent applies only if the actual work/school account policy requires it. Do not treat all Outlook calendar access as outside MVP."
+      "reason": "Email ingestion, sending, invitations and writeback remain deferred. The selected Microsoft 365 work/school Outlook calendar read integration stays in S06 and waits for account access and scoped authorization. Local appointments serve the October 6 client trial. Company IT consent applies if the work/school policy requires it."
+    },
+    {
+      "id": "D-ASANA-ACCESS",
+      "reason": "Asana connection and outbound PM actions stay in S06 but are deferred until account and project access are available. The October 6 client trial uses authorized local tasks and no automatic external actuation."
+    },
+    {
+      "id": "D-EMAIL-ACCESS",
+      "reason": "Email account integration, ingestion and outbound delivery are deferred until appropriate access and recipient consent are available. October 6 stores only held actuation foundations; it does not send messages or treat an accepted plan as permission to notify."
     },
     {
       "id": "D-CLINICAL-DOCS",
@@ -3585,7 +3602,7 @@
     "completion": "A slice cannot be done while an applicable slice_completion human action is unfinished. Paid-commitment, daily-reliance, clinical-use and release-gate items block only that named operation/gate, not unrelated free or supervised feature work.",
     "evidence": "Done requires an actual completion reference and timestamp; record private or sanitized references, not names, credentials, clinical records or invented signoffs.",
     "roles": "Human-action owner labels describe responsibilities, not application permissions. The application has exactly four roles: administrator, client, family/friend and clinician. One person may hold several responsibilities; the project owner is confirmed as both administrator and technical lead. Keep account identities private.",
-    "deferred": "Company Outlook/IT consent is required only for the deferred Outlook integration; it is not a prerequisite for these MVP slices."
+    "deferred": "Microsoft 365 Outlook calendar and Asana access are deferred until available; email delivery is also deferred. Their authorization is not a prerequisite for the October 6 local client trial."
   },
   "delivery_focus": {
     "slice_ids": [
