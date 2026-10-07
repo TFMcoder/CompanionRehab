@@ -54,6 +54,10 @@ function chooseMeals() {
   fireEvent.change(screen.getByLabelText("Breakfast"), { target: { value: ids.breakfast } });
   fireEvent.change(screen.getByLabelText("Lunch"), { target: { value: ids.lunch } });
   fireEvent.change(screen.getByLabelText("Dinner"), { target: { value: ids.dinner } });
+  expect(screen.getByLabelText("Breakfast")).toHaveValue(ids.breakfast);
+  expect(screen.getByLabelText("Lunch")).toHaveValue(ids.lunch);
+  expect(screen.getByLabelText("Dinner")).toHaveValue(ids.dinner);
+  expect(screen.getByRole("button", { name: "Save plan for review" })).toBeEnabled();
 }
 
 describe("S01 participant plan UI", () => {
@@ -96,6 +100,32 @@ describe("S01 participant plan UI", () => {
     expect(await screen.findByRole("heading", { name: "Today’s accepted plan" })).toBeInTheDocument();
     const commandTypes = fetchMock.mock.calls.filter(([path]) => path === "/api/commands").map(([, init]) => JSON.parse(String((init as RequestInit).body)).type);
     expect(commandTypes).toEqual(["propose_day_plan", "accept_day_plan"]);
+  });
+
+  it('keeps unsaved choices on an unchanged refresh and resets them for a new plan version', async () => {
+    let current = today();
+    let reads = 0;
+    vi.stubGlobal('fetch', vi.fn(async (path: string) => {
+      if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
+      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/today') { reads += 1; return response(current); }
+      throw new Error(`Unexpected request ${path}`);
+    }));
+    render(<App />);
+    await screen.findByRole('heading', { name: 'Choose what feels right today.' });
+    chooseMeals();
+    fireEvent.click(screen.getByRole('checkbox', { name: /Fold the laundry/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh', exact: true }));
+    await waitFor(() => expect(reads).toBe(2));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Refresh', exact: true })).toBeEnabled());
+    expect(screen.getByLabelText('Breakfast')).toHaveValue(ids.breakfast);
+    expect(screen.getByRole('checkbox', { name: /Fold the laundry/ })).not.toBeChecked();
+    current = today({ revision: 2, proposal: proposed });
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh', exact: true }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Make changes' }));
+    expect(screen.getByRole('checkbox', { name: /Fold the laundry/ })).toBeChecked();
+    expect(screen.getByLabelText('Breakfast')).toHaveValue(ids.breakfast);
+    expect(screen.getByRole('button', { name: 'Save plan for review' })).toBeEnabled();
   });
 
   it("does not retry an unconfirmed plan write and retains its receipt key until confirmation", async () => {
