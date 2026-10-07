@@ -115,13 +115,13 @@ describe("S01 participant plan UI", () => {
     await screen.findByRole('heading', { name: 'Choose what feels right today.' });
     chooseMeals();
     fireEvent.click(screen.getByRole('checkbox', { name: /Fold the laundry/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Refresh', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
     await waitFor(() => expect(reads).toBe(2));
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Refresh', exact: true })).toBeEnabled());
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Refresh' })).toBeEnabled());
     expect(screen.getByLabelText('Breakfast')).toHaveValue(ids.breakfast);
     expect(screen.getByRole('checkbox', { name: /Fold the laundry/ })).not.toBeChecked();
     current = today({ revision: 2, proposal: proposed });
-    fireEvent.click(screen.getByRole('button', { name: 'Refresh', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Make changes' }));
     expect(screen.getByRole('checkbox', { name: /Fold the laundry/ })).toBeChecked();
     expect(screen.getByLabelText('Breakfast')).toHaveValue(ids.breakfast);
