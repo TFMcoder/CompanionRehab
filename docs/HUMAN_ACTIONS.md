@@ -1,6 +1,6 @@
 # Human actions by implementation stage
 
-Updated: 2026-10-06. Generated from the canonical roadmap; all statuses below come from that file.
+Updated: 2026-10-07. Generated from the canonical roadmap; all statuses below come from that file.
 
 Source: [roadmap.json](roadmap/roadmap.json), in each slice's human_actions array. Edit the JSON, then run the renderer; do not maintain a separate checklist here. See [ROADMAP.md](ROADMAP.md) for feature scope and live tests.
 
@@ -43,7 +43,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 | S07 | Follow Morning Boot one step at a time | S07-H01, S07-H02 |
 | S08 | Follow and report an approved rehab session | S08-H01, S08-H02 |
 | S09 | See explainable daily progress and achievements | S09-H01, S09-H02 |
-| S10 | Use Support Team for shared tasks, achievements and help | S10-H01, S10-H02 |
+| S10 | Use Support Team for client-approved task requests, shared progress and help | S10-H01, S10-H02, S10-H03, S10-H04 |
 | S11 | Operate today's program from an administrator dashboard | S11-H01, S11-H02 |
 | S12 | Review trends and exports in Clinician Partners | S12-H01, S12-H02, S12-H03, S12-H04 |
 
@@ -546,7 +546,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Linked inputs/tests:** S09-LIVE1.
 
-## S10: Use Support Team for shared tasks, achievements and help
+## S10: Use Support Team for client-approved task requests, shared progress and help
 
 - [ ] **S10-H01: Choose what family may see and who receives help**
 
@@ -559,12 +559,13 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   - Choose family/friend recipients and consented task/meal and achievement visibility; record client-scoped sharing consent.
   - Agree a non-urgent test with designated recipients and choose any quiet-hour/help routing preferences.
+  - Choose who may request tasks, which other family members may receive declined-task help and reason details, and which scoped administrators may review the resulting flags.
 
   **Agent prepares or handles:** Prepare a concrete access/notification matrix and demonstrate its effect. Configure grants and consent, generic message content and revocation; reuse prior valid choices.
 
   **Completion evidence:** Private participant consent, recipient/grant and notification-rule references.
 
-  **Linked inputs/tests:** I-FAMILY, S10-LIVE1.
+  **Linked inputs/tests:** I-FAMILY, S10-LIVE1, S10-LIVE2.
 
 - [ ] **S10-H02: Acknowledge the planned family test**
 
@@ -578,12 +579,49 @@ Routine coding, technical service configuration, database work, synthetic tests 
   - Expect the designated test request, acknowledge/resolve it and view the selected shared win.
   - Confirm that the view is appropriate and check access after the participant revokes sharing.
   - Use Support Team by voice and UI; choose completion/reschedule notification preferences and verify opt-in, opt-out and revoked access during the agreed test.
+  - Submit a genuine task request through Nancy and the UI with agreed date/time/priority; another designated family member volunteers for a declined request and verifies its visible help state.
 
   **Agent prepares or handles:** Have the participant initiate the agreed request in the app; do not send unsolicited messages. Verify delivery, duplicate handling, audit state and revocation.
 
   **Completion evidence:** Observed acknowledgement and revocation evidence from the designated consenting participants.
 
-  **Linked inputs/tests:** S10-LIVE1.
+  **Linked inputs/tests:** S10-LIVE1, S10-LIVE2.
+
+- [ ] **S10-H03: Review task requests against actual daily capacity**
+
+  Owner: **participant_or_tester**. Status: **pending**. Requirement: **required**.
+
+  **When:** After the request workflow is implemented, during the agreed consenting live trial.
+  **Blocks:** Completing this feature slice.
+
+  **Human action:**
+
+  - Describe current practical capacity and preferences as needed; review one genuine request and decide whether its timing/effort is reasonable.
+  - Accept one suitable request and decline an unsuitable request with a short reason in your own words; verify that Nancy asks rather than pressures and that help replaces the declined request.
+
+  **Agent prepares or handles:** Prepare the working scoped interface, role-specific voice tools and a concrete trial sequence. Verify saved request/task/help/flag linkage, receipts, access and privacy; store sanitized evidence references only.
+
+  **Completion evidence:** Private evidence of actual client decisions, capacity discussion and review of resulting task/help records.
+
+  **Linked inputs/tests:** I-FAMILY, S10-LIVE2.
+
+- [ ] **S10-H04: Verify administrator review of declined requests**
+
+  Owner: **operator**. Status: **pending**. Requirement: **required**.
+
+  **When:** After the request workflow is implemented, during the agreed consenting live trial.
+  **Blocks:** Completing this feature slice.
+
+  **Human action:**
+
+  - Use the scoped administrator account to review a genuine rejection flag, its permitted reason and linked family help status.
+  - Verify that the flag supports arranging help and does not let the administrator approve the request on the client behalf.
+
+  **Agent prepares or handles:** Prepare the working scoped interface, role-specific voice tools and a concrete trial sequence. Verify saved request/task/help/flag linkage, receipts, access and privacy; store sanitized evidence references only.
+
+  **Completion evidence:** Private observed administrator flag/help review and authorization evidence.
+
+  **Linked inputs/tests:** I-FAMILY, S10-LIVE2.
 
 ## S11: Operate today's program from an administrator dashboard
 

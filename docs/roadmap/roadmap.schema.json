@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:companion-rehab:roadmap:1.5.0",
+  "$id": "urn:companion-rehab:roadmap:1.6.0",
   "title": "Companion Rehab agent implementation roadmap",
   "type": "object",
   "properties": {
@@ -11,7 +11,7 @@
       "const": "companion-rehab"
     },
     "schema_version": {
-      "const": "1.5.0"
+      "const": "1.6.0"
     },
     "updated_at": {
       "type": "string",
@@ -1170,6 +1170,98 @@
             "tool_connection"
           ],
           "additionalProperties": false
+        },
+        "family_task_requests": {
+          "type": "object",
+          "properties": {
+            "decision_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation_status": {
+              "enum": ["planned", "in_progress", "awaiting_live_test", "done"]
+            },
+            "introduced_in": {
+              "$ref": "#/$defs/sliceId"
+            },
+            "requester_roles": {
+              "const": [
+                "family_friend",
+                "administrator"
+              ]
+            },
+            "approver_role": {
+              "const": "client"
+            },
+            "request_fields": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "states": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "submission_policy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "capacity_policy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "approval_policy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "rejection_policy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "voice_policy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "ui_policy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "delivery_policy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "consistency_policy": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "decision_ref",
+            "implementation_status",
+            "introduced_in",
+            "requester_roles",
+            "approver_role",
+            "request_fields",
+            "states",
+            "submission_policy",
+            "capacity_policy",
+            "approval_policy",
+            "rejection_policy",
+            "voice_policy",
+            "ui_policy",
+            "delivery_policy",
+            "consistency_policy"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -1185,7 +1277,8 @@
         "clinical_archetypes",
         "clinical_dashboard_policy",
         "data_hosting",
-        "ai_backend"
+        "ai_backend",
+        "family_task_requests"
       ],
       "additionalProperties": false
     }

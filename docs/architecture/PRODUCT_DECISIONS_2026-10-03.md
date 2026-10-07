@@ -2,9 +2,21 @@
 
 Source: The project owner's October 3, 2026 product clarification and explicit follow-up selection of **GPT-6 Sol — high**. These decisions are recorded in `product_contract` and the affected slices of [the canonical roadmap](../roadmap/roadmap.json), schema 1.3.0. They supersede earlier conflicting hosting, role and model assumptions. They describe the target; they do not claim these changes are implemented.
 
-The [October 4 connectivity decision](PRODUCT_DECISIONS_2026-10-04.md) updates the reasoning access priority to qualify existing ChatGPT-plan usage first, with independent speech and conditional MCP. Current canonical schema is 1.4.0. Roles, local care storage, My Day and the exact Sol-high selection below remain in force.
+The [October 4 connectivity decision](PRODUCT_DECISIONS_2026-10-04.md) updates the reasoning access priority to qualify existing ChatGPT-plan usage first, with independent speech and conditional MCP. That decision introduced schema 1.4.0; the October 7 amendment below is recorded in current schema 1.6.0. Local care storage, My Day and the exact Sol-high selection below remain in force.
 
-## Ownership and access
+## October 7 amendment: family task requests
+
+The owner amended family/friend permissions to include **Request Tasks**, available to both scoped family/friend and administrator accounts through Nancy voice and matching UI. This is a recorded product contract, not a claim that the workflow is implemented. The machine-readable definition is `product_contract.family_task_requests` in roadmap schema 1.6.0.
+
+- A requester supplies the task name, suggested priority, date and time. Nancy clarifies missing information and reviews authorized schedule context, effort, rest and client-stated daily capacity. Calendar space alone does not establish capacity, and unshared appointment or clinical details must not be exposed to the requester.
+- After requester confirmation, the client receives a **request**. Only that client can approve the reviewed task and timing. Family, administrators and Nancy cannot make that decision for the client. Pending requests stay separate from accepted tasks; acceptance never means completion.
+- On rejection, Nancy gently asks for a short reason. No detailed clinical justification is required, and pausing the conversation never causes acceptance. Confirmed rejection, the reason, a linked help request for other authorized family members and a scoped administrator flag commit together. Helpers volunteer; the task does not silently return to the client. Rejection is not a failure or an achievement penalty.
+- Support Team gains Request a task, sent requests and Help needed. My Day gains a small Requests area with voice and button acceptance/rejection. Minimal administrator controls gain rejection/help review. All reads, tools, decisions and delivery remain scoped to the current actor, role, client and sharing grants.
+- Initial routing uses durable in-app inboxes. It does not depend on Microsoft 365, Asana, achievements or the full administrator dashboard. Existing foreground wake limitations remain; this does not implement background Hey Nancy listening or external messaging.
+
+The owner wants this family/administrator configuration as the next scoped increment while Microsoft 365 access is pending. The request workflow belongs to S10, with its own automated/live scenarios and human actions; the full slice retains its achievement dependency and unfinished client acceptance gates. Reuse this owner direction when recording implementation overlap; do not request the same feature authorization again.
+
+## Ownership and access (October 3 baseline)
 
 The project owner is both administrator and technical lead. That resolves responsibility for provider/project decisions. It does not establish that an API key, account connection, HTTPS hostname or intended device is available to the application. Reuse existing authorized access and decisions; only actual missing access remains outstanding. Local PostgreSQL deployment, authentication adaptation, migrations and debugging are engineering work.
 
@@ -13,13 +25,13 @@ The project owner is both administrator and technical lead. That resolves respon
 | Role | Home | Scope | Delivery |
 |---|---|---|---|
 | Client | **My Day** | Narrow conversational home; own tasks, today's meals, grocery list and achievements | Tasks/meals in S01; groceries S05; achievement UI designed in S09 |
-| Family/friend | **Support Team** | Consented task list including meals, achievements, own optional completion/reschedule notifications; existing help/encouragement features | Role/home boundary S01; working family features S10 |
+| Family/friend | **Support Team** | Consented tasks/meals and achievements, client-approved task requests, optional completion/reschedule notifications and help/encouragement | Role/home boundary S01; request increment next; full family features S10 |
 | Clinician | **Clinician Partners** | Authorized data exports and dashboards configured for clinical archetypes | Role/home boundary S01; working dashboards/exports S12 |
 | Administrator | Minimal setup initially; full operations dashboard later | Accounts, scoped grants and task/meal setup; operations | Setup S01; dashboard S11 |
 
 Client, family/friend and administrator interactions are principally voice. Every role has a UI path for its available features. Role-specific landing routes in S01 must honestly show what is available; they are not evidence that later features have shipped. The administrator home label remains an implementation working label, not a user-selected screen name.
 
-Family/friend permissions default to the requested read access, managing their own notification preferences and the already planned help/encouragement actions. Editing client tasks, rescheduling on their behalf or exporting clinical records is not implied. Access is client/resource scoped and revocable. A role name alone cannot grant access to every client's records.
+Family/friend permissions include the requested read access, their own notification preferences, help/encouragement and the October 7 Request Tasks capability. A request is distinct from directly assigning, editing or rescheduling an accepted client task. Clinical exports are not implied. Access is client/resource scoped and revocable. A role name alone cannot grant access to every client's records.
 
 Clinical archetypes are **Diabetes, Neurorehab, Psychologist / Psychiatrist, Family doctor, and OT / PSW / DSW**. They configure dashboard content, not authorization. S12 includes exports as an explicit feature. Its human actions require clinical partners to review concrete measure definitions and export scope; dashboard design and clinical targets are not prerequisites for S01–S04.
 

@@ -1,8 +1,8 @@
 {
   "$schema": "./roadmap.schema.json",
   "roadmap_id": "companion-rehab",
-  "schema_version": "1.5.0",
-  "updated_at": "2026-10-06",
+  "schema_version": "1.6.0",
+  "updated_at": "2026-10-07",
   "planning_status": "ready_for_implementation",
   "implementation_status": "in_progress",
   "source_of_truth": "docs/roadmap/roadmap.json",
@@ -42,7 +42,8 @@
     "October 6 owner direction: prepare a simple client-facing MVP trial with an empty, isolated client database; preserve the practice database separately. Remove testing and synthetic artifacts from the product build. Show simple meals, tasks, timing and actual results in their direct views, with one Talk to Nancy entry across them.",
     "Keep the factual ledger queryable with actor, command, time, version and correction history. Store scoped, held records needed for later external email, calendar and PM actuation without enabling a connector, worker or outbound delivery now.",
     "Defer email and Asana connections until access is available. The selected Outlook account is Microsoft 365 work/school; its calendar connection also waits for scoped authorization. Continue local appointments and task/meal planning without external access.",
-    "Keep Nancy turns quick through bounded current context and repository nutrition retrieval. Log operational metadata consistently for 14 days separately from durable care events and receipts; do not retain transcripts or audio in runtime logs."
+    "Keep Nancy turns quick through bounded current context and repository nutrition retrieval. Log operational metadata consistently for 14 days separately from durable care events and receipts; do not retain transcripts or audio in runtime logs.",
+    "October 7: configure role-bounded family and administrator Nancy conversations and interfaces while Microsoft 365 access is pending. Family and administrators may Request Tasks with name, priority, date and time. Nancy checks schedule and daily capacity, then asks the client; only the client can accept. A rejection with a client-provided reason creates help for other authorized family members and a scoped administrator flag. Nancy supports the client and never acts as an overseer."
   ],
   "constraints": {
     "budget": {
@@ -159,7 +160,7 @@
     {
       "id": "R-PROPOSAL",
       "introduced_in": "S01",
-      "requirement": "Treat model output as untrusted proposed intent. Validate exact task/meal identities, allowed fields, consent and expected versions; reject unknown targets and clinical rule changes. A fluent reply or proposed completion never proves a saved plan or performed activity."
+      "requirement": "Treat model output as untrusted proposed intent. Validate exact task/meal identities, allowed fields, consent and expected versions; reject unknown targets and clinical rule changes. A fluent reply or proposed completion never proves a saved plan or performed activity. Family/administrator task requests remain pending until the addressed client approves; schedule availability is not inferred capacity. Rejection with a reason atomically creates linked family help and an administrator flag."
     },
     {
       "id": "R-NAVIGATION",
@@ -242,7 +243,7 @@
       "status": "unresolved",
       "default": "In-app delivery first; generic email only to designated consenting recipients.",
       "needed_for": "S10 family sharing and messages",
-      "question": "Record client-scoped family/friend grants, sharing consent and recipients; each recipient chooses completion/reschedule notifications and any quiet-hour preferences.",
+      "question": "Record client-scoped family/friend viewing and request_tasks grants, request/rejection-reason visibility, eligible other-family helpers and administrator flag recipients. Each recipient chooses optional completion/reschedule alerts and quiet hours. Owner approval of the feature does not substitute for a client sharing grant.",
       "resolution_ref": null
     },
     {
@@ -2894,7 +2895,7 @@
     {
       "id": "S10",
       "priority": 100,
-      "title": "Use Support Team for shared tasks, achievements and help",
+      "title": "Use Support Team for client-approved task requests, shared progress and help",
       "status": "planned",
       "depends_on": [
         "S02",
@@ -2903,7 +2904,7 @@
       "required_inputs": [
         "I-FAMILY"
       ],
-      "outcome": "Consented family/friends open Support Team to view the client task list including meals and achievements, opt into completion/reschedule notifications, acknowledge help and offer encouragement by voice or UI.",
+      "outcome": "Family and administrators use role-bounded Nancy voice or UI to request a dated/prioritized task; the client reviews daily capacity and explicitly accepts or rejects with a reason. Rejection creates help for other authorized family members and an administrator flag. Shared tasks, achievements, notifications and encouragement retain scoped consent.",
       "in_scope": [
         "Scoped consent/grants and revocation",
         "Help request, acknowledgement and resolution",
@@ -2911,13 +2912,15 @@
         "In-app notifications; one configured external channel if selected",
         "Support Team home with scoped task/meal list and achievement dashboard",
         "Per-recipient optional completion and reschedule notifications, including meal tasks",
-        "Principally voice interaction with matching buttons and controls"
+        "Principally voice interaction with matching buttons and controls",
+        "Client-approved Request Tasks workflow with name, requested date/time, priority and capacity review; client request inbox, family sent/help views and minimal administrator rejection review.",
+        "Atomic request decisions with task linkage on acceptance or help and administrator flag on rejection; initial durable in-app delivery independent of Microsoft 365 and Asana."
       ],
       "out_of_scope": [
         "Emergency response service",
         "SMS subscription",
         "Family analytics dashboard",
-        "Editing/rescheduling client tasks or clinical exports through the family/friend role without a separate explicitly authorized capability"
+        "Direct family assignment or edits/rescheduling of accepted client tasks, administrator/model approval on behalf of the client, punitive refusal scoring, and clinical exports without a separate explicitly authorized capability"
       ],
       "implementation_tasks": [
         {
@@ -2939,6 +2942,22 @@
         {
           "id": "S10-T05",
           "description": "Test duplicate delivery, revocation, denied notes and acknowledgement."
+        },
+        {
+          "id": "S10-T06",
+          "description": "Implement actor/client-scoped task requests and role-bounded Nancy sessions with Request a task UI, fresh schedule/capacity review, exact reviewed name/priority/date/time and explicit requester submission. Keep requests separate from accepted tasks; external connector access and full dashboards are not needed."
+        },
+        {
+          "id": "S10-T07",
+          "description": "Implement client-only exact-version acceptance through voice/buttons, one linked scheduled task and plan revision, and safe stale/conflict/withdrawal handling. Acceptance cannot invent capacity or bypass known limits; ask and offer alternatives."
+        },
+        {
+          "id": "S10-T08",
+          "description": "Implement gentle reason capture and an atomic rejection/help/administrator-flag transition, other-family voluntary help acknowledgement/resolution, consent-scoped in-app inboxes and truthful no-recipient/pending delivery states. Reuse receipts, duplicate handling and revocation checks."
+        },
+        {
+          "id": "S10-T09",
+          "description": "Deliver the request workflow as the next scoped family/admin increment while access to Microsoft 365 is pending, without waiting for S09 achievements or the S11 dashboard. Preserve full S10 completion dependencies and existing unfinished S01/S02 live gates; record the existing October 7 owner direction as implementation overlap authorization when code work begins, without requesting the same permission again."
         }
       ],
       "contracts": {
@@ -2947,7 +2966,10 @@
           "HelpRequest",
           "FamilyReaction",
           "Notification",
-          "NotificationPreference"
+          "NotificationPreference",
+          "TaskRequest",
+          "TaskCapacityReview",
+          "AdministratorFlag"
         ],
         "commands": [
           "request_help",
@@ -2956,13 +2978,22 @@
           "share_achievement",
           "react_to_achievement",
           "revoke_sharing",
-          "set_notification_preferences"
+          "set_notification_preferences",
+          "submit_task_request",
+          "withdraw_task_request",
+          "accept_task_request",
+          "reject_task_request",
+          "acknowledge_administrator_flag"
         ],
         "queries": [
           "get_shared_progress",
           "get_help_requests",
           "get_shared_tasks",
-          "get_notification_preferences"
+          "get_notification_preferences",
+          "get_task_request_context",
+          "get_client_task_requests",
+          "get_sent_task_requests",
+          "get_administrator_flags"
         ],
         "events": [
           "HelpRequested",
@@ -2970,7 +3001,13 @@
           "HelpResolved",
           "AchievementShared",
           "SharingRevoked",
-          "NotificationPreferencesChanged"
+          "NotificationPreferencesChanged",
+          "TaskRequested",
+          "TaskRequestWithdrawn",
+          "TaskRequestAccepted",
+          "TaskRequestRejected",
+          "AdministratorFlagged",
+          "AdministratorFlagAcknowledged"
         ]
       },
       "acceptance_criteria": [
@@ -2980,11 +3017,23 @@
         },
         {
           "id": "S10-AC02",
-          "assertion": "Support Team exposes only consented task lists including meals and achievements through voice and UI; family/friend task editing and clinical export are denied, and revocation applies to subsequent access."
+          "assertion": "Support Team exposes only consented tasks/meals, achievements and requests through role-bounded voice/UI. A scoped family member may submit a request, but cannot assign, approve, directly edit/reschedule accepted client tasks or export clinical records; revocation applies to subsequent access and decisions."
         },
         {
           "id": "S10-AC03",
           "assertion": "Recipients may independently opt in/out of task-completion and reschedule notifications. Committed changes including meal tasks produce no duplicate effective notification; grants, quiet hours and clinical-content restrictions are checked at delivery."
+        },
+        {
+          "id": "S10-AC04",
+          "assertion": "Authorized family/admin requests preserve reviewed name, priority and requested local date/time. Nancy checks current schedule and known daily capacity, asks when unknown and offers alternatives without assuming free time means capacity or disclosing unshared detail. Voice/buttons use identical scoped commands; only the client can accept the exact request and create one linked task."
+        },
+        {
+          "id": "S10-AC05",
+          "assertion": "Client rejection requires a short client-provided reason and atomically creates exactly one linked help request for other authorized family members plus one administrator flag, without creating a client task or penalty. A missing reason never causes acceptance; no eligible helper leaves a visible unassigned help record and administrator flag."
+        },
+        {
+          "id": "S10-AC06",
+          "assertion": "Concurrent/stale decisions, changed payload retries, revoked grants and response loss cannot duplicate or redirect tasks/help/flags. Request, decision, schedule/capacity provenance and receipt histories remain queryable; in-app pending/help states work without external connectors and volunteers explicitly accept help."
         }
       ],
       "automated_tests": [
@@ -3004,6 +3053,33 @@
           ],
           "scenario": "Retry a delivery and query general progress containing restricted notes. Exercise independent completion/reschedule preferences, meal task events, duplicate event delivery and opt-out/revocation before dispatch.",
           "expected": "One effective notification and no restricted payload."
+        },
+        {
+          "id": "S10-AUTO3",
+          "criterion_ids": [
+            "S10-AC02",
+            "S10-AC04"
+          ],
+          "scenario": "Family/admin voice and UI request a grocery errand with name, priority and local date/time. Exercise missing effort, busy/rest windows, unknown capacity, unshared appointments, role/context switch and attempts to approve as requester/admin.",
+          "expected": "Only scoped tools/context are exposed. Nancy requests clarification or proposes alternatives; no task exists until current client approval, then one occurrence is linked without rewriting unrelated plans or marking completion."
+        },
+        {
+          "id": "S10-AUTO4",
+          "criterion_ids": [
+            "S10-AC05",
+            "S10-AC06"
+          ],
+          "scenario": "Reject with a simple reason; interrupt before reason confirmation; simulate failure between rejection/help/flag writes, replay after lost response, two voluntary helpers and no eligible helper. Check grants and reason visibility.",
+          "expected": "Unconfirmed rejection never implies acceptance. The final rejection/help/flag transaction rolls back or commits as one; receipts reconcile exactly one outcome. Helpers volunteer, private data remains scoped, and administrator review remains available when help is unassigned."
+        },
+        {
+          "id": "S10-AUTO5",
+          "criterion_ids": [
+            "S10-AC04",
+            "S10-AC06"
+          ],
+          "scenario": "Race accept against reject/withdraw, change request/day revision or revoke sharing before acceptance, retry the same key with a different payload, and run with Microsoft 365/Asana disconnected.",
+          "expected": "One exact-version authorized outcome with no duplicate task/help/flag, no acceptance of stale/withdrawn requests or clinical-rule bypass; durable in-app request/help delivery works without external services."
         }
       ],
       "live_tests": [
@@ -3023,6 +3099,23 @@
             "Opt in to completion and reschedule notifications for the consenting client, perform genuine agreed changes and verify delivery. Opt out and confirm subsequent changes do not notify; use disposable event checks for duplicate cases."
           ],
           "expected": "Expected people receive the request/progress; acknowledgement and revocation work without unwanted disclosure."
+        },
+        {
+          "id": "S10-LIVE2",
+          "criterion_ids": [
+            "S10-AC02",
+            "S10-AC04",
+            "S10-AC05",
+            "S10-AC06"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "With a consenting client, family requester, another family helper and scoped administrator, use actual authenticated accounts and microphones plus matching button paths; keep personal details and audio out of the public repository.",
+            "Request a genuine low-stakes errand with actual date/time/priority, inspect authorized schedule and client-stated capacity, and agree an alternative if needed. Verify no task exists before the client accepts the reviewed request and exactly one task exists afterward.",
+            "For another genuine request that the client cannot take on, let the client provide their own short reason. Verify the saved rejection, family help item and administrator flag; have another consenting family member volunteer and record acknowledgement/resolution.",
+            "Check scoped visibility and revoked access, replay saved receipt lookup without resending a write, and verify the workflow with external connectors disabled. Use separate disposable records for artificial conflicts/failures."
+          ],
+          "expected": "Role-bounded voice and UI work end-to-end. The client controls acceptance; actual capacity review and rejection-to-help/administrator review are observed, with no duplicate records, imposed task or external message."
         }
       ],
       "story_refs": [
@@ -3046,7 +3139,8 @@
           "condition": null,
           "human_must_do": [
             "Choose family/friend recipients and consented task/meal and achievement visibility; record client-scoped sharing consent.",
-            "Agree a non-urgent test with designated recipients and choose any quiet-hour/help routing preferences."
+            "Agree a non-urgent test with designated recipients and choose any quiet-hour/help routing preferences.",
+            "Choose who may request tasks, which other family members may receive declined-task help and reason details, and which scoped administrators may review the resulting flags."
           ],
           "agent_can_do": [
             "Prepare a concrete access/notification matrix and demonstrate its effect.",
@@ -3057,7 +3151,8 @@
             "I-FAMILY"
           ],
           "related_test_ids": [
-            "S10-LIVE1"
+            "S10-LIVE1",
+            "S10-LIVE2"
           ],
           "status": "pending",
           "completion_ref": null,
@@ -3076,7 +3171,8 @@
           "human_must_do": [
             "Expect the designated test request, acknowledge/resolve it and view the selected shared win.",
             "Confirm that the view is appropriate and check access after the participant revokes sharing.",
-            "Use Support Team by voice and UI; choose completion/reschedule notification preferences and verify opt-in, opt-out and revoked access during the agreed test."
+            "Use Support Team by voice and UI; choose completion/reschedule notification preferences and verify opt-in, opt-out and revoked access during the agreed test.",
+            "Submit a genuine task request through Nancy and the UI with agreed date/time/priority; another designated family member volunteers for a declined request and verifies its visible help state."
           ],
           "agent_can_do": [
             "Have the participant initiate the agreed request in the app; do not send unsolicited messages.",
@@ -3085,7 +3181,66 @@
           "expected_evidence": "Observed acknowledgement and revocation evidence from the designated consenting participants.",
           "related_input_ids": [],
           "related_test_ids": [
-            "S10-LIVE1"
+            "S10-LIVE1",
+            "S10-LIVE2"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S10-H03",
+          "title": "Review task requests against actual daily capacity",
+          "owner_role": "participant_or_tester",
+          "when": "After the request workflow is implemented, during the agreed consenting live trial",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Describe current practical capacity and preferences as needed; review one genuine request and decide whether its timing/effort is reasonable.",
+            "Accept one suitable request and decline an unsuitable request with a short reason in your own words; verify that Nancy asks rather than pressures and that help replaces the declined request."
+          ],
+          "agent_can_do": [
+            "Prepare the working scoped interface, role-specific voice tools and a concrete trial sequence.",
+            "Verify saved request/task/help/flag linkage, receipts, access and privacy; store sanitized evidence references only."
+          ],
+          "expected_evidence": "Private evidence of actual client decisions, capacity discussion and review of resulting task/help records.",
+          "related_input_ids": [
+            "I-FAMILY"
+          ],
+          "related_test_ids": [
+            "S10-LIVE2"
+          ],
+          "status": "pending",
+          "completion_ref": null,
+          "completed_at": null,
+          "not_applicable_reason": null
+        },
+        {
+          "id": "S10-H04",
+          "title": "Verify administrator review of declined requests",
+          "owner_role": "operator",
+          "when": "After the request workflow is implemented, during the agreed consenting live trial",
+          "blocking_scope": "slice_completion",
+          "release_gate_id": null,
+          "requirement": "required",
+          "condition": null,
+          "human_must_do": [
+            "Use the scoped administrator account to review a genuine rejection flag, its permitted reason and linked family help status.",
+            "Verify that the flag supports arranging help and does not let the administrator approve the request on the client behalf."
+          ],
+          "agent_can_do": [
+            "Prepare the working scoped interface, role-specific voice tools and a concrete trial sequence.",
+            "Verify saved request/task/help/flag linkage, receipts, access and privacy; store sanitized evidence references only."
+          ],
+          "expected_evidence": "Private observed administrator flag/help review and authorization evidence.",
+          "related_input_ids": [
+            "I-FAMILY"
+          ],
+          "related_test_ids": [
+            "S10-LIVE2"
           ],
           "status": "pending",
           "completion_ref": null,
@@ -3760,7 +3915,8 @@
         "ui_required": true,
         "capabilities": [
           "Manage scoped accounts, grants and task/meal/local appointment setup from S01.",
-          "Full operations dashboard in S11. Administration does not authorize changing human-approved clinical protocols."
+          "Full operations dashboard in S11. Administration does not authorize changing human-approved clinical protocols.",
+          "Use role-bounded Nancy voice and UI to request client tasks and review rejection/help flags. Administrator status cannot replace client approval of a requested task. Minimal request/help review precedes the full S11 dashboard."
         ]
       },
       {
@@ -3772,7 +3928,8 @@
         "capabilities": [
           "Start the primary Talk to Nancy conversation from any shipped client view, without selecting a workflow. Open My Day, tasks, meals and groceries independently by voice or touch; neither speech nor a screen is a prerequisite for the other.",
           "View own task list and daily meals, plan with Nancy and explicitly accept reviewed plans in S01.",
-          "Report actual activity in S02; use a minimal grocery list in S01 and expanded sharing/acquisition in S05 and achievement view in S09."
+          "Report actual activity in S02; use a minimal grocery list in S01 and expanded sharing/acquisition in S05 and achievement view in S09.",
+          "Review family/administrator task requests, consider daily capacity, explicitly accept or reject with a short reason, and receive help rather than imposed work."
         ]
       },
       {
@@ -3785,7 +3942,8 @@
           "Scoped home and permission boundary in S01; family features ship in S10.",
           "View consented client task lists including meals and achievement dashboard.",
           "Opt into notifications for task completion and rescheduling; manage own preferences.",
-          "Existing help/encouragement features remain in S10. No client task-editing or clinical-export grant is implied."
+          "Request Tasks for an explicitly shared client with task name, priority and requested date/time; Nancy reviews schedule/capacity and only the client can accept. Rejection with a reason becomes family help and an administrator flag. No direct assignment, editing/rescheduling of accepted client tasks or clinical export is implied.",
+          "Use role-bounded Nancy voice and UI for request status, help acknowledgement/resolution and encouragement."
         ]
       },
       {
@@ -3844,7 +4002,7 @@
       "task_completed",
       "task_rescheduled"
     ],
-    "family_notification_policy": "Per-recipient opt-in and client-scoped sharing grants, including meal tasks. Notify only committed activity or schedule changes; recheck grants at delivery, suppress effective duplicates and honor revocation. No notification is sent merely because Nancy suggested a plan.",
+    "family_notification_policy": "Per-recipient opt-in and client-scoped sharing grants, including meal tasks. Notify only committed activity or schedule changes; recheck grants at delivery, suppress effective duplicates and honor revocation. No notification is sent merely because Nancy suggested a plan. Task-request inbox items, rejection-derived help and administrator flags follow family_task_requests.delivery_policy; they are distinct from optional completion/reschedule alerts.",
     "clinical_archetypes": [
       "Diabetes",
       "Neurorehab",
@@ -3901,6 +4059,39 @@
         "web_access": "independent_https_origin_for_my_day",
         "authorization": "Model, local MCP and any tunnel all reach the same authenticated typed care commands. Enforce client/role scope and receipts in the care service; no generic shell or inherited ambient tools."
       }
+    },
+    "family_task_requests": {
+      "decision_ref": "docs/architecture/PRODUCT_DECISIONS_2026-10-03.md#october-7-amendment-family-task-requests",
+      "implementation_status": "planned",
+      "introduced_in": "S10",
+      "requester_roles": [
+        "family_friend",
+        "administrator"
+      ],
+      "approver_role": "client",
+      "request_fields": [
+        "task_name",
+        "priority: high|medium|low",
+        "requested_date",
+        "requested_time",
+        "participant_time_zone",
+        "estimated_duration_minutes: optional until needed for capacity review"
+      ],
+      "states": [
+        "draft",
+        "pending",
+        "accepted",
+        "rejected",
+        "withdrawn"
+      ],
+      "submission_policy": "Use an explicit client-scoped request_tasks grant. Confirm intended client, task, requested local date/time and priority by voice or form; clarify missing or ambiguous values instead of inventing a deadline. Capture estimated duration, travel or assistance needs when needed for feasibility. A confirmed submission creates a pending request and in-app client inbox item, not an assigned or accepted task. Priority is the requester suggestion, not authority over the client.",
+      "capacity_policy": "Before submission and again at acceptance, evaluate authorized local appointments, accepted tasks/meals, expected effort/duration/travel, rest preferences, client-reported capacity and supplied approved limitations. Free calendar time alone does not establish capacity. If duration/capacity is unknown or constraints conflict, ask the client and offer another time, less work or help. Never infer clinical capacity or override an approved limitation. Use a bounded availability summary for requesters without exposing unshared appointment/clinical details. Client acceptance is necessary; it does not waive known constraints.",
+      "approval_policy": "Only the addressed client can accept the exact pending request revision and reviewed date/time/priority. Family, administrators and model tools cannot impersonate client approval. Silence, closing the conversation, an expired session and a suggested alternative never imply acceptance. A changed time/task/priority requires a fresh client review. Atomically link an accepted request to exactly one task occurrence and applicable accepted plan/schedule version through the care service, preserving unrelated choices; acceptance is not completion.",
+      "rejection_policy": "Ask gently for a short client-provided reason and confirm it before final rejection; a simple reason such as I cannot take this on today is sufficient, with no clinical explanation required. If the client pauses before supplying a reason, leave the request unaccepted and do not repeatedly pressure them. Atomically commit rejection, reason, one linked HelpRequest offered to other authorized family members and one scoped AdministratorFlag. Remove the request from the pending client inbox without assigning a task. Preserve the original request and reason history. No noncompliance label, achievement penalty or automatic reassignment to the client. An alternative helper must explicitly volunteer/accept; acknowledgement and resolution have visible states.",
+      "voice_policy": "Talk to Nancy is available from Support Team and minimal administrator views with matching UI paths. Sessions derive actor, active role and selected client from authorization, use bounded context and role-specific server tools, and preserve conversation across permitted views. Role changes must reauthorize and clear incompatible context. Requesters can discuss feasibility, draft and submit requests; only the client session can approve/reject. Opted-in foreground Hey Nancy uses the same role boundary when implemented and qualified; no locked-phone/background wake claim.",
+      "ui_policy": "Support Team exposes Request a task, sent requests and Help needed; forms use name, priority, date/time and optional effort/notes with visible requester/status. My Day exposes a small Requests area with Accept and Cannot do this plus reason entry, always available through Nancy and buttons. Minimal administrator setup includes a Requests/help review list and rejection flags; no full operations or achievement dashboard dependency for the request increment. Show requested versus accepted time separately and distinguish planned, accepted and performed states.",
+      "delivery_policy": "Initial delivery is durable in-app: client requests, authorized family help inbox items and administrator review flags. A declined task creates these records regardless of optional completion/reschedule alert preferences; external messages and push delivery remain separately opted in, authorized and unimplemented until their connectors exist. Recheck grants on every read and delivery, including requester revocation before acceptance. No suitable family recipient leaves help visibly unassigned for the administrator; do not pretend a helper was notified. Share reason/task details only within explicit grants, with generic external previews. Microsoft 365, Asana and full dashboards are not prerequisites for the request increment.",
+      "consistency_policy": "Persist requester/actor/client IDs, request revision, requested/proposed/accepted instants with time zone, priority, capacity-review provenance, decision/reason, linked task/help/flag IDs, events and receipts. Server validates role, scope, exact IDs, current request/day versions and current constraints. Accept/reject races and retries have one durable outcome; a reused key with changed content conflicts. Rejection/help/flag creation is one transaction; a lost response reconciles by receipt. Withdrawn, already decided or stale requests cannot create tasks. External actuation stays held until separately authorized integration exists."
     }
   }
 }
