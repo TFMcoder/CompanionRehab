@@ -74,6 +74,7 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
   let chunks: Float32Array[] = [], preRoll: Float32Array[] = [], utteranceStarted = 0, lastSound = 0, quietStarted = 0, graceStarted = 0;
   let generation = 0, replyController = new AbortController();
   let interruptBarrier: Promise<void> = Promise.resolve();  let interruptionFailed = false;
+  let terminalError: string | undefined;
   const activity = new SpeechActivityGate(context.sampleRate);
 
   const stopPlayback = () => {
@@ -82,8 +83,9 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     try { node?.stop(); } catch { /* already ended */ }
     node?.disconnect(); done?.();
   };
-  const stop = async () => {
+  const stop = async (errorMessage?: string) => {
     if (closed) return;
+    terminalError = errorMessage;
     closed = true; generation++; controller.abort(); replyController.abort(); listening = false;
     clearInterval(monitor); stopPlayback();
     processor?.disconnect(); source?.disconnect(); merger?.disconnect(); silent?.disconnect();
@@ -91,11 +93,11 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     await context.close().catch(() => undefined);
     window.removeEventListener('pagehide', onLeave);
     options.signal?.removeEventListener('abort', onLeave);
-    options.onState('stopped');
+    options.onState(errorMessage ? 'error' : 'stopped', errorMessage);
     if (sessionId) await api.conversationEnd(sessionId).catch(() => undefined);
   };
   const onLeave = () => { void stop(); };
-  const assertOpen = () => { if (closed || signal.aborted) throw new Error('Conversation ended.'); };
+  const assertOpen = () => { if (closed || signal.aborted) throw new Error(terminalError ?? 'Conversation ended.'); };
   const assertTurn = (ticket: number) => {
     assertOpen();
     if (ticket !== generation) throw new DOMException('Reply interrupted.', 'AbortError');
@@ -114,7 +116,10 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     // the server has invalidated the old reply/review and cancelled its turn.
     interruptBarrier = api.conversationInterrupt(sessionId, signal).then(() => { options.onChange(); });
     void interruptBarrier.catch(() => {
-      if (!closed) { interruptionFailed = true; listening = false; working = false; options.onState('error', 'Nancy could not confirm the interruption. End the conversation and reopen it; check My Day for saved changes.'); }
+      if (!closed) {
+        interruptionFailed = true;
+        void stop('Nancy could not confirm the interruption. The conversation is closed. Check My Day for saved changes, then reopen Nancy.');
+      }
     });
   };
   const handle: LocalVoiceHandle = { stop, sendText: text => sendText(text), interrupt };

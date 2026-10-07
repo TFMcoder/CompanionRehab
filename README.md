@@ -1,10 +1,10 @@
 # Companion Rehab · Nancy
 
-Nancy helps a participant plan the day through one **Talk to Nancy** button and independent My Day, task, meal and grocery views. The 08:00–11:00 local morning routine includes breakfast, day planning and existing exercise/rehab tasks; the preferred 10 AM check-in is never an access restriction. Actual meal/task reporting follows in S02.
+Nancy helps a participant plan the day through one **Talk to Nancy** button and independent My Day, task, meal, grocery and Activity views. The 08:00–11:00 local morning routine includes breakfast, day planning and existing exercise/rehab tasks; the preferred 10 AM check-in is never an access restriction. Activity records actual meals, tasks and appointments separately from plans.
 
 **Current status:** a local My Day development pilot now combines PostgreSQL/auth, GPT-6 Sol high, local transcription, Kokoro Heart speech and versioned plan acceptance. Live synthetic planning, generated-audio acceptance, replay, sign-in readback and encrypted restore have run against real services. S01 remains in progress: actual iPhone/participant acceptance and the remaining roadmap contracts are not complete. No paid service was activated. See the [local My Day runbook](docs/LOCAL_MY_DAY.md).
 
-**Smartphone interface preview:** a separate My Day page now supports sample task/meal navigation, Nancy's fixed voice sample and an in-browser microphone/playback check. Use the temporary HTTPS link provided privately in the active conversation. It does not save plans or run live Nancy reasoning. See [device preview and operating notes](docs/DEVICE_PREVIEW.md).
+**Preliminary client trial:** the active authenticated My Day interface uses a separate database prepared without sample care records. Talk to Nancy uses the selected Heart voice and Sol-high reasoning. The earlier audition/preview is excluded from the product build. Follow the [client trial guide](docs/CLIENT_TRIAL.md); genuine participant consent, intended-user account eligibility and physical iPhone/Safari acceptance remain open.
 
 ```powershell
 npm ci
@@ -12,7 +12,7 @@ npm run check
 npm start
 ```
 
-Open `http://localhost:8787` after configuring the local runtime in the runbook. The application reads `.env.local` and ignored `.local/runtime/local-care.env`; old Supabase/Realtime scripts remain historical references, not a runtime fallback. Keep credentials and records in ignored private storage. The existing public sample preview is separate from the authenticated app; public exposure of the new care routes requires the specific owner approval recorded in the roadmap.
+Open the configured `PUBLIC_ORIGIN` after following the local runbook (`http://localhost:8787` for a local-only setup). The application reads `.env.local` and ignored `.local/runtime/local-care.env`; old Supabase/Realtime scripts remain historical references, not a runtime fallback. Keep credentials and records in ignored private storage. The temporary authenticated HTTPS route is owner-authorized; its current address is stored privately and depends on this computer staying online.
 
 Run `npm run connect:chatgpt` for the separate local ChatGPT-plan qualification helper. It opens no public port and uses an app-specific OAuth connection, encrypted local credentials and fixed synthetic GPT-6 Sol high text/tool tests. The owner's real connection and synthetic tool round trip succeeded on October 4; local speech generation and recognition also passed separate probes. Its printed loopback address is for this computer only; it is not My Day and must not be published through a tunnel. See the first-connection guide for evidence, usage limits and the remaining qualification gates.
 
@@ -25,9 +25,11 @@ Run `npm run connect:chatgpt` for the separate local ChatGPT-plan qualification 
 - [Human-required actions by slice](docs/HUMAN_ACTIONS.md)
 - [Local database schema](db/002_local_care.sql) and [historical Supabase migration](db/001_s01.sql)
 
-The Node/Fastify service serves the React client and owns durable care state in local PostgreSQL. GPT-6 Sol high is linked to one explicitly bound owner care account for the synthetic pilot; the intended participant's eligibility, sign-in and deployment still require qualification. A Secure MCP Tunnel is optional tool transport. API-key billing is an explicit fallback decision. The service budget is $50/month excluding GPT, with CAD as the unconfirmed planning default and existing resources first.
+The Node/Fastify service serves the React client and owns durable care state in local PostgreSQL. GPT-6 Sol high is linked to one explicitly bound owner care account; the intended participant's eligibility, sign-in and deployment still require qualification. A Secure MCP Tunnel is optional tool transport. API-key billing is an explicit fallback decision. The service budget is $50/month excluding GPT, with CAD as the unconfirmed planning default and existing resources first.
 
 Automated tests use synthetic data, a disposable PGlite PostgreSQL engine, browser DOM tests and provider doubles. They do not substitute for actual local database/auth deployment, GPT/speech, HTTPS, isolated restore or participant acceptance. Client **My Day**, family/friend **Support Team**, clinician **Clinician Partners** and administrator access are scoped separately. Full dashboards and recurring reminder automation remain outside S01.
+
+GitHub Actions runs type checking, regression tests, the production build, dependency audit and roadmap consistency on Windows and Linux. It has read-only repository permissions and no access to private care data, voice models or credentials. `scripts/audit-ledger-probe.ts` runs identity and reschedule regressions in a fresh disposable database on the qualified local PostgreSQL server; `scripts/activity-ledger-probe.ts` also exercises encrypted restore.
 
 ## Product and nutrition references
 
@@ -40,4 +42,4 @@ The [original MVP brief](docs/MVP.md) preserves the source user stories and arch
 
 Load application permissions and the current private, human-approved care protocol before the knowledge-base runtime rules, relevant claims with their limitations, and selected recipe records. These references support proposals; they do not authorize clinical changes or grocery orders and are not an individual treatment plan.
 
-Recipe quantities are explicit, but nutrient totals and glycemic loads have not been calculated. Do not invent them, treat missing values as zero or infer that a day meets a fixed target. Preserve raw, dry, drained and cooked quantity distinctions in grocery calculations. Application ingestion and authorization enforcement remain implementation work.
+Nancy retrieves bounded claims and recipe excerpts from these files with document status and hashes. Recipe discovery supports search, pagination and exclusion of declined choices; all twenty recipes are reachable without loading the entire library into each turn. These tools operate through the authenticated care service. Recipe quantities are explicit, but nutrient totals and glycemic loads have not been calculated. Do not invent them, treat missing values as zero or infer that a day meets a fixed target. Preserve raw, dry, drained and cooked quantity distinctions in grocery calculations.

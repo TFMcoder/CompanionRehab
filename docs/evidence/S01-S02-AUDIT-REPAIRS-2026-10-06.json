@@ -1,0 +1,182 @@
+{
+  "evidence_id": "S01-S02-AUDIT-REPAIRS-2026-10-06",
+  "recorded_at": "2026-10-07T00:03:37.061Z",
+  "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
+  "status": "engineering_repairs_verified_awaiting_participant",
+  "authorization": "Owner requested repair of all audit findings, followed by retesting, on October 6.",
+  "findings": [
+    {
+      "id": "B01",
+      "title": "A stale meal report can silently record the replacement meal as eaten",
+      "status": "repaired",
+      "regression": "tests/activity-identity.test.ts"
+    },
+    {
+      "id": "B02",
+      "title": "Failed speech-worker restart crashes the HTTP server",
+      "status": "repaired",
+      "regression": "tests/local-speech.test.ts"
+    },
+    {
+      "id": "B03",
+      "title": "Rescheduling a task to tomorrow creates two tomorrow occurrences",
+      "status": "repaired",
+      "regression": "tests/activity-identity.test.ts"
+    },
+    {
+      "id": "B04",
+      "title": "Appointment can duplicate after a successful save followed by failed refresh",
+      "status": "repaired",
+      "regression": "tests/client-recovery.test.tsx"
+    },
+    {
+      "id": "B05",
+      "title": "Failed history load shows the old day's records under the newly selected date",
+      "status": "repaired",
+      "regression": "tests/client-recovery.test.tsx"
+    },
+    {
+      "id": "B06",
+      "title": "Clearing the Activity date crashes the UI",
+      "status": "repaired",
+      "regression": "tests/client-recovery.test.tsx"
+    },
+    {
+      "id": "B07",
+      "title": "Failed interruption leaves microphone resources open with no Stop handle",
+      "status": "repaired",
+      "regression": "tests/my-day-client-voice.test.ts"
+    },
+    {
+      "id": "B08",
+      "title": "Meals hides additional unplanned meals in the same slot",
+      "status": "repaired",
+      "regression": "tests/client-recovery.test.tsx"
+    },
+    {
+      "id": "B09",
+      "title": "Voice becomes enabled before startup priming frees the synthesizer",
+      "status": "repaired",
+      "regression": "tests/local-speech.test.ts"
+    },
+    {
+      "id": "B10",
+      "title": "All tunneled users share the login rate-limit bucket",
+      "status": "repaired",
+      "regression": "tests/login-limits.test.ts"
+    },
+    {
+      "id": "D01",
+      "title": "Vite/PostCSS transitively pins vulnerable source-map-js1.2.1",
+      "status": "repaired",
+      "regression": "npm audit: zero known vulnerabilities"
+    }
+  ],
+  "additional_repairs": [
+    "All 20 recipes discoverable with bounded search, pagination and declined-choice exclusion; first recipe still included in the ordinary one-tool lookup.",
+    "Shared grocery length validation used by the care service.",
+    "README and roadmap distinguish historical preview from the current trial and current verification.",
+    "Pinned GitHub Actions workflow runs checks on Windows and Linux with read-only permissions."
+  ],
+  "automated": {
+    "command": "npm run check",
+    "typecheck": "pass",
+    "files_passed": 33,
+    "tests_passed": 286,
+    "tests_skipped": 1,
+    "build": "pass",
+    "skip_reason": "Optional LOCAL_CARE_TEST_URL test is unconfigured; actual PostgreSQL was separately exercised."
+  },
+  "postgres": {
+    "server_version": "17.11",
+    "identity_regressions_passed": 8,
+    "identity_regressions_total": 8,
+    "ledger_restore_checks_passed": 42,
+    "ledger_restore_checks_total": 42,
+    "data_policy": "disposable_live",
+    "private_evidence_refs": [
+      ".local/probes/audit-ledger-regression.json",
+      ".local/probes/activity-ledger-live.json"
+    ]
+  },
+  "live_services": {
+    "checks_passed": 14,
+    "checks_total": 14,
+    "status": "passed",
+    "timings_ms": {
+      "greeting_first_audio_ms": 1361,
+      "navigation_audio_ms": 278,
+      "generated_audio_turn_ms": 5201,
+      "nutrition_reply_ms": 8269
+    },
+    "nutrition_metadata": {
+      "tool_calls": 1,
+      "duration_ms": 8124,
+      "input_chars": 40663,
+      "model_calls": 2,
+      "context_chars": 858,
+      "history_chars": 424,
+      "nutrition_refs": [
+        {
+          "items": [
+            "B01",
+            "B02"
+          ],
+          "sha256": "28a51b6348c72a031348a608d270ead839c9b6bc37173144de5d96d0777ee8a9",
+          "document_id": "CR_NUTRITION_MEALS_V1"
+        },
+        {
+          "items": [],
+          "sha256": "1916edb1197bf9bee4e71560d74b02cf743f9cc262fecd516f9e2e46ddd7a3a3",
+          "document_id": "CR_NUTRITION_EVIDENCE_V1"
+        }
+      ],
+      "instruction_chars": 4679,
+      "model_duration_ms": 8112,
+      "nutrition_retrievals": 1
+    },
+    "private_evidence_ref": ".local/probes/client-readiness-live.json",
+    "data_policy": "Read-only engineering prompts; no care facts written. Generated audio tested ASR, not participant microphone."
+  },
+  "browser": {
+    "status": "pass",
+    "history": "Native date picker loaded October 4 activity with matching date, heading and summary; no console errors.",
+    "views": [
+      "My Day",
+      "Meals",
+      "Activity"
+    ],
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "document_width": 375,
+    "screenshot_ref": ".local/probes/audit-repaired-mobile.png",
+    "limits": "Desktop browser at phone width; no actual iPhone/Safari acoustic test. DOM-fill alone did not commit native date input; native picker was used for real history navigation."
+  },
+  "dependency_audit": {
+    "status": "pass",
+    "known_vulnerabilities": 0,
+    "patched_dependency": "source-map-js 1.2.2"
+  },
+  "deployment": {
+    "active_database": "nancy_client_trial",
+    "care_records_unchanged": true,
+    "cloudflare_client_limits": "Explicit cloudflare-loopback configuration activated; forwarded identity ignored for other peers.",
+    "schema_migration_required": false
+  },
+  "ci": {
+    "workflow": ".github/workflows/checks.yml",
+    "platforms": [
+      "ubuntu-latest",
+      "windows-latest"
+    ],
+    "status": "configured; remote execution follows push"
+  },
+  "limits": [
+    "S01 actual participant/iPhone and remaining contracts remain open.",
+    "S02 genuine-day acceptance and intended-user access remain open.",
+    "No voice/model/billing fallback, external connector activation or genuine care-data seeding.",
+    "Measured live timings are single observations, not percentile guarantees."
+  ]
+}

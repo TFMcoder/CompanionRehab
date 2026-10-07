@@ -72,6 +72,12 @@ function shiftedDate(date: string, days: number) {
   return value.toISOString().slice(0, 10);
 }
 
+function validActivityDate(value: string, latest: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || value > latest) return false;
+  const date = new Date(`${value}T12:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
 function effectiveActivity(today: Today, kind: ActivityKind, sourceId?: string | null, mealSlot?: MealSlot) {
   return today.activity_ledger?.options.find(item => item.kind === kind && (sourceId ? item.source_id === sourceId && (!mealSlot || item.meal_slot === mealSlot) : mealSlot ? item.unplanned && item.meal_slot === mealSlot : false));
 }
@@ -541,6 +547,12 @@ function DayOverview({ today, onView, onRefresh, visible }: { today: Today; onVi
   const [appointmentBusy, setAppointmentBusy] = useState(false);
   const [appointmentPending, setAppointmentPending] = useState<{ title: string; starts_at: string; idempotency_key: string } | null>(null);
   const [appointmentNotice, setAppointmentNotice] = useState<string | null>(null);
+  const afterAppointmentSaved = async (message: string) => {
+    setAppointmentPending(null); setAppointmentTitle(''); setAppointmentStart('');
+    setAppointmentNotice(message);
+    try { await onRefresh(); }
+    catch { setAppointmentNotice(`${message} Refresh your day to see the latest appointments.`); }
+  };
   const refreshAppointments = async () => {
     setAppointmentBusy(true);
     try {
@@ -566,7 +578,7 @@ function DayOverview({ today, onView, onRefresh, visible }: { today: Today; onVi
     const startsAt = converted.value;
     setAppointmentBusy(true); setAppointmentNotice(null);
     const input = { title: appointmentTitle.trim(), starts_at: startsAt, idempotency_key: keyFor() };
-    try { await api.addAppointment(input); await onRefresh(); setAppointmentTitle(''); setAppointmentStart(''); setAppointmentNotice('Appointment added.'); }
+    try { await api.addAppointment(input); await afterAppointmentSaved('Appointment added.'); }
     catch (error) {
       if (error instanceof ApiError && error.code === 'connection_unconfirmed') { setAppointmentPending(input); setAppointmentNotice('Save unconfirmed. Check appointments before trying again.'); }
       else setAppointmentNotice(friendlyError(error));
@@ -575,7 +587,7 @@ function DayOverview({ today, onView, onRefresh, visible }: { today: Today; onVi
   const retryAppointment = async () => {
     if (!appointmentPending || appointmentBusy) return;
     setAppointmentBusy(true);
-    try { await api.addAppointment(appointmentPending); await onRefresh(); setAppointmentPending(null); setAppointmentTitle(''); setAppointmentStart(''); setAppointmentNotice('Appointment confirmed.'); }
+    try { await api.addAppointment(appointmentPending); await afterAppointmentSaved('Appointment confirmed.'); }
     catch (error) { setAppointmentNotice(error instanceof ApiError && error.code === 'connection_unconfirmed' ? 'Save remains unconfirmed. The same request was used; check appointments again.' : friendlyError(error)); }
     finally { setAppointmentBusy(false); }
   };
@@ -625,17 +637,24 @@ function TasksView({ today, onReview }: { today: Today; onReview: () => void }) 
 
 function MealsView({ today, onReview }: { today: Today; onReview: () => void }) {
   const planned = today.checkin?.accepted ?? today.checkin?.proposal;
+  const unplannedInCards = new Set(mealSlots.flatMap(slot => {
+    if (planned?.meals.some(meal => meal.slot === slot)) return [];
+    const entry = unplannedMeal(today, slot);
+    return entry ? [entry.id] : [];
+  }));
   return <section className="data-view" aria-labelledby="meals-title"><h2 id="meals-title">Meals</h2><p>Chosen meals and meals eaten are shown here.</p><PendingPlanNotice today={today} onReview={onReview} /><div className="meal-cards">{mealSlots.map(slot => {
     const meal = planned?.meals.find(item => item.slot === slot);
     const activity = meal ? effectiveActivity(today, 'meal', meal.option_id, slot) : unplannedMeal(today, slot);
     const result = activityDetail(today, activity, today.profile!.time_zone);
     const portion = effectiveEntry(today, activity)?.portion;
     return <section key={slot} className={activity?.status === 'completed' ? 'activity-complete' : undefined}><h3>{labelForSlot[slot]}</h3><p className="meal-name">{meal?.name ?? activity?.title ?? 'No meal chosen'}</p><p>{result ? `${result}${portion ? ` · ${portion}` : ''}` : meal ? `${today.checkin?.accepted ? 'In accepted plan' : 'In proposed plan'} · ${mealTiming(activity, today.profile!.time_zone)}` : 'Choose a meal with Nancy or in My Day.'}</p></section>;
-  })}</div>{(today.activity_ledger?.entries ?? []).filter(item => item.kind === 'meal' && item.unplanned && item.status !== 'voided' && (!item.meal_slot || planned?.meals.some(meal => meal.slot === item.meal_slot))).map(item => <div className="reported-meal" key={item.id}><h3>{item.title}</h3><p>{activityDetail(today, item, today.profile!.time_zone)}{item.portion ? ` · ${item.portion}` : ''}</p></div>)}</section>;
+  })}</div>{(today.activity_ledger?.entries ?? []).filter(item => item.kind === 'meal' && item.unplanned && item.status !== 'voided' && !unplannedInCards.has(item.id)).map(item => <div className="reported-meal" key={item.id}><h3>{item.title}</h3><p>{activityDetail(today, item, today.profile!.time_zone)}{item.portion ? ` · ${item.portion}` : ''}</p></div>)}</section>;
 }
 
 function ActivityView({ initial, localDate, timeZone, onTodayRefresh }: { initial?: ActivityLedger; localDate: string; timeZone: string; onTodayRefresh: () => Promise<Today> }) {
   const [selectedDate, setSelectedDate] = useState(localDate);
+  const selectedDateRef = useRef(selectedDate);
+  const ledgerRequest = useRef(0);
   const [ledger, setLedger] = useState<ActivityLedger | null>(initial ?? null);
   const [loading, setLoading] = useState(!initial);
   const [busy, setBusy] = useState(false);
@@ -646,19 +665,29 @@ function ActivityView({ initial, localDate, timeZone, onTodayRefresh }: { initia
   useEffect(() => { if (selectedDate === localDate && initial?.local_date === localDate) setLedger(initial); }, [initial, localDate, selectedDate]);
 
   const refreshLedger = async () => {
-    const next = await api.activity(selectedDate);
-    setLedger(next);
-    return next;
+    const date = selectedDate;
+    const request = ++ledgerRequest.current;
+    const current = () => selectedDateRef.current === date && ledgerRequest.current === request;
+    try {
+      const next = await api.activity(date);
+      if (!current()) return null;
+      if (next.local_date !== date) throw new Error('Activity date did not match the requested day.');
+      setLedger(next);
+      return next;
+    } catch (error) {
+      if (!current()) return null;
+      throw error;
+    }
   };
 
   useEffect(() => {
     let current = true;
     if (ledger?.local_date === selectedDate) { setLoading(false); return; }
     setLoading(true);
-    void api.activity(selectedDate).then(next => { if (current) { setLedger(next); setNotice(null); } })
+    void refreshLedger().then(next => { if (current && next) setNotice(null); })
       .catch(error => { if (current) setNotice({ kind: "error", text: friendlyError(error) }); })
       .finally(() => { if (current) setLoading(false); });
-    return () => { current = false; };
+    return () => { current = false; ledgerRequest.current += 1; };
   }, [selectedDate]);
 
   const afterCommitted = async (message: string) => {
@@ -754,15 +783,23 @@ function ActivityView({ initial, localDate, timeZone, onTodayRefresh }: { initia
     occurredLocal: activity.occurred_at ? localInputValue(activity.occurred_at, timeZone) : activityDefaultTime(activity.local_date, timeZone), notes: activity.notes, portion: activity.portion ?? "", reason: "" });
   const openReschedule = (activity: ActivityOption) => setDraft({ mode: "reschedule", activity, scheduledLocal: activity.scheduled_at ? localInputValue(activity.scheduled_at, timeZone) : activityDefaultTime(selectedDate, timeZone), reason: "" });
 
-  if (loading) return <section className="data-view" aria-labelledby="activity-title"><p className="eyebrow">What actually happened</p><h2 id="activity-title">Activity</h2><p aria-live="polite">Loading today’s activity…</p></section>;
-  if (!ledger) return <section className="data-view" aria-labelledby="activity-title"><p className="eyebrow">What actually happened</p><h2 id="activity-title">Activity</h2>{notice && <p className="notice error" role="alert">{notice.text}</p>}<button className="secondary-button" onClick={() => { setLoading(true); void refreshLedger().catch(error => setNotice({ kind: "error", text: friendlyError(error) })).finally(() => setLoading(false)); }}>Try again</button></section>;
-
-  const openActivities = ledger.options.filter(item => item.status === "pending" || item.status === "deferred" || item.status === "voided" && !item.unplanned);
   const viewingToday = selectedDate === localDate;
   const selectedDayLabel = formatDay(selectedDate, timeZone);
+  const dateControl = <div className="activity-date"><label>Activity date<input type="date" value={selectedDate} max={localDate} disabled={busy || Boolean(pending)} onChange={event => {
+    const value = event.target.value;
+    if (!validActivityDate(value, localDate) || value === selectedDate) return;
+    selectedDateRef.current = value; ledgerRequest.current += 1;
+    setSelectedDate(value); setDraft(null); setNotice(null);
+  }} /></label><span>{viewingToday ? "Today" : selectedDayLabel}</span></div>;
+  if (loading || !ledger || ledger.local_date !== selectedDate) return <section className="data-view" aria-labelledby="activity-title"><p className="eyebrow">What actually happened</p><h2 id="activity-title">Activity</h2>{dateControl}{loading ? <p aria-live="polite">Loading activity…</p> : <>{notice && <p className="notice error" role="alert">{notice.text}</p>}<button className="secondary-button" disabled={busy} onClick={() => {
+    setLoading(true); setBusy(true);
+    void refreshLedger().then(next => { if (next) setNotice(null); }).catch(error => setNotice({ kind: "error", text: friendlyError(error) })).finally(() => { setLoading(false); setBusy(false); });
+  }}>Try again</button></>}</section>;
+
+  const openActivities = ledger.options.filter(item => item.status === "pending" || item.status === "deferred" || item.status === "voided" && !item.unplanned);
   return <section className="data-view activity-view" aria-labelledby="activity-title">
     <div className="section-heading"><div><p className="eyebrow">What actually happened</p><h2 id="activity-title">Activity</h2><p>Plans are choices for the day. This list changes only when you report what happened.</p></div><button className="text-button" disabled={busy} onClick={() => { setBusy(true); void refreshLedger().then(() => setNotice(null)).catch(error => setNotice({ kind: "error", text: friendlyError(error) })).finally(() => setBusy(false)); }}>Refresh activity</button></div>
-    <div className="activity-date"><label>Activity date<input type="date" value={selectedDate} max={localDate} disabled={busy || Boolean(pending)} onChange={event => { setSelectedDate(event.target.value); setDraft(null); setNotice(null); }} /></label><span>{viewingToday ? "Today" : selectedDayLabel}</span></div>
+    {dateControl}
     <dl className="activity-summary" aria-label={`${viewingToday ? "Today’s" : selectedDayLabel} activity summary`}><div><dt>Tasks done</dt><dd>{ledger.summary.tasks_completed}</dd></div><div><dt>Meals eaten</dt><dd>{ledger.summary.meals_eaten}</dd></div><div><dt>Appointments attended</dt><dd>{ledger.summary.appointments_attended}</dd></div><div><dt>Deferred</dt><dd>{ledger.summary.deferred}</dd></div></dl>
     {notice && <p className={`notice ${notice.kind === "error" ? "error" : "saved"}`} role={notice.kind === "error" ? "alert" : "status"}>{notice.text}</p>}
     {pending && <div className="pending-actions"><button className="secondary-button" disabled={busy} onClick={() => void checkPending()}>Check saved activity</button>{pending.canRetry && <button className="secondary-button" disabled={busy} onClick={() => void retryPending()}>Retry same save</button>}</div>}

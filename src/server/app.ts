@@ -21,6 +21,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { RuntimeLog } from './telemetry.js';
 import { splitSpeechParts } from '../shared/speech-parts.js';
 import { activityCommandSchema, activityDate } from '../shared/activity-contracts.js';
+import { isIP } from 'node:net';
 
 export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog } = {}) {
   const app = Fastify({ logger: false, bodyLimit: 100000, trustProxy: false, requestTimeout: 120000, genReqId: () => randomUUID(), requestIdHeader: false });
@@ -87,9 +88,17 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   const localSpeechReady = () => !!conversation && speech?.readiness().kokoro === 'ready' && speech.readiness().asr === 'ready';
   app.get('/api/config', async () => ({ configured: missingConfig(config).length === 0, voice_available: missingConfig(config).length === 0 && (config.voiceTransport === 'local' ? localSpeechReady() : !!config.openaiKey), voice_transport: config.voiceTransport, synthetic: !!config.synthetic, assistant_name: 'Nancy', missing: missingConfig(config) }));
   app.post('/api/auth/login', async (request, reply) => {
-    limit(request, `login:${request.ip}`, 8);
+    // Only a deliberately configured local cloudflared ingress may supply the
+    // client identity. Never trust arbitrary X-Forwarded-For or remote peers.
+    const forwarded = request.headers['cf-connecting-ip'];
+    const loopback = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(request.ip);
+    const clientAddress = config.trustedProxy === 'cloudflare-loopback' && loopback && typeof forwarded === 'string' && isIP(forwarded)
+      ? forwarded : request.ip;
+    limit(request, `login:${clientAddress}`, 20);
     if (missingConfig(config).length) throw new ApiError(503, 'not_configured', 'The care service has not been connected yet.');
     const { email, password } = z.object({ email: z.email().max(254), password: z.string().min(1).max(256) }).strict().parse(request.body);
+    const accountKey = createHash('sha256').update(email.toLowerCase()).digest('hex');
+    limit(request, `login-account:${clientAddress}:${accountKey}`, 8);
     const session = await care.login(email, password);
     setSession(reply, session); return { ok: true };
   });

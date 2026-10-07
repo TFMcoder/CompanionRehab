@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { LocalSpeech, kokoroPronunciationInput, validateSpeechText, validateWav } from '../src/server/local-speech.js';
 
 const dirs: string[] = [];
@@ -14,7 +16,7 @@ function fakeWav() {
   return wav;
 }
 
-async function makeService() {
+async function makeService(responseDelay = 5) {
   const dir = await mkdtemp(resolve(tmpdir(), 'nancy-local-speech-'));
   dirs.push(dir);
   const script = resolve(dir, 'fake-worker.mjs');
@@ -41,11 +43,70 @@ createInterface({input:process.stdin}).on('line', line => {
       console.log(JSON.stringify({type:'result',id:r.id,value}));
     }
     if(active===job) active=undefined;
-  },r.text==='wait'?180:5);
+  },r.text==='wait'?180:${responseDelay});
 });
 `, 'utf8');
   const spec = (kind: string) => ({ executable: process.execPath, args: [script, kind], cwd: dir, env: process.env });
   return new LocalSpeech({ workerSpecs: { kokoro: spec('kokoro'), asr: spec('asr') } });
+}
+
+// Run lifecycle failures in a real Node process, where an unobserved startup
+// rejection terminates the server instead of merely failing a mocked promise.
+async function workerLifecycleProbe(mode: 'initial-failure' | 'failed-restart' | 'recovery' | 'close-starting') {
+  const dir = await mkdtemp(resolve(tmpdir(), 'nancy-worker-lifecycle-'));
+  dirs.push(dir);
+  const worker = resolve(dir, 'worker.mjs'), harness = resolve(dir, 'harness.mjs');
+  await writeFile(worker, `import { createInterface } from 'node:readline';
+import { existsSync, writeFileSync } from 'node:fs';
+const [kind, mode, marker] = process.argv.slice(2);
+if (kind === 'kokoro') {
+  if (mode === 'initial-failure' || mode === 'failed-restart' && existsSync(marker)) process.exit(1);
+  writeFileSync(marker, 'started');
+}
+if (mode !== 'close-starting') console.log(JSON.stringify({type:'ready'}));
+createInterface({input:process.stdin}).on('line', line => {
+  const request = JSON.parse(line);
+  if (request.text === 'crash') process.exit(1);
+  console.log(JSON.stringify({type:'result', id:request.id, value:${JSON.stringify(fakeWav().toString('base64'))}}));
+});
+`, 'utf8');
+  await writeFile(harness, `import assert from 'node:assert/strict';
+import { LocalSpeech } from ${JSON.stringify(new URL('../src/server/local-speech.ts', import.meta.url).href)};
+const mode = ${JSON.stringify(mode)};
+const spec = kind => ({ executable:process.execPath, args:[${JSON.stringify(worker)},kind,mode,${JSON.stringify(resolve(dir, 'marker'))}], cwd:${JSON.stringify(dir)}, env:process.env });
+const speech = new LocalSpeech({workerSpecs:{kokoro:spec('kokoro'),asr:spec('asr')}});
+const waitFor = async test => {
+  const deadline = Date.now() + 4000;
+  while (!test()) { if (Date.now() > deadline) throw new Error('Worker state timed out.'); await new Promise(resolve => setTimeout(resolve,10)); }
+};
+try {
+  if (mode === 'close-starting') {
+    await speech.close();
+    await new Promise(resolve => setTimeout(resolve,25));
+    await assert.rejects(speech.ready(), /closed/);
+    assert.deepEqual(speech.readiness(), {kokoro:'unavailable',asr:'unavailable'});
+  } else if (mode === 'initial-failure') {
+    await waitFor(() => speech.readiness().kokoro === 'unavailable');
+    await assert.rejects(speech.ready(), /unavailable/);
+  } else {
+    await speech.ready();
+    await assert.rejects(speech.synthesize('crash'), /unavailable/);
+    await waitFor(() => speech.readiness().kokoro === (mode === 'recovery' ? 'ready' : 'unavailable'));
+    if (mode === 'recovery') {
+      await speech.ready();
+      assert.equal((await speech.synthesize('The worker recovered.')).length, 46);
+    } else {
+      await assert.rejects(speech.ready(), /unavailable/);
+    }
+  }
+  console.log(JSON.stringify({mode, survived:true, readiness:speech.readiness()}));
+} finally { await speech.close(); }
+`, 'utf8');
+  const { stdout, stderr } = await promisify(execFile)(process.execPath, ['--import', 'tsx', harness], {
+    cwd: resolve('.'), windowsHide: true, timeout: 10000,
+  });
+  expect(stderr).toBe('');
+  return JSON.parse(stdout.trim()) as { mode: string; survived: boolean; readiness: { kokoro: string; asr: string } };
 }
 
 afterEach(async () => {
@@ -100,6 +161,32 @@ describe('LocalSpeech input bounds and worker lifecycle', () => {
       const controller = new AbortController(); controller.abort();
       await expect(service.synthesize('Here are your tasks.', controller.signal)).rejects.toMatchObject({ name: 'AbortError' });
     } finally { await service.close(); }
+  });
+
+  it('keeps voice starting until navigation priming releases the worker, then accepts the greeting', async () => {
+    const service = await makeService(40);
+    try {
+      const priming = service.primeNavigation();
+      expect(service.primeNavigation()).toBe(priming);
+      await service.ready();
+      expect(service.readiness()).toEqual({ kokoro: 'starting', asr: 'ready' });
+      await priming;
+      expect(service.readiness()).toEqual({ kokoro: 'ready', asr: 'ready' });
+      const greeting = await service.synthesize('Hi Sam, what can I help with?');
+      // Five fixed acknowledgements, one greeting; concurrent priming was shared.
+      expect(greeting.readInt16LE(44)).toBe(6);
+    } finally { await service.close(); }
+  });
+
+  it.each(['initial-failure', 'failed-restart', 'close-starting'] as const)(
+    'keeps the host alive and reports unavailable after %s', async mode => {
+      const result = await workerLifecycleProbe(mode);
+      expect(result).toMatchObject({ mode, survived: true, readiness: { kokoro: 'unavailable' } });
+    },
+  );
+
+  it('recovers a ready worker after failure and accepts a later synthesis request', async () => {
+    expect(await workerLifecycleProbe('recovery')).toMatchObject({ survived: true, readiness: { kokoro: 'ready', asr: 'ready' } });
   });
 
   it('suppresses cancelled output and queues one next request behind the still-warm worker', async () => {

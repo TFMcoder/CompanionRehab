@@ -509,6 +509,10 @@
         {
           "id": "S01-T14",
           "description": "Propose several feasible meals from supplied preferences, ingredients and approved restrictions. Clarify missing ingredients, alternatives and portion preferences without prescribing clinical targets; on explicit confirmation add a minimal idempotent GroceryItem tied to the meal proposal. S05 expands list sharing, normalization and acquired state."
+        },
+        {
+          "id": "S01-T15",
+          "description": "October 6 audit repairs: prevent stale meal substitution and duplicate moved tasks, preserve legacy factual identities, clean up voice failures, handle date/retry UI errors, isolate tunneled login limits and keep recipe discovery bounded and complete. Re-test with synthetic regressions and actual isolated/live services before handoff."
         }
       ],
       "contracts": {
@@ -743,7 +747,7 @@
         "S03",
         "S04"
       ],
-      "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
+      "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
       "blockers": [
         "October 5 latency fixes deployed; see docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Natural navigation now avoids two GPT calls, fixed Heart acknowledgements are primed, CUDA ASR is qualified on six synthetic phrases and validated first-part preparation overlaps some model output. Public exact-navigation estimates improved from 4.58-4.82s to 1.83-1.85s; natural navigation was 1.93s through HTTPS. General GPT answers remain variable (one public sample 9.17s). The owner subsequently accepted the faster response for advancing the MVP. Actual revised iPhone/Safari latency, interruption and participant acceptance are still required. Preserve Heart and Sol/high; S01 is not complete.",
         "S01-LIVE2 is partial: encrypted restore and integrated planning passed, but the complete provider-loss/revocation/allowance, device and full-role scenario remains open. S01-LIVE1 has not run on the consenting participant's iPhone/Safari with genuine tasks/meals.",
@@ -758,24 +762,24 @@
         {
           "test_id": "S01-AUTO1",
           "outcome": "pass",
-          "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
-          "executed_at": "2026-10-06T20:58:11.301Z",
+          "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
+          "executed_at": "2026-10-07T00:03:37.061Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json",
-          "notes": "245 automated tests pass across 30 files, plus typecheck/build. Client empty/partial setup, exact plan/meal identity, ledger provenance, restore-safe future mappings, bounded nutrition/context and metadata privacy included. Actual service evidence is recorded separately."
+          "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
+          "notes": "286 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities."
         },
         {
           "test_id": "S01-LIVE2",
           "outcome": "blocked",
-          "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
-          "executed_at": "2026-10-06T20:58:11.301Z",
+          "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
+          "executed_at": "2026-10-07T00:03:37.061Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
           "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json",
-          "notes": "Partial live evidence: PostgreSQL 42/42 with encrypted restore; live HTTPS/Sol-high/Heart/ASR/nutrition/logging 14/14; phone-width browser views verified. Full slice live branches, actual iPhone and genuine participant day remain unperformed."
+          "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
+          "notes": "Partial actual-service evidence: 8/8 new PostgreSQL identity/reschedule/grocery regressions; 42/42 ledger/restore checks; 14/14 HTTPS/Sol-high/Heart/ASR/nutrition/logging checks; native browser history navigation and phone-width layout. Actual participant/iPhone and full slice gates remain open."
         }
       ],
       "human_actions": [
@@ -1043,7 +1047,7 @@
       ],
       "implementation_authorization": {
         "decision_ref": "docs/evidence/S02-MVP-LEDGER-2026-10-05.json",
-        "reason": "On 2026-10-05 the owner explicitly asked to advance the MVP with UI cleanup, a factual task/meal/appointment ledger and repository-grounded nutrition. On 2026-10-06 the owner further authorized client-facing cleanup, ledger and future actuation readiness, simple visible meal/task/timing results, bounded nutrition and faster Nancy context/logging. These directions authorize overlapping implementation and awaiting-live-test status only; S01 actual-device and clinical-use gates remain open, and S01 completion remains required before S02 can be done."
+        "reason": "On 2026-10-05 the owner explicitly asked to advance the MVP with UI cleanup, a factual task/meal/appointment ledger and repository-grounded nutrition. On 2026-10-06 the owner further authorized client-facing cleanup, ledger and future actuation readiness, simple visible meal/task/timing results, bounded nutrition and faster Nancy context/logging. These directions authorize overlapping implementation and awaiting-live-test status only; S01 actual-device and clinical-use gates remain open, and S01 completion remains required before S02 can be done. The owner also explicitly authorized repairing all October 6 audit findings and retesting; this does not waive participant or slice completion gates."
       },
       "required_inputs": [],
       "outcome": "The participant reports tasks actually completed, meals actually eaten and appointments actually attended, corrects or voids mistakes, defers or reschedules pending work and sees a factual durable ledger. Nancy prioritizes from committed actuals and effective schedules, uses bounded repository nutrition references with provenance and limitations, and keeps the ordinary My Day surface free of engineering test clutter.",
@@ -1093,6 +1097,10 @@
         {
           "id": "S02-T07",
           "description": "Load the canonical nutrition research and meal library from disk; expose compact G01-G08 authority, a claim index and bounded exact claim/recipe retrieval with source IDs, status, hashes and limitations."
+        },
+        {
+          "id": "S02-T08",
+          "description": "October 6 audit repairs: prevent stale meal substitution and duplicate moved tasks, preserve legacy factual identities, clean up voice failures, handle date/retry UI errors, isolate tunneled login limits and keep recipe discovery bounded and complete. Re-test with synthetic regressions and actual isolated/live services before handoff."
         }
       ],
       "contracts": {
@@ -1231,7 +1239,7 @@
         "A05",
         "A06"
       ],
-      "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
+      "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
       "blockers": [
         "S02-LIVE1 has not run through a genuine participant day; code and synthetic/disposable evidence do not complete the slice.",
         "S01 is unfinished. The explicit implementation authorization permits overlap and awaiting-live-test status only; S01 completion remains required before S02 can be done.",
@@ -1241,46 +1249,46 @@
         {
           "test_id": "S02-AUTO1",
           "outcome": "pass",
-          "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
-          "executed_at": "2026-10-06T20:58:11.301Z",
+          "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
+          "executed_at": "2026-10-07T00:03:37.061Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json",
-          "notes": "245 automated tests pass across 30 files, plus typecheck/build. Client empty/partial setup, exact plan/meal identity, ledger provenance, restore-safe future mappings, bounded nutrition/context and metadata privacy included. Actual service evidence is recorded separately."
+          "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
+          "notes": "286 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities."
         },
         {
           "test_id": "S02-AUTO2",
           "outcome": "pass",
-          "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
-          "executed_at": "2026-10-06T20:58:11.301Z",
+          "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
+          "executed_at": "2026-10-07T00:03:37.061Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json",
-          "notes": "245 automated tests pass across 30 files, plus typecheck/build. Client empty/partial setup, exact plan/meal identity, ledger provenance, restore-safe future mappings, bounded nutrition/context and metadata privacy included. Actual service evidence is recorded separately."
+          "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
+          "notes": "286 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities."
         },
         {
           "test_id": "S02-AUTO3",
           "outcome": "pass",
-          "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
-          "executed_at": "2026-10-06T20:58:11.301Z",
+          "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
+          "executed_at": "2026-10-07T00:03:37.061Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json",
-          "notes": "245 automated tests pass across 30 files, plus typecheck/build. Client empty/partial setup, exact plan/meal identity, ledger provenance, restore-safe future mappings, bounded nutrition/context and metadata privacy included. Actual service evidence is recorded separately."
+          "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
+          "notes": "286 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities."
         },
         {
           "test_id": "S02-LIVE2",
           "outcome": "blocked",
-          "implementation_revision": "sha256:8b0d259d5fbca89d69beb13c5a6895b86e91e96527b6f47fac1d50f14bc6f0a9",
-          "executed_at": "2026-10-06T20:58:11.301Z",
+          "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
+          "executed_at": "2026-10-07T00:03:37.061Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
           "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json",
-          "notes": "Partial live evidence: PostgreSQL 42/42 with encrypted restore; live HTTPS/Sol-high/Heart/ASR/nutrition/logging 14/14; phone-width browser views verified. Full slice live branches, actual iPhone and genuine participant day remain unperformed."
+          "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
+          "notes": "Partial actual-service evidence: 8/8 new PostgreSQL identity/reschedule/grocery regressions; 42/42 ledger/restore checks; 14/14 HTTPS/Sol-high/Heart/ASR/nutrition/logging checks; native browser history navigation and phone-width layout. Actual participant/iPhone and full slice gates remain open."
         }
       ],
       "human_actions": [

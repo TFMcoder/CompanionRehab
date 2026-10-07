@@ -73,6 +73,70 @@ describe('nutrition reference', () => {
     expect(options.sources.map(source => source.sha256)).toHaveLength(2);
     expect(options.limitations.join(' ')).toContain('not approved meals');
     expect(options.characterCount).toBeLessThanOrEqual(10_000);
+    expect(options).toMatchObject({ total_matches: 5, offset: 0, has_more: true, next_offset: 2 });
+    expect(options.characterCount).toBe(JSON.stringify(options).length);
+  });
+
+  it('makes all twenty recipes discoverable through bounded pages without skipping or repeating IDs', () => {
+    const reference = loadNutritionReference({ docsDir });
+    const found: string[] = [];
+    let offset: number | null = 0;
+    do {
+      const page = reference.recipeOptions({ offset });
+      expect(page.items.length).toBeGreaterThan(0);
+      expect(page.items.length).toBeLessThanOrEqual(2);
+      expect(page.total_matches).toBe(20);
+      expect(page.characterCount).toBe(JSON.stringify(page).length);
+      expect(page.characterCount).toBeLessThanOrEqual(10_000);
+      expect(page.sources).toHaveLength(2);
+      found.push(...page.items.map(item => item.id));
+      if (page.has_more) expect(page.next_offset).toBe(offset + page.items.length);
+      else expect(page.next_offset).toBeNull();
+      offset = page.next_offset;
+    } while (offset !== null);
+    expect(found).toHaveLength(20);
+    expect(new Set(found).size).toBe(20);
+    expect(found).toContain('D05');
+  });
+
+  it('finds later title and ingredient matches and offers new choices after refusal', () => {
+    const reference = loadNutritionReference({ docsDir });
+    const title = reference.recipeOptions({ category: 'dinner', search: 'lentil mushroom' });
+    expect(title.items.map(item => item.id)).toEqual(['D05']);
+    expect(title.items[0]).toHaveProperty('recipeYaml');
+    expect(title).toMatchObject({ total_matches: 1, has_more: false, next_offset: null });
+    expect(reference.recipeOptions({ category: 'dinner', search: 'lean ground turkey' }).items.map(item => item.id)).toEqual(['D03']);
+    const alternatives = reference.recipeOptions({ category: 'breakfast', excludeIds: ['B01', 'B02'] });
+    expect(alternatives.items.map(item => item.id)).toEqual(['B03', 'B04']);
+    expect(alternatives).toMatchObject({ total_matches: 3, next_offset: 2, has_more: true });
+    const last = reference.recipeOptions({ category: 'breakfast', excludeIds: ['B01', 'B02'], offset: alternatives.next_offset! });
+    expect(last.items.map(item => item.id)).toEqual(['B05']);
+    expect(last).toMatchObject({ total_matches: 3, has_more: false, next_offset: null });
+    expect(reference.listRecipes({ search: 'nonexistentfixtureingredient' })).toMatchObject({ items: [], total_matches: 0, has_more: false, next_offset: null });
+    expect(reference.listRecipes({ offset: 20 })).toMatchObject({ items: [], total_matches: 20, has_more: false, next_offset: null });
+  });
+
+  it('advances pages only by the entries that fit the result bound', () => {
+    const reference = loadNutritionReference({ docsDir, maxResultChars: 3_000 });
+    const first = reference.listRecipes({ limit: 10 });
+    expect(first.items.length).toBeGreaterThan(0);
+    expect(first.items.length).toBeLessThan(10);
+    expect(first.truncated).toBe(true);
+    expect(first.next_offset).toBe(first.items.length);
+    const next = reference.listRecipes({ limit: 10, offset: first.next_offset! });
+    expect(next.items[0].id).not.toBe(first.items[0].id);
+    for (const page of [first, next]) {
+      expect(page.characterCount).toBe(JSON.stringify(page).length);
+      expect(page.characterCount).toBeLessThanOrEqual(3_000);
+    }
+  });
+
+  it('rejects invalid discovery queries instead of silently returning the first choices', () => {
+    const reference = loadNutritionReference({ docsDir });
+    for (const query of [
+      { offset: -1 }, { offset: 1.5 }, { offset: 10001 }, { search: '  ' }, { search: 'x'.repeat(161) },
+      { excludeIds: ['B99'] }, { excludeIds: ['C01'] }, { excludeIds: Array(21).fill('B01') },
+    ]) expect(() => reference.recipeOptions(query)).toThrow(NutritionReferenceError);
   });
 
   it('fails closed for unknown IDs, duplicate IDs and oversized detail requests', () => {

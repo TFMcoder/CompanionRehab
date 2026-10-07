@@ -31,15 +31,12 @@ class WarmWorker {
   private waiting = false;
   private claimed = false;
   private state: LocalSpeechReadiness['kokoro'] = 'starting';
-  private startup: Promise<void>;
+  private startup!: Promise<void>;
   private resolveStartup!: () => void;
   private rejectStartup!: (error: Error) => void;
 
   constructor(private readonly spec: ChildSpec) {
-    this.startup = new Promise<void>((resolveStartup, rejectStartup) => {
-      this.resolveStartup = resolveStartup;
-      this.rejectStartup = rejectStartup;
-    });
+    this.resetStartup();
     this.launch();
   }
 
@@ -51,6 +48,10 @@ class WarmWorker {
       this.resolveStartup = resolveStartup;
       this.rejectStartup = rejectStartup;
     });
+    // A background restart or an early close may finish before any request
+    // awaits ready(). Observe that rejection without changing the promise:
+    // callers still receive the original startup failure when they await it.
+    void this.startup.catch(() => undefined);
   }
 
   async close() {
@@ -89,6 +90,7 @@ class WarmWorker {
         child.kill();
       }
     }, STARTUP_TIMEOUT_MS);
+    startupTimer.unref();
     lines.on('line', line => {
       if (this.child !== child || line.length > MAX_WORKER_LINE) return;
       let message: any;
@@ -116,8 +118,8 @@ class WarmWorker {
   }
 
   private workerFailed(child: ChildProcessWithoutNullStreams, startupTimer: NodeJS.Timeout, hadStarted: boolean) {
-    if (this.child !== child) return;
     clearTimeout(startupTimer);
+    if (this.child !== child) return;
     this.child = null;
     this.state = 'unavailable';
     const pending = this.pending;
@@ -292,6 +294,7 @@ export class LocalSpeech {
   private readonly kokoro: WarmWorker;
   private readonly asr: WarmWorker;
   private readonly greetingAudio = new Map<string, { wav: Buffer; expiresAt: number }>();
+  private navigationPriming?: Promise<void>;
 
   constructor(options: LocalSpeechOptions = {}) {
     const specs = options.workerSpecs ?? defaultWorkerSpecs();
@@ -300,12 +303,24 @@ export class LocalSpeech {
   }
 
   async ready() { await Promise.all([this.kokoro.ready(), this.asr.ready()]); }
-  readiness(): LocalSpeechReadiness { return { kokoro: this.kokoro.readiness(), asr: this.asr.readiness() }; }
+  readiness(): LocalSpeechReadiness {
+    const kokoro = this.kokoro.readiness();
+    // The HTTP server can already serve touch, but voice must not be enabled
+    // while the single synthesis worker is occupied by startup preparation.
+    return { kokoro: this.navigationPriming && kokoro === 'ready' ? 'starting' : kokoro, asr: this.asr.readiness() };
+  }
 
   /** Fixed UI acknowledgements contain no care data and can be prepared before serving requests. */
-  async primeNavigation() {
-    await this.ready();
-    for (const text of NAVIGATION_PHRASES) await this.synthesize(text);
+  primeNavigation(): Promise<void> {
+    if (!this.navigationPriming) {
+      this.navigationPriming = (async () => {
+        await this.ready();
+        for (const text of NAVIGATION_PHRASES) await this.synthesize(text);
+      })().finally(() => { this.navigationPriming = undefined; });
+      // Preserve failure for callers while allowing shutdown during warmup.
+      void this.navigationPriming.catch(() => undefined);
+    }
+    return this.navigationPriming;
   }
 
   async synthesize(text: string, signal?: AbortSignal): Promise<Buffer> {

@@ -1,9 +1,9 @@
 import { randomBytes, randomUUID, scrypt as scryptCallback, timingSafeEqual, createHash } from 'node:crypto';
 import { Pool, type PoolClient, type PoolConfig } from 'pg';
 import { z, ZodError } from 'zod';
-import { commandSchema, setupSchema, dateInZone, type CareCommand, type SetupInput, type Today, type Receipt, type Task, type MealOption } from '../shared/contracts.js';
+import { commandSchema, setupSchema, groceryInput, dateInZone, type CareCommand, type SetupInput, type Today, type Receipt, type Task, type MealOption } from '../shared/contracts.js';
 import { activityCommandSchema, activityDate, type ActivityCommand, type ActivityEntry, type ActivityLedger, type ActivityReceipt } from '../shared/activity-contracts.js';
-import { activityId, activityRow, plannedActivities, projectLedger } from './activity-ledger.js';
+import { activityId, activityRow, projectLedger } from './activity-ledger.js';
 import { ApiError, unavailable } from './errors.js';
 import type { Session } from './session.js';
 import type { AppointmentInput, CareAccess, GroceryInput, GroceryItem, LocalRole } from './care-access.js';
@@ -219,6 +219,7 @@ export class LocalCare implements CareAccess {
       groceries, appointments } as Today;
     const rows = (await client.query(`select *,local_date::text as local_date from companion_local.activity_records where participant_id=$1
       and (local_date=$2::date or (occurred_at at time zone $3)::date=$2::date or (scheduled_at at time zone $3)::date=$2::date
+        or (kind='task' and local_date<$2::date and (scheduled_at at time zone $3)::date>=$2::date)
         or id in (select id from companion_local.activity_records where participant_id=$1 order by updated_at desc,id limit 100))
       order by updated_at desc,id`, [participantId,day,p.time_zone])).rows;
     today.activity_ledger = projectLedger(today,rows.map(activityRow),currentDate);
@@ -256,7 +257,9 @@ export class LocalCare implements CareAccess {
         const targetId=input.payload.activity_id;
         const previous=targetId?(await client.query('select *,local_date::text as local_date from companion_local.activity_records where participant_id=$1 and id=$2 for update',[participantId,targetId])).rows[0]:undefined;
         const prior=previous?activityRow(previous):undefined;
-        let target=prior??plannedActivities(snapshot,currentDate).find(option=>option.id===targetId);
+        // Use the same reconciled options shown to voice and touch. Regenerating
+        // raw definitions here would permit a second destination-day occurrence.
+        let target=prior??snapshot.activity_ledger!.options.find(option=>option.id===targetId);
         if(!target&&input.type==='record_activity'&&input.payload.unplanned){
           const unplanned=input.payload.unplanned;
           target={id:activityId(participantId,input.local_date,unplanned.kind,input.idempotency_key),kind:unplanned.kind,title:unplanned.title,
@@ -447,7 +450,7 @@ export class LocalCare implements CareAccess {
   }
   async addGrocery(session: Session, input: GroceryInput): Promise<{ item: GroceryItem }> {
     try {
-      const parsed = z.object({ name: z.string().trim().min(1).max(120), quantity: z.string().trim().max(80).optional(), idempotency_key: uuidSchema }).strict().parse(input);
+      const parsed = groceryInput.parse(input);
       return await transaction(this.pool, async client => {
         const { actorId, participantId } = await this.clientContext(session, client);
         await client.query('select id from companion_local.participant_profiles where id=$1 for update', [participantId]);

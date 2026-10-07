@@ -1,13 +1,13 @@
 import { createHash } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-const roots = ['src', 'tests', 'scripts', 'db'];
+const roots = ['src', 'tests', 'scripts', 'db', '.github'];
 const files = ['package.json', 'package-lock.json', 'tsconfig.json', 'vite.config.ts', 'vitest.config.ts', 'index.html', 'preview.html', '.env.example'];
 async function scan(path: string) {
   for (const entry of await readdir(path, { withFileTypes: true })) {
     const name = join(path, entry.name).replaceAll('\\', '/');
     if (entry.isDirectory()) await scan(name);
-    else if (entry.isFile() && /\.(ts|tsx|js|mjs|css|sql|ps1|py|txt)$/.test(name)) files.push(name);
+    else if (entry.isFile() && /\.(ts|tsx|js|mjs|css|sql|ps1|py|txt|yml|yaml)$/.test(name)) files.push(name);
   }
 }
 for (const root of roots) await scan(root);

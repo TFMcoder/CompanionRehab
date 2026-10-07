@@ -119,9 +119,12 @@ const definitions: OutputItem[] = [
   },[])),
   tool('get_activity_receipt','Check an unconfirmed activity save by its exact receipt key; never repeat a write blindly.',object({key:{type:'string'}})),
   ...activityTools.map((name,index)=>tool(name,'Prepare an exact activity report/correction/reschedule for spoken review. The application asks for confirmation and commits through the same care command as buttons. Use an activity_id from the ledger, or explicit unplanned kind/title; never guess an ID. Completion requires an actual time; deferral is not completion.',activityParameters(index as 0|1|2))),
-  tool('get_nutrition_reference','Retrieve repository nutrition knowledge before giving nutrition explanations or recipe suggestions. recipe_options includes exact details for its first idea; fetch another recipe only if needed. Preserve source status and limitations; reference recipes are not approved saved meal options.',object({
+  tool('get_nutrition_reference','Retrieve repository nutrition knowledge. recipe_options returns two choices with first-recipe details. Use next_offset to browse more with the same filters, or search/exclude_ids to find alternatives after refusal (restart offset when filters change). Search is discovery, not an allergy-safety filter. Preserve source limitations; recipes are not approved saved meals.',object({
     kind:{type:'string',enum:['claim_index','claims','recipe_options','recipes']},ids:{type:'array',maxItems:2,items:{type:'string'}},
     category:{type:'string',enum:['breakfast','lunch','snack','dinner']},
+    search:{type:'string',minLength:1,maxLength:160,description:'recipe_options only: words from titles or ingredients.'},
+    offset:{type:'integer',minimum:0,maximum:10000,description:'recipe_options only: use the preceding next_offset for the same filters.'},
+    exclude_ids:{type:'array',maxItems:20,items:{type:'string',pattern:'^[BLSD][0-9]{2}$'},description:'recipe_options only: known recipe IDs already declined; restart at offset zero.'},
   },['kind'])),
 ];
 const definitionChars = JSON.stringify(definitions).length;
@@ -378,8 +381,15 @@ export class ConversationService {
                 const ledger=await this.care.ledger(session,command.local_date);ensureOpen();
                 reply=this.activityReview(id,state,today,ledger,command,changed,navigate);break;
               }else if(call.name==='get_nutrition_reference'){
-                const query=z.object({kind:z.enum(['claim_index','claims','recipe_options','recipes']),ids:z.array(z.string()).max(2).optional(),category:z.enum(['breakfast','lunch','snack','dinner']).optional()}).strict().parse(args);
-                const result=query.kind==='claim_index'?reference.claimIndex():query.kind==='claims'?reference.getClaims(query.ids??[]):query.kind==='recipes'?reference.getRecipes(query.ids??[]):reference.recipeOptions({category:query.category,limit:2});
+                const query=z.discriminatedUnion('kind',[
+                  z.object({kind:z.literal('claim_index')}).strict(),
+                  z.object({kind:z.literal('claims'),ids:z.array(z.string()).min(1).max(2)}).strict(),
+                  z.object({kind:z.literal('recipes'),ids:z.array(z.string()).min(1).max(2)}).strict(),
+                  z.object({kind:z.literal('recipe_options'),category:z.enum(['breakfast','lunch','snack','dinner']).optional(),
+                    search:z.string().trim().min(1).max(160).optional(),offset:z.number().int().min(0).max(10000).optional(),
+                    exclude_ids:z.array(z.string().regex(/^[BLSD]\d{2}$/i)).max(20).optional()}).strict(),
+                ]).parse(args);
+                const result=query.kind==='claim_index'?reference.claimIndex():query.kind==='claims'?reference.getClaims(query.ids):query.kind==='recipes'?reference.getRecipes(query.ids):reference.recipeOptions({category:query.category,search:query.search,offset:query.offset,excludeIds:query.exclude_ids,limit:2});
                 nutritionRetrievals++;
                 output=result;
                 for(const source of result.sources){

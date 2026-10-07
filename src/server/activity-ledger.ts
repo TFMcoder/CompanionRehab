@@ -31,7 +31,9 @@ export function plannedActivities(today: Today, currentDate: string): ActivityOp
     options.push({id:activityId(profile.id,day,'task',task.id),kind:'task',title:task.title,local_date:day,source_id:task.id,
       meal_slot:null,plan_id:plan?.id??null,unplanned:false,scheduled_at:scheduled(task.scheduled_time),status:'pending',revision:0});
   }
-  for(const meal of plan?.meals??[])options.push({id:activityId(profile.id,day,'meal',meal.slot),kind:'meal',title:meal.name,local_date:day,
+  // A slot is not a food identity. Replacing its choice must invalidate an old
+  // unsaved report, while reaccepting the same food still means one occurrence.
+  for(const meal of plan?.meals??[])options.push({id:activityId(profile.id,day,'meal',JSON.stringify([meal.slot,meal.option_id,meal.name])),kind:'meal',title:meal.name,local_date:day,
     source_id:meal.option_id,meal_slot:meal.slot,plan_id:plan!.id,unplanned:false,scheduled_at:null,status:'pending',revision:0});
   for(const appointment of today.appointments??[]) {
     const date=dateInZone(new Date(appointment.starts_at),profile.time_zone);if(date!==day)continue;
@@ -44,6 +46,19 @@ export function projectLedger(today:Today, saved:ActivityEntry[], currentDate:st
   const zone=today.profile!.time_zone, day=today.local_date;
   const onDate=(instant:string|null)=>instant ? dateInZone(new Date(instant),zone) : null;
   const options=new Map(plannedActivities(today,currentDate).map(option=>[option.id,option]));
+  for (const [id, option] of options) {
+    const savedOccurrence = saved.find(entry => !entry.unplanned && entry.kind === option.kind && entry.source_id === option.source_id && (
+      // Preserve earlier saved slot IDs without regenerating a pending copy.
+      option.kind === 'meal' && entry.local_date === day && entry.meal_slot === option.meal_slot && entry.title === option.title
+      // Keep an explicit move through intervening days too, including another
+      // reschedule. A fresh definition must not reappear before its new date.
+      || option.kind === 'task' && entry.local_date < day && (onDate(entry.scheduled_at) ?? '') >= day
+    ));
+    if (savedOccurrence && savedOccurrence.id !== id) {
+      options.delete(id);
+      options.set(savedOccurrence.id, savedOccurrence);
+    }
+  }
   for(const entry of saved) {
     // A moved occurrence keeps its original ID, and is available on the new scheduled day.
     if(options.has(entry.id)||onDate(entry.scheduled_at)===day||entry.local_date===day) options.set(entry.id,entry);

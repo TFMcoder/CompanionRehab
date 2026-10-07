@@ -10,6 +10,7 @@ export interface Config {
   sessionKey?: Buffer; openaiKey?: string; voiceModel: string;
   voiceMinutes: number; voiceDailyMinutes: number;
   databaseUrl?: string; voiceTransport?: 'local' | 'legacy'; planUserId?: string; synthetic?: boolean;
+  trustedProxy?: 'cloudflare-loopback';
 }
 export function configFromEnv(env: NodeJS.ProcessEnv = process.env): Config {
   const origin = new URL(env.PUBLIC_ORIGIN || 'http://localhost:8787');
@@ -41,6 +42,7 @@ export function configFromEnv(env: NodeJS.ProcessEnv = process.env): Config {
     voiceTransport: env.NANCY_VOICE_TRANSPORT === 'legacy' ? 'legacy' : 'local',
     planUserId: env.NANCY_PLAN_USER_ID ? z.string().uuid().parse(env.NANCY_PLAN_USER_ID) : undefined,
     synthetic: env.NANCY_SYNTHETIC === '1',
+    trustedProxy: z.enum(['cloudflare-loopback']).optional().parse(env.NANCY_TRUSTED_PROXY || undefined),
   };
 }
 export function missingConfig(c: Config) {

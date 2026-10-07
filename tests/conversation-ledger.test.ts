@@ -255,9 +255,60 @@ describe('Nancy factual ledger and nutrition tools', () => {
     expect(options.items[0]).toMatchObject({ id: 'B01', recipeYaml: expect.any(String) });
     expect(options.items[1]).not.toHaveProperty('recipeYaml');
     expect(options.characterCount).toBeLessThanOrEqual(10_000);
+    expect(options).toMatchObject({ total_matches: 5, has_more: true, next_offset: 2 });
     expect(reply.nutrition_refs).toEqual(expect.arrayContaining([expect.objectContaining({
       document_id: 'CR_NUTRITION_MEALS_V1', sha256: options.sources[0].sha256, items: ['B01', 'B02'],
     })]));
+  });
+
+  it('exposes recipe discovery and retrieves a later option without a second detail call', async () => {
+    const { service, respond } = harness([
+      toolResponse('get_nutrition_reference', { kind: 'recipe_options', category: 'dinner', search: 'lentil mushroom' }),
+      textResponse('Lentil-mushroom spaghetti is another idea. Does that appeal?'),
+    ]);
+    const started = await begin(service);
+    const reply = await service.turn(started.session_id, session, randomUUID(), 'Could we try a lentil and mushroom dinner?');
+    expect(respond).toHaveBeenCalledTimes(2);
+    const output = respond.mock.calls[1][0].find((item: { type?: string }) => item.type === 'function_call_output');
+    const options = JSON.parse(output.output);
+    expect(options.items).toHaveLength(1);
+    expect(options.items[0]).toMatchObject({ id: 'D05', recipeYaml: expect.any(String) });
+    expect(options).toMatchObject({ total_matches: 1, has_more: false, next_offset: null });
+    expect(reply.nutrition_refs).toEqual(expect.arrayContaining([expect.objectContaining({ document_id: 'CR_NUTRITION_MEALS_V1', items: ['D05'] })]));
+    const definition = respond.mock.calls[0][2].find((tool: { name?: string }) => tool.name === 'get_nutrition_reference');
+    expect(definition.parameters.properties).toHaveProperty('search');
+    expect(definition.parameters.properties).toHaveProperty('offset');
+    expect(definition.parameters.properties).toHaveProperty('exclude_ids');
+  });
+
+  it.each([
+    [{ kind: 'recipe_options', category: 'breakfast', offset: 4 }, ['B05']],
+    [{ kind: 'recipe_options', category: 'breakfast', exclude_ids: ['B01', 'B02'] }, ['B03', 'B04']],
+  ])('honors paging and declined choices: %j', async (query, expectedIds) => {
+    const { service, respond } = harness([
+      toolResponse('get_nutrition_reference', query), textResponse('Here is another breakfast idea.'),
+    ]);
+    const started = await begin(service);
+    await service.turn(started.session_id, session, randomUUID(), 'I do not want those breakfasts. What else is there?');
+    const output = respond.mock.calls[1][0].find((item: { type?: string }) => item.type === 'function_call_output');
+    expect(JSON.parse(output.output).items.map((item: { id: string }) => item.id)).toEqual(expectedIds);
+  });
+
+  it.each([
+    { kind: 'recipe_options', offset: -1 },
+    { kind: 'recipe_options', offset: 0.5 },
+    { kind: 'recipe_options', search: '  ' },
+    { kind: 'recipe_options', exclude_ids: ['B99'] },
+    { kind: 'recipes', ids: ['B01'], offset: 2 },
+  ])('rejects invalid or inapplicable nutrition discovery fields: %j', async query => {
+    const { service, respond } = harness([
+      toolResponse('get_nutrition_reference', query), textResponse('I could not use that search.'),
+    ]);
+    const started = await begin(service);
+    const reply = await service.turn(started.session_id, session, randomUUID(), 'Find another meal.');
+    const output = respond.mock.calls[1][0].find((item: { type?: string }) => item.type === 'function_call_output');
+    expect(JSON.parse(output.output)).toMatchObject({ error: 'invalid_input', outcome: 'rejected' });
+    expect(reply.nutrition_refs).toBeUndefined();
   });
 
   it('returns a rejected tool result for unknown nutrition references', async () => {

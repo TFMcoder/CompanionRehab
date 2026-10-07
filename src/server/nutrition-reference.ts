@@ -63,12 +63,27 @@ export interface NutritionReferenceResult<T> {
   characterCount: number;
 }
 
+export interface RecipeQuery {
+  category?: MealCategory;
+  limit?: number;
+  offset?: number;
+  search?: string;
+  excludeIds?: string[];
+}
+
+export interface RecipePage<T> extends NutritionReferenceResult<T> {
+  total_matches: number;
+  offset: number;
+  has_more: boolean;
+  next_offset: number | null;
+}
+
 export interface NutritionReference {
   authorityContext(): NutritionAuthorityContext;
   claimIndex(): NutritionReferenceResult<ClaimIndexEntry>;
   getClaims(ids: string[]): NutritionReferenceResult<NutritionClaim>;
-  listRecipes(options?: { category?: MealCategory; limit?: number }): NutritionReferenceResult<RecipeSummary>;
-  recipeOptions(options?: { category?: MealCategory; limit?: number }): NutritionReferenceResult<RecipeSummary | NutritionRecipe>;
+  listRecipes(options?: RecipeQuery): RecipePage<RecipeSummary>;
+  recipeOptions(options?: RecipeQuery): RecipePage<RecipeSummary | NutritionRecipe>;
   getRecipes(ids: string[]): NutritionReferenceResult<NutritionRecipe>;
 }
 
@@ -201,6 +216,18 @@ function result<T>(items: T[], sources: NutritionSourceRef[], limitations: strin
   return value;
 }
 
+function recipePage<T>(items: T[], sources: NutritionSourceRef[], maxChars: number, total: number, offset: number): RecipePage<T> {
+  // Reserve the exact maximum pagination overhead before fitting complete items.
+  const metadata = { total_matches: total, offset, has_more: false, next_offset: Math.max(10_000, offset + items.length) };
+  const overhead = JSON.stringify(metadata).length + 1;
+  const fitted = result(items, sources, recipeLimitations, maxChars - overhead);
+  const next = offset + fitted.items.length;
+  const value: RecipePage<T> = { ...fitted, total_matches: total, offset,
+    has_more: next < total, next_offset: next < total && fitted.items.length > 0 ? next : null };
+  for (let attempt = 0; attempt < 3; attempt++) value.characterCount = JSON.stringify(value).length;
+  return value;
+}
+
 export function loadNutritionReference(options: { docsDir?: string; maxResultChars?: number } = {}): NutritionReference {
   const docsDir = options.docsDir ?? DEFAULT_DOCS_DIR;
   const maxResultChars = options.maxResultChars ?? DEFAULT_MAX_RESULT_CHARS;
@@ -282,11 +309,26 @@ export function loadNutritionReference(options: { docsDir?: string; maxResultCha
 
   const evidenceSources = [evidence.source];
   const recipeSources = [meals.source, evidence.source];
-  const selectRecipes = (options: { category?: MealCategory; limit?: number }) => {
-    if (options.category && !['breakfast', 'lunch', 'snack', 'dinner'].includes(options.category)) throw new NutritionReferenceError('invalid_reference_request', 'Unknown meal category.');
+  const selectRecipes = (options: RecipeQuery) => {
+    if (options.category !== undefined && !['breakfast', 'lunch', 'snack', 'dinner'].includes(options.category)) throw new NutritionReferenceError('invalid_reference_request', 'Unknown meal category.');
     const limit = options.limit ?? 5;
     if (!Number.isInteger(limit) || limit < 1 || limit > 10) throw new NutritionReferenceError('invalid_reference_request', 'Recipe summary limit must be from 1 to 10.');
-    return [...recipes.values()].filter(recipe => !options.category || recipe.category === options.category).slice(0, limit);
+    const offset = options.offset ?? 0;
+    if (!Number.isInteger(offset) || offset < 0 || offset > 10_000) throw new NutritionReferenceError('invalid_reference_request', 'Recipe offset must be an integer from 0 to 10000.');
+    if (options.search !== undefined && (typeof options.search !== 'string' || !options.search.trim() || options.search.length > 160)) {
+      throw new NutritionReferenceError('invalid_reference_request', 'Recipe search must contain 1 to 160 characters.');
+    }
+    if (options.excludeIds !== undefined && (!Array.isArray(options.excludeIds) || options.excludeIds.length > 20
+      || options.excludeIds.some(id => typeof id !== 'string' || !/^[BLSD]\d{2}$/i.test(id)))) {
+      throw new NutritionReferenceError('invalid_reference_request', 'Exclude up to 20 known recipe IDs.');
+    }
+    const excluded = new Set((options.excludeIds ?? []).map(id => id.toUpperCase()));
+    if ([...excluded].some(id => !recipes.has(id))) throw new NutritionReferenceError('unknown_reference', 'An excluded recipe ID is unknown.');
+    const searchable = (value: string) => value.normalize('NFKC').toLowerCase().replace(/[_-]/g, ' ');
+    const terms = options.search ? searchable(options.search).trim().split(/\s+/) : [];
+    const matches = [...recipes.values()].filter(recipe => (!options.category || recipe.category === options.category)
+      && !excluded.has(recipe.id) && terms.every(term => searchable(`${recipe.id} ${recipe.title} ${recipe.recipeYaml}`).includes(term)));
+    return { selected: matches.slice(offset, offset + limit), total: matches.length, offset };
   };
   const summary = ({ recipeVersion: _version, recipeYaml: _yaml, ...item }: NutritionRecipe): RecipeSummary => item;
   return {
@@ -299,16 +341,21 @@ export function loadNutritionReference(options: { docsDir?: string; maxResultCha
       return result(normalized.map(id => claims.get(id)!), evidenceSources, evidenceLimitations, maxResultChars, normalized.length);
     },
     listRecipes: (options = {}) => {
-      const selected = selectRecipes(options).map(summary);
-      return result(selected, recipeSources, recipeLimitations, maxResultChars, selected.length);
+      const { selected, total, offset } = selectRecipes(options);
+      const page = recipePage(selected.map(summary), recipeSources, maxResultChars, total, offset);
+      if (selected.length && !page.items.length) throw new NutritionReferenceError('invalid_reference_request', 'The result bound is too small for a recipe summary with provenance.');
+      return page;
     },
     recipeOptions: (options = {}) => {
-      const selected = selectRecipes(options);
+      const { selected, total, offset } = selectRecipes({ ...options, limit: options.limit ?? 2 });
       // One exact recipe travels with the short option list so an ordinary
       // one-idea request does not require another model and tool round trip.
       const items = selected.map((recipe, index) => index === 0 ? recipe : summary(recipe));
-      const detailed = result(items, recipeSources, recipeLimitations, maxResultChars, items.length);
-      return detailed.items.length ? detailed : result(selected.map(summary), recipeSources, recipeLimitations, maxResultChars, selected.length);
+      const detailed = recipePage(items, recipeSources, maxResultChars, total, offset);
+      if (detailed.items.length || !selected.length) return detailed;
+      const compact = recipePage(selected.map(summary), recipeSources, maxResultChars, total, offset);
+      if (!compact.items.length) throw new NutritionReferenceError('invalid_reference_request', 'The result bound is too small for a recipe summary with provenance.');
+      return compact;
     },
     getRecipes: (ids) => {
       const normalized = normalizeIds(ids, 'recipe');

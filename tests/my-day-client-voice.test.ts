@@ -25,11 +25,13 @@ class FakeAudioContext {
 
 describe('local Nancy voice', () => {
   let context: FakeAudioContext;
+  let stopTrack: ReturnType<typeof vi.fn>;
   beforeEach(() => {
     context = new FakeAudioContext();
+    stopTrack = vi.fn();
     Object.defineProperty(window, 'isSecureContext', { configurable: true, value: true });
     vi.stubGlobal('AudioContext', class extends FakeAudioContext { constructor() { super(); context = this; } });
-    Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: vi.fn() }], getAudioTracks: () => [{ getSettings: () => ({echoCancellation:true}) }] })) } });
+    Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: stopTrack }], getAudioTracks: () => [{ getSettings: () => ({echoCancellation:true}) }] })) } });
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) })));
     vi.spyOn(api, 'conversationStart').mockResolvedValue({ session_id: 's1', text: 'Good morning.', reply_id: 'r1' });
     vi.spyOn(api, 'conversationPlayed').mockResolvedValue({ ok: true });
@@ -154,5 +156,68 @@ describe('local Nancy voice', () => {
     await expect(starting).rejects.toThrow('Conversation ended.');
     expect(stopTrack).toHaveBeenCalledTimes(1);
     expect(api.conversationStart).not.toHaveBeenCalled();
+  });
+
+  it('closes microphone and audio before reporting an unconfirmed interruption', async () => {
+    const states: string[] = [];
+    const onState = (state: string) => {
+      states.push(state);
+      if (state === 'error') {
+        expect(stopTrack).toHaveBeenCalledTimes(1);
+        expect(context.close).toHaveBeenCalledTimes(1);
+      }
+    };
+    const starting = startLocalVoice({ onState, onTranscript: vi.fn(), onChange: vi.fn(), onNavigate: vi.fn() });
+    await vi.waitFor(() => expect(context.source).toBeDefined());
+    context.source!.onended?.();
+    const handle = await starting;
+    vi.spyOn(api, 'conversationTurn').mockImplementation((_id, _text, _turnId, signal) => new Promise((_resolve, reject) => {
+      signal?.addEventListener('abort', () => reject(new DOMException('Cancelled', 'AbortError')), { once: true });
+    }));
+    vi.mocked(api.conversationInterrupt).mockRejectedValue(new Error('Connection lost'));
+    const turn = handle.sendText('Tell me about my day');
+    await vi.waitFor(() => expect(api.conversationTurn).toHaveBeenCalled());
+    handle.interrupt();
+    await vi.waitFor(() => expect(states.at(-1)).toBe('error'));
+    await turn;
+    expect(api.conversationEnd).toHaveBeenCalledTimes(1);
+    await handle.stop();
+    expect(stopTrack).toHaveBeenCalledTimes(1);
+    expect(context.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('cleans up an interruption failure during the opening greeting without acknowledging it', async () => {
+    let handle!: LocalVoiceHandle;
+    vi.mocked(api.conversationInterrupt).mockRejectedValue(new Error('Connection lost'));
+    const starting = startLocalVoice({ onReady: value => { handle = value; }, onState: vi.fn(), onTranscript: vi.fn(), onChange: vi.fn(), onNavigate: vi.fn() });
+    const result = starting.then(() => null, error => error as Error);
+    await vi.waitFor(() => expect(context.source).toBeDefined());
+    handle.interrupt();
+    const error = await result;
+    expect(error).toBeInstanceOf(Error);
+    expect(error?.message).toContain('could not confirm the interruption');
+    expect(stopTrack).toHaveBeenCalledTimes(1);
+    expect(context.close).toHaveBeenCalledTimes(1);
+    expect(api.conversationPlayed).not.toHaveBeenCalled();
+    expect(api.conversationEnd).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not replace a completed Stop with an error from a late interruption failure', async () => {
+    let handle!: LocalVoiceHandle;
+    let rejectInterrupt!: (error: Error) => void;
+    const states: string[] = [];
+    vi.mocked(api.conversationInterrupt).mockReturnValue(new Promise((_resolve, reject) => { rejectInterrupt = reject; }));
+    const starting = startLocalVoice({ onReady: value => { handle = value; }, onState: state => states.push(state), onTranscript: vi.fn(), onChange: vi.fn(), onNavigate: vi.fn() });
+    await vi.waitFor(() => expect(context.source).toBeDefined());
+    handle.interrupt();
+    await starting;
+    await handle.stop();
+    rejectInterrupt(new Error('Connection lost'));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(states.at(-1)).toBe('stopped');
+    expect(states).not.toContain('error');
+    expect(stopTrack).toHaveBeenCalledTimes(1);
+    expect(context.close).toHaveBeenCalledTimes(1);
   });
 });
