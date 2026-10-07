@@ -38,10 +38,12 @@ function sendWav(request: FastifyRequest, reply: FastifyReply, bytes: Buffer) {
 
 /** Public-safe, read-only device preview. Deliberately imports no care/auth/provider runtime. */
 export async function createDevicePreview(options: PreviewOptions) {
-  const root = resolve(options.staticRoot || 'dist/client');
+  // Compare canonical paths on both sides: Windows TEMP may use an 8.3 alias.
+  const root = await realpath(resolve(options.staticRoot || 'dist/client'));
   const files = new Map<string, { bytes: Buffer; mime: string }>();
   const html = await readFile(resolve(root, 'preview.html'));
-  const assetRoot = resolve(root, 'assets');
+  const assetRoot = await realpath(resolve(root, 'assets'));
+  if (!assetRoot.startsWith(root + sep)) throw new Error('Preview assets escaped their build directory.');
   for (const entry of await readdir(assetRoot, { withFileTypes: true })) {
     if (!entry.isFile() || !/^[a-zA-Z0-9_.-]+\.(js|css|svg)$/.test(entry.name)) continue;
     const path = await realpath(resolve(assetRoot, entry.name));

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, rm, symlink, unlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -66,6 +66,28 @@ describe('public device preview isolation', () => {
         expect((await app.inject({ method, url: '/api/voice', headers: { host }, payload: 'private audio' })).statusCode).toBe(405);
       }
     } finally { await app.close(); }
+  });
+  it('serves assets when the selected build root is a directory alias', async () => {
+    const alias = join(root, 'build-alias');
+    await symlink(root, alias, process.platform === 'win32' ? 'junction' : 'dir');
+    try {
+      const app = await createDevicePreview({ ...options(), staticRoot: alias });
+      try {
+        const response = await app.inject({ url: '/assets/preview-test.js', headers: { host } });
+        expect(response.statusCode).toBe(200);
+        expect(response.body).toBe('console.log("synthetic")');
+      } finally { await app.close(); }
+    } finally { await unlink(alias); }
+  });
+  it('rejects an assets directory alias that escapes the selected build root', async () => {
+    const build = join(root, 'isolated-build');
+    await mkdir(build);
+    await writeFile(join(build, 'preview.html'), '<title>Preview</title>');
+    const alias = join(build, 'assets');
+    await symlink(join(root, 'assets'), alias, process.platform === 'win32' ? 'junction' : 'dir');
+    try {
+      await expect(createDevicePreview({ ...options(), staticRoot: build })).rejects.toThrow('Preview assets escaped their build directory');
+    } finally { await unlink(alias); }
   });
   it('serves only the pinned synthetic audio with mobile byte-range support', async () => {
     const app = await createDevicePreview(options());
