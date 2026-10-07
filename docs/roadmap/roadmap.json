@@ -747,7 +747,7 @@
         "S03",
         "S04"
       ],
-      "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
+      "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
       "blockers": [
         "October 5 latency fixes deployed; see docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Natural navigation now avoids two GPT calls, fixed Heart acknowledgements are primed, CUDA ASR is qualified on six synthetic phrases and validated first-part preparation overlaps some model output. Public exact-navigation estimates improved from 4.58-4.82s to 1.83-1.85s; natural navigation was 1.93s through HTTPS. General GPT answers remain variable (one public sample 9.17s). The owner subsequently accepted the faster response for advancing the MVP. Actual revised iPhone/Safari latency, interruption and participant acceptance are still required. Preserve Heart and Sol/high; S01 is not complete.",
         "S01-LIVE2 is partial: encrypted restore and integrated planning passed, but the complete provider-loss/revocation/allowance, device and full-role scenario remains open. S01-LIVE1 has not run on the consenting participant's iPhone/Safari with genuine tasks/meals.",
@@ -762,19 +762,19 @@
         {
           "test_id": "S01-AUTO1",
           "outcome": "pass",
-          "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
-          "executed_at": "2026-10-07T00:03:37.061Z",
+          "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
+          "executed_at": "2026-10-07T00:17:52.010Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering checks",
           "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
-          "notes": "286 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities."
+          "notes": "289 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities. GitHub Windows/Linux checks pass, including canonical preview path isolation."
         },
         {
           "test_id": "S01-LIVE2",
           "outcome": "blocked",
-          "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
-          "executed_at": "2026-10-07T00:03:37.061Z",
+          "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
+          "executed_at": "2026-10-07T00:17:52.010Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
           "observed_by": "Codex engineering checks",
@@ -1239,7 +1239,7 @@
         "A05",
         "A06"
       ],
-      "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
+      "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
       "blockers": [
         "S02-LIVE1 has not run through a genuine participant day; code and synthetic/disposable evidence do not complete the slice.",
         "S01 is unfinished. The explicit implementation authorization permits overlap and awaiting-live-test status only; S01 completion remains required before S02 can be done.",
@@ -1249,41 +1249,41 @@
         {
           "test_id": "S02-AUTO1",
           "outcome": "pass",
-          "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
-          "executed_at": "2026-10-07T00:03:37.061Z",
+          "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
+          "executed_at": "2026-10-07T00:17:52.010Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering checks",
           "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
-          "notes": "286 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities."
+          "notes": "289 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities. GitHub Windows/Linux checks pass, including canonical preview path isolation."
         },
         {
           "test_id": "S02-AUTO2",
           "outcome": "pass",
-          "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
-          "executed_at": "2026-10-07T00:03:37.061Z",
+          "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
+          "executed_at": "2026-10-07T00:17:52.010Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering checks",
           "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
-          "notes": "286 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities."
+          "notes": "289 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities. GitHub Windows/Linux checks pass, including canonical preview path isolation."
         },
         {
           "test_id": "S02-AUTO3",
           "outcome": "pass",
-          "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
-          "executed_at": "2026-10-07T00:03:37.061Z",
+          "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
+          "executed_at": "2026-10-07T00:17:52.010Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering checks",
           "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
-          "notes": "286 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities."
+          "notes": "289 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities. GitHub Windows/Linux checks pass, including canonical preview path isolation."
         },
         {
           "test_id": "S02-LIVE2",
           "outcome": "blocked",
-          "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
-          "executed_at": "2026-10-07T00:03:37.061Z",
+          "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
+          "executed_at": "2026-10-07T00:17:52.010Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
           "observed_by": "Codex engineering checks",

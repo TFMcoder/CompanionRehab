@@ -1,7 +1,7 @@
 {
   "evidence_id": "S01-S02-AUDIT-REPAIRS-2026-10-06",
-  "recorded_at": "2026-10-07T00:03:37.061Z",
-  "implementation_revision": "sha256:1e56235f8206d04b5d3ab5cf980b49c0fec27c71a6b2ea3d1ec6c80d1ef58240",
+  "recorded_at": "2026-10-07T00:17:52.010Z",
+  "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
   "status": "engineering_repairs_verified_awaiting_participant",
   "authorization": "Owner requested repair of all audit findings, followed by retesting, on October 6.",
   "findings": [
@@ -76,13 +76,14 @@
     "All 20 recipes discoverable with bounded search, pagination and declined-choice exclusion; first recipe still included in the ordinary one-tool lookup.",
     "Shared grocery length validation used by the care service.",
     "README and roadmap distinguish historical preview from the current trial and current verification.",
-    "Pinned GitHub Actions workflow runs checks on Windows and Linux with read-only permissions."
+    "Pinned GitHub Actions workflow runs checks on Windows and Linux with read-only permissions.",
+    "Canonical preview build/asset paths accept Windows directory aliases while rejecting assets outside the selected build root; two regression tests cover both boundaries. The plan form initializes drafts by plan version, preventing delayed initial effects from erasing fast selections; unchanged refresh preserves the draft."
   ],
   "automated": {
     "command": "npm run check",
     "typecheck": "pass",
     "files_passed": 33,
-    "tests_passed": 286,
+    "tests_passed": 289,
     "tests_skipped": 1,
     "build": "pass",
     "skip_reason": "Optional LOCAL_CARE_TEST_URL test is unconfigured; actual PostgreSQL was separately exercised."
@@ -104,15 +105,15 @@
     "checks_total": 14,
     "status": "passed",
     "timings_ms": {
-      "greeting_first_audio_ms": 1361,
-      "navigation_audio_ms": 278,
-      "generated_audio_turn_ms": 5201,
-      "nutrition_reply_ms": 8269
+      "greeting_first_audio_ms": 1325,
+      "navigation_audio_ms": 320,
+      "generated_audio_turn_ms": 3951,
+      "nutrition_reply_ms": 10455
     },
     "nutrition_metadata": {
       "tool_calls": 1,
-      "duration_ms": 8124,
-      "input_chars": 40663,
+      "duration_ms": 10348,
+      "input_chars": 40535,
       "model_calls": 2,
       "context_chars": 858,
       "history_chars": 424,
@@ -132,11 +133,12 @@
         }
       ],
       "instruction_chars": 4679,
-      "model_duration_ms": 8112,
+      "model_duration_ms": 10336,
       "nutrition_retrievals": 1
     },
     "private_evidence_ref": ".local/probes/client-readiness-live.json",
-    "data_policy": "Read-only engineering prompts; no care facts written. Generated audio tested ASR, not participant microphone."
+    "data_policy": "Read-only engineering prompts; no care facts written. Generated audio tested ASR, not participant microphone.",
+    "observed_at": "2026-10-07T00:09:23.045Z"
   },
   "browser": {
     "status": "pass",
@@ -171,7 +173,20 @@
       "ubuntu-latest",
       "windows-latest"
     ],
-    "status": "configured; remote execution follows push"
+    "status": "passed",
+    "run_url": "https://github.com/TFMcoder/CompanionRehab/actions/runs/37551026822",
+    "head_sha": "ea0e7185ebfba51347545463e637e95b456b7fa3",
+    "jobs": [
+      {
+        "name": "checks (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "name": "checks (ubuntu-latest)",
+        "conclusion": "success"
+      }
+    ],
+    "repaired_initial_failure": "Initial Windows run exposed a raw-versus-canonical TEMP path mismatch in the historical preview loader. Canonical containment and alias/escape regression tests now pass on both platforms."
   },
   "limits": [
     "S01 actual participant/iPhone and remaining contracts remain open.",
