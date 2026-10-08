@@ -1,0 +1,185 @@
+{
+  "evidence_id": "FULL-SUITE-2026-10-08",
+  "recorded_at": "2026-10-08T06:41:51.530Z",
+  "local_date": "2026-10-08",
+  "time_zone": "America/Toronto",
+  "tested_commit": "b8dd8bfbe63e2cac4c22a31283d223126225eb24",
+  "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+  "status": "executed_checks_passed_live_acceptance_gates_remain_open",
+  "authorization": "Owner requested a full suite of tests; prior temporary HTTPS approval remains in force.",
+  "application_code_changed": false,
+  "automated": {
+    "command": "npm run check",
+    "typecheck": "passed",
+    "production_build": "passed",
+    "files_passed": 44,
+    "default_tests_passed": 410,
+    "default_tests_skipped": 1,
+    "optional_postgresql_test_separately_passed": 1,
+    "unique_tests_executed": 411,
+    "failed": 0,
+    "note": "The optional LOCAL_CARE_TEST_URL test skipped in the default command was explicitly run against a newly created isolated PostgreSQL database. The other three local-care tests filtered out of that focused command had already passed in the default suite.",
+    "environment_note": "The restricted shell initially failed to resolve vitest/config. The same command passed with normal local process access and no dependency or application changes.",
+    "private_ref": ".local/probes/full-suite-2026-10-08.log"
+  },
+  "actual_postgresql": {
+    "status": "passed",
+    "server_version": "17.11",
+    "data_origin": "synthetic isolated databases",
+    "requests_and_encrypted_backup": {
+      "passed": 19,
+      "total": 19
+    },
+    "identity_regressions": {
+      "passed": 8,
+      "total": 8
+    },
+    "optional_auth_plan_persistence_restore": {
+      "passed": 1,
+      "total": 1
+    },
+    "ledger_and_encrypted_restore": {
+      "passed": 42,
+      "total": 42
+    },
+    "checks_passed": 70,
+    "checks_total": 70,
+    "count_note": "These include re-execution of automated tests against actual PostgreSQL and must not be added to the unique automated-test count.",
+    "active_care_records_mutated": false,
+    "disposable_databases_created": 7,
+    "disposable_databases_removed": 7,
+    "private_refs": [
+      ".local/probes/full-suite-2026-10-08/task-request-postgres.json",
+      ".local/probes/full-suite-2026-10-08/activity-ledger-live.json",
+      ".local/probes/full-postgres-2026-10-08.json",
+      ".local/probes/full-ledger-cleanup-2026-10-08.json"
+    ],
+    "cleanup_note": "The ledger probe retains its databases initially; a subsequent scoped cleanup removed only this run's two exact generated names. The request and optional-test runners removed their five targets."
+  },
+  "approved_https": {
+    "status": "passed",
+    "passed": 15,
+    "total": 15,
+    "checks": {
+      "https_signin_page": true,
+      "private_requests_require_login": true,
+      "private_day_requires_login": true,
+      "preview_not_public": true,
+      "wrong_origin_denied": true,
+      "cookie_secure": true,
+      "cookie_httponly": true,
+      "cookie_samesite_strict": true,
+      "scoped_session": true,
+      "request_service_available": true,
+      "authorized_request_workspace": true,
+      "local_voice_ready": true,
+      "voice_navigation": true,
+      "heart_audio_over_https": true,
+      "logout_revokes_access": true
+    },
+    "care_writes": false,
+    "private_ref": ".local/probes/full-suite-2026-10-08/approved-tunnel.json"
+  },
+  "running_voice_nutrition_and_telemetry": {
+    "status": "passed",
+    "passed": 16,
+    "total": 16,
+    "checks": {
+      "client_database_selected": true,
+      "preview_removed__preview": true,
+      "preview_removed__preview.html": true,
+      "care_requires_sign_in": true,
+      "no_sample_care_data": true,
+      "selected_voice_ready": true,
+      "heart_greeting": true,
+      "direct_navigation": true,
+      "actual_local_asr": true,
+      "repo_nutrition_provenance": true,
+      "nutrition_heart_audio": true,
+      "logout_revokes_access": true,
+      "turn_metadata_persisted": true,
+      "turn_usage_numeric_or_unknown": true,
+      "per_call_usage_and_binding_metadata": true,
+      "no_activity_invented": true
+    },
+    "care_writes": false,
+    "model": "gpt-6-sol",
+    "reasoning_effort": "high",
+    "voice": "af_heart",
+    "data_origin": "Existing owner practice route, empty care tables, read-only synthetic prompts and generated audio; no microphone recording.",
+    "timings_ms": {
+      "greeting_first_audio_ms": 1558,
+      "navigation_audio_ms": 292,
+      "generated_audio_turn_ms": 5747,
+      "nutrition_reply_ms": 12659
+    },
+    "nutrition_metadata": {
+      "model_calls": 2,
+      "model_duration_ms": 12523,
+      "input_tokens": 10887,
+      "output_tokens": 243,
+      "total_tokens": 11130,
+      "cached_input_tokens": 0,
+      "reasoning_output_tokens": 144,
+      "context_chars": 1195,
+      "nutrition_refs": [
+        {
+          "items": [
+            "B01",
+            "B02"
+          ],
+          "sha256": "28a51b6348c72a031348a608d270ead839c9b6bc37173144de5d96d0777ee8a9",
+          "document_id": "CR_NUTRITION_MEALS_V1"
+        },
+        {
+          "items": [],
+          "sha256": "1916edb1197bf9bee4e71560d74b02cf743f9cc262fecd516f9e2e46ddd7a3a3",
+          "document_id": "CR_NUTRITION_EVIDENCE_V1"
+        }
+      ]
+    },
+    "timing_limitation": "One current sample per operation, not latency percentiles or an iPhone benchmark. The nutrition response remains noticeably slower than navigation.",
+    "private_ref": ".local/probes/full-suite-2026-10-08/client-readiness-live.json"
+  },
+  "dependency_audit": {
+    "command": "npm audit --json",
+    "status": "passed",
+    "known_vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "dependencies": 260,
+    "private_ref": ".local/probes/dependency-audit-2026-10-08.json"
+  },
+  "repository_checks": {
+    "roadmap_validation": "passed",
+    "generated_human_actions": "matches",
+    "git_diff_whitespace": "passed"
+  },
+  "remote_ci": {
+    "status": "passed",
+    "tested_commit": "b8dd8bfbe63e2cac4c22a31283d223126225eb24",
+    "jobs": [
+      "checks (windows-latest)",
+      "checks (ubuntu-latest)"
+    ],
+    "url": "https://github.com/TFMcoder/CompanionRehab/actions/runs/37719896743",
+    "note": "Existing completed CI run on the same tested commit; not a new remote execution initiated by this request."
+  },
+  "remaining_live_gates": [
+    "Actual iPhone/Safari microphone, audible conversation, interruption, echo and foreground-wake acceptance.",
+    "Intended client/family/administrator account and runtime qualification; owner practice does not qualify other users.",
+    "Participant consent and genuine-day task/meal ledger acceptance.",
+    "Actual family request/decision/help trials with consented sharing and recipient accounts.",
+    "Full slice safety/provider-failure scenarios and stable daily-use hosting remain governed by the roadmap."
+  ],
+  "limits": [
+    "No slice completion or new human-action completion is inferred from these engineering tests.",
+    "UI regressions ran in the automated suite; actual browser interaction and iPhone testing were not repeated in this run.",
+    "No external email, calendar or PM connector, notification, paid service or API fallback was enabled."
+  ]
+}

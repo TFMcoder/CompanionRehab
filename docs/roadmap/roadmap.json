@@ -2,7 +2,7 @@
   "$schema": "./roadmap.schema.json",
   "roadmap_id": "companion-rehab",
   "schema_version": "1.7.0",
-  "updated_at": "2026-10-07",
+  "updated_at": "2026-10-08",
   "planning_status": "ready_for_implementation",
   "implementation_status": "in_progress",
   "source_of_truth": "docs/roadmap/roadmap.json",
@@ -813,57 +813,57 @@
         {
           "test_id": "S01-AUTO1",
           "outcome": "pass",
-          "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
-          "executed_at": "2026-10-07T00:17:52.010Z",
+          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+          "executed_at": "2026-10-08T06:41:51.530Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
-          "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
-          "notes": "289 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities. GitHub Windows/Linux checks pass, including canonical preview path isolation."
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
+          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
         },
         {
           "test_id": "S01-AUTO7",
           "outcome": "pass",
           "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T02:04:47.767Z",
+          "executed_at": "2026-10-08T06:41:51.530Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
-          "notes": "410 default-suite tests pass (44 files), with one optional generic database check skipped, plus typecheck/build. Focused tests cover lower-trust facts, role/tool denial, immutable account refresh, scope/revocation, numeric-or-null usage, failure/cancellation and bounded metadata. Actual owner-only synthetic Sol-high/Heart is separate service evidence; intended-user eligibility is not implied."
+          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
+          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
         },
         {
           "test_id": "S01-AUTO8",
           "outcome": "pass",
           "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T02:04:47.767Z",
+          "executed_at": "2026-10-08T06:41:51.530Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
-          "notes": "410 default-suite tests pass (44 files), with one optional generic database check skipped, plus typecheck/build. Focused tests cover lower-trust facts, role/tool denial, immutable account refresh, scope/revocation, numeric-or-null usage, failure/cancellation and bounded metadata. Actual owner-only synthetic Sol-high/Heart is separate service evidence; intended-user eligibility is not implied."
+          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
+          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
         },
         {
           "test_id": "S01-AUTO9",
           "outcome": "pass",
           "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T02:04:47.767Z",
+          "executed_at": "2026-10-08T06:41:51.530Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
-          "notes": "410 default-suite tests pass (44 files), with one optional generic database check skipped, plus typecheck/build. Focused tests cover lower-trust facts, role/tool denial, immutable account refresh, scope/revocation, numeric-or-null usage, failure/cancellation and bounded metadata. Actual owner-only synthetic Sol-high/Heart is separate service evidence; intended-user eligibility is not implied."
+          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
+          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
         },
         {
           "test_id": "S01-LIVE2",
           "outcome": "blocked",
           "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T02:48:38.865Z",
+          "executed_at": "2026-10-08T06:41:51.530Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
-          "notes": "Partial actual-service evidence: 19 isolated PostgreSQL request/restore checks, real desktop browser request flows, one synthetic owner Sol-high/Heart probe, verified encrypted pre-upgrade restore and 9 local runtime smoke checks. Full device, recipient qualification and all S01 safety scenarios remain open. October 7 follow-up: the owner explicitly approved authenticated client-app Cloudflare exposure; 15 HTTPS checks pass for sign-in, access denial, secure cookies, request navigation, Heart delivery and logout. No model inference or care mutation was performed; actual device and intended-user qualification gates remain open."
+          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
+          "notes": "Partial current-service verification: 70 isolated PostgreSQL checks, 15 authenticated HTTPS checks and 16 running voice/nutrition/telemetry checks pass. No care writes or actual microphone test. Full participant/iPhone, intended-user route and remaining slice scenarios stay open; this live gate remains blocked."
         }
       ],
       "human_actions": [
@@ -1327,7 +1327,7 @@
         "A05",
         "A06"
       ],
-      "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
+      "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
       "blockers": [
         "S02-LIVE1 has not run through a genuine participant day; code and synthetic/disposable evidence do not complete the slice.",
         "S01 is unfinished. The explicit implementation authorization permits overlap and awaiting-live-test status only; S01 completion remains required before S02 can be done.",
@@ -1337,46 +1337,46 @@
         {
           "test_id": "S02-AUTO1",
           "outcome": "pass",
-          "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
-          "executed_at": "2026-10-07T00:17:52.010Z",
+          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+          "executed_at": "2026-10-08T06:41:51.530Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
-          "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
-          "notes": "289 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities. GitHub Windows/Linux checks pass, including canonical preview path isolation."
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
+          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
         },
         {
           "test_id": "S02-AUTO2",
           "outcome": "pass",
-          "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
-          "executed_at": "2026-10-07T00:17:52.010Z",
+          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+          "executed_at": "2026-10-08T06:41:51.530Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
-          "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
-          "notes": "289 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities. GitHub Windows/Linux checks pass, including canonical preview path isolation."
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
+          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
         },
         {
           "test_id": "S02-AUTO3",
           "outcome": "pass",
-          "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
-          "executed_at": "2026-10-07T00:17:52.010Z",
+          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+          "executed_at": "2026-10-08T06:41:51.530Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
-          "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
-          "notes": "289 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities. GitHub Windows/Linux checks pass, including canonical preview path isolation."
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
+          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
         },
         {
           "test_id": "S02-LIVE2",
           "outcome": "blocked",
-          "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
-          "executed_at": "2026-10-07T00:17:52.010Z",
+          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+          "executed_at": "2026-10-08T06:41:51.530Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
-          "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
-          "notes": "Partial actual-service evidence: 8/8 new PostgreSQL identity/reschedule/grocery regressions; 42/42 ledger/restore checks; 14/14 HTTPS/Sol-high/Heart/ASR/nutrition/logging checks; native browser history navigation and phone-width layout. Actual participant/iPhone and full slice gates remain open."
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
+          "notes": "Partial current-service verification: 70 isolated PostgreSQL checks, 15 authenticated HTTPS checks and 16 running voice/nutrition/telemetry checks pass. No care writes or actual microphone test. Full participant/iPhone, intended-user route and remaining slice scenarios stay open; this live gate remains blocked."
         }
       ],
       "human_actions": [
@@ -3242,45 +3242,45 @@
           "test_id": "S10-AUTO3",
           "outcome": "pass",
           "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T02:04:47.767Z",
+          "executed_at": "2026-10-08T06:41:51.530Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
-          "notes": "Request service, scoped UI/API and bounded voice regressions pass within the 410-test suite; 19 actual isolated PostgreSQL checks cover transactional decisions, request ledger persistence, capacity, races/replay, revocation and encrypted restore. Voice regression routes are synthetic; no intended-user microphone pass is claimed."
+          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
+          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
         },
         {
           "test_id": "S10-AUTO4",
           "outcome": "pass",
           "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T02:04:47.767Z",
+          "executed_at": "2026-10-08T06:41:51.530Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
-          "notes": "Request service, scoped UI/API and bounded voice regressions pass within the 410-test suite; 19 actual isolated PostgreSQL checks cover transactional decisions, request ledger persistence, capacity, races/replay, revocation and encrypted restore. Voice regression routes are synthetic; no intended-user microphone pass is claimed."
+          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
+          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
         },
         {
           "test_id": "S10-AUTO5",
           "outcome": "pass",
           "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T02:04:47.767Z",
+          "executed_at": "2026-10-08T06:41:51.530Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
-          "notes": "Request service, scoped UI/API and bounded voice regressions pass within the 410-test suite; 19 actual isolated PostgreSQL checks cover transactional decisions, request ledger persistence, capacity, races/replay, revocation and encrypted restore. Voice regression routes are synthetic; no intended-user microphone pass is claimed."
+          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
+          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
         },
         {
           "test_id": "S10-AUTO6",
           "outcome": "pass",
           "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T02:04:47.767Z",
+          "executed_at": "2026-10-08T06:41:51.530Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
-          "notes": "Request service, scoped UI/API and bounded voice regressions pass within the 410-test suite; 19 actual isolated PostgreSQL checks cover transactional decisions, request ledger persistence, capacity, races/replay, revocation and encrypted restore. Voice regression routes are synthetic; no intended-user microphone pass is claimed."
+          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
+          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
         }
       ],
       "human_actions": [
