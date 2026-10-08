@@ -24,6 +24,7 @@ export function navigationIntent(input: string): ClientView | undefined {
   if (/^(?:(?:my|the) )?(?:meals?|meal choices|meals? (?:page|screen))$/.test(target)) return 'meals';
   if (/^(?:(?:my|the) )?(?:groceries|grocery list|groceries (?:page|screen))$/.test(target)) return 'groceries';
   if (/^(?:(?:my|the) )?(?:activity|activity list|activity history|ledger|tracker|daily ledger)$/.test(target)) return 'activity';
+  if (/^(?:(?:my|the) )?(?:requests|task requests|requests? (?:page|screen|inbox))$/.test(target)) return 'requests';
   if (/^(?:my day|home|(?:the )?home page|my day (?:page|screen))$/.test(target)) return 'my_day';
   return undefined;
 }
@@ -34,6 +35,7 @@ const fixedReplies: Record<ClientView, string> = {
   meals: 'Here are your meals.',
   groceries: 'Here is your grocery list.',
   activity: 'Here is your activity.',
+  requests: 'Here are your requests.',
 };
 export function navigationReply(view: ClientView): string { return fixedReplies[view]; }
 export const navigationAcknowledgement = navigationReply;

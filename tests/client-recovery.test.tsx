@@ -22,7 +22,7 @@ const ledger: ActivityLedger = {
 const response = (body: unknown, status = 200) => ({ ok: status >= 200 && status < 300, status, json: async () => body }) as Response;
 function common(path: string, data: Today = day) {
   if (path === '/api/config') return response({ configured: true, voice_available: true, voice_transport: 'local', assistant_name: 'Nancy', missing: [] });
-  if (path === '/api/auth/session') return response({ authenticated: true });
+  if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
   if (path === '/api/today') return response(data);
   throw new Error(`Unexpected request: ${path}`);
 }

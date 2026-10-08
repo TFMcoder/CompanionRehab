@@ -70,7 +70,7 @@ describe("S01 participant plan UI", () => {
     let current = today();
     const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
       if (path === "/api/config") return response({ configured: true, voice_available: false, assistant_name: "Nancy", missing: [] });
-      if (path === "/api/auth/session") return response({ authenticated: true });
+      if (path === "/api/auth/session") return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === "/api/today") return response(current);
       if (path === "/api/commands") {
         const command = JSON.parse(String(init?.body));
@@ -107,7 +107,7 @@ describe("S01 participant plan UI", () => {
     let reads = 0;
     vi.stubGlobal('fetch', vi.fn(async (path: string) => {
       if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') { reads += 1; return response(current); }
       throw new Error(`Unexpected request ${path}`);
     }));
@@ -132,7 +132,7 @@ describe("S01 participant plan UI", () => {
     let receiptAttempts = 0;
     const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
       if (path === "/api/config") return response({ configured: true, voice_available: false, assistant_name: "Nancy", missing: [] });
-      if (path === "/api/auth/session") return response({ authenticated: true });
+      if (path === "/api/auth/session") return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === "/api/today") return response(today());
       if (path === "/api/commands") return response({ error: { code: "temporarily_unavailable", message: "Try later" } }, 503);
       if (String(path).startsWith("/api/receipts/")) {
@@ -164,7 +164,7 @@ describe("S01 participant plan UI", () => {
     const command = new Promise<Response>(resolve => { resolveCommand = resolve; });
     const fetchMock = vi.fn(async (path: string) => {
       if (path === "/api/config") return response({ configured: true, voice_available: false, assistant_name: "Nancy", missing: [] });
-      if (path === "/api/auth/session") return response({ authenticated: true });
+      if (path === "/api/auth/session") return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === "/api/today") return response(today());
       if (path === "/api/commands") return command;
       throw new Error(`Unexpected request ${path}`);
@@ -189,7 +189,7 @@ describe("S01 participant plan UI", () => {
     let setupPayload: Record<string, unknown> | undefined;
     const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
       if (path === "/api/config") return response({ configured: true, voice_available: false, assistant_name: "Nancy", missing: [] });
-      if (path === "/api/auth/session") return response({ authenticated: true });
+      if (path === "/api/auth/session") return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === "/api/today") return response(today());
       if (path === "/api/setup") {
         setupPayload = JSON.parse(String(init?.body));
@@ -218,7 +218,7 @@ describe("S01 participant plan UI", () => {
     const empty: Today = { ...today(), profile: null, tasks: [], meal_options: [], checkin: null };
     vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => {
       if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') return response(empty);
       if (path === '/api/setup') { setupPayload = JSON.parse(String(init?.body)); return response({ ...empty, profile: today().profile, tasks: [{ id: ids.task, title: 'Call the clinic', time_hint: null }] }); }
       throw new Error(`Unexpected request ${path}`);
@@ -240,7 +240,7 @@ describe("S01 participant plan UI", () => {
     vi.mocked(startVoice).mockReturnValue(new Promise(resolve => { resolveVoice = resolve; }));
     vi.stubGlobal("fetch", vi.fn(async (path: string) => {
       if (path === "/api/config") return response({ configured: true, voice_available: true, assistant_name: "Nancy", missing: [] });
-      if (path === "/api/auth/session") return response({ authenticated: true });
+      if (path === "/api/auth/session") return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === "/api/today") return response(today());
       throw new Error(`Unexpected request ${path}`);
     }));
@@ -262,7 +262,7 @@ describe("S01 participant plan UI", () => {
     vi.mocked(startVoice).mockResolvedValue({ stop });
     vi.stubGlobal('fetch', vi.fn(async (path: string) => {
       if (path === '/api/config') return response({ configured: true, voice_available: ++configReads > 1, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') return response(today());
       throw new Error(`Unexpected request ${path}`);
     }));
@@ -288,7 +288,7 @@ describe("S01 participant plan UI", () => {
   it("clears participant data when a command discovers revoked access", async () => {
     vi.stubGlobal('fetch', vi.fn(async (path: string) => {
       if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') return response(today({ proposal: proposed }));
       if (path === '/api/commands') return response({ error: { code: 'unauthorized', message: 'Please sign in.' } }, 401);
       throw new Error('Unexpected request');
@@ -304,7 +304,7 @@ describe("S01 participant plan UI", () => {
     let attempts = 0;
     vi.stubGlobal('fetch', vi.fn(async (path: string) => {
       if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') return response(today());
       if (path === '/api/auth/logout') { if (++attempts === 1) throw new TypeError('offline'); return response({ ok: true }); }
       throw new Error('Unexpected request');
@@ -322,7 +322,7 @@ describe("S01 participant plan UI", () => {
     let committed = false;
     vi.stubGlobal('fetch', vi.fn(async (path: string) => {
       if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') { if (committed) throw new TypeError('read unavailable'); return response(today({ proposal: proposed })); }
       if (path === '/api/commands') {
         committed = true;
@@ -344,7 +344,7 @@ describe("S01 participant plan UI", () => {
     vi.mocked(startVoice).mockResolvedValue({ stop: vi.fn().mockResolvedValue(undefined) });
     vi.stubGlobal('fetch', vi.fn(async (path: string) => {
       if (path === '/api/config') return response({ configured: true, voice_available: true, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') { if (first) { first = false; return response(today()); } return new Promise<Response>(resolve => reads.push(resolve)); }
       throw new Error('Unexpected request');
     }));

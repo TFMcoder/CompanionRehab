@@ -48,8 +48,15 @@ try {
   check('logout_revokes_access',(await fetch(config.origin+'/api/today',{headers:{cookie}})).status===401);
   // The asynchronous metadata batch must persist without delaying the spoken response.
   await new Promise(resolve=>setTimeout(resolve,2500));
-  const metrics=(await pool.query("select measurements,outcome from companion_local.runtime_events where kind='conversation' and turn_id=$1",[nutritionTurn])).rows;
+  const metrics=(await pool.query("select measurements,outcome from companion_local.runtime_events where kind='conversation' and turn_id=$1 and measurements->>'stage' is distinct from 'model'",[nutritionTurn])).rows;
   check('turn_metadata_persisted',metrics.length===1&&metrics[0].outcome==='ok'&&metrics[0].measurements.nutrition_refs?.length>0);
+  const usageKeys=['input_tokens','output_tokens','total_tokens','cached_input_tokens','reasoning_output_tokens'];
+  const hasUsage=(measurements:any)=>usageKeys.every(key=>Object.hasOwn(measurements,key)&&(measurements[key]===null||Number.isSafeInteger(measurements[key])&&measurements[key]>=0));
+  check('turn_usage_numeric_or_unknown',metrics.length===1&&hasUsage(metrics[0].measurements));
+  const inference=(await pool.query("select measurements from companion_local.runtime_events where kind='conversation' and turn_id=$1 and measurements->>'stage'='model' order by (measurements->>'model_call_index')::int",[nutritionTurn])).rows;
+  check('per_call_usage_and_binding_metadata',inference.length===metrics[0]?.measurements.model_calls&&inference.length>0&&inference.every((row,index)=>
+    hasUsage(row.measurements)&&row.measurements.model_call_index===index+1&&row.measurements.policy_version===metrics[0].measurements.policy_version&&
+    /^sha256:[a-f0-9]{64}$/.test(row.measurements.binding_ref)&&row.measurements.binding_ref===metrics[0].measurements.binding_ref));
   evidence.metrics=metrics[0];
   check('no_activity_invented',(await pool.query('select count(*)::int as n from companion_local.activity_records')).rows[0].n===before);
   evidence.status='passed';

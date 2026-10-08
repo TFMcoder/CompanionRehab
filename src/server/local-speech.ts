@@ -14,7 +14,7 @@ const TRANSCRIPTION_TIMEOUT_MS = 30_000;
 const GREETING_CACHE_MAX_ENTRIES = 8;
 const GREETING_CACHE_MAX_BYTES = 2 * 1024 * 1024;
 const GREETING_CACHE_TTL_MS = 5 * 60_000;
-const NAVIGATION_PHRASES = new Set((['my_day', 'tasks', 'meals', 'groceries', 'activity'] as const).map(navigationReply));
+const NAVIGATION_PHRASES = new Set((['my_day', 'tasks', 'meals', 'groceries', 'activity', 'requests'] as const).map(navigationReply));
 
 export type LocalSpeechReadiness = { kokoro: 'starting' | 'ready' | 'unavailable'; asr: 'starting' | 'ready' | 'unavailable' };
 

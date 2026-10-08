@@ -1,3 +1,4 @@
+import { testAuthority, bindTestInference } from './helpers/inference.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { ConversationService } from '../src/server/conversation.js';
@@ -12,12 +13,12 @@ const response = (text: string): CompletedTurn => ({ completed: true, model: 'gp
 let service: ConversationService;
 afterEach(() => service?.close());
 function fixture(prepare = vi.fn(async (_text: string, _signal: AbortSignal) => Buffer.from('synthetic-wave'))) {
-  const care = { authorize: vi.fn(async s => s), today: vi.fn(async () => ({
+  const care = { authorize: vi.fn(async s => s), authority: () => testAuthority(session), today: vi.fn(async () => ({
     profile: { id: session.user_id, display_name: 'Synthetic', time_zone: 'America/Toronto', preferences: '', revision: 1 },
     local_date: '2026-10-05', tasks: [], meal_options: [], checkin: null,
   })) } as unknown as CareService;
   const respond = vi.fn<Reasoner['respond']>();
-  service = new ConversationService(care, { respond }, session.user_id, undefined, prepare);
+  service = new ConversationService(care, { bind: bindTestInference, respond }, session.user_id, undefined, prepare);
   return { prepare, respond, care };
 }
 

@@ -35,7 +35,7 @@ const activityLedger: ActivityLedger = {
 function mockRequests(data: Today = day) {
   const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
     if (path === '/api/config') return response({ configured: true, voice_available: true, voice_transport: 'local', assistant_name: 'Nancy', missing: [] });
-    if (path === '/api/auth/session') return response({ authenticated: true });
+    if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
     if (path === '/api/today') return response(data);
     if (path === '/api/groceries' && !init?.method) return response({ items: [{ id: 'g1', name: 'Apples', quantity: '2' }] });
     if (path === '/api/groceries' && init?.method === 'POST') return response({ id: 'g2', name: 'Milk' });
@@ -221,7 +221,7 @@ describe('My Day client workflow', () => {
     const data: Today = { ...day, checkin: { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', local_date: day.local_date, revision: 2, proposal: plan, accepted: null } };
     vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => {
       if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') return response(data);
       if (path === '/api/commands') { command = JSON.parse(String(init?.body)); return response({ command_id: 'c1', checkin_id: data.checkin!.id, revision: 3, result: 'proposed', plan, replayed: false }); }
       throw new Error(`Unexpected request ${path}`);
@@ -249,7 +249,7 @@ describe('My Day client workflow', () => {
     let posted: unknown;
     const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
       if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') return response(day);
       if (path === '/api/setup') { posted = JSON.parse(String(init?.body)); return response(day); }
       throw new Error(`Unexpected request ${path}`);
@@ -269,7 +269,7 @@ describe('My Day client workflow', () => {
     let current = day;
     const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
       if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') return response(current);
       if (path === '/api/appointments' && init?.method === 'POST') {
         const input = JSON.parse(String(init.body));
@@ -299,7 +299,7 @@ describe('My Day client workflow', () => {
     const bodies: Array<{ idempotency_key: string }> = [];
     const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
       if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [], synthetic: true });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') return response(day);
       if (path === '/api/groceries' && !init?.method) return response({ items: [] });
       if (path === '/api/groceries' && init?.method === 'POST') { bodies.push(JSON.parse(String(init.body))); return bodies.length === 1 ? response({}, 503) : response({ id: 'g1', name: 'Milk' }); }
@@ -323,7 +323,7 @@ describe('My Day client workflow', () => {
   it('shows a factual activity ledger before a plan is accepted', async () => {
     const fetchMock = vi.fn(async (path: string) => {
       if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') return response(day);
       if (path === '/api/activity?date=2026-10-05') return response(activityLedger);
       throw new Error(`Unexpected request ${path}`);
@@ -345,7 +345,7 @@ describe('My Day client workflow', () => {
     let posted: any;
     const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
       if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') return response(day);
       if (path === '/api/activity?date=2026-10-05') return response(activityLedger);
       if (path === '/api/activity/commands' && init?.method === 'POST') {
@@ -372,7 +372,7 @@ describe('My Day client workflow', () => {
     const ledger = { ...activityLedger, options: [activityLedger.options[0]], entries: activityLedger.entries };
     const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
       if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') return response(day);
       if (path === '/api/activity?date=2026-10-05') return response(ledger);
       if (path === '/api/activity/commands' && init?.method === 'POST') { posted.push(JSON.parse(String(init.body))); return response({ command_id: `a${posted.length}`, result: 'reported', entry: activityLedger.entries[0], replayed: false }); }
@@ -404,7 +404,7 @@ describe('My Day client workflow', () => {
     const posted: any[] = [];
     const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
       if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') return response(day);
       if (path === '/api/activity?date=2026-10-05') return response(activityLedger);
       if (path === '/api/activity/commands' && init?.method === 'POST') {
@@ -468,7 +468,7 @@ describe('My Day client workflow', () => {
     const historyLedger: ActivityLedger = { local_date: '2026-10-04', options: [historyEntry], entries: [historyEntry], recent_entries: [historyEntry], summary: { tasks_completed: 1, meals_eaten: 0, appointments_attended: 0, deferred: 0 } };
     const fetchMock = vi.fn(async (path: string) => {
       if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true });
+      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
       if (path === '/api/today') return response({ ...day, activity_ledger: currentLedger });
       if (path === '/api/activity?date=2026-10-04') return response(historyLedger);
       throw new Error(`Unexpected request ${path}`);

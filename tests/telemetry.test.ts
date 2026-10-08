@@ -17,6 +17,29 @@ describe('operational metadata', () => {
     expect(event.measurements).toMatchObject({duration_ms:16,input_chars:500,nutrition_refs:[{items:['C01']}]});
     expect(JSON.stringify(event)).not.toMatch(/private|token|secret|NaN/);
   });
+  it('preserves numeric usage and explicit unknowns with bounded policy and opaque binding metadata', () => {
+    const binding = randomUUID();
+    const event = safeEvent({ kind:'conversation', outcome:'interrupted', measurements:{
+      stage:'model', model_call_index:2, model_calls:2, model_completed_calls:1, model_failed_calls:0, model_aborted_calls:1,
+      input_tokens:125, output_tokens:0, total_tokens:null, cached_input_tokens:undefined, reasoning_output_tokens:12,
+      context_duration_ms:1.4, tool_duration_ms:15.7, first_text_delta_ms:200.1, first_speakable_ms:230.7,
+      policy_version:'nancy-2026-10-07.1', binding_ref:binding, account_key:'private@example.invalid',
+    } });
+    expect(event.measurements).toEqual({ stage:'model', model_call_index:2, model_calls:2, model_completed_calls:1,
+      model_failed_calls:0, model_aborted_calls:1, input_tokens:125, output_tokens:0, total_tokens:null,
+      cached_input_tokens:null, reasoning_output_tokens:12, context_duration_ms:1, tool_duration_ms:16,
+      first_text_delta_ms:200, first_speakable_ms:231, policy_version:'nancy-2026-10-07.1', binding_ref:binding });
+    expect(JSON.parse(JSON.stringify(event)).measurements.cached_input_tokens).toBeNull();
+    expect(safeEvent({kind:'conversation',outcome:'ok',measurements:{binding_ref:`sha256:${'a'.repeat(64)}`}}).measurements.binding_ref).toBe(`sha256:${'a'.repeat(64)}`);
+  });
+  it('rejects nonnumeric counters, unsafe token estimates and human-readable account metadata', () => {
+    const event = safeEvent({kind:'conversation',outcome:'error',measurements:{input_tokens:'120',output_tokens:Infinity,total_tokens:-1,
+      cached_input_tokens:0.5,reasoning_output_tokens:Number.MAX_SAFE_INTEGER+1,model_calls:1.5,tool_calls:'2',
+      duration_ms:Infinity,policy_version:'private instructions here',binding_ref:'oaiapp_fixture:private-subject',
+      instructions:'private instructions',response:'private response',error:'private error',access_token:'private token'}});
+    expect(event.measurements).toEqual({input_tokens:null,output_tokens:null,total_tokens:null,cached_input_tokens:null,reasoning_output_tokens:null});
+    expect(JSON.stringify(event)).not.toContain('private');
+  });
   it('does not block a response, retries with stable IDs and drains on close', async () => {
     const warn=vi.fn(); const db={query:vi.fn().mockRejectedValueOnce(new Error('private driver values')).mockResolvedValue({rows:[]})};
     const log=new RuntimeLog(db,warn);

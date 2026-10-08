@@ -10,7 +10,7 @@ export interface ActivityOption {
 }
 export interface ActivityEntry extends ActivityOption {
   occurred_at: string | null; recorded_at: string; updated_at: string;
-  notes: string; portion: string | null; last_action: 'reported' | 'corrected' | 'rescheduled';
+  notes: string; portion: string | null; last_action: 'reported' | 'corrected' | 'rescheduled' | 'accepted';
 }
 export interface ActivityLedger {
   local_date: string; options: ActivityOption[]; entries: ActivityEntry[]; recent_entries: ActivityEntry[];

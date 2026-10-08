@@ -9,6 +9,7 @@ import { groceryInput, type Today } from '../src/shared/contracts.js';
 import type { ActivityOption, ActivityEntry } from '../src/shared/activity-contracts.js';
 import type { Session } from '../src/server/session.js';
 import { pglitePool } from './helpers/pglite-pool.js';
+import { localCareMigrations } from '../src/server/local-migrations.js';
 
 const uuid = randomUUID;
 describe('activity identity across plan changes and day boundaries', () => {
@@ -21,8 +22,8 @@ describe('activity identity across plan changes and day boundaries', () => {
       if (!['localhost','127.0.0.1'].includes(parsed.hostname) || !/^\/nancy_audit_[a-z0-9_]+$/.test(parsed.pathname)) throw new Error('Use a separate disposable audit database.');
       pool = new Pool({connectionString:url,max:1});
     } else { db = new PGlite(); pool = pglitePool(db) as any; }
-    for (const name of ['002_local_care','003_activity_ledger','004_client_readiness','005_runtime_observability']) {
-      const sql=await readFile(new URL(`../db/${name}.sql`, import.meta.url),'utf8');
+    for (const name of localCareMigrations) {
+      const sql=await readFile(new URL(`../db/${name}`, import.meta.url),'utf8');
       if(db)await db.exec(sql);else await pool.query(sql);
     }
     care = new LocalCare({pool,clock:()=>new Date(now)});

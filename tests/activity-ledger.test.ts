@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
+import { localCareMigrations } from '../src/server/local-migrations.js';
 import { readFile } from 'node:fs/promises';
 import { LocalCare, bootstrapLocalUser } from '../src/server/local-care.js';
 import type { Session } from '../src/server/session.js';
@@ -88,9 +89,7 @@ describe('durable factual activity ledger', () => {
 
   beforeAll(async () => {
     db = new PGlite();
-    await db.exec(await readFile(new URL('../db/002_local_care.sql', import.meta.url), 'utf8'));
-    await db.exec(await readFile(new URL('../db/003_activity_ledger.sql', import.meta.url), 'utf8'));
-    await db.exec(await readFile(new URL('../db/004_client_readiness.sql', import.meta.url), 'utf8'));
+    for (const file of localCareMigrations) await db.exec(await readFile(new URL('../db/'+file, import.meta.url), 'utf8'));
     care = new LocalCare({ pool: pglitePool(db) as any, clock: () => new Date(NOW) });
     owner = await createParticipant(care, 'owner');
     other = await createParticipant(care, 'other');

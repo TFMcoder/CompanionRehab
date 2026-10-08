@@ -798,17 +798,16 @@
         "S03",
         "S04"
       ],
-      "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
+      "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
       "blockers": [
         "October 5 latency fixes deployed; see docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Natural navigation now avoids two GPT calls, fixed Heart acknowledgements are primed, CUDA ASR is qualified on six synthetic phrases and validated first-part preparation overlaps some model output. Public exact-navigation estimates improved from 4.58-4.82s to 1.83-1.85s; natural navigation was 1.93s through HTTPS. General GPT answers remain variable (one public sample 9.17s). The owner subsequently accepted the faster response for advancing the MVP. Actual revised iPhone/Safari latency, interruption and participant acceptance are still required. Preserve Heart and Sol/high; S01 is not complete.",
         "S01-LIVE2 is partial: encrypted restore and integrated planning passed, but the complete provider-loss/revocation/allowance, device and full-role scenario remains open. S01-LIVE1 has not run on the consenting participant's iPhone/Safari with genuine tasks/meals.",
         "Owner approved the temporary authenticated sample-data My Day Cloudflare route; HTTPS sign-in, care access denial, session revocation and Heart greeting delivery passed. See docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json. The owner reported an initial device trial; revised conversation quality and stable HTTPS operation remain unqualified.",
         "The intended participant account/deployment eligibility and live credential lifecycle are not established by owner-only synthetic inference. No paid API/model fallback is enabled.",
         "Participant consent, care-data retention/region, real day content, approved restrictions and timezone confirmation remain prerequisites for genuine care use.",
-        "Remaining S01 engineering includes consented foreground Hey Nancy implementation/qualification, the other three scoped role landing experiences, richer pantry/portion/alternative-meal behaviour, trusted-policy/data separation and explicit conversation/inference binding. Shared meal/task identity and reschedule regression repairs are already recorded in the October 6 audit evidence; preserve that coverage instead of describing the identity implementation as wholly missing. Local appointments do not imply Outlook/Asana sync.",
         "Actual task completion and meal reporting are S02; accepting a plan records intentions only. Daily reliance, operational recovery and background reminders remain gated.",
         "October 6 client readiness is engineering-verified in docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json. The separate client database starts empty and the practice database is preserved. Participant/account eligibility, consent, real content and physical-device/genuine-day acceptance remain open.",
-        "October 7 governance remains planned: current conversation facts enter a developer message and the reasoner uses a mutable active account behind an owner-only access guard. No exploit is claimed. Retain owner-only practice while hardening and qualifying explicit per-user routes; UI/server engineering can proceed independently. Numeric token telemetry and its new regression/live criteria are not yet implemented or passed."
+        "October 7 governance hardening, numeric token/latency telemetry, explicit immutable owner inference binding and scoped role homes are implemented and regression-tested. See docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json. Remaining S01 engineering includes consented foreground wake, richer pantry/portion/meal alternatives and the complete provider-loss/device/stable-HTTPS qualification; intended-client routing and actual iPhone acceptance remain open."
       ],
       "test_results": [
         {
@@ -823,15 +822,48 @@
           "notes": "289 automated tests pass across 33 files, with typecheck/build. Audit regressions cover semantic meal identity, legacy facts, cross-day reschedules, client retries/date safety/microphone cleanup, worker recovery/readiness, trusted-tunnel login limits and complete bounded recipe discovery. Dependency audit returns zero known vulnerabilities. GitHub Windows/Linux checks pass, including canonical preview path isolation."
         },
         {
+          "test_id": "S01-AUTO7",
+          "outcome": "pass",
+          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+          "executed_at": "2026-10-08T02:04:47.767Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
+          "notes": "410 default-suite tests pass (44 files), with one optional generic database check skipped, plus typecheck/build. Focused tests cover lower-trust facts, role/tool denial, immutable account refresh, scope/revocation, numeric-or-null usage, failure/cancellation and bounded metadata. Actual owner-only synthetic Sol-high/Heart is separate service evidence; intended-user eligibility is not implied."
+        },
+        {
+          "test_id": "S01-AUTO8",
+          "outcome": "pass",
+          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+          "executed_at": "2026-10-08T02:04:47.767Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
+          "notes": "410 default-suite tests pass (44 files), with one optional generic database check skipped, plus typecheck/build. Focused tests cover lower-trust facts, role/tool denial, immutable account refresh, scope/revocation, numeric-or-null usage, failure/cancellation and bounded metadata. Actual owner-only synthetic Sol-high/Heart is separate service evidence; intended-user eligibility is not implied."
+        },
+        {
+          "test_id": "S01-AUTO9",
+          "outcome": "pass",
+          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+          "executed_at": "2026-10-08T02:04:47.767Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
+          "notes": "410 default-suite tests pass (44 files), with one optional generic database check skipped, plus typecheck/build. Focused tests cover lower-trust facts, role/tool denial, immutable account refresh, scope/revocation, numeric-or-null usage, failure/cancellation and bounded metadata. Actual owner-only synthetic Sol-high/Heart is separate service evidence; intended-user eligibility is not implied."
+        },
+        {
           "test_id": "S01-LIVE2",
           "outcome": "blocked",
-          "implementation_revision": "sha256:23a2a8670f50a3b746e4b0a65d073f021ed90f21a4f857416a2620ec12006210",
-          "executed_at": "2026-10-07T00:17:52.010Z",
+          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+          "executed_at": "2026-10-08T02:04:47.767Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
-          "observed_by": "Codex engineering checks",
-          "evidence_ref": "docs/evidence/S01-S02-AUDIT-REPAIRS-2026-10-06.json",
-          "notes": "Partial actual-service evidence: 8/8 new PostgreSQL identity/reschedule/grocery regressions; 42/42 ledger/restore checks; 14/14 HTTPS/Sol-high/Heart/ASR/nutrition/logging checks; native browser history navigation and phone-width layout. Actual participant/iPhone and full slice gates remain open."
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
+          "notes": "Partial actual-service evidence: 19 isolated PostgreSQL request/restore checks, real desktop browser request flows, one synthetic owner Sol-high/Heart probe, verified encrypted pre-upgrade restore and 9 local runtime smoke checks. Full device, recipient qualification and all S01 safety scenarios remain open."
         }
       ],
       "human_actions": [
@@ -2951,7 +2983,7 @@
       "id": "S10",
       "priority": 100,
       "title": "Use Support Team for client-approved task requests, shared progress and help",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "S02",
         "S09"
@@ -3199,11 +3231,58 @@
         "H05",
         "A04"
       ],
-      "implementation_revision": null,
+      "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
       "blockers": [
-        "Request capability, durable request/help/flag workflow and role-specific voice are specification only. UI/server work needs no Microsoft 365 or inference entitlement; live voice requires qualified per-user runtime/account routes and actual consent/sharing grants. UI-first is an engineering checkpoint, not increment or full S10 completion."
+        "The UI/server request checkpoint and bounded voice command integration are implemented; see docs/FAMILY_REQUESTS.md and docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json. Actual-service synthetic tests do not complete this slice.",
+        "Intended family/client/admin inference account/runtime qualification and real scoped account provisioning/sharing consent remain open. Owner-only practice is retained; no credential pooling or recipient-triggered inference is enabled.",
+        "S10-LIVE2 requires consenting actual voice/UI decisions, capacity clarification, help and administrator review. The full S10 shared achievements and notification features still depend on S02/S09 and are not delivered by the request increment."
       ],
-      "test_results": [],
+      "test_results": [
+        {
+          "test_id": "S10-AUTO3",
+          "outcome": "pass",
+          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+          "executed_at": "2026-10-08T02:04:47.767Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
+          "notes": "Request service, scoped UI/API and bounded voice regressions pass within the 410-test suite; 19 actual isolated PostgreSQL checks cover transactional decisions, request ledger persistence, capacity, races/replay, revocation and encrypted restore. Voice regression routes are synthetic; no intended-user microphone pass is claimed."
+        },
+        {
+          "test_id": "S10-AUTO4",
+          "outcome": "pass",
+          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+          "executed_at": "2026-10-08T02:04:47.767Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
+          "notes": "Request service, scoped UI/API and bounded voice regressions pass within the 410-test suite; 19 actual isolated PostgreSQL checks cover transactional decisions, request ledger persistence, capacity, races/replay, revocation and encrypted restore. Voice regression routes are synthetic; no intended-user microphone pass is claimed."
+        },
+        {
+          "test_id": "S10-AUTO5",
+          "outcome": "pass",
+          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+          "executed_at": "2026-10-08T02:04:47.767Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
+          "notes": "Request service, scoped UI/API and bounded voice regressions pass within the 410-test suite; 19 actual isolated PostgreSQL checks cover transactional decisions, request ledger persistence, capacity, races/replay, revocation and encrypted restore. Voice regression routes are synthetic; no intended-user microphone pass is claimed."
+        },
+        {
+          "test_id": "S10-AUTO6",
+          "outcome": "pass",
+          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+          "executed_at": "2026-10-08T02:04:47.767Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
+          "notes": "Request service, scoped UI/API and bounded voice regressions pass within the 410-test suite; 19 actual isolated PostgreSQL checks cover transactional decisions, request ledger persistence, capacity, races/replay, revocation and encrypted restore. Voice regression routes are synthetic; no intended-user microphone pass is claimed."
+        }
+      ],
       "human_actions": [
         {
           "id": "S10-H01",
@@ -3332,7 +3411,11 @@
           "not_applicable_reason": null
         }
       ],
-      "reuse_refs": []
+      "reuse_refs": [],
+      "implementation_authorization": {
+        "decision_ref": "docs/architecture/AGENT_GOVERNANCE_2026-10-07.md",
+        "reason": "On October 7 the owner approved proceeding with the recommended governance and family-request checkpoints after recording them in the roadmap. This authorizes scoped S10 request implementation alongside unfinished S01/S02 and before S09, using the existing stack and owner-only practice boundary. It does not waive full S10 dependencies, per-user voice eligibility, sharing consent or actual live acceptance."
+      }
     },
     {
       "id": "S11",
@@ -4151,7 +4234,7 @@
     },
     "family_task_requests": {
       "decision_ref": "docs/architecture/AGENT_GOVERNANCE_2026-10-07.md",
-      "implementation_status": "planned",
+      "implementation_status": "in_progress",
       "introduced_in": "S10",
       "requester_roles": [
         "family_friend",
@@ -4184,7 +4267,7 @@
     },
     "agent_governance": {
       "decision_ref": "docs/architecture/AGENT_GOVERNANCE_2026-10-07.md",
-      "implementation_status": "planned",
+      "implementation_status": "in_progress",
       "topology": "One bounded conversational Nancy agent. Keep permissions, explicit constraints, approvals, exact versions, idempotency and receipts in the independent care service. Do not introduce a multi-agent runtime or new framework for daily planning or scheduling.",
       "policy_composition": "Compose a compact versioned shared policy, applicable role policy, authorized client preferences and fresh bounded facts. Preferences cannot relax permissions, consent or approved clinical constraints. AGENTS.md governs development and is not loaded into every Nancy turn.",
       "trust_boundary": "Keep trusted policy separate from lower-trust profile, task, appointment, request, transcript and tool text. Pass human-authored facts as clearly delimited data in a lower-trust message/tool result, not interpolated developer instructions. Preserve fresh saved-fact precedence without treating data as commands. Add injection regressions; hardening is risk reduction, not proof of immunity.",

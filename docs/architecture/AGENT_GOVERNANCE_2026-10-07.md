@@ -2,7 +2,7 @@
 
 Decision date: 2026-10-07. The owner approved the implementation discussion and requested documentation before code work. The authoritative contracts are `product_contract.agent_governance` and `product_contract.family_task_requests` in [roadmap.json](../roadmap/roadmap.json), schema 1.7.0.
 
-This is **planned work**, not implementation or live acceptance evidence. Runtime review used `8b11107d542d6431f4e3978650c135921c9df6f0`. S01 remains `in_progress`, S02 `awaiting_live_test`, and S10 `planned`. No new route, service, account access, spending or release is implied by this documentation update.
+The owner subsequently directed implementation of these checkpoints. S01 and the scoped S10 request increment are now `in_progress`; S02 remains `awaiting_live_test`. The request service, role homes, matching UI/voice commands, policy/data separation, immutable owner-account binding and numeric telemetry are implemented. See [the workflow/runbook](../FAMILY_REQUESTS.md) and [current engineering evidence](../evidence/S01-S10-GOVERNANCE-2026-10-07.json). Owner practice remains the only qualified production reasoning route; real recipients, sharing consent and intended-user microphone acceptance remain open. No paid service was added.
 
 ## Behaviour and authority
 
@@ -21,7 +21,7 @@ Only client approval creates an accepted task. Rejection with a confirmed short 
 
 ## Explicit conversation and inference binding
 
-Current `ConversationService` checks `ownerId`, while `PlanReasoner` independently reads mutable `activeKey`, including after acquiring the token-refresh lock. These are owner-practice mechanisms. Removing `ownerId` or switching a global credential is not a multi-user router: it could send another actor's context through the wrong account. This is a code-review finding, not a demonstrated exploit.
+The pre-implementation audit at `8b11107d542d6431f4e3978650c135921c9df6f0` found `ConversationService` checked `ownerId` while `PlanReasoner` independently selected mutable `activeKey`, including after the refresh lock. The runtime now adopts the already-authorized owner connection once into an encrypted explicit account binding and resolves subsequent calls/refreshes by that identity. Changing `activeKey` cannot switch a running conversation. Removing `ownerId` is still not a multi-user router, and intended-user routes remain unqualified.
 
 For each conversation and inference call, derive authority on the server: actor/login session, active role, client, current grant scope/revision, policy version, approved inference route and its specific account binding. The speaker, the client being discussed and inference account owner are distinct identities. Browser parameters and spoken claims cannot confer authority.
 
@@ -33,7 +33,7 @@ UI commands and durable inbox creation need no inference. Family submission must
 
 ## Trust, privacy and measurements
 
-`conversation.ts` currently interpolates human-authored facts into a developer message. Separate trusted policy from profile/task/appointment/request/transcript/tool text, passing the latter as clearly delimited lower-trust data. Saved facts may supersede stale history without becoming instructions. Add injection regressions for disclosure, role elevation and fabricated approval. [OpenAI's safety guidance](https://developers.openai.com/api/docs/guides/agent-builder-safety) recommends keeping untrusted variables out of developer messages. Prompts do not replace server enforcement or prove immunity.
+`conversation.ts` now passes human-authored profile/task/appointment/request facts as clearly delimited lower-trust data, separately from fixed shared and role policy. Saved facts may supersede stale history without becoming instructions. Injection regressions cover disclosure, role elevation and fabricated approval. [OpenAI's safety guidance](https://developers.openai.com/api/docs/guides/agent-builder-safety) recommends keeping untrusted variables out of developer messages. Prompts do not replace server enforcement or prove immunity.
 
 Filter context and tool results by purpose, client and grants. Requesters can receive bounded availability summaries without unshared appointment details. Before real-data inference, prepare minimum outbound fields and purpose-specific consent, processing and retention choices. Local PostgreSQL and `store:false` do not establish zero provider retention or residency. Keep raw transcripts, audio and credentials out of operational logs and the public repository. Preserve private incident/rollback evidence using sanitized references.
 
@@ -58,4 +58,4 @@ Reuse TypeScript/Fastify/React/PostgreSQL, typed commands, receipts, Vitest and 
 
 Account/runtime qualification blocks intended-user reasoning. Real sharing recipients, consent, content and device participation block dependent live testing. Neither blocks reversible UI/server/schema/test preparation. Microsoft 365, Asana, achievements, full dashboards and tunnel provisioning are not request-increment prerequisites.
 
-Immediate S01 gaps include policy/data separation, explicit inference binding, role homes, consented foreground wake implementation/qualification, richer meal alternatives/portions, genuine iPhone/Safari acceptance, full provider-loss/revocation/allowance scenarios and stable HTTPS qualification. Meal/task identity and moved-task repairs already have October 6 engineering evidence; preserve regression coverage instead of reopening them as wholly absent. Consent, remote-processing boundaries and S02 genuine-day review remain open. Button fallback does not pass wake acceptance, and accepted plans do not prove performed activity.
+Remaining S01 gaps include consented foreground wake implementation/qualification, richer meal alternatives/portions, genuine iPhone/Safari acceptance, complete provider-loss/revocation/allowance scenarios and stable HTTPS qualification. Policy/data separation, explicit binding and the basic role homes now have engineering implementation and regression evidence. Meal/task identity and moved-task repairs remain covered, including durable accepted-request occurrences. Consent, remote-processing boundaries and S02 genuine-day review remain open. Button fallback does not pass wake acceptance, and accepted plans do not prove performed activity.

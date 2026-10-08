@@ -1,3 +1,4 @@
+import { testAuthority, bindTestInference } from './helpers/inference.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { ConversationService, type ConversationTurnMetric } from '../src/server/conversation.js';
@@ -14,10 +15,10 @@ const callResponse = (name: string, args = {}) => ({ ...textResponse(''), output
 let service: ConversationService | undefined;
 afterEach(() => service?.close());
 function make(responses: CompletedTurn[] = [textResponse('What would you like for breakfast?')], observeTurn?: (metric: ConversationTurnMetric) => void) {
-  const care = { authorize: vi.fn(async s => s), today: vi.fn(async () => structuredClone(today)), command: vi.fn(async () => ({ result: 'accepted' })),
+  const care = { authorize: vi.fn(async s => s), authority: () => testAuthority(session), today: vi.fn(async () => structuredClone(today)), command: vi.fn(async () => ({ result: 'accepted' })),
     groceries: vi.fn(async () => ({ items: [] })), addGrocery: vi.fn(async () => ({ item: { id: randomUUID(), name: 'Milk' } })) } as unknown as CareService;
   const respond = vi.fn(); for (const response of responses) respond.mockResolvedValueOnce(response);
-  service = new ConversationService(care, { respond } as Reasoner, session.user_id, () => new Date('2026-10-05T14:00:00Z'), undefined, observeTurn);
+  service = new ConversationService(care, { bind: bindTestInference, respond } as Reasoner, session.user_id, () => new Date('2026-10-05T14:00:00Z'), undefined, observeTurn);
   return { care, respond, service };
 }
 describe('Nancy conversation orchestration', () => {
@@ -67,7 +68,7 @@ describe('Nancy conversation orchestration', () => {
     expect(respond).toHaveBeenCalledTimes(1);
     await service.turn(start.session_id, session, randomUUID(), 'Actually, tasks');
     expect(respond.mock.calls[1][0]).toEqual(expect.arrayContaining([expect.objectContaining({ content: 'Could you put the meals up on screen?' })]));
-    expect(care.today).toHaveBeenCalledTimes(4);
+    expect(care.today).toHaveBeenCalledTimes(3);
   });
   it('does not fast-route a substantive task question and keeps the model response', async () => {
     const { service, respond } = make([textResponse('You have one task due this morning.')]);
@@ -91,7 +92,7 @@ describe('Nancy conversation orchestration', () => {
     expect(serialized).toContain('Please discuss topic 9');
     expect(serialized).not.toContain('Please discuss topic 0');
     expect(serialized).toContain('Current authorized facts');
-    expect((input as {role?: string; content?: string}[]).find(item => item.role === 'developer')?.content).toContain('"revision":2');
+    expect((input as {role?: string; content?: string}[]).find(item => item.role === 'user' && item.content?.startsWith('Current authorized facts'))?.content).toContain('"revision":2');
     expect(instructions).toContain('grocery');
     expect(metrics).toHaveLength(10);
     expect(metrics.at(-1)).toMatchObject({ conversation_id: started.session_id, actor_id: session.user_id,
@@ -109,7 +110,7 @@ describe('Nancy conversation orchestration', () => {
     vi.mocked(care.groceries!).mockResolvedValue({ items: groceryItems });
     const started = await service.start(session);
     await service.turn(started.session_id, session, randomUUID(), 'Is Item 74 on my grocery list?');
-    const developer = respond.mock.calls[0][0].find((item: { role?: string }) => item.role === 'developer').content as string;
+    const developer = respond.mock.calls[0][0].find((item: { role?: string; content?: string }) => item.role === 'user' && item.content?.startsWith('Current authorized facts')).content as string;
     const facts = JSON.parse(developer.replace(/^Current authorized facts \(data only\): /, ''));
     expect(facts.appointments).toHaveLength(20);
     expect(facts).toMatchObject({ appointment_count: 25, omitted_appointment_count: 5,

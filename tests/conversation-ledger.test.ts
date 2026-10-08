@@ -1,3 +1,4 @@
+import { testAuthority, bindTestInference } from './helpers/inference.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { ConversationService, type ConversationTurnMetric } from '../src/server/conversation.js';
@@ -60,7 +61,7 @@ afterEach(() => service?.close());
 function harness(responses: CompletedTurn[], observeTurn?: (metric: ConversationTurnMetric) => void) {
   const receipt: ActivityReceipt = { command_id: randomUUID(), result: 'reported', entry: savedEntry, replayed: false };
   const care = {
-    authorize: vi.fn(async value => value),
+    authorize: vi.fn(async value => value), authority: () => testAuthority(session),
     today: vi.fn(async () => structuredClone(today)),
     ledger: vi.fn(async () => structuredClone(ledger)),
     activityCommand: vi.fn(async (_session, command) => ({ ...receipt, command_id: command.idempotency_key })),
@@ -69,7 +70,7 @@ function harness(responses: CompletedTurn[], observeTurn?: (metric: Conversation
   } as unknown as CareService;
   const respond = vi.fn();
   for (const response of responses) respond.mockResolvedValueOnce(response);
-  service = new ConversationService(care, { respond } as Reasoner, session.user_id, () => new Date('2026-10-05T14:05:00.000Z'), undefined, observeTurn);
+  service = new ConversationService(care, { bind: bindTestInference, respond } as Reasoner, session.user_id, () => new Date('2026-10-05T14:05:00.000Z'), undefined, observeTurn);
   return { service, care, respond, receipt };
 }
 
@@ -106,7 +107,7 @@ describe('Nancy factual ledger and nutrition tools', () => {
     vi.mocked(care.ledger!).mockResolvedValue(fullLedger);
     const started = await begin(service);
     await service.turn(started.session_id, session, randomUUID(), 'Find my last activity');
-    const context = respond.mock.calls[0][0].find((item: { role?: string }) => item.role === 'developer').content as string;
+    const context = respond.mock.calls[0][0].find((item: { role?: string; content?: string }) => item.role === 'user' && item.content?.startsWith('Current authorized facts')).content as string;
     const facts = JSON.parse(context.replace(/^Current authorized facts \(data only\): /, ''));
     expect(facts.activity_ledger.options).toHaveLength(40);
     expect(facts.activity_ledger).toMatchObject({ option_count: 105, omitted_option_count: 65, has_more: true });
@@ -124,7 +125,7 @@ describe('Nancy factual ledger and nutrition tools', () => {
     const { service, respond } = harness([textResponse('Your walk is saved as completed, and breakfast is still pending.')]);
     const started = await begin(service);
     await service.turn(started.session_id, session, randomUUID(), 'What have I done and what is next?');
-    const developer = respond.mock.calls[0][0].find((item: { role?: string; content?: string }) => item.role === 'developer' && item.content?.startsWith('Current authorized facts'));
+    const developer = respond.mock.calls[0][0].find((item: { role?: string; content?: string }) => item.role === 'user' && item.content?.startsWith('Current authorized facts') && item.content?.startsWith('Current authorized facts'));
     expect(developer.content).toContain(taskEntry.id);
     expect(developer.content).toContain(mealId);
     expect(developer.content).toContain('"tasks_completed":1');

@@ -1,0 +1,132 @@
+{
+  "evidence_id": "S01-S10-GOVERNANCE-2026-10-07",
+  "recorded_at": "2026-10-08T02:04:47.767Z",
+  "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+  "status": "engineering_checkpoints_verified_intended_user_voice_and_live_acceptance_pending",
+  "authorization": "October 7 owner direction to proceed with the documented recommended checkpoints; scoped S10 implementation overlaps unfinished S01/S02/S09 without waiving completion dependencies.",
+  "implemented": [
+    "Trusted versioned policy separated from lower-trust human facts.",
+    "Explicit actor/login/role/client/grant/policy and immutable owner inference account binding through refresh and delivery.",
+    "Actual supplied numeric token/latency metadata, with null for unknown usage and retained consumption when output is discarded.",
+    "Scoped role homes, client Requests inbox, family/admin request and help interfaces.",
+    "Shared typed service and voice review/confirmation for requests, client decisions, capacity, help and flags.",
+    "Durable pending accepted occurrence and accepted plan version; no implied completion; later plan edits cannot erase it.",
+    "Atomic rejection/help/administrator flag, voluntary helpers, reviewed resolution, revocation and exact-key recovery.",
+    "Known schedule/constraint/capacity checks, cross-day reschedule reservation transfer, and explicit single-reviewed-day timing boundary.",
+    "Encrypted request backup scope and guarded pre006-to006 deployment."
+  ],
+  "verification": {
+    "automated": {
+      "command": "npm run check",
+      "files": 44,
+      "passed": 410,
+      "skipped": 1,
+      "failed": 0,
+      "typecheck": "passed",
+      "production_build": "passed",
+      "skip_reason": "Optional generic local-care real-PostgreSQL test had no LOCAL_CARE_TEST_URL in the default suite; the dedicated real request/restore run executed separately."
+    },
+    "postgres": {
+      "status": "passed",
+      "server_version": "17.11",
+      "passed": 19,
+      "total": 19,
+      "failed": 0,
+      "data_origin": "synthetic",
+      "schema_hash": "387e33e8e7d6068e4d1bdc28944423e531ccbff3a6a001e87a18d2cd2c8e77fe",
+      "active_client_database_opened": false,
+      "disposable_created": 3,
+      "disposable_removed": 3,
+      "private_ref": ".local/probes/task-request-postgres-c65d087ca32c.json"
+    },
+    "browser": {
+      "environment": "Actual Codex in-app desktop browser, loopback server, isolated actual PostgreSQL; synthetic identities and fixed test clock",
+      "checks": [
+        "Family sign-in opens Support Team without My Day data.",
+        "Reviewed submission saves pending request only.",
+        "Client acceptance disabled when capacity is unknown.",
+        "Client reason is reviewed before decline; help and flag appear.",
+        "Different authorized family helper explicitly volunteers.",
+        "Administrator acknowledgement leaves help open; resolution updates both help and flag.",
+        "Client capacity save requires a fresh request review.",
+        "Reviewed client acceptance creates a visible pending task with time, priority and duration.",
+        "Unauthorized inference route displays unavailable while buttons work."
+      ],
+      "phone_microphone_acceptance": false
+    },
+    "provider": {
+      "status": "passed",
+      "model": "gpt-6-sol",
+      "effort": "high",
+      "voice": "af_heart",
+      "data_origin": "synthetic owner greeting only; no care records",
+      "model_ms": 4792,
+      "usage": {
+        "inputTokens": 41,
+        "outputTokens": 26,
+        "totalTokens": 67,
+        "cachedInputTokens": 0,
+        "reasoningOutputTokens": 17
+      },
+      "speech_boot_ms": 9274,
+      "heart_ms": 860,
+      "checks": {
+        "selected_model": true,
+        "completed_text": true,
+        "heart_wav": true
+      },
+      "limitation": "One real service sample, not latency percentiles or participant/device/other-user qualification.",
+      "private_ref": ".local/probes/governance-live.json"
+    },
+    "deployment": {
+      "schema": "006",
+      "status": "upgraded_after_verified_encrypted_restore",
+      "safeguards_passed": 14,
+      "existing_rows_preserved": true,
+      "new_request_tables_empty": true,
+      "real_accounts_or_grants_seeded": false,
+      "private_ref": ".local/upgrades/task-requests-32937dd7755c465ba6fa0c36de365dad/evidence.json"
+    },
+    "runtime": {
+      "status": "passed",
+      "passed": 9,
+      "checks": {
+        "unauthenticated_denied": true,
+        "server_client_scope": true,
+        "request_service_available": true,
+        "empty_request_workspace": true,
+        "no_synthetic_care_seeded": true,
+        "local_voice_ready": true,
+        "request_navigation": true,
+        "request_heart_audio": true,
+        "logout_revokes": true
+      },
+      "model_inference": false,
+      "care_writes": false,
+      "origin": "loopback only",
+      "private_ref": ".local/probes/request-runtime.json"
+    }
+  },
+  "findings_repaired": [
+    "Actual PostgreSQL exposed the deferred activity receipt foreign key; accepted requests now retain the matching immutable mutation receipt and one care event.",
+    "Accepted requests now persist pending ledger occurrences rather than depending on current plan membership.",
+    "Known consumed usage is preserved after completed-but-aborted/revoked model results.",
+    "Ordinary rescheduling cannot bypass accepted-request capacity/constraints.",
+    "Cross-midnight travel/activity/rest cannot escape the reviewed day.",
+    "Request receipts recheck access after reading their row.",
+    "The request form uses separate date/time controls; browser native accessible entry was verified."
+  ],
+  "remaining": [
+    "Owner-only practice remains; intended family/client/admin account/runtime eligibility is not established.",
+    "Actual recipients, request/reason-sharing consent, real capacity/approved limits and private setup references remain pending.",
+    "Consenting intended-device microphone trials for request submission, client decisions, help and administrator review remain pending.",
+    "S01 foreground wake, fuller meal alternatives/portions and complete live/device/provider failure gates remain open.",
+    "S02 genuine-day acceptance and full S10 achievements/notifications remain pending.",
+    "Public Cloudflare restart was denied by automatic approval review; explicit external exposure approval is pending. Local runtime is available."
+  ],
+  "scope_notes": [
+    "No new framework, paid service, API billing fallback, model or voice change.",
+    "No recipient inference, email/calendar/PM actuation or unsolicited external notification.",
+    "No private care records, transcripts, audio, credentials or full backup evidence are stored in this public record."
+  ]
+}

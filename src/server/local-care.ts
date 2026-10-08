@@ -6,7 +6,8 @@ import { activityCommandSchema, activityDate, type ActivityCommand, type Activit
 import { activityId, activityRow, projectLedger } from './activity-ledger.js';
 import { ApiError, unavailable } from './errors.js';
 import type { Session } from './session.js';
-import type { AppointmentInput, CareAccess, GroceryInput, GroceryItem, LocalRole } from './care-access.js';
+import type { AppointmentInput, CareAccess, CareAuthority, GroceryInput, GroceryItem, LocalRole } from './care-access.js';
+import { TaskRequestService } from './task-requests.js';
 
 const scrypt = (password: string, salt: Buffer, length: number, options: object) => new Promise<Buffer>((resolve, reject) => {
   scryptCallback(password, salt, length, options, (error, key) => error ? reject(error) : resolve(Buffer.from(key)));
@@ -169,13 +170,21 @@ export class LocalCare implements CareAccess {
 
   private async context(session: Session, client?: PoolClient) {
     const query = client ? client.query.bind(client) : this.pool.query.bind(this.pool);
-    const { rows } = await query(`select s.actor_id,s.participant_id,s.role
+    const { rows } = await query(`select s.actor_id,s.participant_id,s.role,g.id as grant_id,g.granted_at
       from companion_local.sessions s join companion_local.accounts a on a.id=s.actor_id
       join companion_local.role_grants g on g.actor_id=s.actor_id and g.participant_id=s.participant_id and g.role=s.role
       where s.id=$1 and s.access_hash=$2 and s.expires_at>$3 and s.revoked_at is null and a.disabled_at is null and g.revoked_at is null`, [session.session_id, tokenHash(session.access_token), this.clock()]);
     const row = rows[0];
     if (!row || row.actor_id !== session.user_id) throw new ApiError(401, 'unauthorized', 'Please sign in again.');
-    return { actorId: row.actor_id as string, participantId: row.participant_id as string, role: row.role as LocalRole };
+    return { actorId: row.actor_id as string, participantId: row.participant_id as string, role: row.role as LocalRole,
+      grantRevision: createHash('sha256').update(`${row.grant_id}:${new Date(row.granted_at).toISOString()}`).digest('hex') };
+  }
+  async authority(session: Session): Promise<CareAuthority> {
+    try {
+      const scope = await this.context(session);
+      return { actor_id: scope.actorId, login_session_id: session.session_id, active_role: scope.role,
+        client_id: scope.participantId, grant_revision: scope.grantRevision };
+    } catch (error) { return mapError(error); }
   }
   async role(session: Session): Promise<LocalRole> {
     try { return (await this.context(session)).role; } catch (error) { return mapError(error); }
@@ -279,9 +288,11 @@ export class LocalCare implements CareAccess {
         const stamp=now.toISOString();
         const entry:ActivityEntry={...target,revision:target.revision+1,occurred_at:prior?.occurred_at??null,notes:prior?.notes??'',portion:prior?.portion??null,
           recorded_at:prior?.recorded_at??stamp,updated_at:stamp,last_action:input.type==='record_activity'?'reported':input.type==='correct_activity'?'corrected':'rescheduled'};
+        let requestScheduleReview:Awaited<ReturnType<TaskRequestService['reconcileReschedule']>>=null;
         if(input.type==='reschedule_activity'){
           if(target.status==='completed')fail('already_reported','A completed activity cannot be rescheduled. Correct the mistaken report first.');
           if(Date.parse(input.payload.scheduled_at)<now.getTime()-60000)fail('invalid_activity_time','Choose a new time that has not already passed.',400);
+          requestScheduleReview=await new TaskRequestService(this.pool,{clock:this.clock}).reconcileReschedule(client,session,target.id,input.payload.scheduled_at);
           entry.scheduled_at=new Date(input.payload.scheduled_at).toISOString();entry.status='pending';entry.occurred_at=null;
         }else{
           entry.status=input.payload.status;entry.occurred_at=input.payload.occurred_at?new Date(input.payload.occurred_at).toISOString():null;
@@ -295,11 +306,12 @@ export class LocalCare implements CareAccess {
             portion=excluded.portion,revision=excluded.revision,last_action=excluded.last_action,updated_at=excluded.updated_at,
             last_actor_id=excluded.last_actor_id,last_command_id=excluded.last_command_id`,[...fields,actorId,input.idempotency_key]);
         const eventType=input.type==='record_activity'?'ActivityReported':input.type==='correct_activity'?'ActivityCorrected':'ActivityRescheduled';
-        const result:ActivityReceipt={command_id:input.idempotency_key,result:entry.last_action,entry,replayed:false};
+        const result:ActivityReceipt={command_id:input.idempotency_key,result:input.type==='record_activity'?'reported':input.type==='correct_activity'?'corrected':'rescheduled',entry,replayed:false};
         await client.query('insert into companion_local.append_only_mutations(participant_id,command_id,command,result,event_type,actor_id) values($1,$2,$3,$4,$5,$6)',[participantId,input.idempotency_key,JSON.stringify(input),JSON.stringify(result),eventType,actorId]);
         await client.query('insert into companion_local.domain_events(participant_id,actor_id,command_id,event_type,local_date,data) values($1,$2,$3,$4,$5,$6)',
           [participantId,actorId,input.idempotency_key,eventType,input.local_date,JSON.stringify({activity_id:entry.id,kind:entry.kind,time_zone:profile.time_zone,before:prior??target,after:entry,
-            reason:'reason' in input.payload?input.payload.reason:null,old_scheduled_at:target.scheduled_at,new_scheduled_at:entry.scheduled_at})]);
+            reason:'reason' in input.payload?input.payload.reason:null,old_scheduled_at:target.scheduled_at,new_scheduled_at:entry.scheduled_at,
+            ...(requestScheduleReview?{request_review:requestScheduleReview}:{})})]);
         return result;
       });
     }catch(error){return mapError(error);}
@@ -426,6 +438,10 @@ export class LocalCare implements CareAccess {
       [participantId, checkinId, actorId, result.command_id, eventType, day, JSON.stringify(data)]);
   }
   private async priorMutation(client:PoolClient,participantId:string,key:string):Promise<{family:'plan'|'other';command:any;result:any}|null> {
+    if ((await client.query("select to_regclass('companion_local.request_receipts') as table_name")).rows[0]?.table_name) {
+      const request = (await client.query('select command,result from companion_local.request_receipts where participant_id=$1 and command_id=$2',[participantId,key])).rows[0];
+      if (request) return { family:'other',command:request.command,result:request.result };
+    }
     const row=(await client.query(`select family,command,result from (
       select 'plan' as family,command,result from companion_local.command_receipts where participant_id=$1 and command_id=$2
       union all

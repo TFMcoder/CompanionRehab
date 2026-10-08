@@ -31,8 +31,52 @@ export async function refreshCredential(account: PlanCredential, fetcher: typeof
     expiresAt: Date.now() + tokens.expires_in * 1000, scopes };
 }
 
+/** Provider-reported token counts. Missing values stay unknown, including absent breakdowns. */
+export interface InferenceUsage {
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  totalTokens?: number | null;
+  cachedInputTokens?: number | null;
+  reasoningOutputTokens?: number | null;
+}
+const usageKeys = ['inputTokens', 'outputTokens', 'totalTokens', 'cachedInputTokens', 'reasoningOutputTokens'] as const;
+const tokenCount = (value: unknown): number | null => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null;
+const record = (value: unknown): Record<string, unknown> => value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+const errorUsage = new WeakMap<object, InferenceUsage>();
+
+/** Preserve safe counts when an adapter maps errors; no provider payload/text is attached. */
+export function attachInferenceUsage<T extends object>(error: T, usage: InferenceUsage | undefined): T {
+  errorUsage.set(error, sumInferenceUsage([usage]));
+  return error;
+}
+export function inferenceUsageFromError(error: unknown): InferenceUsage {
+  return sumInferenceUsage([error && typeof error === 'object' ? errorUsage.get(error) : undefined]);
+}
+
+function readUsage(value: unknown): InferenceUsage {
+  const raw = record(value);
+  return { inputTokens: tokenCount(raw.input_tokens), outputTokens: tokenCount(raw.output_tokens), totalTokens: tokenCount(raw.total_tokens),
+    cachedInputTokens: tokenCount(record(raw.input_tokens_details).cached_tokens),
+    reasoningOutputTokens: tokenCount(record(raw.output_tokens_details).reasoning_tokens) };
+}
+
+/** Sum only complete observations for a field. Callers include failures/aborts as unknown, not zero. */
+export function sumInferenceUsage(usages: readonly (InferenceUsage | undefined)[]): InferenceUsage {
+  const total: InferenceUsage = {};
+  for (const key of usageKeys) {
+    let sum: number | null = usages.length ? 0 : null;
+    for (const usage of usages) {
+      const value = tokenCount(usage?.[key]);
+      if (value === null || sum === null || !Number.isSafeInteger(sum + value)) { sum = null; break; }
+      sum += value;
+    }
+    total[key] = sum;
+  }
+  return total;
+}
+
 export interface ProbeResult { completed: true; model: typeof selectedModel; effort: typeof selectedEffort;
-  text: string; usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number }; requestId?: string }
+  text: string; usage?: InferenceUsage; requestId?: string }
 function responseError(payload: unknown, status: number, requestId?: string): PlanRequestError {
   const data = payload && typeof payload === 'object' ? payload as Record<string, unknown> : {};
   const nested = data.error && typeof data.error === 'object' ? data.error as Record<string, unknown> : data;
@@ -132,15 +176,13 @@ export async function requestSolHigh(account: PlanCredential, input: OutputItem[
         }
         if (item.type === 'response.failed' || item.type === 'error') {
           const detail = item.response && typeof item.response === 'object' ? item.response as Record<string, unknown> : {};
-          throw responseError(item.type === 'error' ? item : detail, 0, requestId);
+          throw attachInferenceUsage(responseError(item.type === 'error' ? item : detail, 0, requestId), readUsage(detail.usage));
         }
-        if (item.type === 'response.incomplete') throw new Error('ChatGPT response was incomplete.');
+        if (item.type === 'response.incomplete') throw attachInferenceUsage(new Error('ChatGPT response was incomplete.'), readUsage(record(item.response).usage));
         if (item.type === 'response.completed') {
           const result = item.response && typeof item.response === 'object' ? item.response as Record<string, unknown> : {};
           if (result.status !== 'completed' || result.model !== selectedModel) throw new Error('ChatGPT completed with a different model or status.');
-          const rawUsage = result.usage && typeof result.usage === 'object' ? result.usage as Record<string, unknown> : {};
-          const token = (value: unknown) => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : undefined;
-          const usage = { inputTokens: token(rawUsage.input_tokens), outputTokens: token(rawUsage.output_tokens), totalTokens: token(rawUsage.total_tokens) };
+          const usage = readUsage(result.usage);
           // The plan stream can omit aggregated output at the terminal event.
           // Only completed item events are eligible for stateless continuation.
           const indexes = [...finalizedItems.keys()].sort((a, b) => a - b);
@@ -241,8 +283,6 @@ export async function probeSolHighTools(account: PlanCredential, fetcher: typeof
   if (second.output.some(item => !['reasoning', 'message'].includes(String(item.type))) || finalText.trim() !== verificationToken) {
     throw new Error('Synthetic tool result was not verified.');
   }
-  const sum = (a?: number, b?: number) => a === undefined || b === undefined ? undefined : a + b;
   return { completed: true, model: selectedModel, effort: selectedEffort, text: 'Synthetic tool round trip verified.', toolRoundTrip: true, requests: 2,
-    usage: { inputTokens: sum(first.usage?.inputTokens, second.usage?.inputTokens), outputTokens: sum(first.usage?.outputTokens, second.usage?.outputTokens),
-      totalTokens: sum(first.usage?.totalTokens, second.usage?.totalTokens) }, requestId: second.requestId };
+    usage: sumInferenceUsage([first.usage, second.usage]), requestId: second.requestId };
 }

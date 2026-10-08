@@ -1,6 +1,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { Pool } from 'pg';
 import { loadEnvironment, configFromEnv } from '../src/server/config.js';
+import { localCareMigrations } from '../src/server/local-migrations.js';
 
 // A new database, not a deletion or relabelling of care history. No provider credentials
 // or sessions are copied. The existing owner identity remains owner-operated only.
@@ -29,7 +30,7 @@ try {
     throw new Error('The client database already exists. Refusing to replace or reseed it.');
   await admin.query('create database nancy_client_trial');
   target=new Pool({connectionString:targetUrl.toString(),max:1,connectionTimeoutMillis:5000});
-  for (const file of ['002_local_care.sql','003_activity_ledger.sql','004_client_readiness.sql','005_runtime_observability.sql'])
+  for (const file of localCareMigrations)
     await target.query(await readFile('db/'+file,'utf8'));
   await target.query('begin');
   try {

@@ -6,6 +6,7 @@ import { databaseIdentity, decryptSnapshot, encryptSnapshot, exportSnapshot, res
 import type { ActivityCommand, ActivityEntry, ActivityLedger, ActivityReceipt } from '../src/shared/activity-contracts.js';
 import type { CareCommand } from '../src/shared/contracts.js';
 import type { Session } from '../src/server/session.js';
+import { localCareMigrations } from '../src/server/local-migrations.js';
 
 const evidencePath = '.local/probes/activity-ledger-live.json';
 const fixedInstant = '2026-10-05T15:00:00.000Z';
@@ -79,7 +80,7 @@ targetName = databaseName('nancy_s02_restore', suffix);
 const adminUrl = databaseUrl(base, 'postgres');
 const sourceUrl = databaseUrl(base, sourceName);
 const targetUrl = databaseUrl(base, targetName);
-const migrations = await Promise.all(['db/002_local_care.sql', 'db/003_activity_ledger.sql','db/004_client_readiness.sql','db/005_runtime_observability.sql'].map(path => readFile(path, 'utf8')));
+const migrations = await Promise.all(localCareMigrations.map(file => readFile('db/'+file, 'utf8')));
 const migrationDigest = createHash('sha256').update(migrations.join('\n')).digest('hex');
 const admin = new Client({ connectionString: adminUrl.toString(), connectionTimeoutMillis: 5_000 });
 

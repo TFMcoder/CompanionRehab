@@ -173,8 +173,8 @@ describe('LocalSpeech input bounds and worker lifecycle', () => {
       await priming;
       expect(service.readiness()).toEqual({ kokoro: 'ready', asr: 'ready' });
       const greeting = await service.synthesize('Hi Sam, what can I help with?');
-      // Five fixed acknowledgements, one greeting; concurrent priming was shared.
-      expect(greeting.readInt16LE(44)).toBe(6);
+      // Six fixed acknowledgements (including Requests), one greeting; concurrent priming was shared.
+      expect(greeting.readInt16LE(44)).toBe(7);
     } finally { await service.close(); }
   });
 

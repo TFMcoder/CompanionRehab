@@ -1,3 +1,4 @@
+import { testAuthority, bindTestInference } from './helpers/inference.js';
 import { describe, expect, it, vi } from 'vitest';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { createApp } from '../src/server/app.js';
@@ -11,9 +12,9 @@ describe('authenticated local voice routes', () => {
   it('serves the validated prepared first sentence once and rejects it after interruption', async () => {
     const config = configFromEnv({ PUBLIC_ORIGIN: 'http://localhost:8787', DATABASE_URL: 'postgresql://local.invalid/synthetic', SESSION_KEY: randomBytes(32).toString('base64') });
     const session: Session = { user_id: randomUUID(), session_id: randomUUID(), issued_at: Date.now() / 1000, expires_at: Date.now() / 1000 + 3600, access_token: 'synthetic', refresh_token: 'synthetic' };
-    const care = { authorize: vi.fn(async s => s), today: vi.fn(async () => ({ profile: { id: session.user_id, display_name: 'Synthetic', time_zone: 'America/Toronto', preferences: '', revision: 0 }, local_date: '2026-10-05', tasks: [], meal_options: [], checkin: null })), close: vi.fn() } as unknown as CareService;
+    const care = { authorize: vi.fn(async s => s), authority: () => testAuthority(session), today: vi.fn(async () => ({ profile: { id: session.user_id, display_name: 'Synthetic', time_zone: 'America/Toronto', preferences: '', revision: 0 }, local_date: '2026-10-05', tasks: [], meal_options: [], checkin: null })), close: vi.fn() } as unknown as CareService;
     const synthesize = vi.fn(async () => Buffer.from('prepared-synthetic-wave'));
-    const conversation = new ConversationService(care, { respond: async (_i, _p, _t, _s, delta) => {
+    const conversation = new ConversationService(care, { bind: bindTestInference, respond: async (_i, _p, _t, _s, delta) => {
       delta?.('Which meal sounds good? ');
       return { completed: true, model: 'gpt-6-sol', effort: 'high', text: 'Which meal sounds good? We can discuss options.', output: [] };
     } }, session.user_id, undefined, synthesize);
@@ -35,8 +36,8 @@ describe('authenticated local voice routes', () => {
   it('protects replies, rejects arbitrary speech and binds a conversation to its login', async () => {
     const config = configFromEnv({ PUBLIC_ORIGIN: 'http://localhost:8787', DATABASE_URL: 'postgresql://local.invalid/synthetic', SESSION_KEY: randomBytes(32).toString('base64') });
     const session: Session = { user_id: randomUUID(), session_id: randomUUID(), issued_at: Date.now() / 1000, expires_at: Date.now() / 1000 + 3600, access_token: 'synthetic', refresh_token: 'synthetic' };
-    const care = { authorize: vi.fn(async s => s), today: vi.fn(async () => ({ profile: { id: session.user_id, display_name: 'Synthetic', time_zone: 'America/Toronto', preferences: '', revision: 0 }, local_date: '2026-10-05', tasks: [], meal_options: [], checkin: null })), logout: vi.fn(), close: vi.fn() } as unknown as CareService;
-    const conversation = new ConversationService(care, { respond: vi.fn() }, session.user_id);
+    const care = { authorize: vi.fn(async s => s), authority: () => testAuthority(session), today: vi.fn(async () => ({ profile: { id: session.user_id, display_name: 'Synthetic', time_zone: 'America/Toronto', preferences: '', revision: 0 }, local_date: '2026-10-05', tasks: [], meal_options: [], checkin: null })), logout: vi.fn(), close: vi.fn() } as unknown as CareService;
+    const conversation = new ConversationService(care, { bind: bindTestInference, respond: vi.fn() }, session.user_id);
     const synthesize = vi.fn(async () => Buffer.from('synthetic-wave'));
     const readiness = vi.fn(() => ({ kokoro: 'ready', asr: 'ready' }));
     const speech = { synthesize, readiness, close: vi.fn() } as unknown as LocalSpeech;

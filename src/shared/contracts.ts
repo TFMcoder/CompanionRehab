@@ -43,7 +43,7 @@ export const setupSchema = z.object({
 }).strict();
 export type SetupInput = z.infer<typeof setupSchema>;
 export interface Task { id: string; title: string; time_hint: string | null; urgency?: 'high' | 'medium' | 'low'; scheduled_date?: string | null; scheduled_time?: string | null; category?: 'task' | 'exercise' | 'rehab'; duration_minutes?: number | null }
-export type ClientView = 'my_day' | 'tasks' | 'meals' | 'groceries' | 'activity';
+export type ClientView = 'my_day' | 'tasks' | 'meals' | 'groceries' | 'activity' | 'requests';
 export type AppRole = 'administrator' | 'client' | 'family_friend' | 'clinician';
 export interface GroceryItem { id: string; name: string; quantity?: string }
 export const groceryInput = z.object({ name: z.string().trim().min(1).max(160), quantity: z.string().trim().max(80).optional(), idempotency_key: uuid }).strict();

@@ -3,6 +3,10 @@ import type { CareCommand, SetupInput, Today, Receipt } from '../shared/contract
 import type { ActivityCommand, ActivityLedger, ActivityReceipt } from '../shared/activity-contracts.js';
 
 export type LocalRole = 'administrator' | 'client' | 'family_friend' | 'clinician';
+export interface CareAuthority {
+  actor_id: string; login_session_id: string; active_role: LocalRole;
+  client_id: string; grant_revision: string;
+}
 export interface GroceryInput { name: string; quantity?: string; idempotency_key: string }
 export interface GroceryItem { id: string; name: string; quantity?: string }
 export interface AppointmentInput { title: string; starts_at: string; idempotency_key: string }
@@ -18,6 +22,7 @@ export interface CareAccess {
   activityCommand?(session: Session, command: ActivityCommand): Promise<ActivityReceipt>;
   activityReceipt?(session: Session, key: string): Promise<ActivityReceipt | null>;
   role?(session: Session): Promise<LocalRole>;
+  authority?(session: Session): Promise<CareAuthority>;
   groceries?(session: Session): Promise<{ items: GroceryItem[] }>;
   addGrocery?(session: Session, input: GroceryInput): Promise<{ item: GroceryItem }>;
   appointments?(session: Session): Promise<{ appointments: Array<{ id: string; title: string; starts_at: string }> }>;

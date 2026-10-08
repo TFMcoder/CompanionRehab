@@ -1,12 +1,13 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { api, ApiError } from "./api";
+import { api, ApiError, type SessionInfo } from "./api";
+import { TaskRequests, type TaskRequestService } from './TaskRequests';
 import { startVoice } from "./voice";
 import { startLocalVoice, type LocalVoiceState } from "./local-voice";
 import { localDateTimeWithOffset } from "../shared/local-time";
 import { mealSlots, type AcceptedPlan, type AppConfig, type CareCommand, type ClientView, type GroceryItem, type MealSlot, type Plan, type Receipt, type SetupInput, type Today } from "../shared/contracts";
 import type { ActivityCommand, ActivityEntry, ActivityKind, ActivityLedger, ActivityOption } from "../shared/activity-contracts";
 
-type AppState = "loading" | "readiness" | "login" | "setup" | "today" | "signout";
+type AppState = "loading" | "readiness" | "login" | "setup" | "today" | "support" | "signout";
 type SaveState = { kind: "idle" | "saving" | "saved" | "unconfirmed" | "conflict" | "error"; message?: string; key?: string };
 type VoiceState = LocalVoiceState;
 type Transcript = { speaker: "you" | "nancy"; text: string };
@@ -18,6 +19,7 @@ type ActivityDraft =
 
 const labelForSlot: Record<MealSlot, string> = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner" };
 const keyFor = () => crypto.randomUUID();
+const requestService: TaskRequestService = { workspace: api.taskRequests, review: api.reviewTaskRequest, command: api.taskRequestCommand, receipt: api.taskRequestReceipt };
 
 function selectedPlan(today: Today): { taskIds: string[]; meals: Record<MealSlot, string> } {
   const source = today.checkin?.proposal ?? today.checkin?.accepted;
@@ -124,6 +126,7 @@ export function App() {
   const [screen, setScreen] = useState<AppState>("loading");
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [today, setToday] = useState<Today | null>(null);
+  const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [signoutBusy, setSignoutBusy] = useState(false);
   const sessionEpoch = useRef(0);
@@ -132,15 +135,21 @@ export function App() {
   useEffect(() => {
     const expired = () => {
       sessionEpoch.current += 1; todayRequest.current += 1;
-      setToday(null); setScreen("login");
+      setToday(null); setSessionInfo(null); setScreen("login");
+    };
+    const changed = () => {
+      sessionEpoch.current += 1; todayRequest.current += 1;
+      setToday(null); setSessionInfo(null); setScreen('loading');
+      void enterSession().catch(error => { setMessage(friendlyError(error)); setScreen(error instanceof ApiError && error.status === 401 ? 'login' : 'readiness'); });
     };
     window.addEventListener('nancy:session-expired', expired);
-    return () => window.removeEventListener('nancy:session-expired', expired);
+    window.addEventListener('nancy:scope-changed', changed);
+    return () => { window.removeEventListener('nancy:session-expired', expired); window.removeEventListener('nancy:scope-changed', changed); };
   }, []);
 
   const signOut = async () => {
     sessionEpoch.current += 1; todayRequest.current += 1;
-    setToday(null); setScreen('signout'); setSignoutBusy(true); setMessage(null);
+    setToday(null); setSessionInfo(null); setScreen('signout'); setSignoutBusy(true); setMessage(null);
     try { await api.logout(); setScreen('login'); }
     catch (error) {
       if (error instanceof ApiError && error.status === 401) setScreen('login');
@@ -185,8 +194,19 @@ export function App() {
     return next;
   };
 
+  const enterSession = async () => {
+    const epoch = sessionEpoch.current;
+    const session = await api.session();
+    if (epoch !== sessionEpoch.current) return;
+    if (!['client', 'family_friend', 'administrator', 'clinician'].includes(session.role) || !session.participant_id || !session.scope_key || typeof session.voice_eligible !== 'boolean') throw new ApiError(403, 'invalid_session_scope', 'Your account view could not be confirmed. Please sign in again.');
+    setSessionInfo(session);
+    if (session.role !== 'client') { setToday(null); setScreen('support'); return; }
+    const next = await refreshToday();
+    if (epoch === sessionEpoch.current) setScreen(next.profile ? 'today' : 'setup');
+  };
+
   useEffect(() => {
-    if (screen !== 'today' || config?.voice_available) return;
+    if ((screen !== 'today' && screen !== 'support') || config?.voice_available || !sessionInfo?.voice_eligible) return;
     let checks = 0;
     let busy = false;
     const check = async () => {
@@ -198,7 +218,7 @@ export function App() {
     const timer = window.setInterval(() => { void check(); }, 2_000);
     window.addEventListener('focus', check);
     return () => { window.clearInterval(timer); window.removeEventListener('focus', check); };
-  }, [screen, config?.voice_available]);
+  }, [screen, config?.voice_available, sessionInfo?.voice_eligible]);
 
   useEffect(() => {
     void (async () => {
@@ -210,7 +230,7 @@ export function App() {
           return;
         }
         try {
-          await api.session();
+          await enterSession();
         } catch (error) {
           if (error instanceof ApiError && error.status === 401) {
             setScreen("login");
@@ -218,8 +238,6 @@ export function App() {
           }
           throw error;
         }
-        const nextToday = await refreshToday();
-        setScreen(nextToday.profile ? "today" : "setup");
       } catch (error) {
         setMessage(friendlyError(error));
         setScreen("readiness");
@@ -238,11 +256,11 @@ export function App() {
   if (screen === "readiness") return <Readiness message={message} onRetry={retry} />;
   if (screen === "login") return <Login onLoggedIn={async () => {
     sessionEpoch.current += 1;
-    const next = await refreshToday();
-    setScreen(next.profile ? "today" : "setup");
+    await enterSession();
   }} />;
   if (screen === "setup") return <Setup initialToday={today} onSaved={next => { setToday(next); setScreen("today"); }} />;
-  return <TodayView today={today!} voiceAvailable={config?.voice_available ?? false} voiceTransport={config?.voice_transport} onCheckVoice={checkVoice} onRefresh={refreshToday} onReceipt={applyReceipt} onEditChoices={() => { todayRequest.current += 1; setScreen("setup"); }} onLogout={signOut} />;
+  if (screen === 'support' && sessionInfo) return <SupportHome key={sessionInfo.scope_key} session={sessionInfo} voiceAvailable={config?.voice_available ?? false} voiceTransport={config?.voice_transport} onCheckVoice={checkVoice} onLogout={signOut} />;
+  return <TodayView key={sessionInfo!.scope_key} scopeKey={sessionInfo!.scope_key} voiceEligible={sessionInfo!.voice_eligible} requestsAvailable={sessionInfo!.task_requests_available === true} today={today!} voiceAvailable={config?.voice_available ?? false} voiceTransport={config?.voice_transport} onCheckVoice={checkVoice} onRefresh={refreshToday} onReceipt={applyReceipt} onEditChoices={() => { todayRequest.current += 1; setScreen("setup"); }} onLogout={signOut} />;
 }
 
 function Loading() {
@@ -355,7 +373,62 @@ function Setup({ initialToday, onSaved }: { initialToday: Today | null; onSaved:
   </main>;
 }
 
-function TodayView({ today, voiceAvailable, voiceTransport, onCheckVoice, onRefresh, onEditChoices, onLogout, onReceipt }: { today: Today; voiceAvailable: boolean; voiceTransport?: AppConfig['voice_transport']; onCheckVoice: () => Promise<AppConfig>; onRefresh: () => Promise<Today>; onEditChoices: () => void; onLogout: () => Promise<void>; onReceipt: (receipt: Receipt, date: string) => void }) {
+function SupportHome({ session, voiceAvailable, voiceTransport, onCheckVoice, onLogout }: { session: SessionInfo; voiceAvailable: boolean; voiceTransport?: AppConfig['voice_transport']; onCheckVoice(): Promise<AppConfig>; onLogout(): Promise<void> }) {
+  const [voice, setVoice] = useState<VoiceState>('stopped');
+  const [voiceMessage, setVoiceMessage] = useState<string>();
+  const [voiceActive, setVoiceActive] = useState(false);
+  const [transcript, setTranscript] = useState<Transcript[]>([]);
+  const [typed, setTyped] = useState('');
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  const [requestUnconfirmed, setRequestUnconfirmed] = useState(false);
+  const handle = useRef<Awaited<ReturnType<typeof startLocalVoice>> | null>(null);
+  const controller = useRef<AbortController | null>(null);
+  const attempt = useRef(0);
+  const active = useRef(true);
+  const eligible = session.voice_eligible && session.role !== 'clinician';
+  const stop = async () => {
+    attempt.current += 1; controller.current?.abort(); controller.current = null;
+    const current = handle.current; handle.current = null;
+    setVoiceActive(false); setVoice('stopped');
+    await current?.stop();
+  };
+  useEffect(() => {
+    active.current = true;
+    return () => { active.current = false; attempt.current += 1; controller.current?.abort(); void handle.current?.stop().catch(() => undefined); handle.current = null; };
+  }, []);
+  useEffect(() => { if (requestUnconfirmed) { void stop(); setVoiceMessage('Check the saved request before continuing with Nancy.'); } }, [requestUnconfirmed]);
+  const start = async () => {
+    if (!eligible || requestUnconfirmed || handle.current || voice === 'connecting') return;
+    const id = ++attempt.current, abort = new AbortController();
+    controller.current?.abort(); controller.current = abort;
+    setVoice('connecting'); setVoiceMessage('Connecting to Nancy…');
+    const current = () => active.current && attempt.current === id && !abort.signal.aborted;
+    try {
+      const ready = voiceAvailable ? { voice_available: true, voice_transport: voiceTransport } : await onCheckVoice();
+      if (!current()) return;
+      if (!ready.voice_available || ready.voice_transport !== 'local') { setVoice('stopped'); setVoiceMessage('Nancy’s voice is not ready. You can use the request buttons while you wait.'); return; }
+      const next = await startLocalVoice({ signal: abort.signal,
+        onReady: next => { if (!current()) { void next.stop(); return; } handle.current = next; setVoiceActive(true); },
+        onState: (state, message) => { if (!current()) return; setVoice(state); setVoiceMessage(message); if (state === 'stopped' || state === 'error') { handle.current = null; setVoiceActive(false); } },
+        onTranscript: (speaker, text) => { if (current()) setTranscript(previous => [...previous.slice(-7), { speaker, text }]); },
+        onChange: () => { if (current()) setRefreshVersion(value => value + 1); },
+        onNavigate: destination => { if (current() && destination === 'requests') setRefreshVersion(value => value + 1); },
+      });
+      if (!current()) { await next.stop(); return; }
+      handle.current = next; setVoiceActive(true);
+    } catch (error) { if (current()) { handle.current = null; setVoiceActive(false); setVoice('error'); setVoiceMessage(friendlyError(error)); } }
+  };
+  const title = session.role === 'clinician' ? 'Clinician Partners' : session.role === 'administrator' ? 'Requests and help' : 'Support Team';
+  const heading = !eligible ? 'Use the buttons below' : voice === 'connecting' ? 'Starting Nancy' : voice === 'thinking' ? 'Nancy is thinking' : voice === 'listening' ? 'Nancy is listening' : voice === 'speaking' ? 'Nancy is speaking' : voice === 'closing' ? 'Nancy is waiting' : voice === 'error' ? 'Nancy needs a moment' : voiceAvailable ? 'Ready when you are' : 'Nancy is warming up';
+  return <main className="today-shell"><header className="today-header"><div><p className="eyebrow">Nancy</p><h1>{title}</h1></div><button className="text-button" onClick={() => void stop().catch(() => undefined).then(onLogout)}>Sign out</button></header>
+    <section className="voice-panel" aria-label="Talk to Nancy"><div><p className="eyebrow">Talk to Nancy</p><h2 aria-live="polite">{heading}</h2><p>{voiceMessage ?? (!eligible ? session.voice_unavailable_reason ?? 'Nancy voice is not connected for this account yet. You can use the buttons below.' : 'Ask Nancy to help with a task request.')}</p></div><div className="voice-actions">{voiceActive || voice === 'connecting' ? <>{voiceActive && (voice === 'speaking' || voice === 'thinking') && <button className="interrupt-button" onClick={() => handle.current?.interrupt()}>Interrupt Nancy</button>}<button className="stop-button" onClick={() => void stop()}>Stop voice</button></> : <button className="talk-button" disabled={!eligible || requestUnconfirmed} onClick={() => void start()}>Talk to Nancy</button>}</div></section>
+    {voiceActive && <form className="typed-turn" onSubmit={e => { e.preventDefault(); if (!typed.trim() || voice === 'thinking' || voice === 'speaking') return; const text = typed.trim(); setTyped(''); void handle.current?.sendText(text); }}><label>Type to Nancy<input value={typed} maxLength={2000} disabled={voice === 'thinking' || voice === 'speaking'} onChange={e => setTyped(e.target.value)} /></label><button className="secondary-button" disabled={!typed.trim() || voice === 'thinking' || voice === 'speaking'}>Send</button></form>}
+    {transcript.length > 0 && <section className="transcript" aria-live="polite" aria-label="Recent conversation">{transcript.map((line, index) => <p key={index} className={line.speaker}><strong>{line.speaker === 'nancy' ? 'Nancy' : 'You'}</strong>{line.text}</p>)}</section>}
+    {session.role === 'clinician' ? <section className="request-panel"><h2>Your shared views</h2><p>Clinical dashboards and exports are not available yet.</p></section> : session.task_requests_available === false ? <p>Task requests are not available for this account yet.</p> : <TaskRequests service={requestService} scopeKey={session.scope_key} onTalk={() => void start()} voiceAvailable={eligible && voiceAvailable} showTalk={false} refreshVersion={refreshVersion} onPendingChange={setRequestUnconfirmed} />}
+  </main>;
+}
+
+function TodayView({ today, scopeKey, voiceEligible, requestsAvailable, voiceAvailable, voiceTransport, onCheckVoice, onRefresh, onEditChoices, onLogout, onReceipt }: { today: Today; scopeKey: string; voiceEligible: boolean; requestsAvailable: boolean; voiceAvailable: boolean; voiceTransport?: AppConfig['voice_transport']; onCheckVoice: () => Promise<AppConfig>; onRefresh: () => Promise<Today>; onEditChoices: () => void; onLogout: () => Promise<void>; onReceipt: (receipt: Receipt, date: string) => void }) {
   const [editing, setEditing] = useState(false);
   const [save, setSave] = useState<SaveState>({ kind: "idle" });
   const [refreshing, setRefreshing] = useState(false);
@@ -365,6 +438,9 @@ function TodayView({ today, voiceAvailable, voiceTransport, onCheckVoice, onRefr
   const [voiceMessage, setVoiceMessage] = useState<string | undefined>();
   const [transcript, setTranscript] = useState<Transcript[]>([]);
   const [view, setView] = useState<ClientView>('my_day');
+  const [requestsVisited, setRequestsVisited] = useState(false);
+  const [requestRefresh, setRequestRefresh] = useState(0);
+  const [requestUnconfirmed, setRequestUnconfirmed] = useState(false);
   const [typedTurn, setTypedTurn] = useState('');
   const voiceHandle = useRef<{ stop: () => Promise<void>; sendText?: (text: string) => Promise<void>; interrupt?: () => void } | null>(null);
   const voiceAbort = useRef<AbortController | null>(null);
@@ -373,6 +449,8 @@ function TodayView({ today, voiceAvailable, voiceTransport, onCheckVoice, onRefr
   const voiceAttempt = useRef(0);
   const pending = planIsPending(today);
   const date = formatDay(today.local_date, today.profile!.time_zone);
+  useEffect(() => { if (view === 'requests') setRequestsVisited(true); }, [view]);
+  useEffect(() => { if (requestUnconfirmed) { voiceAttempt.current += 1; voiceAbort.current?.abort(); void voiceHandle.current?.stop(); voiceHandle.current = null; setVoiceSessionActive(false); setVoice('stopped'); setVoiceMessage('Check the saved request before continuing with Nancy.'); } }, [requestUnconfirmed]);
 
   useEffect(() => { currentCheckin.current = today.checkin?.id ?? null; }, [today.checkin?.id]);
   useEffect(() => {
@@ -446,7 +524,7 @@ function TodayView({ today, voiceAvailable, voiceTransport, onCheckVoice, onRefr
     }
   };
   const startSpeaking = async () => {
-    if (voiceHandle.current || save.kind === "unconfirmed" || save.kind === "conflict") return;
+    if (!voiceEligible || requestUnconfirmed || voiceHandle.current || save.kind === "unconfirmed" || save.kind === "conflict") return;
     const attempt = ++voiceAttempt.current;
     const controller = new AbortController();
     voiceAbort.current?.abort();
@@ -466,10 +544,10 @@ function TodayView({ today, voiceAvailable, voiceTransport, onCheckVoice, onRefr
         onTranscript: (speaker: "you" | "nancy", text: string) => {
           if (active.current && attempt === voiceAttempt.current) setTranscript(current => [...current.slice(-7), { speaker, text }]);
         },
-        onChange: () => { if (active.current && attempt === voiceAttempt.current) void refresh(); },
+        onChange: () => { if (active.current && attempt === voiceAttempt.current) { void refresh(); setRequestRefresh(value => value + 1); } },
         onNavigate: (destination: string) => {
           if (!active.current || attempt !== voiceAttempt.current) return;
-          if (destination === 'my_day' || destination === 'activity' || destination === 'tasks' || destination === 'meals' || destination === 'groceries') setView(destination);
+          if (destination === 'my_day' || destination === 'activity' || destination === 'tasks' || destination === 'meals' || destination === 'groceries' || destination === 'requests' && requestsAvailable) setView(destination);
         },
       };
       const onReady = (handle: { stop: () => Promise<void>; sendText?: (text: string) => Promise<void>; interrupt?: () => void }) => {
@@ -511,8 +589,8 @@ function TodayView({ today, voiceAvailable, voiceTransport, onCheckVoice, onRefr
     await handle?.stop();
     await onLogout();
   };
-  const editLocked = save.kind === "saving" || save.kind === "unconfirmed" || save.kind === "conflict";
-  const voiceHeading = voice === 'connecting' ? 'Starting Nancy' : voice === 'thinking' ? 'Nancy is thinking' : voice === 'listening' ? 'Nancy is listening' : voice === 'speaking' ? 'Nancy is speaking' : voice === 'closing' ? 'Nancy is waiting' : voice === 'error' ? 'Nancy needs a moment' : voiceAvailable ? 'Ready when you are' : 'Nancy is warming up';
+  const editLocked = requestUnconfirmed || save.kind === "saving" || save.kind === "unconfirmed" || save.kind === "conflict";
+  const voiceHeading = !voiceEligible ? 'Use the buttons below' : voice === 'connecting' ? 'Starting Nancy' : voice === 'thinking' ? 'Nancy is thinking' : voice === 'listening' ? 'Nancy is listening' : voice === 'speaking' ? 'Nancy is speaking' : voice === 'closing' ? 'Nancy is waiting' : voice === 'error' ? 'Nancy needs a moment' : voiceAvailable ? 'Ready when you are' : 'Nancy is warming up';
   const submitTypedTurn = (event: FormEvent) => {
     event.preventDefault();
     if (!voiceHandle.current?.sendText || !typedTurn.trim() || voice === 'thinking' || voice === 'speaking') return;
@@ -524,9 +602,9 @@ function TodayView({ today, voiceAvailable, voiceTransport, onCheckVoice, onRefr
   const transcriptLine = (line: Transcript, index: number) => <p key={`${line.speaker}-${index}`} className={line.speaker}><strong>{line.speaker === "nancy" ? "Nancy" : "You"}</strong>{line.text}</p>;
 
   return <main className="today-shell"><header className="today-header"><div><p className="eyebrow">Nancy · your day</p><h1>{today.priority_context?.greeting || `Hello, ${today.profile!.display_name}.`}</h1><p className="date-line">{date}</p></div><div className="header-actions"><button className="text-button" onClick={onEditChoices} disabled={editLocked}>Edit choices</button><button className="text-button" onClick={() => void refresh()} disabled={refreshing}>{refreshing ? "Refreshing…" : "Refresh"}</button><button className="text-button" onClick={() => void signOut()}>Sign out</button></div></header>
-    <nav className="day-tabs" aria-label="My Day views">{([['my_day', 'My Day'], ['activity', 'Activity'], ['tasks', 'Tasks'], ['meals', 'Meals'], ['groceries', 'Groceries']] as const).map(([id, label]) => <button key={id} type="button" aria-current={view === id ? 'page' : undefined} onClick={() => setView(id)}>{label}</button>)}</nav>
-    <section className="voice-panel" aria-label="Talk to Nancy"><div><p className="eyebrow">Talk to Nancy</p><h2 aria-live="polite">{voiceHeading}</h2><p>{voiceMessage ?? (voiceAvailable ? "Ask Nancy about your day, meals, or anything you need help with." : "Nancy’s voice is warming up. You can review your day while you wait.")}</p></div>
-      <div className="voice-actions">{voiceSessionActive || voice === "connecting" ? <>{voiceTransport === 'local' && voiceSessionActive && (voice === 'speaking' || voice === 'thinking') && voiceHandle.current?.interrupt && <button className="interrupt-button" onClick={() => voiceHandle.current?.interrupt?.()}>Interrupt Nancy</button>}<button className="stop-button" onClick={() => void stopSpeaking()}>Stop voice</button></> : <button className="talk-button" onClick={() => void startSpeaking()} disabled={editLocked}>Talk to Nancy</button>}</div>
+    <nav className="day-tabs" aria-label="My Day views">{([['my_day', 'My Day'], ['activity', 'Activity'], ['tasks', 'Tasks'], ['meals', 'Meals'], ['groceries', 'Groceries'], ['requests', 'Requests']] as const).filter(([id]) => id !== 'requests' || requestsAvailable).map(([id, label]) => <button key={id} type="button" aria-current={view === id ? 'page' : undefined} onClick={() => setView(id)}>{label}</button>)}</nav>
+    <section className="voice-panel" aria-label="Talk to Nancy"><div><p className="eyebrow">Talk to Nancy</p><h2 aria-live="polite">{voiceHeading}</h2><p>{voiceMessage ?? (!voiceEligible ? "Nancy voice is not connected for this account yet. You can use all the buttons below." : voiceAvailable ? "Ask Nancy about your day, meals, or anything you need help with." : "Nancy’s voice is warming up. You can review your day while you wait.")}</p></div>
+      <div className="voice-actions">{voiceSessionActive || voice === "connecting" ? <>{voiceTransport === 'local' && voiceSessionActive && (voice === 'speaking' || voice === 'thinking') && voiceHandle.current?.interrupt && <button className="interrupt-button" onClick={() => voiceHandle.current?.interrupt?.()}>Interrupt Nancy</button>}<button className="stop-button" onClick={() => void stopSpeaking()}>Stop voice</button></> : <button className="talk-button" onClick={() => void startSpeaking()} disabled={editLocked || !voiceEligible}>Talk to Nancy</button>}</div>
     </section>
     {voiceTransport === 'local' && voiceSessionActive && <form className="typed-turn" onSubmit={submitTypedTurn}><label>Type to Nancy<input value={typedTurn} onChange={event => setTypedTurn(event.target.value)} maxLength={2000} disabled={voice === 'thinking' || voice === 'speaking'} placeholder="Ask Nancy about your day" /></label><button className="secondary-button" disabled={!typedTurn.trim() || voice === 'thinking' || voice === 'speaking'}>Send</button></form>}
     {transcript.length > 0 && <section className="transcript" aria-live="polite" aria-label="Recent conversation">{earlierTranscript.length > 0 && <details className="transcript-history"><summary>Earlier conversation ({earlierTranscript.length})</summary>{earlierTranscript.map(transcriptLine)}</details>}{recentTranscript.map((line, index) => transcriptLine(line, earlierTranscript.length + index))}</section>}
@@ -536,6 +614,7 @@ function TodayView({ today, voiceAvailable, voiceTransport, onCheckVoice, onRefr
     {view === 'meals' && <MealsView today={today} onReview={() => setView('my_day')} />}
     {view === 'activity' && <ActivityView initial={today.activity_ledger} localDate={today.local_date} timeZone={today.profile!.time_zone} onTodayRefresh={onRefresh} />}
     <GroceriesView initial={today.groceries} visible={view === 'groceries'} />
+    {requestsVisited && <div hidden={view !== 'requests'}><TaskRequests service={requestService} scopeKey={scopeKey} onTalk={() => void startSpeaking()} voiceAvailable={voiceEligible && voiceAvailable} showTalk={false} refreshVersion={requestRefresh} onPendingChange={setRequestUnconfirmed} onChanged={() => void refresh()} /></div>}
     <SaveNotice state={save} onReconcile={() => void reconcile()} onRefresh={() => void refresh()} />
     {refreshIssue && <p className="refresh-issue" role="status">{refreshIssue} Your last confirmed plan is still shown.</p>}
   </main>;

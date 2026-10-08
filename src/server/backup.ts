@@ -1,7 +1,11 @@
 import { createCipheriv, createDecipheriv, randomBytes, createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { localCareMigrations } from './local-migrations.js';
 export const backupTables = ['participant_profiles', 'role_grants', 'task_definitions', 'meal_options', 'daily_checkins', 'day_plan_proposals', 'accepted_day_plan_versions', 'command_receipts', 'domain_events'] as const;
-export const localBackupTables = ['accounts', 'participant_profiles', 'role_grants', 'task_definitions', 'meal_options', 'daily_checkins', 'day_plan_proposals', 'accepted_day_plan_versions', 'command_receipts', 'domain_events', 'grocery_items', 'appointments', 'append_only_mutations', 'activity_records', 'actuation_targets', 'external_resource_links', 'actuation_intents', 'runtime_events'] as const;
+// Restore in dependency order. Request decisions must follow task/plan records;
+// help follows requests, and administrator flags follow both requests and help.
+export const localBackupTables = ['accounts', 'participant_profiles', 'role_grants', 'task_definitions', 'meal_options', 'daily_checkins', 'day_plan_proposals', 'accepted_day_plan_versions', 'command_receipts', 'domain_events', 'grocery_items', 'appointments', 'append_only_mutations', 'activity_records', 'actuation_targets', 'external_resource_links', 'actuation_intents', 'runtime_events',
+  'request_access', 'request_day_capacity', 'request_constraints', 'task_requests', 'request_help', 'request_flags', 'request_receipts'] as const;
 export type BackupSchema = 'private' | 'companion_local';
 export interface Database {
   query(sql: string, params?: any[]): Promise<{ rows: any[] }>;
@@ -11,11 +15,10 @@ export interface Snapshot {
   schema?: BackupSchema;
   scope: 'care-records-only' | 'care-and-local-access'; tables: Record<string, Record<string, unknown>[]>;
 }
-const schemaFile: Record<BackupSchema, string> = { private: '../../db/001_s01.sql', companion_local: '../../db/002_local_care.sql' };
 const tableSets: Record<BackupSchema, readonly string[]> = { private: backupTables, companion_local: localBackupTables };
 export function schemaHash(schema: BackupSchema = 'private') {
-  const hash=createHash('sha256').update(readFileSync(new URL(schemaFile[schema], import.meta.url)));
-  if(schema==='companion_local')for(const file of ['003_activity_ledger.sql','004_client_readiness.sql','005_runtime_observability.sql'])hash.update(readFileSync(new URL('../../db/'+file, import.meta.url)));
+  const hash=createHash('sha256');
+  for(const file of schema==='companion_local'?localCareMigrations:['001_s01.sql'])hash.update(readFileSync(new URL('../../db/'+file, import.meta.url)));
   return hash.digest('hex');
 }
 export function databaseIdentity(url: string) {

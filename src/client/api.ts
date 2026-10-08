@@ -1,5 +1,6 @@
-import type { AppConfig, CareCommand, GroceryItem, Receipt, SetupInput, Today } from "../shared/contracts";
+import type { AppConfig, AppRole, CareCommand, GroceryItem, Receipt, SetupInput, Today } from "../shared/contracts";
 import type { ActivityCommand, ActivityLedger, ActivityReceipt } from "../shared/activity-contracts";
+import type { TaskRequestCommand, TaskRequestDraft, TaskRequestReceipt, TaskRequestReview, TaskRequestWorkspace } from '../shared/task-request-contracts';
 
 export class ApiError extends Error {
   constructor(
@@ -29,6 +30,7 @@ async function request<T>(path: string, init?: RequestInit, timeoutMs?: number):
     if (!response.ok) {
       if (response.status === 401) window.dispatchEvent(new Event('nancy:session-expired'));
       const body = await response.json().catch((): ErrorBody => ({}));
+      if (response.status === 403 && body.error?.code === 'scope_changed') window.dispatchEvent(new Event('nancy:scope-changed'));
       throw new ApiError(response.status, body.error?.code ?? "request_failed", body.error?.message ?? "Something went wrong. Please try again.");
     }
     try {
@@ -49,10 +51,11 @@ async function request<T>(path: string, init?: RequestInit, timeoutMs?: number):
 export interface ConversationReply { text: string; reply_id: string; navigate?: string; changed?: boolean; transcript?: string; speech_parts?: number }
 export interface ConversationStart extends ConversationReply { session_id: string }
 export interface GroceryInput { name: string; quantity?: string; idempotency_key: string }
+export interface SessionInfo { authenticated: true; role: AppRole; participant_id: string; scope_key: string; voice_eligible: boolean; voice_unavailable_reason?: string | null; task_requests_available?: boolean }
 
 export const api = {
   config: () => request<AppConfig>("/api/config"),
-  session: () => request<{ authenticated: true }>("/api/auth/session"),
+  session: () => request<SessionInfo>("/api/auth/session"),
   login: (email: string, password: string) => request<{ ok: true }>("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
   logout: () => request<{ ok: true }>("/api/auth/logout", { method: "POST", body: "{}" }),
   today: () => request<Today>("/api/today"),
@@ -65,6 +68,10 @@ export const api = {
   activity: (date?: string) => request<ActivityLedger>(`/api/activity${date ? `?date=${encodeURIComponent(date)}` : ""}`),
   activityCommand: (command: ActivityCommand) => request<ActivityReceipt>("/api/activity/commands", { method: "POST", body: JSON.stringify(command) }),
   activityReceipt: (key: string) => request<ActivityReceipt>(`/api/activity/receipts/${encodeURIComponent(key)}`),
+  taskRequests: () => request<TaskRequestWorkspace>('/api/task-requests'),
+  reviewTaskRequest: (draft: TaskRequestDraft) => request<TaskRequestReview>('/api/task-requests/review', { method: 'POST', body: JSON.stringify(draft) }),
+  taskRequestCommand: (command: TaskRequestCommand) => request<TaskRequestReceipt>('/api/task-requests/commands', { method: 'POST', body: JSON.stringify(command) }),
+  taskRequestReceipt: (key: string) => request<TaskRequestReceipt>(`/api/task-requests/receipts/${encodeURIComponent(key)}`),
   conversationStart: (signal?: AbortSignal) => request<ConversationStart>("/api/conversation", { method: "POST", body: "{}", signal }, 90_000),
   conversationTurn: (id: string, text: string, turnId: string, signal?: AbortSignal) => request<ConversationReply>(`/api/conversation/${encodeURIComponent(id)}/turn`, { method: "POST", body: JSON.stringify({ text, turn_id: turnId }), signal }, 90_000),
   conversationAudio: (id: string, wav: string, turnId: string, signal?: AbortSignal) => request<ConversationReply>(`/api/conversation/${encodeURIComponent(id)}/audio`, { method: "POST", body: JSON.stringify({ wav, turn_id: turnId }), signal }, 90_000),

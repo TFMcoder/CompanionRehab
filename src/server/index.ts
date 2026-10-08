@@ -6,18 +6,23 @@ import { PlanStore, defaultPlanPath } from './chatgpt-plan/storage.js';
 import { PlanReasoner } from './plan-reasoner.js';
 import { ConversationService } from './conversation.js';
 import { RuntimeLog } from './telemetry.js';
+import { TaskRequestService } from './task-requests.js';
 const startedAt = performance.now();
 loadEnvironment();
 const config = configFromEnv();
 const care = config.databaseUrl ? new LocalCare({ connectionString: config.databaseUrl }) : undefined;
 const runtimeLog = care ? new RuntimeLog(care.pool) : undefined;
-const reasoner = config.sessionKey && config.planUserId ? new PlanReasoner(new PlanStore(defaultPlanPath, config.sessionKey)) : undefined;
+const taskRequests = care ? new TaskRequestService(care.pool) : undefined;
+const reasoner = config.sessionKey && config.planUserId ? new PlanReasoner(new PlanStore(defaultPlanPath, config.sessionKey), config.planUserId) : undefined;
 const speech = config.voiceTransport === 'local' && care && reasoner && await reasoner.available() ? new LocalSpeech() : undefined;
 const conversation = speech && care && reasoner ? new ConversationService(care, reasoner, config.planUserId!, undefined, (text, signal) => speech.synthesize(text, signal), metric => {
   const { actor_id, conversation_id, turn_id, outcome, ...measurements } = metric;
   runtimeLog?.record({ kind: 'conversation', actor_id, conversation_id, turn_id, outcome: outcome === 'completed' ? 'ok' : outcome === 'failed' ? 'error' : 'interrupted', measurements });
-}) : undefined;
-const app = await createApp(config, { care, speech, conversation, runtimeLog });
+}, metric => {
+  const { actor_id, conversation_id, turn_id, outcome, ...measurements } = metric;
+  runtimeLog?.record({ kind: 'conversation', actor_id, conversation_id, turn_id, outcome: outcome === 'completed' ? 'ok' : outcome === 'failed' ? 'error' : 'interrupted', measurements });
+}, taskRequests) : undefined;
+const app = await createApp(config, { care, speech, conversation, runtimeLog, taskRequests });
 await app.listen({ host: '127.0.0.1', port: config.port });
 runtimeLog?.record({ kind: 'startup', outcome: 'ready', measurements: { stage: 'http_ready', duration_ms: performance.now() - startedAt } });
 console.log(`Nancy is running at ${config.origin}.`);

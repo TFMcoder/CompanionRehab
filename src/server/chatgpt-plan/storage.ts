@@ -17,6 +17,8 @@ export interface PlanState {
   hostId: string;
   activeKey?: string;
   accounts: Record<string, PlanCredential>;
+  // Immutable owner-practice binding; setup account selection never reroutes Nancy.
+  nancyBinding?: { actorId: string; accountKey: string; hostId: string; bindingId: string };
 }
 
 const aad = Buffer.from('companion-chatgpt-plan-v1');

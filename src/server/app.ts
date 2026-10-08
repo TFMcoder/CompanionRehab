@@ -22,13 +22,17 @@ import type { RuntimeLog } from './telemetry.js';
 import { splitSpeechParts } from '../shared/speech-parts.js';
 import { activityCommandSchema, activityDate } from '../shared/activity-contracts.js';
 import { isIP } from 'node:net';
+import { TaskRequestService } from './task-requests.js';
+import { taskRequestCommandSchema, taskRequestDraftSchema } from '../shared/task-request-contracts.js';
 
-export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog } = {}) {
+type RequestService = Pick<TaskRequestService, 'workspace'|'review'|'command'|'receipt'|'authorityRevision'>;
+export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; taskRequests?: RequestService; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog } = {}) {
   const app = Fastify({ logger: false, bodyLimit: 100000, trustProxy: false, requestTimeout: 120000, genReqId: () => randomUUID(), requestIdHeader: false });
   const care: CareService = dependencies.care || (config.databaseUrl ? new LocalCare({ connectionString: config.databaseUrl }) : new Supabase(config));
   const voice = dependencies.voice || new VoiceService(config, care);
   const conversation = dependencies.conversation;
   const speech = dependencies.speech;
+  const taskRequests = dependencies.taskRequests ?? (care instanceof LocalCare ? new TaskRequestService(care.pool) : undefined);
   const speaking = new Map<string, AbortController>();
   const audioCache = new Map<string, Buffer>();
   const root = resolve(dependencies.staticRoot || 'dist/client');
@@ -102,7 +106,18 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     const session = await care.login(email, password);
     setSession(reply, session); return { ok: true };
   });
-  app.get('/api/auth/session', async () => ({ authenticated: true }));
+  app.get('/api/auth/session', async request => {
+    const session=sessions.get(request)!;
+    const authority=await care.authority?.(session);
+    const role=authority?.active_role ?? await care.role?.(session) ?? null;
+    const requestRevision=await taskRequests?.authorityRevision(session) ?? null;
+    const boundOwner=!!authority && !!role && ['client','family_friend','administrator'].includes(role) && config.planUserId===session.user_id;
+    const voiceEligible=boundOwner && (config.voiceTransport==='local' ? !!conversation : !!config.openaiKey);
+    return {authenticated:true,actor_id:session.user_id,role,participant_id:authority?.client_id??null,
+      scope_key:createHash('sha256').update(JSON.stringify([authority??{actor_id:session.user_id,login_session_id:session.session_id},requestRevision])).digest('hex'),
+      voice_eligible:voiceEligible,voice_unavailable_reason:voiceEligible?null:'A qualified Nancy voice connection is not yet available for this account. You can use the buttons.',
+      task_requests_available:!!taskRequests};
+  });
   app.post('/api/auth/logout', async (request, reply) => {
     const session = sessions.get(request)!;
     revoked.revoke(session.session_id, session.issued_at * 1000 + 7 * 86400000);
@@ -116,6 +131,25 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   });
   app.get('/api/today', async request => { const today = await care.today(sessions.get(request)!); return today.profile ? { ...today, priority_context: priorityContext(today) } : today; });
   app.get('/api/priority-context', async request => priorityContext(await care.today(sessions.get(request)!)));
+  const requestsService=()=>{
+    if(!taskRequests)throw new ApiError(503,'requests_unavailable','Task requests are not available on this care connection.');
+    return taskRequests;
+  };
+  app.get('/api/task-requests',async request=>requestsService().workspace(sessions.get(request)!));
+  app.post('/api/task-requests/review',async request=>{
+    limit(request,`request-review:${sessions.get(request)!.user_id}`,30);
+    return requestsService().review(sessions.get(request)!,taskRequestDraftSchema.parse(request.body));
+  });
+  app.post('/api/task-requests/commands',async request=>{
+    limit(request,`request-command:${sessions.get(request)!.user_id}`,30);
+    return requestsService().command(sessions.get(request)!,taskRequestCommandSchema.parse(request.body));
+  });
+  app.get('/api/task-requests/receipts/:key',async request=>{
+    const key=uuid.parse((request.params as {key:string}).key);
+    const receipt=await requestsService().receipt(sessions.get(request)!,key);
+    if(!receipt)throw new ApiError(404,'not_found','No saved request receipt is available yet. The change is still unconfirmed.');
+    return receipt;
+  });
   app.get('/api/activity',async request=>{
     if(!care.ledger)throw new ApiError(503,'ledger_unavailable','The activity ledger is unavailable.');
     const {date}=z.object({date:activityDate.optional()}).strict().parse(request.query);
