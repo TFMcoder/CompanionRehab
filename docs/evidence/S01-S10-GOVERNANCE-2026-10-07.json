@@ -105,6 +105,34 @@
       "care_writes": false,
       "origin": "loopback only",
       "private_ref": ".local/probes/request-runtime.json"
+    },
+    "approved_https_follow_up": {
+      "observed_at": "2026-10-08T02:48:38.865Z",
+      "status": "passed",
+      "checks_passed": 15,
+      "checks": {
+        "https_signin_page": true,
+        "private_requests_require_login": true,
+        "private_day_requires_login": true,
+        "preview_not_public": true,
+        "wrong_origin_denied": true,
+        "cookie_secure": true,
+        "cookie_httponly": true,
+        "cookie_samesite_strict": true,
+        "scoped_session": true,
+        "request_service_available": true,
+        "authorized_request_workspace": true,
+        "local_voice_ready": true,
+        "voice_navigation": true,
+        "heart_audio_over_https": true,
+        "logout_revokes_access": true
+      },
+      "authorization": "After the explicit question about exposing the authenticated Nancy app, including later care records, through a temporary Cloudflare HTTPS URL for phone testing, the owner replied approve on October 7 (Toronto). This resolves the earlier automatic-approval rejection for this temporary exposure.",
+      "private_ref": ".local/probes/approved-tunnel.json",
+      "public_hostname_ref": ".local/runtime/requests-processes.json",
+      "care_writes": false,
+      "model_inference": false,
+      "limitation": "Temporary authenticated HTTPS transport only. This does not qualify intended-user inference routes, actual iPhone microphone acceptance or unattended/stable hosting."
     }
   },
   "findings_repaired": [
@@ -122,7 +150,7 @@
     "Consenting intended-device microphone trials for request submission, client decisions, help and administrator review remain pending.",
     "S01 foreground wake, fuller meal alternatives/portions and complete live/device/provider failure gates remain open.",
     "S02 genuine-day acceptance and full S10 achievements/notifications remain pending.",
-    "Public Cloudflare restart was denied by automatic approval review; explicit external exposure approval is pending. Local runtime is available."
+    "Temporary Cloudflare HTTPS exposure was explicitly approved and verified in the follow-up. Stable hosting, intended-user account qualification and actual iPhone acceptance remain open."
   ],
   "scope_notes": [
     "No new framework, paid service, API billing fallback, model or voice change.",

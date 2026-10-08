@@ -858,12 +858,12 @@
           "test_id": "S01-LIVE2",
           "outcome": "blocked",
           "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T02:04:47.767Z",
+          "executed_at": "2026-10-08T02:48:38.865Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
           "observed_by": "Codex engineering verification",
           "evidence_ref": "docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json",
-          "notes": "Partial actual-service evidence: 19 isolated PostgreSQL request/restore checks, real desktop browser request flows, one synthetic owner Sol-high/Heart probe, verified encrypted pre-upgrade restore and 9 local runtime smoke checks. Full device, recipient qualification and all S01 safety scenarios remain open."
+          "notes": "Partial actual-service evidence: 19 isolated PostgreSQL request/restore checks, real desktop browser request flows, one synthetic owner Sol-high/Heart probe, verified encrypted pre-upgrade restore and 9 local runtime smoke checks. Full device, recipient qualification and all S01 safety scenarios remain open. October 7 follow-up: the owner explicitly approved authenticated client-app Cloudflare exposure; 15 HTTPS checks pass for sign-in, access denial, secure cookies, request navigation, Heart delivery and logout. No model inference or care mutation was performed; actual device and intended-user qualification gates remain open."
         }
       ],
       "human_actions": [
