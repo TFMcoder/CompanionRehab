@@ -44,7 +44,8 @@
     "Defer email and Asana connections until access is available. The selected Outlook account is Microsoft 365 work/school; its calendar connection also waits for scoped authorization. Continue local appointments and task/meal planning without external access.",
     "Keep Nancy turns quick through bounded current context and repository nutrition retrieval. Log operational metadata consistently for 14 days separately from durable care events and receipts; do not retain transcripts or audio in runtime logs.",
     "October 7: configure role-bounded family and administrator Nancy conversations and interfaces while Microsoft 365 access is pending. Family and administrators may Request Tasks with name, priority, date and time. Nancy checks schedule and daily capacity, then asks the client; only the client can accept. A rejection with a client-provided reason creates help for other authorized family members and a scoped administrator flag. Nancy supports the client and never acts as an overseer.",
-    "October 7 governance staging approved: first harden S01 trusted-policy/data separation and numeric usage/latency metadata; develop the complete family request UI/server checkpoint, then bounded voice using qualified per-user inference routes. UI-first is not a waiver of voice or any S01/S02/full S10 completion gate. Intended-client qualification and remaining S01 engineering proceed alongside request development; preserve the existing stack, gpt-6-sol high and Heart."
+    "October 7 governance staging approved: first harden S01 trusted-policy/data separation and numeric usage/latency metadata; develop the complete family request UI/server checkpoint, then bounded voice using qualified per-user inference routes. UI-first is not a waiver of voice or any S01/S02/full S10 completion gate. Intended-client qualification and remaining S01 engineering proceed alongside request development; preserve the existing stack, gpt-6-sol high and Heart.",
+    "October 8: Microsoft 365 connectors include read AND write for Outlook mail and calendar. Prepare the IT handoff for delegated Calendars.ReadWrite, Mail.ReadWrite and Mail.Send plus account/refresh identity scopes. This supersedes the read-only calendar proposal. Keep selected mailbox/calendar scope, explicit review before external actions, durable receipts and client task approval; no connector or consent is implied. Consider a future dedicated ChatGPT Plus account after exact-model, intended-user/runtime and allowance qualification; no account/model/billing change is authorized by this planning request."
   ],
   "constraints": {
     "budget": {
@@ -338,10 +339,10 @@
     {
       "id": "I-CALENDAR-EXTERNAL",
       "status": "unresolved",
-      "default": "Outlook is selected and the account is Microsoft 365 work/school. Access to the intended calendar and scoped authorization remain unavailable for the October 6 client-readiness trial. Qualify Microsoft Graph delegated Calendars.ReadBasic first when access is available; request broader permission only for an evidenced need. S01 local appointments remain usable without external OAuth.",
-      "needed_for": "S06 scoped external calendar connector and live integration",
-      "question": "Reuse the selected Microsoft 365 work/school Outlook calendar. Identify the intended calendar privately and complete scoped authorization when access is available; do not ask for the provider or account type again.",
-      "resolution_ref": "docs/architecture/VOICE_AND_DAILY_COMPANION_2026-10-05.md#confirmed-device-and-calendar"
+      "default": "Microsoft 365 work/school Outlook is confirmed. October 8 scope is mail and calendar read/write using delegated Calendars.ReadWrite, Mail.ReadWrite and Mail.Send, with User.Read and identity/refresh scopes. Tenant registration, selected account/resources, consent, approved data flow, stable Web redirect and protected server credential remain pending. No live external access is enabled; local appointments remain available.",
+      "needed_for": "S06 scoped Outlook mail/calendar reads and reviewed writes",
+      "question": "Use the IT checklist to obtain tenant/client IDs, selected account/resources, consent and Conditional Access/data-use decisions, stable callback agreement and secure credential setup. Engineering prepares the connector before interactive sign-in and consenting live trials.",
+      "resolution_ref": "docs/MICROSOFT365_IT_CHECKLIST.md"
     }
   ],
   "service_defaults": [
@@ -2154,7 +2155,7 @@
     {
       "id": "S06",
       "priority": 60,
-      "title": "Connect Asana tasks and the Outlook calendar",
+      "title": "Connect Asana tasks and Outlook mail/calendar",
       "status": "planned",
       "depends_on": [
         "S02"
@@ -2163,20 +2164,21 @@
         "I-ASANA",
         "I-CALENDAR-EXTERNAL"
       ],
-      "outcome": "Authorized Asana household tasks and selected external calendar appointments appear in Nancy daily context; task completion converges with Asana and calendar reads remain scoped, fresh and visible.",
+      "outcome": "Authorized Asana tasks and Outlook mail/calendar context reach Nancy through scoped adapters; reviewed mail and calendar writes reconcile to provider results with durable receipts, while client task acceptance remains required.",
       "in_scope": [
         "Scoped OAuth and token refresh",
         "Project allowlist, signed webhook import and reconciliation",
         "Review new arrivals into the daily plan",
         "Transactional outbound completion with retries and conflict review",
-        "Scoped external calendar OAuth or equivalent authorized read-only connection after provider selection; import appointment identity, local time, freshness and cancellations into daily priorities",
-        "Reconcile calendar changes/outages without silently altering accepted task/meal plans or double-booking"
+        "Microsoft 365 delegated OAuth for selected mailbox/calendar; bounded reads and user-reviewed calendar create/update/cancel, mail drafts/edits and sending",
+        "Reconcile calendar changes/outages without silently altering accepted task/meal plans or double-booking",
+        "Explicit review of external recipients, content, event changes and invitation/cancellation effects; durable intent/result records and safe reconciliation of unknown provider outcomes"
       ],
       "out_of_scope": [
         "Asana-wide access",
         "Full sync dashboard",
         "Rewriting meal/rehab protocols from task text",
-        "Unapproved calendar writeback or broad mailbox access"
+        "Unreviewed external writes, tenant-wide mailbox access, shared-resource permissions without a separate need, and model access to a generic Graph client"
       ],
       "implementation_tasks": [
         {
@@ -2201,7 +2203,11 @@
         },
         {
           "id": "S06-T06",
-          "description": "Outlook is selected. Confirm account/calendar hosting and qualify Microsoft Graph delegated Calendars.ReadBasic for bounded calendarView reads of occurrences and exceptions. Keep credentials server-owned; persist only required appointment fields and selected calendar mappings. Qualify recurrence, timezones, pagination, updates/deletes, auth renewal/revocation and stale/outage behavior. Broader calendar permissions need an evidenced field/API requirement; do not request mail access or calendar writeback. Integrate current appointment context without silently moving accepted tasks."
+          "description": "Implement Microsoft Graph delegated Calendars.ReadWrite for selected-calendar calendarView reads and reviewed event creation/update/cancellation. Keep tokens server-owned and bound to verified tenant/account and care scope. Qualify recurrence, time zones, pagination, revisions, stale/deleted events, refresh/revocation and recovery. Review attendees and notification effects before dispatch; reconcile unknown writes and never silently move an accepted task."
+        },
+        {
+          "id": "S06-T07",
+          "description": "Implement selected-mailbox reads, drafts/edits and reviewed sending using delegated Mail.ReadWrite and Mail.Send. Bound retrieval and model disclosure to approved fields and relevance; isolate mail text from trusted policy. Record exact reviewed recipients/content, actor, source, command and provider mappings, distinguish accepted submission from delivery, reconcile uncertain sends without blind retries, and recheck grants/revocation before dispatch. Reuse the existing held-intent/receipt boundary; no new external message is authorized merely by enabling OAuth."
         }
       ],
       "contracts": {
@@ -2212,17 +2218,24 @@
           "SyncCursor",
           "ExternalCalendarAccount",
           "CalendarEventMapping",
-          "CalendarSyncCursor"
+          "CalendarSyncCursor",
+          "MicrosoftMailboxConnection",
+          "ReviewedMicrosoftAction"
         ],
         "commands": [
           "accept_imported_activity",
           "retry_external_sync",
           "resolve_sync_conflict",
-          "authorize_calendar_source"
+          "authorize_calendar_source",
+          "authorize_mail_source",
+          "review_microsoft_action",
+          "confirm_microsoft_action"
         ],
         "queries": [
           "get_asana_sync_status",
-          "get_calendar_sync_status"
+          "get_calendar_sync_status",
+          "get_mail_sync_status",
+          "get_microsoft_action_receipt"
         ],
         "events": [
           "AsanaTaskObserved",
@@ -2231,7 +2244,11 @@
           "ExternalConflictDetected",
           "CalendarAppointmentObserved",
           "CalendarAppointmentChanged",
-          "CalendarSyncFailed"
+          "CalendarSyncFailed",
+          "MicrosoftActionProposed",
+          "MicrosoftActionSubmitted",
+          "MicrosoftActionReconciled",
+          "MicrosoftActionFailed"
         ]
       },
       "acceptance_criteria": [
@@ -2250,6 +2267,10 @@
         {
           "id": "S06-AC04",
           "assertion": "A consented live external appointment, including one about an hour ahead, is visible in Nancy session-start priorities with source/freshness; updates, cancellation and unavailable provider status are explicit and do not rewrite an accepted plan without review."
+        },
+        {
+          "id": "S06-AC05",
+          "assertion": "Mail/calendar reads and writes stay within the verified tenant/account and approved resources. Authorized voice or UI reviews the exact external action before dispatch; family task acceptance cannot be bypassed. Drafts, sends and event changes retain receipts and truthful pending/unknown/failed/provider-confirmed states without duplicate sends or invitations."
         }
       ],
       "automated_tests": [
@@ -2277,6 +2298,15 @@
           ],
           "scenario": "Replay external appointment create/update/cancel, daylight-saving ambiguity, expired consent, duplicate sync and stale cache around a session start.",
           "expected": "One current scoped appointment influences priority, stale/outage state is disclosed, and accepted plans remain versioned and unchanged without review."
+        },
+        {
+          "id": "S06-AUTO4",
+          "criterion_ids": [
+            "S06-AC03",
+            "S06-AC05"
+          ],
+          "scenario": "Exercise mail read/draft/edit/send and calendar create/update/cancel through voice and UI; change recipients/content/event version after review, inject instructions through mail, target another mailbox, revoke access before dispatch and simulate timeout after provider acceptance.",
+          "expected": "Only the reviewed scoped command runs. No context elevation, client-approval bypass or blind resend; source/receipt mappings reconcile one effective action and distinguish submission from delivery."
         }
       ],
       "live_tests": [
@@ -2318,6 +2348,32 @@
             "Confirm Nancy reports its time/source and prioritizes the current day; change or cancel a disposable appointment to test reconciliation without editing a real obligation."
           ],
           "expected": "Live calendar context is timely, source-attributed and correctly scoped; accepted plans change only through explicit reviewed commands."
+        },
+        {
+          "id": "S06-LIVE4",
+          "criterion_ids": [
+            "S06-AC03",
+            "S06-AC05"
+          ],
+          "data_policy": "disposable_live",
+          "steps": [
+            "After IT approval, use designated disposable live mailbox/calendar records and an explicitly consenting test recipient; read, save/edit a draft, review/send a test message and create/update/cancel a test event.",
+            "Verify external results, invitation effects, token refresh/revocation, wrong-account denial and uncertain-write reconciliation without touching real obligations or messaging unapproved recipients."
+          ],
+          "expected": "Reviewed commands produce the intended provider result and durable receipt, denied actions fail closed and recovery does not duplicate delivery or invitations."
+        },
+        {
+          "id": "S06-LIVE5",
+          "criterion_ids": [
+            "S06-AC04",
+            "S06-AC05"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "After disposable safety checks and account/data-use consent, let the actual user review a genuine low-stakes email and calendar action through Nancy and equivalent UI; use designated consenting recipients.",
+            "Observe the correct Outlook result, Nancy receipt/freshness and unchanged unrelated care records; no completed activity is inferred from an event or sent message."
+          ],
+          "expected": "The intended user can read and approve scoped mail/calendar changes with accurate results and preserved task decision rights."
         }
       ],
       "story_refs": [
@@ -2389,27 +2445,29 @@
         },
         {
           "id": "S06-H03",
-          "title": "Authorize the selected Outlook calendar account",
+          "title": "Authorize and try the selected Outlook mail/calendar account",
           "owner_role": "account_owner",
-          "when": "Before live external calendar reads",
+          "when": "Before live Microsoft 365 access, then during the consenting read/write trial",
           "blocking_scope": "slice_completion",
           "release_gate_id": null,
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Outlook and a Microsoft 365 work/school account are already confirmed. When access is available, identify the intended calendar privately and approve only the prepared calendar read scope; organization approval is conditional on the actual tenant policy.",
-            "Complete any required sign-in/MFA or consent; review which participant appointments may be visible to Nancy."
+            "Identify the intended account/calendar/mailbox privately and obtain the company IT registration, consent, Conditional Access and AI/local-data-use decisions in docs/MICROSOFT365_IT_CHECKLIST.md. Microsoft 365 work/school and read/write scope are already decided.",
+            "Complete the prepared sign-in/MFA and delegated consent when required; identify approved test resources/recipients and review a genuine low-stakes mail/calendar action after the disposable safety checks."
           ],
           "agent_can_do": [
-            "Prepare Microsoft Graph delegated Calendars.ReadBasic and bounded calendarView reads first; validate the required fields, account support, costs and retention before asking for sign-in or consent.",
-            "Test stale, deleted and denied events on disposable appointments before the genuine trial."
+            "Prepare the single-tenant Web callback, protected credential setup and exact delegated scopes; IT owns tenant policy/consent and the account owner completes personal sign-in. No user engineering task or new subscription is assumed.",
+            "Build bounded retrieval and reviewed external action commands, ledger/provider mappings, renewal/revocation and reconciliation; test safe failure and duplicate prevention on isolated/provider test records before the genuine trial."
           ],
-          "expected_evidence": "Private scoped calendar authorization reference and one genuine appointment context observation.",
+          "expected_evidence": "Private tenant/account/resource consent, data-use and callback/credential custody references plus observed genuine authorized mail/calendar read/write outcomes; public summaries contain no messages, care details or credentials.",
           "related_input_ids": [
             "I-CALENDAR-EXTERNAL"
           ],
           "related_test_ids": [
-            "S06-LIVE3"
+            "S06-LIVE3",
+            "S06-LIVE4",
+            "S06-LIVE5"
           ],
           "status": "pending",
           "completion_ref": null,
@@ -3896,7 +3954,7 @@
   "deferred": [
     {
       "id": "D-OUTLOOK",
-      "reason": "Email ingestion, sending, invitations and writeback remain deferred. The selected Microsoft 365 work/school Outlook calendar read integration stays in S06 and waits for account access and scoped authorization. Local appointments serve the October 6 client trial. Company IT consent applies if the work/school policy requires it."
+      "reason": "October 8 puts Outlook mail and calendar read/write in S06 scope, superseding the earlier read-only boundary. Live access awaits IT/account/data-use authorization and implemented tested adapters; local appointments remain usable. No Microsoft write or invitation has been enabled."
     },
     {
       "id": "D-ASANA-ACCESS",
@@ -3904,7 +3962,7 @@
     },
     {
       "id": "D-EMAIL-ACCESS",
-      "reason": "Email account integration, ingestion and outbound delivery are deferred until appropriate access and recipient consent are available. October 6 stores only held actuation foundations; it does not send messages or treat an accepted plan as permission to notify."
+      "reason": "Mail.ReadWrite and Mail.Send are selected for the Microsoft 365 connector, but mailbox access and reviewed sending await IT/account/data-use authorization and implementation. Existing held intents do not dispatch; a plan or task acceptance is not permission to email."
     },
     {
       "id": "D-CLINICAL-DOCS",
@@ -3932,7 +3990,7 @@
     "completion": "A slice cannot be done while an applicable slice_completion human action is unfinished. Paid-commitment, daily-reliance, clinical-use and release-gate items block only that named operation/gate, not unrelated free or supervised feature work.",
     "evidence": "Done requires an actual completion reference and timestamp; record private or sanitized references, not names, credentials, clinical records or invented signoffs.",
     "roles": "Human-action owner labels describe responsibilities, not application permissions. The application has exactly four roles: administrator, client, family/friend and clinician. One person may hold several responsibilities; the project owner is confirmed as both administrator and technical lead. Keep account identities private.",
-    "deferred": "Microsoft 365 Outlook calendar and Asana access are deferred until available; email delivery is also deferred. Their authorization is not a prerequisite for the October 6 local client trial."
+    "deferred": "Asana remains deferred until access. October 8 scopes Microsoft 365 mail/calendar read/write for S06; IT handoff is prepared, but registration/consent, connector implementation and actual live trials remain pending. These do not block the existing local client trial."
   },
   "delivery_focus": {
     "slice_ids": [

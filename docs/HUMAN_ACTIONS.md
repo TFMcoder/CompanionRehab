@@ -13,7 +13,7 @@ Source: [roadmap.json](roadmap/roadmap.json), in each slice's human_actions arra
 - A slice cannot be done while an applicable slice_completion human action is unfinished. Paid-commitment, daily-reliance, clinical-use and release-gate items block only that named operation/gate, not unrelated free or supervised feature work.
 - Done requires an actual completion reference and timestamp; record private or sanitized references, not names, credentials, clinical records or invented signoffs.
 - Human-action owner labels describe responsibilities, not application permissions. The application has exactly four roles: administrator, client, family/friend and clinician. One person may hold several responsibilities; the project owner is confirmed as both administrator and technical lead. Keep account identities private.
-- Microsoft 365 Outlook calendar and Asana access are deferred until available; email delivery is also deferred. Their authorization is not a prerequisite for the October 6 local client trial.
+- Asana remains deferred until access. October 8 scopes Microsoft 365 mail/calendar read/write for S06; IT handoff is prepared, but registration/consent, connector implementation and actual live trials remain pending. These do not block the existing local client trial.
 
 Routine coding, technical service configuration, database work, synthetic tests and evidence collection belong to the agent. The human supplies real-world decisions, restricted account interactions and participation that the agent cannot substitute for.
 
@@ -39,7 +39,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 | S03 | Resume check-ins and tracking after interruptions | S03-H01, S03-H02 |
 | S04 | Return to a fresh day with reviewed carryover and timely prompts | S04-H01, S04-H02, S04-H03 |
 | S05 | Build and use groceries from the meal plan | S05-H01, S05-H02 |
-| S06 | Connect Asana tasks and the Outlook calendar | S06-H01, S06-H02, S06-H03 |
+| S06 | Connect Asana tasks and Outlook mail/calendar | S06-H01, S06-H02, S06-H03 |
 | S07 | Follow Morning Boot one step at a time | S07-H01, S07-H02 |
 | S08 | Follow and report an approved rehab session | S08-H01, S08-H02 |
 | S09 | See explainable daily progress and achievements | S09-H01, S09-H02 |
@@ -377,7 +377,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Linked inputs/tests:** S05-LIVE1.
 
-## S06: Connect Asana tasks and the Outlook calendar
+## S06: Connect Asana tasks and Outlook mail/calendar
 
 - [ ] **S06-H01: Authorize the dedicated Asana connection**
 
@@ -415,23 +415,23 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Linked inputs/tests:** S06-LIVE1.
 
-- [ ] **S06-H03: Authorize the selected Outlook calendar account**
+- [ ] **S06-H03: Authorize and try the selected Outlook mail/calendar account**
 
   Owner: **account_owner**. Status: **pending**. Requirement: **required**.
 
-  **When:** Before live external calendar reads.
+  **When:** Before live Microsoft 365 access, then during the consenting read/write trial.
   **Blocks:** Completing this feature slice.
 
   **Human action:**
 
-  - Outlook and a Microsoft 365 work/school account are already confirmed. When access is available, identify the intended calendar privately and approve only the prepared calendar read scope; organization approval is conditional on the actual tenant policy.
-  - Complete any required sign-in/MFA or consent; review which participant appointments may be visible to Nancy.
+  - Identify the intended account/calendar/mailbox privately and obtain the company IT registration, consent, Conditional Access and AI/local-data-use decisions in docs/MICROSOFT365_IT_CHECKLIST.md. Microsoft 365 work/school and read/write scope are already decided.
+  - Complete the prepared sign-in/MFA and delegated consent when required; identify approved test resources/recipients and review a genuine low-stakes mail/calendar action after the disposable safety checks.
 
-  **Agent prepares or handles:** Prepare Microsoft Graph delegated Calendars.ReadBasic and bounded calendarView reads first; validate the required fields, account support, costs and retention before asking for sign-in or consent. Test stale, deleted and denied events on disposable appointments before the genuine trial.
+  **Agent prepares or handles:** Prepare the single-tenant Web callback, protected credential setup and exact delegated scopes; IT owns tenant policy/consent and the account owner completes personal sign-in. No user engineering task or new subscription is assumed. Build bounded retrieval and reviewed external action commands, ledger/provider mappings, renewal/revocation and reconciliation; test safe failure and duplicate prevention on isolated/provider test records before the genuine trial.
 
-  **Completion evidence:** Private scoped calendar authorization reference and one genuine appointment context observation.
+  **Completion evidence:** Private tenant/account/resource consent, data-use and callback/credential custody references plus observed genuine authorized mail/calendar read/write outcomes; public summaries contain no messages, care details or credentials.
 
-  **Linked inputs/tests:** I-CALENDAR-EXTERNAL, S06-LIVE3.
+  **Linked inputs/tests:** I-CALENDAR-EXTERNAL, S06-LIVE3, S06-LIVE4, S06-LIVE5.
 
 ## S07: Follow Morning Boot one step at a time
 
