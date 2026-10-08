@@ -45,7 +45,8 @@
     "Keep Nancy turns quick through bounded current context and repository nutrition retrieval. Log operational metadata consistently for 14 days separately from durable care events and receipts; do not retain transcripts or audio in runtime logs.",
     "October 7: configure role-bounded family and administrator Nancy conversations and interfaces while Microsoft 365 access is pending. Family and administrators may Request Tasks with name, priority, date and time. Nancy checks schedule and daily capacity, then asks the client; only the client can accept. A rejection with a client-provided reason creates help for other authorized family members and a scoped administrator flag. Nancy supports the client and never acts as an overseer.",
     "October 7 governance staging approved: first harden S01 trusted-policy/data separation and numeric usage/latency metadata; develop the complete family request UI/server checkpoint, then bounded voice using qualified per-user inference routes. UI-first is not a waiver of voice or any S01/S02/full S10 completion gate. Intended-client qualification and remaining S01 engineering proceed alongside request development; preserve the existing stack, gpt-6-sol high and Heart.",
-    "October 8: Microsoft 365 connectors include read AND write for Outlook mail and calendar. Prepare the IT handoff for delegated Calendars.ReadWrite, Mail.ReadWrite and Mail.Send plus account/refresh identity scopes. This supersedes the read-only calendar proposal. Keep selected mailbox/calendar scope, explicit review before external actions, durable receipts and client task approval; no connector or consent is implied. Consider a future dedicated ChatGPT Plus account after exact-model, intended-user/runtime and allowance qualification; no account/model/billing change is authorized by this planning request."
+    "October 8: Microsoft 365 connectors include read AND write for Outlook mail and calendar. Prepare the IT handoff for delegated Calendars.ReadWrite, Mail.ReadWrite and Mail.Send plus account/refresh identity scopes. This supersedes the read-only calendar proposal. Keep selected mailbox/calendar scope, explicit review before external actions, durable receipts and client task approval; no connector or consent is implied. Consider a future dedicated ChatGPT Plus account after exact-model, intended-user/runtime and allowance qualification; no account/model/billing change is authorized by this planning request.",
+    "October 8 clarification: the Microsoft connector uses only Rob's existing Microsoft 365 account for his own mail/calendar read/write. Entra registers and authorizes the connector application only. Keep Nancy local authentication and four application roles independent; do not provision Microsoft accounts for family, administrators or Nancy, migrate Nancy sign-in to Entra, or expand hosting into Azure. IT administers the registration using its existing administrative access."
   ],
   "constraints": {
     "budget": {
@@ -339,7 +340,7 @@
     {
       "id": "I-CALENDAR-EXTERNAL",
       "status": "unresolved",
-      "default": "Microsoft 365 work/school Outlook is confirmed. October 8 scope is mail and calendar read/write using delegated Calendars.ReadWrite, Mail.ReadWrite and Mail.Send, with User.Read and identity/refresh scopes. Tenant registration, selected account/resources, consent, approved data flow, stable Web redirect and protected server credential remain pending. No live external access is enabled; local appointments remain available.",
+      "default": "Microsoft 365 work/school Outlook is confirmed. October 8 scope is mail and calendar read/write using delegated Calendars.ReadWrite, Mail.ReadWrite and Mail.Send, with User.Read and identity/refresh scopes. Tenant registration, selected account/resources, consent, approved data flow, stable Web redirect and protected server credential remain pending. No live external access is enabled; local appointments remain available. The sole connected identity is Rob's existing Microsoft account; no additional Microsoft user/service account or Nancy identity migration is required.",
       "needed_for": "S06 scoped Outlook mail/calendar reads and reviewed writes",
       "question": "Use the IT checklist to obtain tenant/client IDs, selected account/resources, consent and Conditional Access/data-use decisions, stable callback agreement and secure credential setup. Engineering prepares the connector before interactive sign-in and consenting live trials.",
       "resolution_ref": "docs/MICROSOFT365_IT_CHECKLIST.md"
@@ -2178,7 +2179,8 @@
         "Asana-wide access",
         "Full sync dashboard",
         "Rewriting meal/rehab protocols from task text",
-        "Unreviewed external writes, tenant-wide mailbox access, shared-resource permissions without a separate need, and model access to a generic Graph client"
+        "Unreviewed external writes, tenant-wide mailbox access, shared-resource permissions without a separate need, and model access to a generic Graph client",
+        "Additional Microsoft user/service accounts, family/administrator Microsoft sign-in and migration of Nancy application authentication or hosting into Entra/Azure"
       ],
       "implementation_tasks": [
         {
@@ -2453,7 +2455,7 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Identify the intended account/calendar/mailbox privately and obtain the company IT registration, consent, Conditional Access and AI/local-data-use decisions in docs/MICROSOFT365_IT_CHECKLIST.md. Microsoft 365 work/school and read/write scope are already decided.",
+            "Identify the intended account/calendar/mailbox privately and obtain the company IT registration, consent, Conditional Access and AI/local-data-use decisions in docs/MICROSOFT365_IT_CHECKLIST.md. Microsoft 365 work/school and read/write scope are already decided. Only Rob's existing Microsoft account is connected; IT uses its existing administrative access and no new Microsoft account is requested.",
             "Complete the prepared sign-in/MFA and delegated consent when required; identify approved test resources/recipients and review a genuine low-stakes mail/calendar action after the disposable safety checks."
           ],
           "agent_can_do": [

@@ -424,7 +424,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Identify the intended account/calendar/mailbox privately and obtain the company IT registration, consent, Conditional Access and AI/local-data-use decisions in docs/MICROSOFT365_IT_CHECKLIST.md. Microsoft 365 work/school and read/write scope are already decided.
+  - Identify the intended account/calendar/mailbox privately and obtain the company IT registration, consent, Conditional Access and AI/local-data-use decisions in docs/MICROSOFT365_IT_CHECKLIST.md. Microsoft 365 work/school and read/write scope are already decided. Only Rob's existing Microsoft account is connected; IT uses its existing administrative access and no new Microsoft account is requested.
   - Complete the prepared sign-in/MFA and delegated consent when required; identify approved test resources/recipients and review a genuine low-stakes mail/calendar action after the disposable safety checks.
 
   **Agent prepares or handles:** Prepare the single-tenant Web callback, protected credential setup and exact delegated scopes; IT owns tenant policy/consent and the account owner completes personal sign-in. No user engineering task or new subscription is assumed. Build bounded retrieval and reviewed external action commands, ledger/provider mappings, renewal/revocation and reconciliation; test safe failure and duplicate prevention on isolated/provider test records before the genuine trial.
