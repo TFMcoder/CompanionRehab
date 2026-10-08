@@ -1,5 +1,7 @@
 # First connection: qualify existing ChatGPT-plan reasoning
 
+**October 7 update:** Follow [the governance decision](architecture/AGENT_GOVERNANCE_2026-10-07.md) and schema 1.7.0. The integrated owner-practice build now has local PostgreSQL, direct Responses HTTP/SSE reasoning, local ASR and selected Kokoro Heart; the October 4 results below are historical connection evidence. Intended-client/family/admin deployment remains unqualified. Keep owner-only practice binding until explicit server-derived actor/role/client/approved-route/account binding and intended runtime/token-storage eligibility are verified. Do not remove `ownerId`, switch a global active credential, pool subscriptions or let another user's activity trigger owner/recipient inference. UI/server engineering proceeds independently; missing personal sign-in is requested only after the agent prepares a concrete eligible route. No new voice audition, framework, account purchase or API funding is implied.
+
 Updated: 2026-10-04. Follow the [selected connectivity direction](architecture/PRODUCT_DECISIONS_2026-10-04.md): qualify existing ChatGPT-plan reasoning first, independent speech second, then the integrated local care service and My Day. The private API key is already saved. The revised local database/authentication and speech implementation remains in progress.
 
 ## Current result

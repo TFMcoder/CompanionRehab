@@ -212,6 +212,27 @@ try {
         }
     }
 
+    # Governance checkpoints reference existing slice work; they are not new completion gates.
+    $governance = $roadmap.product_contract.agent_governance
+    $checkpointIds = @{}
+    foreach ($checkpoint in $governance.implementation_sequence) {
+        Assert-Roadmap (-not $checkpointIds.ContainsKey($checkpoint.id)) "Duplicate governance checkpoint: $($checkpoint.id)"
+        $checkpointIds[$checkpoint.id] = $true
+        $checkpointTasks = @{}
+        $checkpointTests = @{}
+        foreach ($sliceId in $checkpoint.slice_ids) {
+            Assert-Roadmap ($sliceById.ContainsKey($sliceId)) "Unknown slice $sliceId in $($checkpoint.id)"
+            foreach ($task in $sliceById[$sliceId].implementation_tasks) { $checkpointTasks[$task.id] = $true }
+            foreach ($test in @($sliceById[$sliceId].automated_tests) + @($sliceById[$sliceId].live_tests)) { $checkpointTests[$test.id] = $true }
+        }
+        foreach ($taskId in $checkpoint.task_ids) {
+            Assert-Roadmap ($checkpointTasks.ContainsKey($taskId)) "Unknown/foreign task $taskId in $($checkpoint.id)"
+        }
+        foreach ($testId in $checkpoint.test_ids) {
+            Assert-Roadmap ($checkpointTests.ContainsKey($testId)) "Unknown/foreign test $testId in $($checkpoint.id)"
+        }
+    }
+
     $budget = $roadmap.constraints.budget
     Assert-Roadmap ($budget.excluded -contains 'GPT backend usage') 'GPT backend usage must remain outside the service budget.'
     if ($budget.currency_status -eq 'confirmed') {

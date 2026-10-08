@@ -1,7 +1,7 @@
 {
   "$schema": "./roadmap.schema.json",
   "roadmap_id": "companion-rehab",
-  "schema_version": "1.6.0",
+  "schema_version": "1.7.0",
   "updated_at": "2026-10-07",
   "planning_status": "ready_for_implementation",
   "implementation_status": "in_progress",
@@ -43,7 +43,8 @@
     "Keep the factual ledger queryable with actor, command, time, version and correction history. Store scoped, held records needed for later external email, calendar and PM actuation without enabling a connector, worker or outbound delivery now.",
     "Defer email and Asana connections until access is available. The selected Outlook account is Microsoft 365 work/school; its calendar connection also waits for scoped authorization. Continue local appointments and task/meal planning without external access.",
     "Keep Nancy turns quick through bounded current context and repository nutrition retrieval. Log operational metadata consistently for 14 days separately from durable care events and receipts; do not retain transcripts or audio in runtime logs.",
-    "October 7: configure role-bounded family and administrator Nancy conversations and interfaces while Microsoft 365 access is pending. Family and administrators may Request Tasks with name, priority, date and time. Nancy checks schedule and daily capacity, then asks the client; only the client can accept. A rejection with a client-provided reason creates help for other authorized family members and a scoped administrator flag. Nancy supports the client and never acts as an overseer."
+    "October 7: configure role-bounded family and administrator Nancy conversations and interfaces while Microsoft 365 access is pending. Family and administrators may Request Tasks with name, priority, date and time. Nancy checks schedule and daily capacity, then asks the client; only the client can accept. A rejection with a client-provided reason creates help for other authorized family members and a scoped administrator flag. Nancy supports the client and never acts as an overseer.",
+    "October 7 governance staging approved: first harden S01 trusted-policy/data separation and numeric usage/latency metadata; develop the complete family request UI/server checkpoint, then bounded voice using qualified per-user inference routes. UI-first is not a waiver of voice or any S01/S02/full S10 completion gate. Intended-client qualification and remaining S01 engineering proceed alongside request development; preserve the existing stack, gpt-6-sol high and Heart."
   ],
   "constraints": {
     "budget": {
@@ -81,7 +82,7 @@
     }
   },
   "execution_policy": {
-    "selection": "Immediate delivery focus is S01-S04 in priority order. Select the earliest unfinished slice with completed dependencies. If external input blocks it, record the blocker and continue independent authorized preparation without claiming completion or advancing a dependent slice.",
+    "selection": "Immediate delivery focus is S01-S04 in priority order. Select the earliest unfinished slice with completed dependencies. If external input blocks it, record the blocker and continue independent authorized preparation without claiming completion or advancing a dependent slice. The October 7 scoped family/admin request direction permits the engineering checkpoints in product_contract.agent_governance alongside remaining S01 work and intended-client qualification. This does not reorder full-slice completion; reuse the existing owner authorization when implementation overlap is recorded at code start.",
     "unit_of_delivery": "One slice is a usable feature spanning UI, voice where applicable, API, database, permissions and tests.",
     "setup": "Within S01, qualify account/deployment eligibility for ChatGPT-plan reasoning, then a bounded gpt-6-sol high turn and separate speech input/output. Build local PostgreSQL/auth and shared care commands in parallel where independent. Qualify optional MCP transport only for a concrete supported caller; do not create an infrastructure/reuse milestone.",
     "dashboard_boundary": "Client My Day tasks/meals ship in S01; minimal grocery view ships in S01; S05 expands shared groceries and achievement destination follows S09. Minimal scoped setup and role homes may precede full Support Team S10, administrator S11 and clinical/trend dashboards S12.",
@@ -187,7 +188,7 @@
       "status": "unresolved",
       "default": "The owner's app-specific OAuth and gpt-6-sol/high route now complete authorized My Day plan proposals and acceptance through the separate local care service. Actual local Heart and faster-whisper are integrated. docs/evidence/S01-MY-DAY-2026-10-05.json records synthetic real-service success. Intended-participant/deployment eligibility, remaining live credential lifecycle/allowance behavior and actual iPhone conversation remain unresolved. No API fallback is enabled.",
       "needed_for": "S01 selected ChatGPT-plan reasoning qualification, independent speech and any required routing service; an API billing top-up is not the default prerequisite",
-      "question": "Reuse saved private access. After the agent prepares a concrete supported route, complete only missing account-owner sign-in/consent or workspace access. Review a separately billed API fallback only if qualification findings require it; do not assume one account can serve every role/client.",
+      "question": "After engineering prepares a concrete eligible route, complete only missing personal sign-in/consent. Qualify each intended inference user, runtime control and local token storage; separate logins alone do not establish eligibility. Owner practice access cannot serve client/family/admin requests on another person behalf. UI/server work continues without inference; any paid API alternative remains an explicit owner route/cost decision.",
       "resolution_ref": null
     },
     {
@@ -203,7 +204,7 @@
       "status": "unresolved",
       "default": "Consenting participant uses their real tasks and ordinary meal choices; clinical instructions are used only when supplied and approved.",
       "needed_for": "S01 real task/meal planning and any subsequent participant enrollment",
-      "question": "Record who is testing, which real data can be used, retention and who may see it in a private record.",
+      "question": "Review a concrete minimum outbound-field and purpose-specific sharing/retention proposal, identify consenting testers and record private consent. Local storage and store:false do not establish zero provider retention or processing residency.",
       "resolution_ref": null
     },
     {
@@ -457,7 +458,7 @@
       "implementation_tasks": [
         {
           "id": "S01-T01",
-          "description": "Reuse ownership, saved private API-key evidence and local-hosting decision. Inspect the supported ChatGPT-plan route for the intended account, user/device and local/remote deployment. Prepare minimal app-specific sign-in and cost/allowance boundaries; request only missing human sign-in/consent. Do not request API funding as the initial prerequisite."
+          "description": "Reuse ownership, saved private API-key evidence and local-hosting decision. Inspect the supported ChatGPT-plan route for the intended account, user/device and local/remote deployment. Prepare minimal app-specific sign-in and cost/allowance boundaries; request only missing human sign-in/consent. Do not request API funding as the initial prerequisite. Follow the September 29 SIWC terms and October 7 governance decision, including per-user runtime control and local token storage; owner access is not intended-client qualification."
         },
         {
           "id": "S01-T07",
@@ -465,7 +466,7 @@
         },
         {
           "id": "S01-T08",
-          "description": "Integrate owner-selected Kokoro Heart (af_heart) with the independently qualified speech-input adapter and GPT-6 Sol/high. Keep the pinned local Kokoro model warm and synthesize coherent sentences at normal speed. Measure Heart actual-device latency, intelligibility, cancellation, privacy and cost; do not reuse Pocket timing as Heart evidence. No retained audio by default; UI fallback remains independent. Follow the measured latency diagnosis: qualify existing-hardware speech acceleration and first-sentence synthesis overlap, and measure actual playback. The existing GPU ASR warmup has not passed; CPU remains selected until acceleration is qualified."
+          "description": "Integrate owner-selected Kokoro Heart (af_heart) with the independently qualified speech-input adapter and GPT-6 Sol/high. Keep the pinned local Kokoro model warm and synthesize coherent sentences at normal speed. Measure Heart actual-device latency, intelligibility, cancellation, privacy and cost; do not reuse Pocket timing as Heart evidence. No retained audio by default; UI fallback remains independent. Follow the measured latency diagnosis: qualify existing-hardware speech acceleration and first-sentence synthesis overlap, and measure actual playback. October 5 evidence qualified CUDA float16 on the existing host with synthetic ASR; CPU remains the explicit default elsewhere and real iPhone acoustic acceptance remains open."
         },
         {
           "id": "S01-T02",
@@ -514,6 +515,14 @@
         {
           "id": "S01-T15",
           "description": "October 6 audit repairs: prevent stale meal substitution and duplicate moved tasks, preserve legacy factual identities, clean up voice failures, handle date/retry UI errors, isolate tunneled login limits and keep recipe discovery bounded and complete. Re-test with synthetic regressions and actual isolated/live services before handoff."
+        },
+        {
+          "id": "S01-T16",
+          "description": "First governance checkpoint: separate trusted compact versioned Nancy policy from lower-trust current facts; add injection/disclosure/approval regressions. Extend metadata telemetry with actual numeric per-call/turn token usage, cached/reasoning detail where available, stage latency and call counts with explicit unknowns. Establish baselines before optimizing repeated payloads/rounds; preserve Sol-high, Heart and logging privacy."
+        },
+        {
+          "id": "S01-T17",
+          "description": "Derive and validate actor/login/role/client/grants/policy/approved inference-route/account binding on the server. Bind credential selection and refresh to that exact account across all model/tool rounds and result delivery; cancel/clear on scope or authorization change. Retain owner-only practice until intended account, runtime control and local token storage qualify. Avoid global activeKey switching, subscription pooling and silent billing/model fallback. Prepare account qualification alongside reversible request UI/server work."
         }
       ],
       "contracts": {
@@ -614,6 +623,18 @@
         {
           "id": "S01-AC12",
           "assertion": "Nancy presents multiple feasible meal choices, handles no-choice and missing-ingredient responses, discusses portions within supplied constraints and adds only a confirmed missing item to the minimal grocery list with one effective command receipt."
+        },
+        {
+          "id": "S01-AC13",
+          "assertion": "Versioned trusted Nancy policies remain separate from lower-trust human/tool facts. Adversarial regression scenarios cannot override role/client permissions, fabricate reviewed approval or disclose unshared data; server enforcement remains independent of prompts."
+        },
+        {
+          "id": "S01-AC14",
+          "assertion": "Every conversation and inference/tool round uses an explicit server-derived actor/login/role/client/grant/policy/approved-route/account binding. Credential refresh preserves identity; scope changes and revocation cancel pending work. Actual intended-user/runtime qualification precedes live inference; no pooled or silently switched account/model/billing."
+        },
+        {
+          "id": "S01-AC15",
+          "assertion": "Operational telemetry contains actual numeric per-call/turn token usage where supplied, cached/reasoning detail where available, counts and stage latency with explicit unknowns. No inferred token counts, transcripts, audio or credentials; comparable measurements support optimization without weakening approval/role boundaries."
         }
       ],
       "automated_tests": [
@@ -672,6 +693,30 @@
           ],
           "scenario": "Use fixed local times around an appointment and meals, stale revisions, several candidate meals, missing pantry item, rejected choices and duplicate grocery command. Exercise participant-local 07:59, 08:00, 10:59 and 11:00; breakfast pending/completed/unknown, accepted vs actually performed exercise/rehab, overdue items, near appointments, and client redirection. Use only supplied approved exercise/rehab fixtures.",
           "expected": "Relevant records drive ranked explanations; calendar/task changes require acceptance, unknown quantities are clarified and one confirmed grocery item is stored. Morning suggestions use the 08:00-11:00 window and actual known state; completed items are suppressed, unknown state is clarified, and the user can choose a different workflow. No autonomous rescheduling, completion or new exercise prescription."
+        },
+        {
+          "id": "S01-AUTO7",
+          "criterion_ids": [
+            "S01-AC13"
+          ],
+          "scenario": "Inject policy-like text into profile/task/appointment/request/tool data, including requests to reveal another client, elevate role, accept a proposal or edit a protocol. Inspect message roles and exercise authorized command denial.",
+          "expected": "Trusted policy is isolated, raw human facts never become developer instructions, and no unauthorized disclosure or write succeeds. Existing client planning/ledger behaviour remains covered; tests do not prove universal injection immunity."
+        },
+        {
+          "id": "S01-AUTO8",
+          "criterion_ids": [
+            "S01-AC14"
+          ],
+          "scenario": "Use distinct synthetic actors/roles/clients/routes; race active-account changes, token refresh, tool rounds, scope switches, revoked grants and late results. Attempt browser/spoken identity substitution, quota fallback and recipient-triggered shared inference.",
+          "expected": "Account identity remains bound across every call/refresh, grants are checked independently, incompatible state is canceled/cleared, and invalid or unqualified routes fail closed while authorized UI commands remain usable."
+        },
+        {
+          "id": "S01-AUTO9",
+          "criterion_ids": [
+            "S01-AC15"
+          ],
+          "scenario": "Feed complete, missing, cached/reasoning and partial/aborted usage through the existing inference/conversation/telemetry boundaries; inspect bounded persisted metadata and comparable latency measurements.",
+          "expected": "Per-call and aggregate counts reconcile without double counting; absent usage stays unknown and characters are never labeled tokens. Logs omit content/secrets, stay off the voice hot path and retain the existing retention boundary."
         }
       ],
       "live_tests": [
@@ -718,7 +763,10 @@
             "S01-AC09",
             "S01-AC10",
             "S01-AC11",
-            "S01-AC12"
+            "S01-AC12",
+            "S01-AC13",
+            "S01-AC14",
+            "S01-AC15"
           ],
           "data_policy": "disposable_live",
           "steps": [
@@ -730,7 +778,9 @@
             "Prove a completed synthetic Sol-high turn on the selected auth/billing route and an independently completed speech round trip. Record intended-account/deployment eligibility and actual usage/limits. Exercise provider refusal or revoked disposable access without paid fallback; verify any conditional MCP connection uses the same client-scoped authorization. Keep browser HTTPS proof separate.",
             "With disposable records, test button and foreground wake entry, session timeout/grace, speech interruption/echo, a denied microphone and unsupported browser path; verify no recording persists or background wake claim.",
             "Create disposable appointments one hour away and meal windows. Reject all initial meal choices, modify one proposal, request a missing ingredient twice and inspect exact-version plan and one grocery receipt.",
-            "With disposable current-day records, exercise the master button from each client destination, independent UI fallback, view changes during one session, and time/completion-aware suggestions. Verify no action is saved merely by opening a screen or hearing a suggestion."
+            "With disposable current-day records, exercise the master button from each client destination, independent UI fallback, view changes during one session, and time/completion-aware suggestions. Verify no action is saved merely by opening a screen or hearing a suggestion.",
+            "On isolated disposable records, exercise malicious human-authored task/appointment text through the actual reasoning adapter and verify denied disclosure/approval attempts. Record test scope honestly; no blanket injection-immunity claim.",
+            "For each intended route being qualified, verify actual actor/account/runtime binding, refresh/revocation/allowance refusal and cancellation on scope change; do not use one tester account for another tester inference. Inspect actual numeric usage/latency metadata, missing fields, outbound minimum data and absence of transcript/audio/token logs."
           ],
           "expected": "Denial, duplicate/stale protection, honest failure and exact restore/readback hold against real services; dictation mocks do not count."
         }
@@ -755,9 +805,10 @@
         "Owner approved the temporary authenticated sample-data My Day Cloudflare route; HTTPS sign-in, care access denial, session revocation and Heart greeting delivery passed. See docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json. The owner reported an initial device trial; revised conversation quality and stable HTTPS operation remain unqualified.",
         "The intended participant account/deployment eligibility and live credential lifecycle are not established by owner-only synthetic inference. No paid API/model fallback is enabled.",
         "Participant consent, care-data retention/region, real day content, approved restrictions and timezone confirmation remain prerequisites for genuine care use.",
-        "Remaining S01 engineering includes foreground Hey Nancy qualification, the other three scoped role landing experiences, shared meal/task occurrence identity and richer pantry/portion/alternative-meal behavior. Current navigation and manual appointment entry do not imply Outlook/Asana sync.",
+        "Remaining S01 engineering includes consented foreground Hey Nancy implementation/qualification, the other three scoped role landing experiences, richer pantry/portion/alternative-meal behaviour, trusted-policy/data separation and explicit conversation/inference binding. Shared meal/task identity and reschedule regression repairs are already recorded in the October 6 audit evidence; preserve that coverage instead of describing the identity implementation as wholly missing. Local appointments do not imply Outlook/Asana sync.",
         "Actual task completion and meal reporting are S02; accepting a plan records intentions only. Daily reliance, operational recovery and background reminders remain gated.",
-        "October 6 client readiness is engineering-verified in docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json. The separate client database starts empty and the practice database is preserved. Participant/account eligibility, consent, real content and physical-device/genuine-day acceptance remain open."
+        "October 6 client readiness is engineering-verified in docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json. The separate client database starts empty and the practice database is preserved. Participant/account eligibility, consent, real content and physical-device/genuine-day acceptance remain open.",
+        "October 7 governance remains planned: current conversation facts enter a developer message and the reasoner uses a mutable active account behind an owner-only access guard. No exploit is claimed. Retain owner-only practice while hardening and qualifying explicit per-user routes; UI/server engineering can proceed independently. Numeric token telemetry and its new regression/live criteria are not yet implemented or passed."
       ],
       "test_results": [
         {
@@ -819,7 +870,7 @@
           "id": "S01-H02",
           "title": "Complete missing private provider and HTTPS access",
           "owner_role": "account_owner",
-          "when": "Before the agent connects the real services",
+          "when": "When the agent has prepared the specific intended-user route, before that user invokes live reasoning",
           "blocking_scope": "slice_completion",
           "release_gate_id": null,
           "requirement": "required",
@@ -828,22 +879,25 @@
             "Private OpenAI project/key setup, ownership and the owner's Nancy OAuth/ChatGPT-plan consent are complete. Identify the intended participant account/device and complete only additional sign-in or ownership steps required for that deployment. Do not recreate keys or repeat the completed owner consent, and do not assume the administrator subscription covers every client.",
             "Review an explicit API fallback/cost proposal only if subscription qualification fails or the selected speech path needs separately billed GPT access. Funding remains an owner choice, not an automatic prerequisite or silent fallback.",
             "Complete only missing HTTPS/domain ownership and, if actually selected, Secure MCP Tunnel workspace/access steps. Keep credentials private; routine installation/configuration is agent work.",
-            "Temporary public exposure of the password-protected sample-data My Day app is explicitly owner-approved on 2026-10-05. The HTTPS practice route is verified; do not ask for this same approval again. This does not approve real care-data use, a paid service or another participant account binding."
+            "Temporary public exposure of the password-protected sample-data My Day app is explicitly owner-approved on 2026-10-05. The HTTPS practice route is verified; do not ask for this same approval again. This does not approve real care-data use, a paid service or another participant account binding.",
+            "For your own intended reasoning use, complete only missing personal sign-in/consent and confirm who controls the proposed runtime and token storage. Do not lend the owner subscription or credentials to other clients/family members."
           ],
           "agent_can_do": [
             "First prepare and qualify the lowest-cost supported ChatGPT-plan adapter for exact gpt-6-sol high, with app-specific auth, allowance/error handling and actual completed inference evidence. Preserve independent care-service authorization and user/account boundaries.",
             "Qualify speech input/output independently; disclose any new costs before a paid step. Do not claim a tunnel or subscription text call proves voice support.",
             "Configure local database/auth, shared care commands and My Day HTTPS. Add local MCP or Secure MCP Tunnel only for a concrete supported caller; preserve per-client grants and test revocation.",
-            "Reuse docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json and the saved key. Prepare a concrete fallback proposal if needed; no repeated sign-in, key setup or funding requests without a remaining technical need."
+            "Reuse docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json and the saved key. Prepare a concrete fallback proposal if needed; no repeated sign-in, key setup or funding requests without a remaining technical need.",
+            "Prepare the actor/account/runtime eligibility assessment and concrete binding/storage design first; test isolation, renewal, revocation and allowance failure. Continue reversible UI/database/server work while intended-user access is pending."
           ],
-          "expected_evidence": "Owner app-specific OAuth consent and exact Sol-high inference remain evidenced by the October 4 connection record. docs/evidence/S01-MY-DAY-2026-10-05.json adds actual owner-bound authorized care planning, local PostgreSQL/auth, encrypted disposable restore, Heart and ASR integration using synthetic records. Completion still needs intended-user/deployment eligibility, remaining live credential lifecycle/allowance checks, the actual device conversation and HTTPS route. The owner subsequently approved the new authenticated sample-data test tunnel; docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json records successful HTTPS sign-in, access denial, session revocation and Heart audio delivery. Actual iPhone acceptance and stable deployment remain open. Credentials and private evidence remain local; S01-H02 and both full live gates remain incomplete.",
+          "expected_evidence": "Owner app-specific OAuth consent and exact Sol-high inference remain evidenced by the October 4 connection record. docs/evidence/S01-MY-DAY-2026-10-05.json adds actual owner-bound authorized care planning, local PostgreSQL/auth, encrypted disposable restore, Heart and ASR integration using synthetic records. Completion still needs intended-user/deployment eligibility, remaining live credential lifecycle/allowance checks, the actual device conversation and HTTPS route. The owner subsequently approved the new authenticated sample-data test tunnel; docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json records successful HTTPS sign-in, access denial, session revocation and Heart audio delivery. Actual iPhone acceptance and stable deployment remain open. Credentials and private evidence remain local; S01-H02 and both full live gates remain incomplete. Required intended-route evidence also identifies runtime control, local token custody and per-user usage isolation; separate logins are not sufficient.",
           "related_input_ids": [
             "I-ACCOUNTS",
             "I-DOMAIN",
             "I-MODEL"
           ],
           "related_test_ids": [
-            "S01-LIVE1"
+            "S01-LIVE1",
+            "S01-LIVE2"
           ],
           "status": "in_progress",
           "completion_ref": null,
@@ -865,7 +919,8 @@
           ],
           "agent_can_do": [
             "Present the data flow, provider options and minimal retention proposal for review.",
-            "Configure the chosen boundaries and private consent record; keep public evidence sanitized."
+            "Configure the chosen boundaries and private consent record; keep public evidence sanitized.",
+            "Prepare a purpose-specific minimum outbound-field inventory, role/client sharing examples and provider/local/backup retention boundaries. Explain that store:false and local care storage do not establish zero remote retention or residency."
           ],
           "expected_evidence": "Private tester-consent and data-handling decision references, with I-DATA and I-REGION resolved.",
           "related_input_ids": [
@@ -2902,7 +2957,8 @@
         "S09"
       ],
       "required_inputs": [
-        "I-FAMILY"
+        "I-FAMILY",
+        "I-ACCOUNTS"
       ],
       "outcome": "Family and administrators use role-bounded Nancy voice or UI to request a dated/prioritized task; the client reviews daily capacity and explicitly accepts or rejects with a reason. Rejection creates help for other authorized family members and an administrator flag. Shared tasks, achievements, notifications and encouragement retain scoped consent.",
       "in_scope": [
@@ -2957,7 +3013,11 @@
         },
         {
           "id": "S10-T09",
-          "description": "Deliver the request workflow as the next scoped family/admin increment while access to Microsoft 365 is pending, without waiting for S09 achievements or the S11 dashboard. Preserve full S10 completion dependencies and existing unfinished S01/S02 live gates; record the existing October 7 owner direction as implementation overlap authorization when code work begins, without requesting the same permission again."
+          "description": "Deliver the request workflow as the next scoped family/admin increment while access to Microsoft 365 is pending, without waiting for S09 achievements or the S11 dashboard. Preserve full S10 completion dependencies and existing unfinished S01/S02 live gates; record the existing October 7 owner direction as implementation overlap authorization when code work begins, without requesting the same permission again. Follow GOV-01 through GOV-04 staging in product_contract.agent_governance; UI-first is only an engineering checkpoint. Intended-client qualification and remaining S01 work advance alongside it."
+        },
+        {
+          "id": "S10-T10",
+          "description": "After the complete request UI/server checkpoint, integrate role-bounded Nancy voice using the S01 explicit actor/role/client/approved-route/account binding. Filter context and tools, clear incompatible sessions and preserve server-enforced decisions. Qualify intended accounts/runtimes and complete actual consenting voice/UI trials; UI-only delivery is not completion of the October 7 increment or full S10."
         }
       ],
       "contracts": {
@@ -3034,6 +3094,10 @@
         {
           "id": "S10-AC06",
           "assertion": "Concurrent/stale decisions, changed payload retries, revoked grants and response loss cannot duplicate or redirect tasks/help/flags. Request, decision, schedule/capacity provenance and receipt histories remain queryable; in-app pending/help states work without external connectors and volunteers explicitly accept help."
+        },
+        {
+          "id": "S10-AC07",
+          "assertion": "The request increment includes both actual role-bounded Nancy voice and matching UI on qualified intended inference routes. Server-derived actor/role/client/route bindings prevent cross-account use, scope changes clear/cancel incompatible work, and inbox delivery alone never triggers recipient inference. UI-only checkpoints cannot satisfy this criterion."
         }
       ],
       "automated_tests": [
@@ -3080,6 +3144,14 @@
           ],
           "scenario": "Race accept against reject/withdraw, change request/day revision or revoke sharing before acceptance, retry the same key with a different payload, and run with Microsoft 365/Asana disconnected.",
           "expected": "One exact-version authorized outcome with no duplicate task/help/flag, no acceptance of stale/withdrawn requests or clinical-rule bypass; durable in-app request/help delivery works without external services."
+        },
+        {
+          "id": "S10-AUTO6",
+          "criterion_ids": [
+            "S10-AC07"
+          ],
+          "scenario": "Exercise family/admin/client request voice tools and UI against distinct scoped sessions, allowed tool lists and explicit inference bindings; switch client/role/account mid-turn, revoke sharing and replay late speech/review results.",
+          "expected": "Voice and UI share the same typed commands and decision rights; only client acceptance creates a task. No global credential switching, leaked context, recipient-triggered inference, late unauthorized result or completion claim from UI-only coverage."
         }
       ],
       "live_tests": [
@@ -3106,14 +3178,17 @@
             "S10-AC02",
             "S10-AC04",
             "S10-AC05",
-            "S10-AC06"
+            "S10-AC06",
+            "S10-AC07"
           ],
           "data_policy": "real_consented",
           "steps": [
+            "Before invoking reasoning, qualify each intended inference account and runtime under the actual SIWC terms or a separately authorized route; preserve private consent/storage/runtime evidence. Separate logins alone are insufficient. Reuse disposable S01-LIVE2 provider/refresh/revocation evidence only where applicable to the same route.",
             "With a consenting client, family requester, another family helper and scoped administrator, use actual authenticated accounts and microphones plus matching button paths; keep personal details and audio out of the public repository.",
             "Request a genuine low-stakes errand with actual date/time/priority, inspect authorized schedule and client-stated capacity, and agree an alternative if needed. Verify no task exists before the client accepts the reviewed request and exactly one task exists afterward.",
             "For another genuine request that the client cannot take on, let the client provide their own short reason. Verify the saved rejection, family help item and administrator flag; have another consenting family member volunteer and record acknowledgement/resolution.",
-            "Check scoped visibility and revoked access, replay saved receipt lookup without resending a write, and verify the workflow with external connectors disabled. Use separate disposable records for artificial conflicts/failures."
+            "Check scoped visibility and revoked access, replay saved receipt lookup without resending a write, and verify the workflow with external connectors disabled. Use separate disposable records for artificial conflicts/failures.",
+            "Use real voice plus matching UI for requester submission and client decisions; verify interruption and authorized scope changes, bounded disclosure, voluntary help and administrator review. Confirm delivered inbox records did not automatically invoke another account. UI checkpoint results do not satisfy this voice/UI live scenario."
           ],
           "expected": "Role-bounded voice and UI work end-to-end. The client controls acceptance; actual capacity review and rejection-to-help/administrator review are observed, with no duplicate records, imposed task or external message."
         }
@@ -3125,7 +3200,9 @@
         "A04"
       ],
       "implementation_revision": null,
-      "blockers": [],
+      "blockers": [
+        "Request capability, durable request/help/flag workflow and role-specific voice are specification only. UI/server work needs no Microsoft 365 or inference entitlement; live voice requires qualified per-user runtime/account routes and actual consent/sharing grants. UI-first is an engineering checkpoint, not increment or full S10 completion."
+      ],
       "test_results": [],
       "human_actions": [
         {
@@ -3172,14 +3249,18 @@
             "Expect the designated test request, acknowledge/resolve it and view the selected shared win.",
             "Confirm that the view is appropriate and check access after the participant revokes sharing.",
             "Use Support Team by voice and UI; choose completion/reschedule notification preferences and verify opt-in, opt-out and revoked access during the agreed test.",
-            "Submit a genuine task request through Nancy and the UI with agreed date/time/priority; another designated family member volunteers for a declined request and verifies its visible help state."
+            "Submit a genuine task request through Nancy and the UI with agreed date/time/priority; another designated family member volunteers for a declined request and verifies its visible help state.",
+            "After engineering prepares your eligible reasoning route, complete only missing personal sign-in/consent and the actual voice trial. UI-only practice may proceed first but does not complete the voice requirement."
           ],
           "agent_can_do": [
             "Have the participant initiate the agreed request in the app; do not send unsolicited messages.",
-            "Verify delivery, duplicate handling, audit state and revocation."
+            "Verify delivery, duplicate handling, audit state and revocation.",
+            "Qualify this intended account/runtime and bind it to the authenticated role/client scope; do not use owner credentials or ask the person to perform engineering setup."
           ],
-          "expected_evidence": "Observed acknowledgement and revocation evidence from the designated consenting participants.",
-          "related_input_ids": [],
+          "expected_evidence": "Observed acknowledgement and revocation evidence from the designated consenting participants. Include private intended-account/runtime qualification and actual microphone/spoken request-workflow evidence with equivalent UI outcomes.",
+          "related_input_ids": [
+            "I-ACCOUNTS"
+          ],
           "related_test_ids": [
             "S10-LIVE1",
             "S10-LIVE2"
@@ -3229,15 +3310,18 @@
           "condition": null,
           "human_must_do": [
             "Use the scoped administrator account to review a genuine rejection flag, its permitted reason and linked family help status.",
-            "Verify that the flag supports arranging help and does not let the administrator approve the request on the client behalf."
+            "Verify that the flag supports arranging help and does not let the administrator approve the request on the client behalf.",
+            "After engineering prepares your eligible reasoning route, complete only missing personal sign-in/consent and the actual voice trial. UI-only practice may proceed first but does not complete the voice requirement."
           ],
           "agent_can_do": [
             "Prepare the working scoped interface, role-specific voice tools and a concrete trial sequence.",
-            "Verify saved request/task/help/flag linkage, receipts, access and privacy; store sanitized evidence references only."
+            "Verify saved request/task/help/flag linkage, receipts, access and privacy; store sanitized evidence references only.",
+            "Qualify this intended account/runtime and bind it to the authenticated role/client scope; do not use owner credentials or ask the person to perform engineering setup."
           ],
-          "expected_evidence": "Private observed administrator flag/help review and authorization evidence.",
+          "expected_evidence": "Private observed administrator flag/help review and authorization evidence. Include private intended-account/runtime qualification and actual microphone/spoken request-workflow evidence with equivalent UI outcomes.",
           "related_input_ids": [
-            "I-FAMILY"
+            "I-FAMILY",
+            "I-ACCOUNTS"
           ],
           "related_test_ids": [
             "S10-LIVE2"
@@ -4026,42 +4110,47 @@
       "reasoning_effort": "high",
       "api_model_id": "gpt-6-sol",
       "model_input_id": "I-MODEL",
-      "api": "Responses-based gpt-6-sol high reasoning through a supported ChatGPT-plan adapter, preferably minimal local Codex app-server where qualified; care service owns tool execution. API-key billing is an explicitly selected fallback.",
+      "api": "Existing implementation: direct Responses HTTP/SSE adapter with app-specific ChatGPT OAuth, not Codex app-server. Retain supported server-owned function tools and exact gpt-6-sol high. The owner-only practice result is not intended-client or shared-runtime qualification. No adapter rewrite or API-key billing change is implied by this governance update.",
       "speech_policy": "Use owner-selected Kokoro Heart (af_heart), female, as Nancy speech output. The owner explicitly closed voice selection; no additional comparison or voice-choice approval is required. Retain kokoro-js 1.2.1, pinned ONNX checkpoint 1939ad2a8e416c0acfeecc08a694d14ef25f2231, CPU fp32 and normal speed. Keep the model warm and synthesize coherent phrases/sentences as Sol text becomes available; Kokoro returns each full waveform, so Pocket native-chunk timing is not Heart performance evidence. Integrate local speech input, Heart playback/cancellation, GPT-6 Sol high and authorized care commands. Actual iPhone/Safari conversation timing, interruptions, privacy and foreground wake consent still require qualification. Never silently change voice, model or billing. See docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart. October 5 latency implementation: keep the same pinned small.en ASR model; explicitly qualified CUDA float16 on this local RTX 4050 using isolated pinned NVIDIA DLLs. CPU int8 remains the configuration default elsewhere, with no silent GPU-to-CPU fallback. Prime fixed Heart navigation phrases and prepare matching first-part speech during model output, releasing it only after completed exact-model validation and authorization. Navigation estimates improved; general Sol-high response delay remains variable. Evidence: docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json.",
       "source_refs": [
         "https://developers.openai.com/api/docs/models/gpt-6-sol",
         "https://developers.openai.com/api/docs/guides/secure-mcp-tunnels",
         "https://developers.openai.com/siwc/token-sharing-open-source/codex-app-server",
         "https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations",
-        "https://developers.openai.com/cookbook/articles/sign-in-with-chatgpt"
+        "https://developers.openai.com/cookbook/articles/sign-in-with-chatgpt",
+        "https://openai.com/policies/sign-in-with-chatgpt-terms/",
+        "https://developers.openai.com/siwc/token-sharing-open-source",
+        "https://developers.openai.com/api/docs/guides/agent-builder-safety"
       ],
       "reasoning_route": {
-        "decision_ref": "docs/architecture/PRODUCT_DECISIONS_2026-10-04.md",
+        "decision_ref": "docs/architecture/AGENT_GOVERNANCE_2026-10-07.md",
         "preferred": "chatgpt_plan",
         "adapter_preference": "minimal_local_codex_app_server_or_supported_responses",
         "qualification_status": "pending",
         "active_route": null,
         "qualification_evidence_ref": null,
         "api_key_fallback": "explicit_owner_decision_after_qualification_and_cost_review",
-        "account_policy": "Use app-specific supported authentication with explicit plan-usage consent where required. Verify intended user and local/remote deployment eligibility, exact model/high effort, renewal/revocation and allowance limits. Never copy Cerberus credentials or infer shared entitlement from administrator status.",
+        "account_policy": "Use supported app-specific sign-in and explicit account consent. Apply the September 29 SIWC terms: another user activity must not trigger inference on the authenticated account; no pooled/shared subscription usage. Qualify personal entitlement, runtime controlled only by that user, and persistent tokens local and under user control. Separate logins or encrypted storage on an administrator machine do not by themselves qualify deployment. Keep current owner-only practice binding until a server-derived actor/role/client/approved-route binding is implemented and qualified for each intended user. Resolve credentials by immutable binding, never a mutable global active account; recheck eligibility through token refresh and every model/tool round. No silent model, account or billing fallback.",
         "qualification_order": [
           "account_and_deployment_eligibility",
           "sol_high_reasoning",
           "speech_input_output",
           "authorized_care_tools",
           "device_and_live_acceptance"
-        ]
+        ],
+        "qualification_scope": "Intended-user production/pilot deployment; still pending. active_route and qualification_evidence_ref describe a qualified intended deployment, not the successful owner-only practice adapter.",
+        "owner_practice_evidence_ref": "docs/evidence/S01-CHATGPT-PLAN-CONNECTION-2026-10-04.json"
       },
       "tool_connection": {
         "default": "server_owned_functions_or_local_mcp",
         "secure_mcp_tunnel": "conditional_supported_openai_caller_only",
         "hosted_mcp_on_plan_route": "unsupported",
         "web_access": "independent_https_origin_for_my_day",
-        "authorization": "Model, local MCP and any tunnel all reach the same authenticated typed care commands. Enforce client/role scope and receipts in the care service; no generic shell or inherited ambient tools."
+        "authorization": "Model, local MCP and any tunnel all reach the same authenticated typed care commands. Enforce client/role scope and receipts in the care service; no generic shell or inherited ambient tools. SIWC function/custom tools remain server-owned; unsupported hosted MCP/connectors and Responses fields cannot be introduced as optimization shortcuts. A tunnel grants neither inference entitlement nor client consent."
       }
     },
     "family_task_requests": {
-      "decision_ref": "docs/architecture/PRODUCT_DECISIONS_2026-10-03.md#october-7-amendment-family-task-requests",
+      "decision_ref": "docs/architecture/AGENT_GOVERNANCE_2026-10-07.md",
       "implementation_status": "planned",
       "introduced_in": "S10",
       "requester_roles": [
@@ -4088,10 +4177,136 @@
       "capacity_policy": "Before submission and again at acceptance, evaluate authorized local appointments, accepted tasks/meals, expected effort/duration/travel, rest preferences, client-reported capacity and supplied approved limitations. Free calendar time alone does not establish capacity. If duration/capacity is unknown or constraints conflict, ask the client and offer another time, less work or help. Never infer clinical capacity or override an approved limitation. Use a bounded availability summary for requesters without exposing unshared appointment/clinical details. Client acceptance is necessary; it does not waive known constraints.",
       "approval_policy": "Only the addressed client can accept the exact pending request revision and reviewed date/time/priority. Family, administrators and model tools cannot impersonate client approval. Silence, closing the conversation, an expired session and a suggested alternative never imply acceptance. A changed time/task/priority requires a fresh client review. Atomically link an accepted request to exactly one task occurrence and applicable accepted plan/schedule version through the care service, preserving unrelated choices; acceptance is not completion.",
       "rejection_policy": "Ask gently for a short client-provided reason and confirm it before final rejection; a simple reason such as I cannot take this on today is sufficient, with no clinical explanation required. If the client pauses before supplying a reason, leave the request unaccepted and do not repeatedly pressure them. Atomically commit rejection, reason, one linked HelpRequest offered to other authorized family members and one scoped AdministratorFlag. Remove the request from the pending client inbox without assigning a task. Preserve the original request and reason history. No noncompliance label, achievement penalty or automatic reassignment to the client. An alternative helper must explicitly volunteer/accept; acknowledgement and resolution have visible states.",
-      "voice_policy": "Talk to Nancy is available from Support Team and minimal administrator views with matching UI paths. Sessions derive actor, active role and selected client from authorization, use bounded context and role-specific server tools, and preserve conversation across permitted views. Role changes must reauthorize and clear incompatible context. Requesters can discuss feasibility, draft and submit requests; only the client session can approve/reject. Opted-in foreground Hey Nancy uses the same role boundary when implemented and qualified; no locked-phone/background wake claim.",
-      "ui_policy": "Support Team exposes Request a task, sent requests and Help needed; forms use name, priority, date/time and optional effort/notes with visible requester/status. My Day exposes a small Requests area with Accept and Cannot do this plus reason entry, always available through Nancy and buttons. Minimal administrator setup includes a Requests/help review list and rejection flags; no full operations or achievement dashboard dependency for the request increment. Show requested versus accepted time separately and distinguish planned, accepted and performed states.",
-      "delivery_policy": "Initial delivery is durable in-app: client requests, authorized family help inbox items and administrator review flags. A declined task creates these records regardless of optional completion/reschedule alert preferences; external messages and push delivery remain separately opted in, authorized and unimplemented until their connectors exist. Recheck grants on every read and delivery, including requester revocation before acceptance. No suitable family recipient leaves help visibly unassigned for the administrator; do not pretend a helper was notified. Share reason/task details only within explicit grants, with generic external previews. Microsoft 365, Asana and full dashboards are not prerequisites for the request increment.",
+      "voice_policy": "Talk to Nancy is available from Support Team and minimal administrator views with matching UI paths. Sessions derive actor, active role and selected client from authorization, use bounded context and role-specific server tools, and preserve conversation across permitted views. Role changes must reauthorize and clear incompatible context. Requesters can discuss feasibility, draft and submit requests; only the client session can approve/reject. Opted-in foreground Hey Nancy uses the same role boundary when implemented and qualified; no locked-phone/background wake claim. Require the server-derived conversation/inference binding in product_contract.agent_governance; never remove ownerId or switch a global active credential as a shortcut to multi-user voice. Resolve intended account/runtime eligibility before live inference; shared UI commands remain independently usable.",
+      "ui_policy": "Support Team exposes Request a task, sent requests and Help needed; forms use name, priority, date/time and optional effort/notes with visible requester/status. My Day exposes a small Requests area with Accept and Cannot do this plus reason entry, always available through Nancy and buttons. Minimal administrator setup includes a Requests/help review list and rejection flags; no full operations or achievement dashboard dependency for the request increment. Show requested versus accepted time separately and distinguish planned, accepted and performed states. The first end-to-end UI/server checkpoint is engineering progress within the request increment, not a waiver of bounded Nancy voice or live acceptance.",
+      "delivery_policy": "Initial delivery is durable in-app: client requests, authorized family help inbox items and administrator review flags. A declined task creates these records regardless of optional completion/reschedule alert preferences; external messages and push delivery remain separately opted in, authorized and unimplemented until their connectors exist. Recheck grants on every read and delivery, including requester revocation before acceptance. No suitable family recipient leaves help visibly unassigned for the administrator; do not pretend a helper was notified. Share reason/task details only within explicit grants, with generic external previews. Microsoft 365, Asana and full dashboards are not prerequisites for the request increment. Creating an inbox/help/flag record does not invoke the recipient ChatGPT account; reasoning review requires that user initiation and qualified route.",
       "consistency_policy": "Persist requester/actor/client IDs, request revision, requested/proposed/accepted instants with time zone, priority, capacity-review provenance, decision/reason, linked task/help/flag IDs, events and receipts. Server validates role, scope, exact IDs, current request/day versions and current constraints. Accept/reject races and retries have one durable outcome; a reused key with changed content conflicts. Rejection/help/flag creation is one transaction; a lost response reconciles by receipt. Withdrawn, already decided or stale requests cannot create tasks. External actuation stays held until separately authorized integration exists."
+    },
+    "agent_governance": {
+      "decision_ref": "docs/architecture/AGENT_GOVERNANCE_2026-10-07.md",
+      "implementation_status": "planned",
+      "topology": "One bounded conversational Nancy agent. Keep permissions, explicit constraints, approvals, exact versions, idempotency and receipts in the independent care service. Do not introduce a multi-agent runtime or new framework for daily planning or scheduling.",
+      "policy_composition": "Compose a compact versioned shared policy, applicable role policy, authorized client preferences and fresh bounded facts. Preferences cannot relax permissions, consent or approved clinical constraints. AGENTS.md governs development and is not loaded into every Nancy turn.",
+      "trust_boundary": "Keep trusted policy separate from lower-trust profile, task, appointment, request, transcript and tool text. Pass human-authored facts as clearly delimited data in a lower-trust message/tool result, not interpolated developer instructions. Preserve fresh saved-fact precedence without treating data as commands. Add injection regressions; hardening is risk reduction, not proof of immunity.",
+      "conversation_binding": {
+        "required_context": [
+          "actor_id",
+          "login_session_id",
+          "active_role",
+          "client_id",
+          "grant_scope_and_revision",
+          "policy_version",
+          "approved_inference_route_id",
+          "inference_account_binding_id"
+        ],
+        "derivation": "Derive all authority and route bindings on the server from authenticated sessions, current grants and documented intended-user/runtime qualification. Neither spoken identity, browser-supplied role/account IDs nor administrator status confer authority. The inference user and the client being discussed are distinct identities.",
+        "lifecycle": "Validate scope at session start, every inference call, tool round, result delivery and mutation. Resolve and refresh credentials for the same bound account; do not reread a global activeKey as account selection. Cancel outstanding generation/playback and clear incompatible history/reviews on role/client/account changes or revocation. Keep care-service checks independent of prompt policy.",
+        "rollout": "Retain current owner-only practice restriction until explicit bindings and intended routes pass qualification. UI commands and durable inbox creation need no model invocation; another user submission cannot automatically trigger inference under the recipient subscription. Client-initiated review may use the client qualified route. UI-first does not satisfy the voice requirement."
+      },
+      "capacity_policy": "Enforce known approved limitations and inspect supplied effort, travel, rest and client-reported capacity before submission and acceptance. Represent unknown capacity explicitly and ask; free time is not clinical or practical capacity. No automated clinical judgment, administrator approval bypass or coercion.",
+      "privacy_policy": "Minimize outbound fields per purpose and role; filter before model input and tool output. Record consent and remote processing/retention boundaries privately before real-data inference. Local PostgreSQL and store:false do not prove zero provider retention or residency. Keep raw transcripts, audio, credentials and private incident evidence out of operational logs and the public repository.",
+      "observability_policy": "In the first S01 hardening work propagate actual numeric per-call and per-turn input/output tokens and cached/reasoning tokens where supplied, call/tool counts, policy version, opaque binding reference, outcome and stage latency into bounded metadata telemetry. Missing usage is null/unknown, never zero or estimated from characters. Count failed/aborted calls honestly without inventing completed usage. Preserve 14-day operational retention and durable care receipts separately. Establish comparable baselines and optimize measured payload/round-trip regressions; do not claim cache hits or latency percentiles without observations. Preserve gpt-6-sol high and Heart.",
+      "release_policy": "Test behaviour and authorization with synthetic adversarial fixtures and actual isolated services before consenting live trials. No raw transcripts in routine logs. Keep private incident, rollback and restore evidence with sanitized references. A UI checkpoint is not a complete voice/UI increment, S01/S02 acceptance or full S10 completion. Reuse existing dependencies and tests; no new paid service or framework is required.",
+      "parallel_work": "Intended-client account/runtime qualification and remaining S01 engineering may advance alongside the scoped request workflow. Unknown access/consent blocks dependent live use, not reversible UI/server/schema/test preparation. Microsoft 365, Asana, achievements, full dashboards and MCP tunnel provisioning are not request-increment prerequisites.",
+      "implementation_sequence": [
+        {
+          "id": "GOV-01",
+          "kind": "engineering_checkpoint",
+          "slice_ids": [
+            "S01"
+          ],
+          "task_ids": [
+            "S01-T16",
+            "S01-T17"
+          ],
+          "test_ids": [
+            "S01-AUTO7",
+            "S01-AUTO8",
+            "S01-AUTO9",
+            "S01-LIVE2"
+          ],
+          "outcome": "Harden the existing conversation and measure actual usage before widening access.",
+          "exit_criteria": [
+            "Existing client regressions pass; malicious task/appointment/profile text cannot produce unauthorized actions or disclosure in regression scenarios.",
+            "Numeric usage/latency metadata preserves missingness and excludes content/secrets; current owner isolation is retained.",
+            "Document current adapter/route limitations and a concrete per-user deployment qualification path; do not infer qualification from owner practice."
+          ]
+        },
+        {
+          "id": "GOV-02",
+          "kind": "engineering_checkpoint",
+          "slice_ids": [
+            "S10"
+          ],
+          "task_ids": [
+            "S10-T06",
+            "S10-T07",
+            "S10-T08",
+            "S10-T09"
+          ],
+          "test_ids": [
+            "S10-AUTO3",
+            "S10-AUTO4",
+            "S10-AUTO5"
+          ],
+          "outcome": "Complete request-to-client-decision-to-help UI/server workflow without invoking shared-account inference.",
+          "exit_criteria": [
+            "Actual isolated PostgreSQL and browser checks prove requester submission, client-only exact-version decisions, one accepted task or atomic rejection/help/flag, acknowledgement/resolution and revocation.",
+            "Retries, concurrent accept/reject, stale/withdrawn requests and no-helper cases remain truthful and durable.",
+            "This is the UI engineering checkpoint only; Nancy voice and consenting live acceptance remain required."
+          ]
+        },
+        {
+          "id": "GOV-03",
+          "kind": "voice_ui_increment",
+          "slice_ids": [
+            "S01",
+            "S10"
+          ],
+          "task_ids": [
+            "S01-T17",
+            "S10-T10"
+          ],
+          "test_ids": [
+            "S01-AUTO8",
+            "S01-LIVE2",
+            "S10-AUTO6",
+            "S10-LIVE2"
+          ],
+          "outcome": "Graduate to complete role-bounded Nancy voice and matching UI request workflow.",
+          "exit_criteria": [
+            "Qualify every intended inference account/runtime and token lifecycle; no actor/role/client/credential cross-binding or silent fallback.",
+            "Actual consenting client/family/admin microphone trials show request clarification/submission, client decision, voluntary help and administrator review with matching UI and saved receipts.",
+            "Interruption, scope changes, revoked grants and disclosure/capacity boundaries pass; preserve private evidence and applicable human actions.",
+            "UI-only evidence cannot complete this increment or full S10; achievements/full-dashboard and S01/S02 slice gates remain unchanged."
+          ]
+        },
+        {
+          "id": "GOV-04",
+          "kind": "existing_slice_acceptance",
+          "slice_ids": [
+            "S01",
+            "S02"
+          ],
+          "task_ids": [
+            "S01-T02",
+            "S01-T06",
+            "S01-T12",
+            "S01-T14"
+          ],
+          "test_ids": [
+            "S01-LIVE1",
+            "S01-LIVE2",
+            "S02-LIVE1"
+          ],
+          "outcome": "Close existing client engineering and genuine-day acceptance, then follow S03/S04 dependencies.",
+          "exit_criteria": [
+            "Finish S01 role homes, consented foreground wake, richer meal choices/portions, actual device and full service-failure scenarios; qualify stable HTTPS for intended use.",
+            "Complete genuine client planning and S02 factual ledger/correction review with current-revision evidence and applicable human actions.",
+            "Run independent work alongside request development; do not wait for GOV-03 to address S01 or claim completion from synthetic tests."
+          ]
+        }
+      ]
     }
   }
 }

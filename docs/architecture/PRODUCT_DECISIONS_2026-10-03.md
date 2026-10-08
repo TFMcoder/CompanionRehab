@@ -6,6 +6,8 @@ The [October 4 connectivity decision](PRODUCT_DECISIONS_2026-10-04.md) updates t
 
 ## October 7 amendment: family task requests
 
+The later [October 7 governance decision](AGENT_GOVERNANCE_2026-10-07.md), recorded in schema 1.7.0, defines the approved staging: S01 policy/data and telemetry hardening, a complete request UI/server engineering checkpoint, then qualified role-bounded Nancy voice and matching UI. UI-only delivery does not complete the request increment or S01/S02/full S10. Intended-client qualification and unfinished S01 work advance alongside it. Per-conversation and per-call actor/role/client/inference-account binding is required; shared owner credentials or global account switching cannot enable family voice.
+
 The owner amended family/friend permissions to include **Request Tasks**, available to both scoped family/friend and administrator accounts through Nancy voice and matching UI. This is a recorded product contract, not a claim that the workflow is implemented. The machine-readable definition is `product_contract.family_task_requests` in roadmap schema 1.6.0.
 
 - A requester supplies the task name, suggested priority, date and time. Nancy clarifies missing information and reviews authorized schedule context, effort, rest and client-stated daily capacity. Calendar space alone does not establish capacity, and unshared appointment or clinical details must not be exposed to the requester.

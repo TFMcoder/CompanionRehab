@@ -1,5 +1,7 @@
 # Architecture and cost research
 
+**October 7 governance priority:** [The current decision](AGENT_GOVERNANCE_2026-10-07.md) and roadmap schema 1.7.0 preserve one Nancy agent, the existing stack, Sol-high and Heart. Qualify per-user inference entitlement, runtime control and token custody under the current SIWC terms; owner practice is not shared-user eligibility. Start with S01 hardening/measurements and the request UI/server checkpoint; voice remains required. No additional paid service or framework is selected. Older connectivity/provider research below remains historical where superseded.
+
 **October 4 connectivity priority:** The [new decision](PRODUCT_DECISIONS_2026-10-04.md) selects existing ChatGPT-plan reasoning qualification before API funding, retaining GPT-6 Sol high. Speech and browser HTTPS are independent qualifications; local MCP or Secure MCP Tunnel is optional tool transport. Current schema 1.4.0 records the pending route, fallback decision and per-component Cerberus provenance. Historical provider and pricing choices below do not override it.
 
 **October 3 supersession:** The [current product decisions](PRODUCT_DECISIONS_2026-10-03.md) choose initial data hosting on this machine and GPT-6 Sol high reasoning with a separate speech layer. Supabase cloud and a Realtime-only reasoning backend below are historical research choices, not current provisioning requirements. Qualify local PostgreSQL/auth and actual voice connectivity within S01; preserve the $50/month service limit excluding GPT.

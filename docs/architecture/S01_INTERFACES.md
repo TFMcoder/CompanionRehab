@@ -1,5 +1,7 @@
 # S01 implementation interfaces
 
+**October 7 governance extension (planned):** [The current contract](AGENT_GOVERNANCE_2026-10-07.md) requires server-derived actor/login, active role, client/grants, policy version and approved inference-route/account context for every conversation and inference call. Credentials must remain bound through refresh and tool rounds; scope changes/revocation cancel outstanding work and clear incompatible context. Keep lower-trust human/tool facts out of trusted developer policy. Extend numeric usage/latency metadata without content logging. These requirements are not implemented by the historical interfaces below or by removing the current owner guard.
+
 **Historical baseline — September 29 implementation.** The [October 3 decisions](PRODUCT_DECISIONS_2026-10-03.md) and canonical roadmap supersede hosting, role, task and model assumptions here. Adapt these contracts for local PostgreSQL/auth, four scoped roles, My Day navigation, meals as task occurrences with urgency/schedule, and GPT-6 Sol high with separate speech. The interfaces below remain a description of current code, not proof the new requirements are implemented.
 
 Assistant name: Nancy. Read src/shared/contracts.ts. All /api routes same-origin, cookies HttpOnly; no browser API keys. Reestablish explicit file ownership when delegating implementation work; the earlier agent assignments are no longer a standing instruction.

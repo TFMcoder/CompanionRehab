@@ -8,6 +8,8 @@ The page and buttons become available while the selected speech workers warm. On
 
 ## Using My Day
 
+**Before intended-client reasoning:** the current owner-only practice connection must not serve another person's requests. Engineering must qualify the client's actual account/runtime/token-storage arrangement and explicit inference binding first; separate sign-ins alone do not establish eligibility. UI/database preparation may proceed independently. Review the [October 7 governance and trial gates](architecture/AGENT_GOVERNANCE_2026-10-07.md). The family request UI checkpoint will not constitute acceptance of its voice workflow, S01, S02 or full S10.
+
 1. Open My Day on the selected iPhone in Safari and sign in with the assigned account. **Talk to Nancy** stays available from each client view.
 2. The authorized owner enters genuine tasks, meal choices and any local appointment through the minimal private setup, with the participant's preferences and time zone. Enter urgency and a date or time only when known. Leave an unknown time unscheduled. If there are no appointments, leave the list empty. Review these facts in My Day before planning.
 3. Ask Nancy what matters now. Review the proposed tasks and meals, then accept only the plan you actually want. A saved plan records an intention; it does not record that anything was done or eaten.
@@ -18,6 +20,8 @@ The page and buttons become available while the selected speech workers warm. On
 The participant may use buttons or voice. The 08:00–11:00 local morning window shapes suggestions but does not limit access; a conversation works at other times. Foreground **Hey Nancy** is optional and needs separate consent on the actual device. A closed browser or locked phone is not promised to listen or speak.
 
 ## Boundaries for this trial
+
+Prepare minimum outbound fields and purpose-specific client/family sharing and remote-processing consent before live inference. Local care storage and `store:false` do not establish zero provider retention or residency. A family request may create an in-app inbox item without inference; it must not automatically invoke a recipient's ChatGPT subscription. Actual authorized client-initiated review uses that client's qualified route.
 
 Email and Asana are awaiting access. The selected Outlook account is Microsoft 365 work/school, but its calendar connector is also waiting for scoped authorization. My Day uses local appointment entries and does not send email, calendar changes or PM updates. Database records for future external mappings and held intents do not enable delivery.
 

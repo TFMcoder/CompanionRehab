@@ -72,7 +72,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   Owner: **account_owner**. Status: **in_progress**. Requirement: **required**.
 
-  **When:** Before the agent connects the real services.
+  **When:** When the agent has prepared the specific intended-user route, before that user invokes live reasoning.
   **Blocks:** Completing this feature slice.
 
   **Human action:**
@@ -81,12 +81,13 @@ Routine coding, technical service configuration, database work, synthetic tests 
   - Review an explicit API fallback/cost proposal only if subscription qualification fails or the selected speech path needs separately billed GPT access. Funding remains an owner choice, not an automatic prerequisite or silent fallback.
   - Complete only missing HTTPS/domain ownership and, if actually selected, Secure MCP Tunnel workspace/access steps. Keep credentials private; routine installation/configuration is agent work.
   - Temporary public exposure of the password-protected sample-data My Day app is explicitly owner-approved on 2026-10-05. The HTTPS practice route is verified; do not ask for this same approval again. This does not approve real care-data use, a paid service or another participant account binding.
+  - For your own intended reasoning use, complete only missing personal sign-in/consent and confirm who controls the proposed runtime and token storage. Do not lend the owner subscription or credentials to other clients/family members.
 
-  **Agent prepares or handles:** First prepare and qualify the lowest-cost supported ChatGPT-plan adapter for exact gpt-6-sol high, with app-specific auth, allowance/error handling and actual completed inference evidence. Preserve independent care-service authorization and user/account boundaries. Qualify speech input/output independently; disclose any new costs before a paid step. Do not claim a tunnel or subscription text call proves voice support. Configure local database/auth, shared care commands and My Day HTTPS. Add local MCP or Secure MCP Tunnel only for a concrete supported caller; preserve per-client grants and test revocation. Reuse docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json and the saved key. Prepare a concrete fallback proposal if needed; no repeated sign-in, key setup or funding requests without a remaining technical need.
+  **Agent prepares or handles:** First prepare and qualify the lowest-cost supported ChatGPT-plan adapter for exact gpt-6-sol high, with app-specific auth, allowance/error handling and actual completed inference evidence. Preserve independent care-service authorization and user/account boundaries. Qualify speech input/output independently; disclose any new costs before a paid step. Do not claim a tunnel or subscription text call proves voice support. Configure local database/auth, shared care commands and My Day HTTPS. Add local MCP or Secure MCP Tunnel only for a concrete supported caller; preserve per-client grants and test revocation. Reuse docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json and the saved key. Prepare a concrete fallback proposal if needed; no repeated sign-in, key setup or funding requests without a remaining technical need. Prepare the actor/account/runtime eligibility assessment and concrete binding/storage design first; test isolation, renewal, revocation and allowance failure. Continue reversible UI/database/server work while intended-user access is pending.
 
-  **Completion evidence:** Owner app-specific OAuth consent and exact Sol-high inference remain evidenced by the October 4 connection record. docs/evidence/S01-MY-DAY-2026-10-05.json adds actual owner-bound authorized care planning, local PostgreSQL/auth, encrypted disposable restore, Heart and ASR integration using synthetic records. Completion still needs intended-user/deployment eligibility, remaining live credential lifecycle/allowance checks, the actual device conversation and HTTPS route. The owner subsequently approved the new authenticated sample-data test tunnel; docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json records successful HTTPS sign-in, access denial, session revocation and Heart audio delivery. Actual iPhone acceptance and stable deployment remain open. Credentials and private evidence remain local; S01-H02 and both full live gates remain incomplete.
+  **Completion evidence:** Owner app-specific OAuth consent and exact Sol-high inference remain evidenced by the October 4 connection record. docs/evidence/S01-MY-DAY-2026-10-05.json adds actual owner-bound authorized care planning, local PostgreSQL/auth, encrypted disposable restore, Heart and ASR integration using synthetic records. Completion still needs intended-user/deployment eligibility, remaining live credential lifecycle/allowance checks, the actual device conversation and HTTPS route. The owner subsequently approved the new authenticated sample-data test tunnel; docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json records successful HTTPS sign-in, access denial, session revocation and Heart audio delivery. Actual iPhone acceptance and stable deployment remain open. Credentials and private evidence remain local; S01-H02 and both full live gates remain incomplete. Required intended-route evidence also identifies runtime control, local token custody and per-user usage isolation; separate logins are not sufficient.
 
-  **Linked inputs/tests:** I-ACCOUNTS, I-DOMAIN, I-MODEL, S01-LIVE1.
+  **Linked inputs/tests:** I-ACCOUNTS, I-DOMAIN, I-MODEL, S01-LIVE1, S01-LIVE2.
 
 - [ ] **S01-H03: Agree the first real-data test boundary**
 
@@ -100,7 +101,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
   - Identify the consenting participant/tester and confirm use and visibility of their real tasks, meal choices and accepted plans.
   - Initial storage on this machine is decided. Review remaining remote GPT/speech processing, routing, backup and retention boundaries from concrete options; record participant consent privately.
 
-  **Agent prepares or handles:** Present the data flow, provider options and minimal retention proposal for review. Configure the chosen boundaries and private consent record; keep public evidence sanitized.
+  **Agent prepares or handles:** Present the data flow, provider options and minimal retention proposal for review. Configure the chosen boundaries and private consent record; keep public evidence sanitized. Prepare a purpose-specific minimum outbound-field inventory, role/client sharing examples and provider/local/backup retention boundaries. Explain that store:false and local care storage do not establish zero remote retention or residency.
 
   **Completion evidence:** Private tester-consent and data-handling decision references, with I-DATA and I-REGION resolved.
 
@@ -580,12 +581,13 @@ Routine coding, technical service configuration, database work, synthetic tests 
   - Confirm that the view is appropriate and check access after the participant revokes sharing.
   - Use Support Team by voice and UI; choose completion/reschedule notification preferences and verify opt-in, opt-out and revoked access during the agreed test.
   - Submit a genuine task request through Nancy and the UI with agreed date/time/priority; another designated family member volunteers for a declined request and verifies its visible help state.
+  - After engineering prepares your eligible reasoning route, complete only missing personal sign-in/consent and the actual voice trial. UI-only practice may proceed first but does not complete the voice requirement.
 
-  **Agent prepares or handles:** Have the participant initiate the agreed request in the app; do not send unsolicited messages. Verify delivery, duplicate handling, audit state and revocation.
+  **Agent prepares or handles:** Have the participant initiate the agreed request in the app; do not send unsolicited messages. Verify delivery, duplicate handling, audit state and revocation. Qualify this intended account/runtime and bind it to the authenticated role/client scope; do not use owner credentials or ask the person to perform engineering setup.
 
-  **Completion evidence:** Observed acknowledgement and revocation evidence from the designated consenting participants.
+  **Completion evidence:** Observed acknowledgement and revocation evidence from the designated consenting participants. Include private intended-account/runtime qualification and actual microphone/spoken request-workflow evidence with equivalent UI outcomes.
 
-  **Linked inputs/tests:** S10-LIVE1, S10-LIVE2.
+  **Linked inputs/tests:** I-ACCOUNTS, S10-LIVE1, S10-LIVE2.
 
 - [ ] **S10-H03: Review task requests against actual daily capacity**
 
@@ -616,12 +618,13 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   - Use the scoped administrator account to review a genuine rejection flag, its permitted reason and linked family help status.
   - Verify that the flag supports arranging help and does not let the administrator approve the request on the client behalf.
+  - After engineering prepares your eligible reasoning route, complete only missing personal sign-in/consent and the actual voice trial. UI-only practice may proceed first but does not complete the voice requirement.
 
-  **Agent prepares or handles:** Prepare the working scoped interface, role-specific voice tools and a concrete trial sequence. Verify saved request/task/help/flag linkage, receipts, access and privacy; store sanitized evidence references only.
+  **Agent prepares or handles:** Prepare the working scoped interface, role-specific voice tools and a concrete trial sequence. Verify saved request/task/help/flag linkage, receipts, access and privacy; store sanitized evidence references only. Qualify this intended account/runtime and bind it to the authenticated role/client scope; do not use owner credentials or ask the person to perform engineering setup.
 
-  **Completion evidence:** Private observed administrator flag/help review and authorization evidence.
+  **Completion evidence:** Private observed administrator flag/help review and authorization evidence. Include private intended-account/runtime qualification and actual microphone/spoken request-workflow evidence with equivalent UI outcomes.
 
-  **Linked inputs/tests:** I-FAMILY, S10-LIVE2.
+  **Linked inputs/tests:** I-FAMILY, I-ACCOUNTS, S10-LIVE2.
 
 ## S11: Operate today's program from an administrator dashboard
 

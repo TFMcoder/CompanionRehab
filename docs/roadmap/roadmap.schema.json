@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:companion-rehab:roadmap:1.6.0",
+  "$id": "urn:companion-rehab:roadmap:1.7.0",
   "title": "Companion Rehab agent implementation roadmap",
   "type": "object",
   "properties": {
@@ -11,7 +11,7 @@
       "const": "companion-rehab"
     },
     "schema_version": {
-      "const": "1.6.0"
+      "const": "1.7.0"
     },
     "updated_at": {
       "type": "string",
@@ -1075,6 +1075,14 @@
                     "authorized_care_tools",
                     "device_and_live_acceptance"
                   ]
+                },
+                "qualification_scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "owner_practice_evidence_ref": {
+                  "type": "string",
+                  "minLength": 1
                 }
               },
               "required": [
@@ -1086,7 +1094,9 @@
                 "qualification_evidence_ref",
                 "api_key_fallback",
                 "account_policy",
-                "qualification_order"
+                "qualification_order",
+                "qualification_scope",
+                "owner_practice_evidence_ref"
               ],
               "additionalProperties": false,
               "allOf": [
@@ -1179,7 +1189,12 @@
               "minLength": 1
             },
             "implementation_status": {
-              "enum": ["planned", "in_progress", "awaiting_live_test", "done"]
+              "enum": [
+                "planned",
+                "in_progress",
+                "awaiting_live_test",
+                "done"
+              ]
             },
             "introduced_in": {
               "$ref": "#/$defs/sliceId"
@@ -1262,6 +1277,176 @@
             "consistency_policy"
           ],
           "additionalProperties": false
+        },
+        "agent_governance": {
+          "type": "object",
+          "properties": {
+            "decision_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation_status": {
+              "enum": [
+                "planned",
+                "in_progress",
+                "awaiting_live_test",
+                "implemented"
+              ]
+            },
+            "topology": {
+              "type": "string",
+              "minLength": 1
+            },
+            "policy_composition": {
+              "type": "string",
+              "minLength": 1
+            },
+            "trust_boundary": {
+              "type": "string",
+              "minLength": 1
+            },
+            "conversation_binding": {
+              "type": "object",
+              "properties": {
+                "required_context": {
+                  "const": [
+                    "actor_id",
+                    "login_session_id",
+                    "active_role",
+                    "client_id",
+                    "grant_scope_and_revision",
+                    "policy_version",
+                    "approved_inference_route_id",
+                    "inference_account_binding_id"
+                  ]
+                },
+                "derivation": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "lifecycle": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "rollout": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "required_context",
+                "derivation",
+                "lifecycle",
+                "rollout"
+              ],
+              "additionalProperties": false
+            },
+            "capacity_policy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "privacy_policy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "observability_policy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "release_policy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "parallel_work": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation_sequence": {
+              "type": "array",
+              "minItems": 4,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^GOV-[0-9]{2}$"
+                  },
+                  "kind": {
+                    "enum": [
+                      "engineering_checkpoint",
+                      "voice_ui_increment",
+                      "existing_slice_acceptance"
+                    ]
+                  },
+                  "slice_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                  },
+                  "task_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                  },
+                  "test_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                  },
+                  "outcome": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "exit_criteria": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                  }
+                },
+                "required": [
+                  "id",
+                  "kind",
+                  "slice_ids",
+                  "task_ids",
+                  "test_ids",
+                  "outcome",
+                  "exit_criteria"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "decision_ref",
+            "implementation_status",
+            "topology",
+            "policy_composition",
+            "trust_boundary",
+            "conversation_binding",
+            "capacity_policy",
+            "privacy_policy",
+            "observability_policy",
+            "release_policy",
+            "parallel_work",
+            "implementation_sequence"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -1278,7 +1463,8 @@
         "clinical_dashboard_policy",
         "data_hosting",
         "ai_backend",
-        "family_task_requests"
+        "family_task_requests",
+        "agent_governance"
       ],
       "additionalProperties": false
     }
