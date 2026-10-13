@@ -101,7 +101,7 @@ try {
         (await admin.query('select 1 from pg_database where datname=$1', [targetName])).rowCount === 0);
       await admin.query(`create database "${targetName}"`); created = true;
       target = new Client({ connectionString: connection(targetName), connectionTimeoutMillis: 5000, query_timeout: 30000 }); await target.connect();
-      for (const file of localCareMigrations.filter(file => file !== '006_family_task_requests.sql')) await target.query(await readFile('db/'+file, 'utf8'));
+      for (const file of localCareMigrations.filter(file => Number(file.slice(0,3)) < 6)) await target.query(await readFile('db/'+file, 'utf8'));
       await legacy.restoreSnapshot(target, decoded, databaseIdentity(connection(targetName)));
       check('actual_postgres_restore_matches_all_tables', await verifyRows(target, snapshot, oldTables));
       check('restore_contains_no_live_sessions', Number((await target.query('select count(*)::int as n from companion_local.sessions')).rows[0].n) === 0);

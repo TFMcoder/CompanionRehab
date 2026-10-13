@@ -2,7 +2,7 @@
   "$schema": "./roadmap.schema.json",
   "roadmap_id": "companion-rehab",
   "schema_version": "1.7.0",
-  "updated_at": "2026-10-08",
+  "updated_at": "2026-10-13",
   "planning_status": "ready_for_implementation",
   "implementation_status": "in_progress",
   "source_of_truth": "docs/roadmap/roadmap.json",
@@ -340,9 +340,9 @@
     {
       "id": "I-CALENDAR-EXTERNAL",
       "status": "unresolved",
-      "default": "Microsoft 365 work/school Outlook is confirmed. October 8 scope is mail and calendar read/write using delegated Calendars.ReadWrite, Mail.ReadWrite and Mail.Send, with User.Read and identity/refresh scopes. Tenant registration, selected account/resources, consent, approved data flow, stable Web redirect and protected server credential remain pending. No live external access is enabled; local appointments remain available. The sole connected identity is Rob's existing Microsoft account; no additional Microsoft user/service account or Nancy identity migration is required.",
+      "default": "Microsoft 365 work/school Outlook is confirmed. October 8 scope is mail and calendar read/write using delegated Calendars.ReadWrite, Mail.ReadWrite and Mail.Send, with User.Read and identity/refresh scopes. Per the IT report, the app registration was created, an owner was assigned, and tenant/client IDs were received privately; do not publish those identifiers. Rob's Microsoft sign-in and delegated consent remain unresolved and unverified, as do selected resources, approved data flow, stable Web redirect and protected server credential. No live external access is enabled; local appointments remain available. Rob's existing Microsoft account is the sole intended connected mailbox/calendar identity; technical-lead or app-registration ownership is a separate administrative responsibility and does not authorize connecting another mailbox. No additional Microsoft user/service account or Nancy identity migration is required.",
       "needed_for": "S06 scoped Outlook mail/calendar reads and reviewed writes",
-      "question": "Use the IT checklist to obtain tenant/client IDs, selected account/resources, consent and Conditional Access/data-use decisions, stable callback agreement and secure credential setup. Engineering prepares the connector before interactive sign-in and consenting live trials.",
+      "question": "Use the IT checklist to verify the privately received tenant/client IDs and app owner, then obtain selected account/resources, owner sign-in and consent, Conditional Access/data-use decisions, stable callback agreement and secure credential setup. Engineering prepares the connector before interactive sign-in and consenting live trials.",
       "resolution_ref": "docs/MICROSOFT365_IT_CHECKLIST.md"
     }
   ],
@@ -800,7 +800,7 @@
         "S03",
         "S04"
       ],
-      "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+      "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
       "blockers": [
         "October 5 latency fixes deployed; see docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Natural navigation now avoids two GPT calls, fixed Heart acknowledgements are primed, CUDA ASR is qualified on six synthetic phrases and validated first-part preparation overlaps some model output. Public exact-navigation estimates improved from 4.58-4.82s to 1.83-1.85s; natural navigation was 1.93s through HTTPS. General GPT answers remain variable (one public sample 9.17s). The owner subsequently accepted the faster response for advancing the MVP. Actual revised iPhone/Safari latency, interruption and participant acceptance are still required. Preserve Heart and Sol/high; S01 is not complete.",
         "S01-LIVE2 is partial: encrypted restore and integrated planning passed, but the complete provider-loss/revocation/allowance, device and full-role scenario remains open. S01-LIVE1 has not run on the consenting participant's iPhone/Safari with genuine tasks/meals.",
@@ -809,63 +809,118 @@
         "Participant consent, care-data retention/region, real day content, approved restrictions and timezone confirmation remain prerequisites for genuine care use.",
         "Actual task completion and meal reporting are S02; accepting a plan records intentions only. Daily reliance, operational recovery and background reminders remain gated.",
         "October 6 client readiness is engineering-verified in docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json. The separate client database starts empty and the practice database is preserved. Participant/account eligibility, consent, real content and physical-device/genuine-day acceptance remain open.",
-        "October 7 governance hardening, numeric token/latency telemetry, explicit immutable owner inference binding and scoped role homes are implemented and regression-tested. See docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json. Remaining S01 engineering includes consented foreground wake, richer pantry/portion/meal alternatives and the complete provider-loss/device/stable-HTTPS qualification; intended-client routing and actual iPhone acceptance remain open."
+        "October 7 governance hardening, numeric telemetry and owner-bound inference were implemented and regression-tested in docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json. October 13 engineering adds foreground wake and expanded meal/grocery flows; this is not actual iPhone/Safari wake, spoken planning or intended-account qualification. Genuine participant acceptance, provider-loss/device recovery and stable HTTPS remain open."
       ],
       "test_results": [
         {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
           "test_id": "S01-AUTO1",
           "outcome": "pass",
-          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T06:41:51.530Z",
+          "notes": "Current regression coverage passed. Full suite: 525 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
-          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S01-AUTO2",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Physical device, complete provider-loss and account lifecycle, full new-workflow voice matrices remain open."
         },
         {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S01-AUTO3",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Physical device, complete provider-loss and account lifecycle, full new-workflow voice matrices remain open."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S01-AUTO4",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Physical device, complete provider-loss and account lifecycle, full new-workflow voice matrices remain open."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S01-AUTO5",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Physical device, complete provider-loss and account lifecycle, full new-workflow voice matrices remain open."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S01-AUTO6",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Physical device, complete provider-loss and account lifecycle, full new-workflow voice matrices remain open."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
           "test_id": "S01-AUTO7",
           "outcome": "pass",
-          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T06:41:51.530Z",
+          "notes": "Current regression coverage passed. Full suite: 525 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
-          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
-        },
-        {
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
           "test_id": "S01-AUTO8",
           "outcome": "pass",
-          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T06:41:51.530Z",
+          "notes": "Current regression coverage passed. Full suite: 525 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
-          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
-        },
-        {
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
           "test_id": "S01-AUTO9",
           "outcome": "pass",
-          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T06:41:51.530Z",
-          "environment": "local_synthetic",
-          "data_origin": "synthetic",
-          "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
-          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
+          "notes": "Current regression coverage passed. Full suite: 525 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance."
         },
         {
-          "test_id": "S01-LIVE2",
-          "outcome": "blocked",
-          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T06:41:51.530Z",
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
-          "notes": "Partial current-service verification: 70 isolated PostgreSQL checks, 15 authenticated HTTPS checks and 16 running voice/nutrition/telemetry checks pass. No care writes or actual microphone test. Full participant/iPhone, intended-user route and remaining slice scenarios stay open; this live gate remains blocked."
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S01-LIVE2",
+          "outcome": "blocked",
+          "notes": "Partial real-service verification: PostgreSQL probe 7/7; backed-up local upgrade 44/44 plus schema inspection 5/5; existing owner-practice speech/inference/nutrition/logging checks 16/16. No physical iPhone microphone or intended-person live acceptance. Local HTTP only; no new HTTPS tunnel this run."
         }
       ],
       "human_actions": [
@@ -1329,46 +1384,13 @@
         "A05",
         "A06"
       ],
-      "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+      "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
       "blockers": [
         "S02-LIVE1 has not run through a genuine participant day; code and synthetic/disposable evidence do not complete the slice.",
         "S01 is unfinished. The explicit implementation authorization permits overlap and awaiting-live-test status only; S01 completion remains required before S02 can be done.",
         "October 6 client readiness is engineering-verified in docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json. The separate client database starts empty and the practice database is preserved. Participant/account eligibility, consent, real content and physical-device/genuine-day acceptance remain open."
       ],
       "test_results": [
-        {
-          "test_id": "S02-AUTO1",
-          "outcome": "pass",
-          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T06:41:51.530Z",
-          "environment": "local_synthetic",
-          "data_origin": "synthetic",
-          "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
-          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
-        },
-        {
-          "test_id": "S02-AUTO2",
-          "outcome": "pass",
-          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T06:41:51.530Z",
-          "environment": "local_synthetic",
-          "data_origin": "synthetic",
-          "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
-          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
-        },
-        {
-          "test_id": "S02-AUTO3",
-          "outcome": "pass",
-          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T06:41:51.530Z",
-          "environment": "local_synthetic",
-          "data_origin": "synthetic",
-          "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
-          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
-        },
         {
           "test_id": "S02-LIVE2",
           "outcome": "blocked",
@@ -1379,6 +1401,39 @@
           "observed_by": "Codex engineering verification",
           "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
           "notes": "Partial current-service verification: 70 isolated PostgreSQL checks, 15 authenticated HTTPS checks and 16 running voice/nutrition/telemetry checks pass. No care writes or actual microphone test. Full participant/iPhone, intended-user route and remaining slice scenarios stay open; this live gate remains blocked."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S02-AUTO1",
+          "outcome": "pass",
+          "notes": "Current regression coverage passed. Full suite: 525 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S02-AUTO2",
+          "outcome": "pass",
+          "notes": "Current regression coverage passed. Full suite: 525 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S02-AUTO3",
+          "outcome": "pass",
+          "notes": "Current regression coverage passed. Full suite: 525 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance."
         }
       ],
       "human_actions": [
@@ -1450,7 +1505,11 @@
       "id": "S03",
       "priority": 30,
       "title": "Resume check-ins and tracking after interruptions",
-      "status": "planned",
+      "status": "in_progress",
+      "implementation_authorization": {
+        "decision_ref": "docs/NON_CONNECTOR_BUILD_2026-10-13.md",
+        "reason": "On October 13, 2026, the owner authorized independent implementation of non-connector work across S01-S05 and S07-S12 while prerequisites remain open. This permits an in-progress engineering state only; all listed dependencies, human approvals, automated/live acceptance and release gates still apply. S06 external connector implementation remains deferred. S03 device queue and receipt-first recovery are implemented for engineering verification; actual device and restore acceptance remain open."
+      },
       "depends_on": [
         "S02"
       ],
@@ -1593,9 +1652,47 @@
         "S01",
         "S04"
       ],
-      "implementation_revision": null,
-      "blockers": [],
-      "test_results": [],
+      "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+      "blockers": [
+        "S02 remains awaiting a genuine-day live test; S03 cannot be completed until its dependency is done.",
+        "Durable device queue, receipt-first recovery and actual PostgreSQL encrypted restore passed engineering checks. Actual phone/connectivity behavior, complete restored-grant authorization and slice-specific live recovery acceptance remain open.",
+        "October 13 implementation is integrated and locally available. Still exercise actual server-restart receipt recovery and authorization under restored grants. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
+      ],
+      "test_results": [
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S03-AUTO1",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise actual server-restart receipt recovery and authorization under restored grants."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S03-AUTO2",
+          "outcome": "pass",
+          "notes": "Current regression coverage passed. Full suite: 525 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S03-AUTO3",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise actual server-restart receipt recovery and authorization under restored grants."
+        }
+      ],
       "human_actions": [
         {
           "id": "S03-H01",
@@ -1663,7 +1760,7 @@
       "id": "S04",
       "priority": 40,
       "title": "Return to a fresh day with reviewed carryover and timely prompts",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "S03"
       ],
@@ -1871,9 +1968,58 @@
         "S01",
         "S04"
       ],
-      "implementation_revision": null,
-      "blockers": [],
-      "test_results": [],
+      "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+      "blockers": [
+        "S03 is unfinished; its completion dependency remains in force.",
+        "Prompt preferences require participant confirmation before actual delivery. Three genuine local days, a genuinely due consented prompt and physical-browser fallback have not been observed.",
+        "October 13 implementation is integrated and locally available. Still exercise full DST/missed-day, late-correction, three-date reconnect and notification-denial/closed-page matrices. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
+      ],
+      "test_results": [
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S04-AUTO1",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full DST/missed-day, late-correction, three-date reconnect and notification-denial/closed-page matrices."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S04-AUTO2",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full DST/missed-day, late-correction, three-date reconnect and notification-denial/closed-page matrices."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S04-AUTO3",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full DST/missed-day, late-correction, three-date reconnect and notification-denial/closed-page matrices."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S04-AUTO4",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full DST/missed-day, late-correction, three-date reconnect and notification-denial/closed-page matrices."
+        }
+      ],
       "human_actions": [
         {
           "id": "S04-H01",
@@ -1971,13 +2117,17 @@
         "RU-RECEIPT",
         "RU-RECOVERY",
         "RU-UI"
-      ]
+      ],
+      "implementation_authorization": {
+        "decision_ref": "docs/NON_CONNECTOR_BUILD_2026-10-13.md",
+        "reason": "On October 13, 2026, the owner authorized independent implementation of non-connector work across S01-S05 and S07-S12 while prerequisites remain open. This permits an in-progress engineering state only; all listed dependencies, human approvals, automated/live acceptance and release gates still apply. S06 external connector implementation remains deferred."
+      }
     },
     {
       "id": "S05",
       "priority": 50,
       "title": "Build and use groceries from the meal plan",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "S01",
         "S02"
@@ -2092,9 +2242,36 @@
         "H03",
         "D02"
       ],
-      "implementation_revision": null,
-      "blockers": [],
-      "test_results": [],
+      "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+      "blockers": [
+        "S01 and S02 completion dependencies remain open.",
+        "Reviewed meal-derived suggestions, shared-list commands and scoped acquisition are implemented for engineering checks. Actual household grants, real ingredient/quantity review and live voice/touch sharing remain unverified.",
+        "October 13 implementation is integrated and locally available. Still exercise incompatible-unit overlaps and simultaneous acquisition scenarios. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
+      ],
+      "test_results": [
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S05-AUTO1",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise incompatible-unit overlaps and simultaneous acquisition scenarios."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S05-AUTO2",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise incompatible-unit overlaps and simultaneous acquisition scenarios."
+        }
+      ],
       "human_actions": [
         {
           "id": "S05-H01",
@@ -2151,7 +2328,11 @@
           "not_applicable_reason": null
         }
       ],
-      "reuse_refs": []
+      "reuse_refs": [],
+      "implementation_authorization": {
+        "decision_ref": "docs/NON_CONNECTOR_BUILD_2026-10-13.md",
+        "reason": "On October 13, 2026, the owner authorized independent implementation of non-connector work across S01-S05 and S07-S12 while prerequisites remain open. This permits an in-progress engineering state only; all listed dependencies, human approvals, automated/live acceptance and release gates still apply. S06 external connector implementation remains deferred."
+      }
     },
     {
       "id": "S06",
@@ -2455,7 +2636,7 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Identify the intended account/calendar/mailbox privately and obtain the company IT registration, consent, Conditional Access and AI/local-data-use decisions in docs/MICROSOFT365_IT_CHECKLIST.md. Microsoft 365 work/school and read/write scope are already decided. Only Rob's existing Microsoft account is connected; IT uses its existing administrative access and no new Microsoft account is requested.",
+            "Identify the intended account/calendar/mailbox privately and obtain the company IT registration, consent, Conditional Access and AI/local-data-use decisions in docs/MICROSOFT365_IT_CHECKLIST.md. Microsoft 365 work/school and read/write scope are already decided. Rob's existing Microsoft account is the sole intended connected identity; Rob’s sign-in and delegated consent remain unresolved and unverified. IT uses its existing administrative access; no new Microsoft account is requested.",
             "Complete the prepared sign-in/MFA and delegated consent when required; identify approved test resources/recipients and review a genuine low-stakes mail/calendar action after the disposable safety checks."
           ],
           "agent_can_do": [
@@ -2483,7 +2664,7 @@
       "id": "S07",
       "priority": 70,
       "title": "Follow Morning Boot one step at a time",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "S02",
         "S04"
@@ -2601,9 +2782,36 @@
         "A01",
         "A07"
       ],
-      "implementation_revision": null,
-      "blockers": [],
-      "test_results": [],
+      "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+      "blockers": [
+        "S02 and S04 completion dependencies remain open.",
+        "No human-approved Morning Boot sequence has been supplied for actual use. Correct step-by-step voice/touch, rest, pause/resume and scheduling against genuine appointments still require live acceptance.",
+        "October 13 implementation is integrated and locally available. Still exercise offline/restarted duplicate-step recovery and a new task during protected morning time. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
+      ],
+      "test_results": [
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S07-AUTO1",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise offline/restarted duplicate-step recovery and a new task during protected morning time."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S07-AUTO2",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise offline/restarted duplicate-step recovery and a new task during protected morning time."
+        }
+      ],
       "human_actions": [
         {
           "id": "S07-H01",
@@ -2660,13 +2868,17 @@
           "not_applicable_reason": null
         }
       ],
-      "reuse_refs": []
+      "reuse_refs": [],
+      "implementation_authorization": {
+        "decision_ref": "docs/NON_CONNECTOR_BUILD_2026-10-13.md",
+        "reason": "On October 13, 2026, the owner authorized independent implementation of non-connector work across S01-S05 and S07-S12 while prerequisites remain open. This permits an in-progress engineering state only; all listed dependencies, human approvals, automated/live acceptance and release gates still apply. S06 external connector implementation remains deferred."
+      }
     },
     {
       "id": "S08",
       "priority": 80,
       "title": "Follow and report an approved rehab session",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "S02",
         "S07"
@@ -2795,9 +3007,36 @@
         "A06",
         "A07"
       ],
-      "implementation_revision": null,
-      "blockers": [],
-      "test_results": [],
+      "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+      "blockers": [
+        "S02 and S07 completion dependencies remain open.",
+        "A human-approved rehab protocol and clinical-use authorization have not been supplied. Protocol-version, difficulty, correction and restricted-note behavior require consented live acceptance before clinical use.",
+        "October 13 implementation is integrated and locally available. Still exercise explicit same-key step replay and restricted notes through aggregate progress. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
+      ],
+      "test_results": [
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S08-AUTO1",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise explicit same-key step replay and restricted notes through aggregate progress."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S08-AUTO2",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise explicit same-key step replay and restricted notes through aggregate progress."
+        }
+      ],
       "human_actions": [
         {
           "id": "S08-H01",
@@ -2856,13 +3095,17 @@
           "not_applicable_reason": null
         }
       ],
-      "reuse_refs": []
+      "reuse_refs": [],
+      "implementation_authorization": {
+        "decision_ref": "docs/NON_CONNECTOR_BUILD_2026-10-13.md",
+        "reason": "On October 13, 2026, the owner authorized independent implementation of non-connector work across S01-S05 and S07-S12 while prerequisites remain open. This permits an in-progress engineering state only; all listed dependencies, human approvals, automated/live acceptance and release gates still apply. S06 external connector implementation remains deferred."
+      }
     },
     {
       "id": "S09",
       "priority": 90,
       "title": "See explainable daily progress and achievements",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "S02",
         "S07",
@@ -2976,9 +3219,36 @@
         "D08",
         "A02"
       ],
-      "implementation_revision": null,
-      "blockers": [],
-      "test_results": [],
+      "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+      "blockers": [
+        "S02, S07 and S08 completion dependencies remain open.",
+        "Human-approved scoring weights/thresholds and genuine multi-day outcomes are not yet supplied. Automated calculations do not establish participant-facing achievement acceptance or clinical meaning.",
+        "October 13 implementation is integrated and locally available. Still exercise unscheduled backlog, revised-plan scoring and approved-wording assertions. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
+      ],
+      "test_results": [
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S09-AUTO1",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise unscheduled backlog, revised-plan scoring and approved-wording assertions."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S09-AUTO2",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise unscheduled backlog, revised-plan scoring and approved-wording assertions."
+        }
+      ],
       "human_actions": [
         {
           "id": "S09-H01",
@@ -3037,7 +3307,11 @@
           "not_applicable_reason": null
         }
       ],
-      "reuse_refs": []
+      "reuse_refs": [],
+      "implementation_authorization": {
+        "decision_ref": "docs/NON_CONNECTOR_BUILD_2026-10-13.md",
+        "reason": "On October 13, 2026, the owner authorized independent implementation of non-connector work across S01-S05 and S07-S12 while prerequisites remain open. This permits an in-progress engineering state only; all listed dependencies, human approvals, automated/live acceptance and release gates still apply. S06 external connector implementation remains deferred."
+      }
     },
     {
       "id": "S10",
@@ -3291,56 +3565,79 @@
         "H05",
         "A04"
       ],
-      "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
+      "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
       "blockers": [
-        "The UI/server request checkpoint and bounded voice command integration are implemented; see docs/FAMILY_REQUESTS.md and docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json. Actual-service synthetic tests do not complete this slice.",
-        "Intended family/client/admin inference account/runtime qualification and real scoped account provisioning/sharing consent remain open. Owner-only practice is retained; no credential pooling or recipient-triggered inference is enabled.",
-        "S10-LIVE2 requires consenting actual voice/UI decisions, capacity clarification, help and administrator review. The full S10 shared achievements and notification features still depend on S02/S09 and are not delivered by the request increment."
+        "S02 and S09 full-slice completion dependencies remain open despite the authorized overlapping request and Support Team implementation.",
+        "Actual family/client/administrator inference routes, scoped grants, sharing/notification consent and physical-device voice qualification remain open; owner-only practice must not be used for another person.",
+        "Consented live requests, client decisions, help acknowledgement, progress sharing and notification opt-in/out have not been observed. Engineering tests cannot complete S10-LIVE1/LIVE2.",
+        "October 13 implementation is integrated and locally available. Still exercise full cross-role UI/voice and disclosure matrices, injected rejection transaction failure, delivery retries and late account-bound results. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
       ],
       "test_results": [
         {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S10-AUTO1",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full cross-role UI/voice and disclosure matrices, injected rejection transaction failure, delivery retries and late account-bound results."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S10-AUTO2",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full cross-role UI/voice and disclosure matrices, injected rejection transaction failure, delivery retries and late account-bound results."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
           "test_id": "S10-AUTO3",
-          "outcome": "pass",
-          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T06:41:51.530Z",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full cross-role UI/voice and disclosure matrices, injected rejection transaction failure, delivery retries and late account-bound results."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
-          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
-        },
-        {
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
           "test_id": "S10-AUTO4",
-          "outcome": "pass",
-          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T06:41:51.530Z",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full cross-role UI/voice and disclosure matrices, injected rejection transaction failure, delivery retries and late account-bound results."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
-          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
-        },
-        {
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
           "test_id": "S10-AUTO5",
           "outcome": "pass",
-          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T06:41:51.530Z",
-          "environment": "local_synthetic",
-          "data_origin": "synthetic",
-          "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
-          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
+          "notes": "Current regression coverage passed. Full suite: 525 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance."
         },
         {
-          "test_id": "S10-AUTO6",
-          "outcome": "pass",
-          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T06:41:51.530Z",
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
-          "notes": "Full retest: 410 tests across 44 files plus the optional real-PostgreSQL test pass, with typecheck/build and zero known npm vulnerabilities. 70 actual PostgreSQL checks additionally cover request transactions, capacity, races/replay, ledger identity/correction, persistence and encrypted restore. Existing scoped UI, voice, policy/account binding and metadata regressions passed. This is engineering coverage, not participant/device acceptance."
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S10-AUTO6",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full cross-role UI/voice and disclosure matrices, injected rejection transaction failure, delivery retries and late account-bound results."
         }
       ],
       "human_actions": [
@@ -3474,14 +3771,14 @@
       "reuse_refs": [],
       "implementation_authorization": {
         "decision_ref": "docs/architecture/AGENT_GOVERNANCE_2026-10-07.md",
-        "reason": "On October 7 the owner approved proceeding with the recommended governance and family-request checkpoints after recording them in the roadmap. This authorizes scoped S10 request implementation alongside unfinished S01/S02 and before S09, using the existing stack and owner-only practice boundary. It does not waive full S10 dependencies, per-user voice eligibility, sharing consent or actual live acceptance."
+        "reason": "On October 7 the owner approved proceeding with the recommended governance and family-request checkpoints after recording them in the roadmap. This authorizes scoped S10 request implementation alongside unfinished S01/S02 and before S09, using the existing stack and owner-only practice boundary. It does not waive full S10 dependencies, per-user voice eligibility, sharing consent or actual live acceptance. On October 13, 2026, the owner further authorized non-connector S10 engineering beyond the request checkpoint. This does not waive S09, consented sharing, intended-account voice or live acceptance."
       }
     },
     {
       "id": "S11",
       "priority": 110,
       "title": "Operate today's program from an administrator dashboard",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "S01",
         "S02",
@@ -3592,9 +3889,36 @@
         "A06",
         "A07"
       ],
-      "implementation_revision": null,
-      "blockers": [],
-      "test_results": [],
+      "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+      "blockers": [
+        "S01, S02, S06, S07, S08 and S10 completion dependencies remain open. S06 connector health is truthfully not_connected until external authorization and implementation.",
+        "Authorized operators and a real tracked day are not yet supplied. The dashboard cannot claim a resolved live sync failure or approved configuration update without the applicable actual records and operator review.",
+        "October 13 implementation is integrated and locally available. Still exercise projection rebuild and failed connector-sync timeline; connector implementation remains deferred. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
+      ],
+      "test_results": [
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S11-AUTO1",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise projection rebuild and failed connector-sync timeline; connector implementation remains deferred."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S11-AUTO2",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise projection rebuild and failed connector-sync timeline; connector implementation remains deferred."
+        }
+      ],
       "human_actions": [
         {
           "id": "S11-H01",
@@ -3651,13 +3975,17 @@
           "not_applicable_reason": null
         }
       ],
-      "reuse_refs": []
+      "reuse_refs": [],
+      "implementation_authorization": {
+        "decision_ref": "docs/NON_CONNECTOR_BUILD_2026-10-13.md",
+        "reason": "On October 13, 2026, the owner authorized independent implementation of non-connector work across S01-S05 and S07-S12 while prerequisites remain open. This permits an in-progress engineering state only; all listed dependencies, human approvals, automated/live acceptance and release gates still apply. S06 external connector implementation remains deferred."
+      }
     },
     {
       "id": "S12",
       "priority": 120,
       "title": "Review trends and exports in Clinician Partners",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "S09",
         "S11"
@@ -3790,9 +4118,47 @@
         "A03",
         "A05"
       ],
-      "implementation_revision": null,
-      "blockers": [],
-      "test_results": [],
+      "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+      "blockers": [
+        "S09 and S11 completion dependencies remain open.",
+        "Clinical partners have not approved the five archetype definitions, export scope or measure interpretation. Genuine multi-day history, permitted live export comparison and restricted-role review remain open.",
+        "October 13 implementation is integrated and locally available. Still exercise full DST/version/missingness trends, operator drill-down and all five configured archetype exports. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
+      ],
+      "test_results": [
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S12-AUTO1",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full DST/version/missingness trends, operator drill-down and all five configured archetype exports."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S12-AUTO2",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full DST/version/missingness trends, operator drill-down and all five configured archetype exports."
+        },
+        {
+          "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+          "executed_at": "2026-10-13T05:02:00.946Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex engineering verification",
+          "evidence_ref": "docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json",
+          "test_id": "S12-AUTO3",
+          "outcome": "blocked",
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full DST/version/missingness trends, operator drill-down and all five configured archetype exports."
+        }
+      ],
       "human_actions": [
         {
           "id": "S12-H01",
@@ -3903,7 +4269,11 @@
           "not_applicable_reason": null
         }
       ],
-      "reuse_refs": []
+      "reuse_refs": [],
+      "implementation_authorization": {
+        "decision_ref": "docs/NON_CONNECTOR_BUILD_2026-10-13.md",
+        "reason": "On October 13, 2026, the owner authorized independent implementation of non-connector work across S01-S05 and S07-S12 while prerequisites remain open. This permits an in-progress engineering state only; all listed dependencies, human approvals, automated/live acceptance and release gates still apply. S06 external connector implementation remains deferred."
+      }
     }
   ],
   "release_gates": [

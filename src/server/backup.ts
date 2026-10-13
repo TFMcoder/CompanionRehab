@@ -4,8 +4,14 @@ import { localCareMigrations } from './local-migrations.js';
 export const backupTables = ['participant_profiles', 'role_grants', 'task_definitions', 'meal_options', 'daily_checkins', 'day_plan_proposals', 'accepted_day_plan_versions', 'command_receipts', 'domain_events'] as const;
 // Restore in dependency order. Request decisions must follow task/plan records;
 // help follows requests, and administrator flags follow both requests and help.
-export const localBackupTables = ['accounts', 'participant_profiles', 'role_grants', 'task_definitions', 'meal_options', 'daily_checkins', 'day_plan_proposals', 'accepted_day_plan_versions', 'command_receipts', 'domain_events', 'grocery_items', 'appointments', 'append_only_mutations', 'activity_records', 'actuation_targets', 'external_resource_links', 'actuation_intents', 'runtime_events',
-  'request_access', 'request_day_capacity', 'request_constraints', 'task_requests', 'request_help', 'request_flags', 'request_receipts'] as const;
+export const localBackupTables = ['accounts', 'participant_profiles', 'role_grants', 'task_definitions', 'meal_options', 'daily_checkins', 'day_plan_proposals', 'accepted_day_plan_versions', 'command_receipts', 'domain_events', 'appointments', 'append_only_mutations', 'activity_records', 'actuation_targets', 'external_resource_links', 'actuation_intents', 'runtime_events',
+  'request_access', 'request_day_capacity', 'request_constraints', 'task_requests', 'request_help', 'request_flags', 'request_receipts',
+  'pantry_items', 'meal_proposals', 'meal_option_details', 'grocery_items', 'grocery_shares', 'meal_grocery_receipts',
+  'carryover_decisions', 'routine_choices', 'prompt_preferences', 'prompt_jobs', 'prompt_delivery_events', 'prompt_scheduler_cursor',
+  'program_access', 'program_definitions', 'program_versions', 'program_runs', 'program_step_results', 'program_receipts',
+  'support_shares', 'support_notification_preferences', 'support_notifications', 'support_notification_scanned', 'support_notification_scan_cursor',
+  'progress_rule_sets', 'progress_access', 'progress_clinical_configs', 'progress_snapshots', 'progress_awards', 'progress_receipts', 'progress_exports',
+  'operations_access', 'operations_issue_reviews'] as const;
 export type BackupSchema = 'private' | 'companion_local';
 export interface Database {
   query(sql: string, params?: any[]): Promise<{ rows: any[] }>;
@@ -77,7 +83,7 @@ export async function restoreSnapshot(db: Database, snapshot: Snapshot, targetId
     }
     for (const table of tables) {
       const columns = (await db.query('select column_name from information_schema.columns where table_schema=$1 and table_name=$2 order by ordinal_position', [schema, table])).rows.map(r => r.column_name as string);
-      if (!columns.length || columns.some(c => !/^[a-z_]+$/.test(c))) throw new Error('Unexpected target schema.');
+      if (!columns.length || columns.some(c => !/^[a-z_][a-z0-9_]*$/.test(c))) throw new Error('Unexpected target schema.');
       for (const row of snapshot.tables[table]) {
         if (!row || Object.keys(row).length !== columns.length || !columns.every(c => Object.hasOwn(row, c))) throw new Error('Backup row columns differ from target.');
         // json_populate_record preserves PostgreSQL arrays, jsonb, timestamps and nulls.

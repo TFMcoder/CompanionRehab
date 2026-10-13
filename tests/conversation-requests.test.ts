@@ -5,6 +5,7 @@ import type { CareService } from '../src/server/care-access.js';
 import type { Reasoner } from '../src/server/plan-reasoner.js';
 import type { AppRole } from '../src/shared/contracts.js';
 import type { CompletedTurn } from '../src/server/chatgpt-plan/inference.js';
+import type { LocalFeatures } from '../src/server/local-features.js';
 import { requestFixture } from './helpers/request-fixture.js';
 import { bindTestInference } from './helpers/inference.js';
 import { unavailable } from '../src/server/errors.js';
@@ -12,17 +13,57 @@ import { unavailable } from '../src/server/errors.js';
 const text=(value:string):CompletedTurn=>({completed:true,model:'gpt-6-sol',effort:'high',text:value,output:[{type:'message',role:'assistant',content:[{type:'output_text',text:value}]}]});
 const call=(name:string,args:object):CompletedTurn=>({...text(''),output:[{type:'function_call',name,call_id:randomUUID(),arguments:JSON.stringify(args)}]});
 const active:ConversationService[]=[];afterEach(()=>{for(const item of active)item.close();active.length=0;});
-function harness(role:AppRole='family_friend') {
+function harness(role:AppRole='family_friend',localFeatures=false) {
   const f=requestFixture(role);
   const care={authorize:vi.fn(async s=>s),authority:vi.fn(async()=>({actor_id:f.session.user_id,login_session_id:f.session.session_id,active_role:role,client_id:f.workspace.participant.id,grant_revision:'role-grant-one'})),
     today:vi.fn(async()=>({profile:{...f.workspace.participant,preferences:'Private client context',revision:1},role,local_date:f.workspace.local_date,tasks:[],meal_options:[],checkin:null,appointments:[{id:randomUUID(),title:'Private appointment',starts_at:'2026-10-07T18:00:00Z'}]})),command:vi.fn(),addGrocery:vi.fn()} as unknown as CareService;
   const respond=vi.fn<Reasoner['respond']>().mockResolvedValue(text('What would you like to do?'));
   const reasoner={bind:bindTestInference,respond};
-  const service=new ConversationService(care,reasoner,f.session.user_id,()=>new Date('2026-10-07T12:00:00Z'),undefined,undefined,undefined,f.requests);active.push(service);
+  const features=localFeatures?{authorityRevision:vi.fn(async()=> 'local-grant-one')} as unknown as LocalFeatures:undefined;
+  const service=new ConversationService(care,reasoner,f.session.user_id,()=>new Date('2026-10-07T12:00:00Z'),undefined,undefined,undefined,f.requests,features);active.push(service);
   return {...f,care,respond,service};
 }
 
 describe('role-bound request conversations',()=>{
+  it.each([
+    ['family_friend','routines','routines'],
+    ['family_friend','support team','support_team'],
+    ['administrator','operations','operations'],
+    ['administrator','routines','routines'],
+  ] as const)('opens %s shared %s by voice without reading private care context',async(role,target,view)=>{
+    const f=harness(role,true),start=await f.service.start(f.session);
+    const reply=await f.service.turn(start.session_id,f.session,randomUUID(),`Open ${target}`);
+    expect(reply.navigate).toBe(view);expect(f.care.today).not.toHaveBeenCalled();
+    expect(f.respond).not.toHaveBeenCalled();
+  });
+  it('advertises only role-authorized local destinations and rejects a family model navigation to operations',async()=>{
+    const f=harness('family_friend',true);
+    f.respond.mockResolvedValueOnce(call('navigate',{view:'operations'})).mockResolvedValueOnce(text('Access settings are unavailable here.'));
+    const start=await f.service.start(f.session);
+    const reply=await f.service.turn(start.session_id,f.session,randomUUID(),'What can I open?');
+    expect(reply.navigate).toBeUndefined();expect(f.care.today).not.toHaveBeenCalled();
+    const [input,instructions,tools]=f.respond.mock.calls[0];
+    expect(instructions).toContain('authorized shared views');
+    const navigate=tools.find(t=>t.name==='navigate') as any;
+    expect(navigate.parameters.properties.view.enum).toEqual(['requests','support_team','groceries','progress','routines']);
+    expect(JSON.stringify(input)).not.toMatch(/Private appointment|Private client context/);
+    expect(JSON.stringify(f.respond.mock.calls[1][0])).toContain('forbidden');
+    expect(await f.service.turn(start.session_id,f.session,randomUUID(),'Open operations')).not.toHaveProperty('navigate');
+  });
+  it('offers administrator operations to the model and omits local destinations without local features',async()=>{
+    const admin=harness('administrator',true);
+    admin.respond.mockResolvedValueOnce(call('navigate',{view:'operations'}));
+    const start=await admin.service.start(admin.session);
+    const reply=await admin.service.turn(start.session_id,admin.session,randomUUID(),'Could you bring up the access controls?');
+    expect(reply.navigate).toBe('operations');
+    const tools=admin.respond.mock.calls[0][2],navigate=tools.find(t=>t.name==='navigate') as any;
+    expect(navigate.parameters.properties.view.enum).toContain('operations');
+    const legacy=harness('family_friend'),opening=await legacy.service.start(legacy.session);
+    const unavailable=await legacy.service.turn(opening.session_id,legacy.session,randomUUID(),'Open routines');
+    expect(unavailable.navigate).toBeUndefined();
+    const legacyNavigate=legacy.respond.mock.calls[0][2].find(t=>t.name==='navigate') as any;
+    expect(legacyNavigate.parameters.properties.view.enum).toEqual(['requests']);
+  });
   it.each(['family_friend','administrator'] as const)('greets %s as supporter and never reads client-private care context',async role=>{
     const f=harness(role),start=await f.service.start(f.session);
     expect(start.text).toBe('Hi, what can I help with for Synthetic Client?');expect(f.care.today).not.toHaveBeenCalled();

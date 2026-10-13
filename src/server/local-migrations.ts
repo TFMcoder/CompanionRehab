@@ -5,4 +5,10 @@ export const localCareMigrations = [
   '004_client_readiness.sql',
   '005_runtime_observability.sql',
   '006_family_task_requests.sql',
+  '007_meals_groceries.sql',
+  '008_local_day.sql',
+  '009_programs.sql',
+  '010_support_team.sql',
+  '011_progress.sql',
+  '012_operations.sql',
 ] as const;

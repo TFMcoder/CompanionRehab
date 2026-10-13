@@ -1,11 +1,28 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { api, ApiError, type SessionInfo } from "./api";
 import { TaskRequests, type TaskRequestService } from './TaskRequests';
+import { PendingCommandsPanel } from './PendingCommands';
+import { PendingCommands, type PendingFamily, type RecoverableCommand } from './pending-commands';
+import { MealGroceries, type MealGroceryClientService } from './MealGroceries';
+import { Programs, type ProgramClientService } from './Programs';
+import { WakeControl } from './WakeControl';
+import { SupportTeam, type SupportTeamClientService } from './SupportTeam';
+import { LocalDayPanel, type LocalDayClientService, type RoutinePlanSelection } from './LocalDayPanel';
+import { ReminderDelivery, type ReminderClientService } from './ReminderDelivery';
+import { Operations, type OperationsClientService } from './Operations';
+import { Progress } from './Progress';
 import { startVoice } from "./voice";
 import { startLocalVoice, type LocalVoiceState } from "./local-voice";
 import { localDateTimeWithOffset } from "../shared/local-time";
 import { mealSlots, type AcceptedPlan, type AppConfig, type CareCommand, type ClientView, type GroceryItem, type MealSlot, type Plan, type Receipt, type SetupInput, type Today } from "../shared/contracts";
 import type { ActivityCommand, ActivityEntry, ActivityKind, ActivityLedger, ActivityOption } from "../shared/activity-contracts";
+import type { TaskRequestCommand, TaskRequestReceipt } from '../shared/task-request-contracts';
+import type { MealGroceryCommand, MealGroceryReceipt } from '../shared/meal-grocery-contracts';
+import type { LocalDayCommand, LocalDayReceipt } from '../shared/local-day-contracts';
+import type { ProgramCommand, ProgramReceipt } from '../shared/program-contracts';
+import type { SupportCommand, SupportReceipt } from '../shared/support-contracts';
+import type { ProgressCommand, ProgressReceipt } from '../shared/progress-contracts';
+import type { OperationsCommand, OperationsReceipt } from '../shared/operations-contracts';
 
 type AppState = "loading" | "readiness" | "login" | "setup" | "today" | "support" | "signout";
 type SaveState = { kind: "idle" | "saving" | "saved" | "unconfirmed" | "conflict" | "error"; message?: string; key?: string };
@@ -19,7 +36,68 @@ type ActivityDraft =
 
 const labelForSlot: Record<MealSlot, string> = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner" };
 const keyFor = () => crypto.randomUUID();
-const requestService: TaskRequestService = { workspace: api.taskRequests, review: api.reviewTaskRequest, command: api.taskRequestCommand, receipt: api.taskRequestReceipt };
+const deviceCommands = new PendingCommands();
+let durableCommandsEnabled = false;
+async function recoverableCommand<T>(family: PendingFamily, command: RecoverableCommand, direct: () => Promise<T>): Promise<T> {
+  if (!durableCommandsEnabled) return direct();
+  const existing=deviceCommands.snapshot.find(item=>item.key===command.idempotency_key);
+  if(existing&&existing.family!==family)throw new ApiError(409,'conflict','This receipt key belongs to another change.');
+  if(!existing)await deviceCommands.queue(family, command);
+  const result = existing?.status==='unknown' ? await deviceCommands.reconcile(command.idempotency_key)
+    : existing?.status==='ready_retry' ? await deviceCommands.retry(command.idempotency_key)
+    : existing?.status==='queued'||!existing ? await deviceCommands.submit(command.idempotency_key)
+    : existing?.status==='saved' ? await pendingReceipt<T>(family,command.idempotency_key)
+    : null;
+  if (result === null) {
+    const current=deviceCommands.snapshot.find(item=>item.key===command.idempotency_key);
+    if(current?.status==='ready_retry')throw new ApiError(404,'not_found','No saved receipt was found. Review the latest day before retrying.');
+    if(current?.status==='needs_review')throw new ApiError(409,'conflict','The saved version changed. Review this work.');
+    if(current?.status==='unknown')throw new ApiError(0,'connection_unconfirmed','The save is still unconfirmed. Check the receipt before retrying.');
+    throw new ApiError(403,'scope_changed','Your account view changed. Sign in and review this change.');
+  }
+  // An ordinary acknowledged save needs no recovery surface. Keep markers for
+  // outcomes resolved through receipt lookup or an explicit same-key retry.
+  if (!existing || existing.status==='queued') {
+    await deviceCommands.discard(command.idempotency_key).catch(() => undefined);
+  }
+  return result as T;
+}
+async function pendingReceipt<T>(family:PendingFamily,key:string):Promise<T> {
+  switch(family){
+    case 'care': return await api.receipt(key) as T; case 'activity': return await api.activityReceipt(key) as T;
+    case 'task_request': return await api.taskRequestReceipt(key) as T; case 'meal_grocery': return await api.mealGroceryReceipt(key) as T;
+    case 'local_day': return await api.localDayReceipt(key) as T; case 'program': return await api.programReceipt(key) as T;
+    case 'support': return await api.supportReceipt(key) as T; case 'progress': return await api.progressReceipt(key) as T;
+    case 'operations': return await api.operationsReceipt(key) as T;
+  }
+}
+async function recoverableReceipt<T>(family:PendingFamily,key:string,direct:()=>Promise<T>):Promise<T> {
+  if(!durableCommandsEnabled) return direct();
+  const item=deviceCommands.snapshot.find(row=>row.key===key&&row.family===family);
+  if(!item||item.status==='saved')return direct();
+  if(item.status==='unknown'||item.status==='ready_retry'){
+    const receipt=await deviceCommands.reconcile(key);
+    if(receipt!==null)return receipt as T;
+    const current=deviceCommands.snapshot.find(row=>row.key===key);
+    if(current?.status==='ready_retry')throw new ApiError(404,'not_found','No saved receipt was found. Review the current day before retrying.');
+    if(current?.status==='needs_review')throw new ApiError(409,'conflict','The saved version changed. Review this work.');
+    throw new ApiError(0,'connection_unconfirmed','The save is still unconfirmed. Check again before retrying.');
+  }
+  return direct();
+}
+const requestService: TaskRequestService = { workspace: api.taskRequests, review: api.reviewTaskRequest,
+  command: (command: TaskRequestCommand) => recoverableCommand<TaskRequestReceipt>('task_request',command,()=>api.taskRequestCommand(command)), receipt: key=>recoverableReceipt('task_request',key,()=>api.taskRequestReceipt(key)) };
+const mealGroceryService: MealGroceryClientService = {workspace:api.mealGroceryWorkspace,suggestions:api.mealGrocerySuggestions,
+  command:(command:MealGroceryCommand)=>recoverableCommand<MealGroceryReceipt>('meal_grocery',command,()=>api.mealGroceryCommand(command)),receipt:key=>recoverableReceipt('meal_grocery',key,()=>api.mealGroceryReceipt(key))};
+const programService: ProgramClientService = {workspace:api.programWorkspace,
+  command:(command:ProgramCommand)=>recoverableCommand<ProgramReceipt>('program',command,()=>api.programCommand(command)),receipt:key=>recoverableReceipt('program',key,()=>api.programReceipt(key))};
+const supportTeamService: SupportTeamClientService = {workspace:api.supportWorkspace,
+  command:(command:SupportCommand)=>recoverableCommand<SupportReceipt>('support',command,()=>api.supportCommand(command)),receipt:key=>recoverableReceipt('support',key,()=>api.supportReceipt(key))};
+const localDayService:LocalDayClientService={workspace:api.localDayWorkspace,
+  command:(command:LocalDayCommand)=>recoverableCommand<LocalDayReceipt>('local_day',command,()=>api.localDayCommand(command)),receipt:key=>recoverableReceipt('local_day',key,()=>api.localDayReceipt(key))};
+const reminderService:ReminderClientService={claim:api.claimPrompt,ack:api.promptAck};
+const operationsService:OperationsClientService={workspace:api.operationsWorkspace,
+  command:(command:OperationsCommand)=>recoverableCommand<OperationsReceipt>('operations',command,()=>api.operationsCommand(command)),receipt:key=>recoverableReceipt('operations',key,()=>api.operationsReceipt(key))};
 
 function selectedPlan(today: Today): { taskIds: string[]; meals: Record<MealSlot, string> } {
   const source = today.checkin?.proposal ?? today.checkin?.accepted;
@@ -135,12 +213,15 @@ export function App() {
   useEffect(() => {
     const expired = () => {
       sessionEpoch.current += 1; todayRequest.current += 1;
+      const hadDeviceCommands=durableCommandsEnabled;durableCommandsEnabled=false;
+      if(hadDeviceCommands)void deviceCommands.deactivate().catch(()=>undefined);
       setToday(null); setSessionInfo(null); setScreen("login");
     };
     const changed = () => {
       sessionEpoch.current += 1; todayRequest.current += 1;
       setToday(null); setSessionInfo(null); setScreen('loading');
-      void enterSession().catch(error => { setMessage(friendlyError(error)); setScreen(error instanceof ApiError && error.status === 401 ? 'login' : 'readiness'); });
+      const hadDeviceCommands=durableCommandsEnabled;durableCommandsEnabled=false;
+      void (hadDeviceCommands?deviceCommands.deactivate():Promise.resolve()).then(enterSession).catch(error => { setMessage(friendlyError(error)); setScreen(error instanceof ApiError && error.status === 401 ? 'login' : 'readiness'); });
     };
     window.addEventListener('nancy:session-expired', expired);
     window.addEventListener('nancy:scope-changed', changed);
@@ -149,8 +230,9 @@ export function App() {
 
   const signOut = async () => {
     sessionEpoch.current += 1; todayRequest.current += 1;
+    const hadDeviceCommands=durableCommandsEnabled;durableCommandsEnabled=false;
     setToday(null); setSessionInfo(null); setScreen('signout'); setSignoutBusy(true); setMessage(null);
-    try { await api.logout(); setScreen('login'); }
+    try { if(hadDeviceCommands)await deviceCommands.deactivate(); await api.logout(); setScreen('login'); }
     catch (error) {
       if (error instanceof ApiError && error.status === 401) setScreen('login');
       else setMessage('Sign-out could not be confirmed. Keep this tab open and try again when the connection returns.');
@@ -181,6 +263,8 @@ export function App() {
       if (error instanceof ApiError && error.status === 401 && epoch === sessionEpoch.current) {
         sessionEpoch.current += 1;
         todayRequest.current += 1;
+        const hadDeviceCommands=durableCommandsEnabled;durableCommandsEnabled=false;
+        if(hadDeviceCommands)void deviceCommands.deactivate().catch(()=>undefined);
         setToday(null);
         setScreen("login");
       }
@@ -199,6 +283,9 @@ export function App() {
     const session = await api.session();
     if (epoch !== sessionEpoch.current) return;
     if (!['client', 'family_friend', 'administrator', 'clinician'].includes(session.role) || !session.participant_id || !session.scope_key || typeof session.voice_eligible !== 'boolean') throw new ApiError(403, 'invalid_session_scope', 'Your account view could not be confirmed. Please sign in again.');
+    const hadDeviceCommands=durableCommandsEnabled;durableCommandsEnabled=false;
+    if(session.local_features_available) { await deviceCommands.activate(session.scope_key); if(epoch!==sessionEpoch.current)return; durableCommandsEnabled=true; }
+    else if(hadDeviceCommands) await deviceCommands.deactivate();
     setSessionInfo(session);
     if (session.role !== 'client') { setToday(null); setScreen('support'); return; }
     const next = await refreshToday();
@@ -260,7 +347,8 @@ export function App() {
   }} />;
   if (screen === "setup") return <Setup initialToday={today} onSaved={next => { setToday(next); setScreen("today"); }} />;
   if (screen === 'support' && sessionInfo) return <SupportHome key={sessionInfo.scope_key} session={sessionInfo} voiceAvailable={config?.voice_available ?? false} voiceTransport={config?.voice_transport} onCheckVoice={checkVoice} onLogout={signOut} />;
-  return <TodayView key={sessionInfo!.scope_key} scopeKey={sessionInfo!.scope_key} voiceEligible={sessionInfo!.voice_eligible} requestsAvailable={sessionInfo!.task_requests_available === true} today={today!} voiceAvailable={config?.voice_available ?? false} voiceTransport={config?.voice_transport} onCheckVoice={checkVoice} onRefresh={refreshToday} onReceipt={applyReceipt} onEditChoices={() => { todayRequest.current += 1; setScreen("setup"); }} onLogout={signOut} />;
+  return <TodayView key={sessionInfo!.scope_key} scopeKey={sessionInfo!.scope_key} localFeaturesAvailable={sessionInfo!.local_features_available===true}
+    voiceEligible={sessionInfo!.voice_eligible} requestsAvailable={sessionInfo!.task_requests_available === true} today={today!} voiceAvailable={config?.voice_available ?? false} voiceTransport={config?.voice_transport} onCheckVoice={checkVoice} onRefresh={refreshToday} onReceipt={applyReceipt} onEditChoices={() => { todayRequest.current += 1; setScreen("setup"); }} onLogout={signOut} />;
 }
 
 function Loading() {
@@ -381,10 +469,13 @@ function SupportHome({ session, voiceAvailable, voiceTransport, onCheckVoice, on
   const [typed, setTyped] = useState('');
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [requestUnconfirmed, setRequestUnconfirmed] = useState(false);
+  const [participantDate,setParticipantDate]=useState<string|null>(null);
+  const [moreOpen,setMoreOpen]=useState(false);
   const handle = useRef<Awaited<ReturnType<typeof startLocalVoice>> | null>(null);
   const controller = useRef<AbortController | null>(null);
   const attempt = useRef(0);
   const active = useRef(true);
+  const moreViews=useRef<HTMLDetailsElement|null>(null);
   const eligible = session.voice_eligible && session.role !== 'clinician';
   const stop = async () => {
     attempt.current += 1; controller.current?.abort(); controller.current = null;
@@ -397,6 +488,10 @@ function SupportHome({ session, voiceAvailable, voiceTransport, onCheckVoice, on
     return () => { active.current = false; attempt.current += 1; controller.current?.abort(); void handle.current?.stop().catch(() => undefined); handle.current = null; };
   }, []);
   useEffect(() => { if (requestUnconfirmed) { void stop(); setVoiceMessage('Check the saved request before continuing with Nancy.'); } }, [requestUnconfirmed]);
+  useEffect(()=>{if(!session.local_features_available)return;let current=true;
+    void api.supportWorkspace().then(workspace=>{if(current)setParticipantDate(workspace.local_date);}).catch(()=>{if(current)setParticipantDate(null);});
+    return()=>{current=false;};
+  },[session.scope_key,session.local_features_available]);
   const start = async () => {
     if (!eligible || requestUnconfirmed || handle.current || voice === 'connecting') return;
     const id = ++attempt.current, abort = new AbortController();
@@ -412,29 +507,53 @@ function SupportHome({ session, voiceAvailable, voiceTransport, onCheckVoice, on
         onState: (state, message) => { if (!current()) return; setVoice(state); setVoiceMessage(message); if (state === 'stopped' || state === 'error') { handle.current = null; setVoiceActive(false); } },
         onTranscript: (speaker, text) => { if (current()) setTranscript(previous => [...previous.slice(-7), { speaker, text }]); },
         onChange: () => { if (current()) setRefreshVersion(value => value + 1); },
-        onNavigate: destination => { if (current() && destination === 'requests') setRefreshVersion(value => value + 1); },
+        onNavigate: destination => { if (!current()) return;
+          if (destination === 'requests' || destination === 'support_team') setRefreshVersion(value => value + 1);
+          if (['groceries','progress','operations','routines'].includes(destination) && moreViews.current) moreViews.current.open=true;
+        },
       });
       if (!current()) { await next.stop(); return; }
       handle.current = next; setVoiceActive(true);
     } catch (error) { if (current()) { handle.current = null; setVoiceActive(false); setVoice('error'); setVoiceMessage(friendlyError(error)); } }
   };
   const title = session.role === 'clinician' ? 'Clinician Partners' : session.role === 'administrator' ? 'Requests and help' : 'Support Team';
+  const reviewPending=async(family:PendingFamily)=>{
+    if(family==='task_request'){await api.taskRequests();return;}
+    if(family==='meal_grocery')await api.mealGroceryWorkspace();
+    else if(family==='program')await api.programWorkspace();
+    else if(family==='operations')await api.operationsWorkspace();
+    else if(family==='progress'){
+      const date=participantDate??(await api.supportWorkspace()).local_date;setParticipantDate(date);
+      await api.progressWorkspace({from:date,to:date});
+    }else await api.supportWorkspace();
+    if(moreViews.current)moreViews.current.open=true;
+  };
   const heading = !eligible ? 'Use the buttons below' : voice === 'connecting' ? 'Starting Nancy' : voice === 'thinking' ? 'Nancy is thinking' : voice === 'listening' ? 'Nancy is listening' : voice === 'speaking' ? 'Nancy is speaking' : voice === 'closing' ? 'Nancy is waiting' : voice === 'error' ? 'Nancy needs a moment' : voiceAvailable ? 'Ready when you are' : 'Nancy is warming up';
   return <main className="today-shell"><header className="today-header"><div><p className="eyebrow">Nancy</p><h1>{title}</h1></div><button className="text-button" onClick={() => void stop().catch(() => undefined).then(onLogout)}>Sign out</button></header>
     <section className="voice-panel" aria-label="Talk to Nancy"><div><p className="eyebrow">Talk to Nancy</p><h2 aria-live="polite">{heading}</h2><p>{voiceMessage ?? (!eligible ? session.voice_unavailable_reason ?? 'Nancy voice is not connected for this account yet. You can use the buttons below.' : 'Ask Nancy to help with a task request.')}</p></div><div className="voice-actions">{voiceActive || voice === 'connecting' ? <>{voiceActive && (voice === 'speaking' || voice === 'thinking') && <button className="interrupt-button" onClick={() => handle.current?.interrupt()}>Interrupt Nancy</button>}<button className="stop-button" onClick={() => void stop()}>Stop voice</button></> : <button className="talk-button" disabled={!eligible || requestUnconfirmed} onClick={() => void start()}>Talk to Nancy</button>}</div></section>
     {voiceActive && <form className="typed-turn" onSubmit={e => { e.preventDefault(); if (!typed.trim() || voice === 'thinking' || voice === 'speaking') return; const text = typed.trim(); setTyped(''); void handle.current?.sendText(text); }}><label>Type to Nancy<input value={typed} maxLength={2000} disabled={voice === 'thinking' || voice === 'speaking'} onChange={e => setTyped(e.target.value)} /></label><button className="secondary-button" disabled={!typed.trim() || voice === 'thinking' || voice === 'speaking'}>Send</button></form>}
     {transcript.length > 0 && <section className="transcript" aria-live="polite" aria-label="Recent conversation">{transcript.map((line, index) => <p key={index} className={line.speaker}><strong>{line.speaker === 'nancy' ? 'Nancy' : 'You'}</strong>{line.text}</p>)}</section>}
-    {session.role === 'clinician' ? <section className="request-panel"><h2>Your shared views</h2><p>Clinical dashboards and exports are not available yet.</p></section> : session.task_requests_available === false ? <p>Task requests are not available for this account yet.</p> : <TaskRequests service={requestService} scopeKey={session.scope_key} onTalk={() => void start()} voiceAvailable={eligible && voiceAvailable} showTalk={false} refreshVersion={refreshVersion} onPendingChange={setRequestUnconfirmed} />}
+    {session.local_features_available&&<><WakeControl scopeKey={session.scope_key} enabled={eligible&&voiceAvailable&&voiceTransport==='local'} conversationActive={voiceActive||voice==='connecting'} onWake={start}/>
+      <SupportTeam service={supportTeamService} scopeKey={session.scope_key} onTalk={()=>void start()} refreshVersion={refreshVersion}/>
+      <details ref={moreViews} onToggle={event=>setMoreOpen(event.currentTarget.open)}><summary>More shared views and settings</summary>{moreOpen&&<>
+        {session.role!=='clinician'&&<MealGroceries service={mealGroceryService} scopeKey={session.scope_key} onTalk={()=>void start()} mode="groceries"/>}
+        {(session.role==='clinician'||session.role==='administrator')&&<Programs service={programService} scopeKey={session.scope_key} onTalk={()=>void start()}/>}
+        {participantDate&&<Progress scopeKey={session.scope_key} localDate={participantDate} visible={true}
+          commandAction={(command:ProgressCommand)=>recoverableCommand<ProgressReceipt>('progress',command,()=>api.progressCommand(command))}/>}
+        {session.role==='administrator'&&<Operations service={operationsService} scopeKey={session.scope_key} onTalk={()=>void start()} refreshVersion={refreshVersion}/>}
+      </>}</details><PendingCommandsPanel controller={deviceCommands} onReview={reviewPending}/></>}
+    {session.role === 'clinician' ? !session.local_features_available&&<section className="request-panel"><h2>Your shared views</h2><p>Clinical dashboards and exports are not available yet.</p></section> : session.task_requests_available === false ? <p>Task requests are not available for this account yet.</p> : <TaskRequests service={requestService} scopeKey={session.scope_key} onTalk={() => void start()} voiceAvailable={eligible && voiceAvailable} showTalk={false} refreshVersion={refreshVersion} onPendingChange={setRequestUnconfirmed} />}
   </main>;
 }
 
-function TodayView({ today, scopeKey, voiceEligible, requestsAvailable, voiceAvailable, voiceTransport, onCheckVoice, onRefresh, onEditChoices, onLogout, onReceipt }: { today: Today; scopeKey: string; voiceEligible: boolean; requestsAvailable: boolean; voiceAvailable: boolean; voiceTransport?: AppConfig['voice_transport']; onCheckVoice: () => Promise<AppConfig>; onRefresh: () => Promise<Today>; onEditChoices: () => void; onLogout: () => Promise<void>; onReceipt: (receipt: Receipt, date: string) => void }) {
+function TodayView({ today, scopeKey, localFeaturesAvailable, voiceEligible, requestsAvailable, voiceAvailable, voiceTransport, onCheckVoice, onRefresh, onEditChoices, onLogout, onReceipt }: { today: Today; scopeKey: string; localFeaturesAvailable:boolean; voiceEligible: boolean; requestsAvailable: boolean; voiceAvailable: boolean; voiceTransport?: AppConfig['voice_transport']; onCheckVoice: () => Promise<AppConfig>; onRefresh: () => Promise<Today>; onEditChoices: () => void; onLogout: () => Promise<void>; onReceipt: (receipt: Receipt, date: string) => void }) {
   const [editing, setEditing] = useState(false);
   const [save, setSave] = useState<SaveState>({ kind: "idle" });
   const [refreshing, setRefreshing] = useState(false);
   const [refreshIssue, setRefreshIssue] = useState<string | null>(null);
   const [voice, setVoice] = useState<VoiceState>("stopped");
   const [voiceSessionActive, setVoiceSessionActive] = useState(false);
+  const [reminderActive,setReminderActive]=useState(false);
   const [voiceMessage, setVoiceMessage] = useState<string | undefined>();
   const [transcript, setTranscript] = useState<Transcript[]>([]);
   const [view, setView] = useState<ClientView>('my_day');
@@ -447,9 +566,11 @@ function TodayView({ today, scopeKey, voiceEligible, requestsAvailable, voiceAva
   const active = useRef(true);
   const currentCheckin = useRef(today.checkin?.id ?? null);
   const voiceAttempt = useRef(0);
+  const moreViews=useRef<HTMLDetailsElement|null>(null);
   const pending = planIsPending(today);
   const date = formatDay(today.local_date, today.profile!.time_zone);
   useEffect(() => { if (view === 'requests') setRequestsVisited(true); }, [view]);
+  useEffect(()=>{if(localFeaturesAvailable&&['activity','day_review','routines','support_team','operations','requests'].includes(view)&&moreViews.current)moreViews.current.open=true;},[view,localFeaturesAvailable]);
   useEffect(() => { if (requestUnconfirmed) { voiceAttempt.current += 1; voiceAbort.current?.abort(); void voiceHandle.current?.stop(); voiceHandle.current = null; setVoiceSessionActive(false); setVoice('stopped'); setVoiceMessage('Check the saved request before continuing with Nancy.'); } }, [requestUnconfirmed]);
 
   useEffect(() => { currentCheckin.current = today.checkin?.id ?? null; }, [today.checkin?.id]);
@@ -484,11 +605,11 @@ function TodayView({ today, scopeKey, voiceEligible, requestsAvailable, voiceAva
     if (today.checkin) return;
     await issue({ type: "start_or_resume_checkin", idempotency_key: keyFor(), local_date: today.local_date, expected_revision: 0, payload: {} });
   };
-  const issue = async (command: CareCommand, after?: (receipt: Receipt) => void) => {
+  const issue = async (command: CareCommand, after?: (receipt: Receipt) => void, rethrow = false) => {
     const checkinId = today.checkin?.id ?? null;
     setSave({ kind: "saving" });
     try {
-      const receipt = await api.command(command);
+      const receipt = await recoverableCommand<Receipt>('care',command,()=>api.command(command));
       if (!stillCurrent(checkinId)) return;
       onReceipt(receipt, command.local_date);
       setSave({ kind: "saved", message: receipt.result === "accepted" ? "Your plan is saved." : receipt.result === "resumed" ? "Today’s check-in is ready." : "Your plan is ready for review." });
@@ -503,7 +624,36 @@ function TodayView({ today, scopeKey, voiceEligible, requestsAvailable, voiceAva
       } else if (error instanceof ApiError && error.status === 409) {
         setSave({ kind: "conflict", message: "Today’s plan changed elsewhere. Refresh it before making another change." });
       } else setSave({ kind: "error", message: friendlyError(error) });
+      if(rethrow)throw error;
     }
+  };
+  const proposeRoutine = async (selection:RoutinePlanSelection) => {
+    const checkin=today.checkin;
+    if(!checkin)throw new ApiError(409,'not_ready','Start today’s check-in before preparing a plan.');
+    if(save.kind==='saving'||save.kind==='unconfirmed'||save.kind==='conflict')throw new ApiError(409,'conflict','Review the pending plan change before preparing another.');
+    const source=checkin.proposal??checkin.accepted;
+    const task_overrides=selection.task_ids.flatMap(id=>{
+      const task=source?.tasks.find(item=>item.id===id);
+      return task?[{id,urgency:task.urgency,scheduled_time:task.scheduled_time,duration_minutes:task.duration_minutes}]:[];
+    });
+    await issue({type:checkin.accepted?'revise_day_plan':'propose_day_plan',idempotency_key:keyFor(),local_date:today.local_date,
+      expected_revision:checkin.revision,payload:{task_ids:selection.task_ids,meals:selection.meals,task_overrides}},undefined,true);
+    if(!active.current)throw new ApiError(403,'scope_changed','Your account view changed. Review the current day.');
+  };
+  const reviewPending=async(family:PendingFamily)=>{
+    let destination:ClientView='my_day';
+    switch(family){
+      case 'care': await onRefresh(); break;
+      case 'activity': await api.activity(today.local_date);destination='activity';break;
+      case 'task_request': await api.taskRequests();destination='requests';break;
+      case 'meal_grocery': await api.mealGroceryWorkspace();destination='groceries';break;
+      case 'local_day': await api.localDayWorkspace();destination='day_review';break;
+      case 'program': await api.programWorkspace();destination='routines';break;
+      case 'support': await api.supportWorkspace();destination='support_team';break;
+      case 'progress': await api.progressWorkspace({from:today.local_date,to:today.local_date});destination='progress';break;
+      case 'operations': await api.operationsWorkspace();destination='operations';break;
+    }
+    setView(destination);
   };
   const reconcile = async () => {
     if (!save.key) return;
@@ -511,7 +661,8 @@ function TodayView({ today, scopeKey, voiceEligible, requestsAvailable, voiceAva
     const checkinId = currentCheckin.current;
     setSave({ kind: "unconfirmed", key: pendingKey, message: "Checking saved plan…" });
     try {
-      const receipt = await api.receipt(pendingKey);
+      const receipt = durableCommandsEnabled ? await deviceCommands.reconcile(pendingKey) as Receipt|null : await api.receipt(pendingKey);
+      if(!receipt) {setSave({kind:'unconfirmed',key:pendingKey,message:'No saved receipt was found. Review the current day before retrying the same change.'});return;}
       if (!stillCurrent(checkinId)) return;
       onReceipt(receipt, today.local_date);
       setSave({ kind: "saved", message: receipt.result === "accepted" ? "Your plan is saved." : receipt.result === "resumed" ? "Today’s check-in is ready." : "Your plan is ready for review." });
@@ -547,7 +698,8 @@ function TodayView({ today, scopeKey, voiceEligible, requestsAvailable, voiceAva
         onChange: () => { if (active.current && attempt === voiceAttempt.current) { void refresh(); setRequestRefresh(value => value + 1); } },
         onNavigate: (destination: string) => {
           if (!active.current || attempt !== voiceAttempt.current) return;
-          if (destination === 'my_day' || destination === 'activity' || destination === 'tasks' || destination === 'meals' || destination === 'groceries' || destination === 'requests' && requestsAvailable) setView(destination);
+          if (destination === 'my_day' || destination === 'activity' || destination === 'tasks' || destination === 'meals' || destination === 'groceries' || destination === 'requests' && requestsAvailable
+            || localFeaturesAvailable&&['day_review','routines','support_team','progress','operations'].includes(destination)) setView(destination as ClientView);
         },
       };
       const onReady = (handle: { stop: () => Promise<void>; sendText?: (text: string) => Promise<void>; interrupt?: () => void }) => {
@@ -602,20 +754,36 @@ function TodayView({ today, scopeKey, voiceEligible, requestsAvailable, voiceAva
   const transcriptLine = (line: Transcript, index: number) => <p key={`${line.speaker}-${index}`} className={line.speaker}><strong>{line.speaker === "nancy" ? "Nancy" : "You"}</strong>{line.text}</p>;
 
   return <main className="today-shell"><header className="today-header"><div><p className="eyebrow">Nancy · your day</p><h1>{today.priority_context?.greeting || `Hello, ${today.profile!.display_name}.`}</h1><p className="date-line">{date}</p></div><div className="header-actions"><button className="text-button" onClick={onEditChoices} disabled={editLocked}>Edit choices</button><button className="text-button" onClick={() => void refresh()} disabled={refreshing}>{refreshing ? "Refreshing…" : "Refresh"}</button><button className="text-button" onClick={() => void signOut()}>Sign out</button></div></header>
-    <nav className="day-tabs" aria-label="My Day views">{([['my_day', 'My Day'], ['activity', 'Activity'], ['tasks', 'Tasks'], ['meals', 'Meals'], ['groceries', 'Groceries'], ['requests', 'Requests']] as const).filter(([id]) => id !== 'requests' || requestsAvailable).map(([id, label]) => <button key={id} type="button" aria-current={view === id ? 'page' : undefined} onClick={() => setView(id)}>{label}</button>)}</nav>
+    <nav className={`day-tabs${localFeaturesAvailable?' local':''}`} aria-label="My Day views">{localFeaturesAvailable?<>
+      {([['my_day','My Day'],['tasks','Tasks'],['meals','Meals'],['groceries','Groceries'],['progress','Progress']] as Array<readonly [ClientView,string]>).map(([id,label])=><button key={id} type="button" aria-current={view===id?'page':undefined} onClick={()=>setView(id)}>{label}</button>)}
+      <details ref={moreViews}><summary>More</summary>{([['activity','Activity'],['day_review','Day review'],['routines','Routines'],['support_team','Sharing'],['operations','Access settings'],...(requestsAvailable?[['requests','Requests'] as const]:[])] as Array<readonly [ClientView,string]>).map(([id,label])=><button key={id} type="button" aria-current={view===id?'page':undefined} onClick={()=>setView(id)}>{label}</button>)}</details>
+    </>:([['my_day','My Day'],['activity','Activity'],['tasks','Tasks'],['meals','Meals'],['groceries','Groceries'],['requests','Requests']] as Array<readonly [ClientView,string]>).filter(([id])=>id!=='requests'||requestsAvailable).map(([id,label])=><button key={id} type="button" aria-current={view===id?'page':undefined} onClick={()=>setView(id)}>{label}</button>)}</nav>
     <section className="voice-panel" aria-label="Talk to Nancy"><div><p className="eyebrow">Talk to Nancy</p><h2 aria-live="polite">{voiceHeading}</h2><p>{voiceMessage ?? (!voiceEligible ? "Nancy voice is not connected for this account yet. You can use all the buttons below." : voiceAvailable ? "Ask Nancy about your day, meals, or anything you need help with." : "Nancy’s voice is warming up. You can review your day while you wait.")}</p></div>
       <div className="voice-actions">{voiceSessionActive || voice === "connecting" ? <>{voiceTransport === 'local' && voiceSessionActive && (voice === 'speaking' || voice === 'thinking') && voiceHandle.current?.interrupt && <button className="interrupt-button" onClick={() => voiceHandle.current?.interrupt?.()}>Interrupt Nancy</button>}<button className="stop-button" onClick={() => void stopSpeaking()}>Stop voice</button></> : <button className="talk-button" onClick={() => void startSpeaking()} disabled={editLocked || !voiceEligible}>Talk to Nancy</button>}</div>
     </section>
+    {localFeaturesAvailable&&<><WakeControl scopeKey={scopeKey} enabled={voiceEligible&&voiceAvailable&&voiceTransport==='local'&&!editLocked}
+      conversationActive={voiceSessionActive||voice==='connecting'||reminderActive} onWake={startSpeaking}/>
+      <ReminderDelivery service={reminderService} scopeKey={scopeKey} conversationActive={voiceSessionActive||voice==='connecting'}
+        onTalk={()=>void startSpeaking()} onActivity={setReminderActive} voiceEligible={voiceEligible&&voiceAvailable&&voiceTransport==='local'}/></>}
     {voiceTransport === 'local' && voiceSessionActive && <form className="typed-turn" onSubmit={submitTypedTurn}><label>Type to Nancy<input value={typedTurn} onChange={event => setTypedTurn(event.target.value)} maxLength={2000} disabled={voice === 'thinking' || voice === 'speaking'} placeholder="Ask Nancy about your day" /></label><button className="secondary-button" disabled={!typedTurn.trim() || voice === 'thinking' || voice === 'speaking'}>Send</button></form>}
     {transcript.length > 0 && <section className="transcript" aria-live="polite" aria-label="Recent conversation">{earlierTranscript.length > 0 && <details className="transcript-history"><summary>Earlier conversation ({earlierTranscript.length})</summary>{earlierTranscript.map(transcriptLine)}</details>}{recentTranscript.map((line, index) => transcriptLine(line, earlierTranscript.length + index))}</section>}
     <DayOverview today={today} onView={setView} onRefresh={onRefresh} visible={view === 'my_day'} />
     {view === 'my_day' && (!today.checkin?.accepted && !today.checkin?.proposal && !mealSlots.every(slot => today.meal_options.some(option => option.slots.includes(slot))) ? <section className="empty-plan"><h2>Add meal choices to plan today</h2><p>You can review saved tasks now. Add a choice for breakfast, lunch, and dinner when you are ready to make a day plan.</p><button className="primary-button" onClick={onEditChoices}>Add choices</button></section> : !today.checkin ? <section className="empty-plan"><h2>Start today’s check-in</h2><p>Review your task and meal choices, then decide on the plan that suits today.</p><button className="primary-button" onClick={() => void begin()} disabled={save.kind === "saving" || save.kind === "unconfirmed" || save.kind === "conflict"}>Begin today’s check-in</button></section> : <PlanWorkspace key={[today.local_date, today.checkin.id, today.checkin.revision, today.checkin.proposal?.id, today.checkin.accepted?.id].join(':')} today={today} editing={editing} setEditing={setEditing} save={save} onIssue={issue} />)}
     {view === 'tasks' && <TasksView today={today} onReview={() => setView('my_day')} />}
-    {view === 'meals' && <MealsView today={today} onReview={() => setView('my_day')} />}
+    {view === 'meals' && <><MealsView today={today} onReview={() => setView('my_day')} />
+      {localFeaturesAvailable&&<details><summary>Meal choices</summary><MealGroceries service={mealGroceryService} scopeKey={scopeKey} onTalk={()=>void startSpeaking()} onChanged={()=>void refresh()} mode="meals"/></details>}</>}
     {view === 'activity' && <ActivityView initial={today.activity_ledger} localDate={today.local_date} timeZone={today.profile!.time_zone} onTodayRefresh={onRefresh} />}
-    <GroceriesView initial={today.groceries} visible={view === 'groceries'} />
+    {localFeaturesAvailable ? view === 'groceries'&&<MealGroceries service={mealGroceryService} scopeKey={scopeKey} onTalk={()=>void startSpeaking()} onChanged={()=>void refresh()} mode="groceries"/>
+      : <GroceriesView initial={today.groceries} visible={view === 'groceries'} />}
+    {localFeaturesAvailable&&view==='day_review'&&<LocalDayPanel service={localDayService} scopeKey={scopeKey} today={today} onTalk={()=>void startSpeaking()} onChanged={async()=>{await onRefresh();}} onProposeRoutine={proposeRoutine}/>}
+    {localFeaturesAvailable&&view==='routines'&&<Programs service={programService} scopeKey={scopeKey} onTalk={()=>void startSpeaking()} onPlan={()=>setView('my_day')}/>}
+    {localFeaturesAvailable&&view==='support_team'&&<SupportTeam service={supportTeamService} scopeKey={scopeKey} onTalk={()=>void startSpeaking()} onChanged={()=>void refresh()}/>}
+    {localFeaturesAvailable&&view==='operations'&&<Operations service={operationsService} scopeKey={scopeKey} onTalk={()=>void startSpeaking()}/>}
+    {localFeaturesAvailable&&<Progress scopeKey={scopeKey} localDate={today.local_date} visible={view==='progress'}
+      commandAction={(command:ProgressCommand)=>recoverableCommand<ProgressReceipt>('progress',command,()=>api.progressCommand(command))}/>}
     {requestsVisited && <div hidden={view !== 'requests'}><TaskRequests service={requestService} scopeKey={scopeKey} onTalk={() => void startSpeaking()} voiceAvailable={voiceEligible && voiceAvailable} showTalk={false} refreshVersion={requestRefresh} onPendingChange={setRequestUnconfirmed} onChanged={() => void refresh()} /></div>}
     <SaveNotice state={save} onReconcile={() => void reconcile()} onRefresh={() => void refresh()} />
+    {localFeaturesAvailable&&<PendingCommandsPanel controller={deviceCommands} onReview={reviewPending} onSaved={async()=>{await onRefresh();}}/>}
     {refreshIssue && <p className="refresh-issue" role="status">{refreshIssue} Your last confirmed plan is still shown.</p>}
   </main>;
 }
@@ -779,7 +947,7 @@ function ActivityView({ initial, localDate, timeZone, onTodayRefresh }: { initia
   const commit = async (command: ActivityCommand, message: string) => {
     setBusy(true); setNotice(null);
     try {
-      await api.activityCommand(command);
+      await recoverableCommand('activity',command,()=>api.activityCommand(command));
       await afterCommitted(message);
     } catch (error) {
       if (error instanceof ApiError && error.code === "connection_unconfirmed") {
@@ -795,7 +963,15 @@ function ActivityView({ initial, localDate, timeZone, onTodayRefresh }: { initia
     if (!pending || busy) return;
     setBusy(true); setNotice({ kind: "status", text: "Checking saved activity…" });
     try {
-      await api.activityReceipt(pending.command.idempotency_key);
+      if(durableCommandsEnabled){
+        const receipt=await deviceCommands.reconcile(pending.command.idempotency_key);
+        if(!receipt){
+          const canRetry=deviceCommands.snapshot.find(item=>item.key===pending.command.idempotency_key)?.status==='ready_retry';
+          setPending({...pending,canRetry});
+          setNotice({kind:'status',text:canRetry?'No receipt was found. Review the latest activity before retrying the same save.':'Save is still unconfirmed. It was not sent again.'});
+          return;
+        }
+      }else await api.activityReceipt(pending.command.idempotency_key);
       await afterCommitted("Activity saved.");
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) {
@@ -807,7 +983,11 @@ function ActivityView({ initial, localDate, timeZone, onTodayRefresh }: { initia
 
   const retryPending = async () => {
     if (!pending?.canRetry || busy) return;
-    await commit(pending.command, "Activity saved.");
+    if(!durableCommandsEnabled){await commit(pending.command, "Activity saved.");return;}
+    setBusy(true);
+    try{await refreshLedger();const receipt=await deviceCommands.retry(pending.command.idempotency_key);if(receipt)await afterCommitted('Activity saved.');
+      else setNotice({kind:'status',text:'Save remains unconfirmed. It was not sent again.'});}
+    catch(error){setNotice({kind:'error',text:friendlyError(error)});}finally{setBusy(false);}
   };
 
   const convertLocalTime = (value: string) => {

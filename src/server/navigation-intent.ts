@@ -25,6 +25,11 @@ export function navigationIntent(input: string): ClientView | undefined {
   if (/^(?:(?:my|the) )?(?:groceries|grocery list|groceries (?:page|screen))$/.test(target)) return 'groceries';
   if (/^(?:(?:my|the) )?(?:activity|activity list|activity history|ledger|tracker|daily ledger)$/.test(target)) return 'activity';
   if (/^(?:(?:my|the) )?(?:requests|task requests|requests? (?:page|screen|inbox))$/.test(target)) return 'requests';
+  if (/^(?:(?:my|the) )?(?:day review|unfinished tasks|reminders|repeat choices)$/.test(target)) return 'day_review';
+  if (/^(?:(?:my|the|shared) )?(?:routines|programs|rehab program)$/.test(target)) return 'routines';
+  if (/^(?:(?:my|the) )?(?:support team|sharing)$/.test(target)) return 'support_team';
+  if (/^(?:(?:my|the) )?(?:progress|achievements)$/.test(target)) return 'progress';
+  if (/^(?:(?:my|the) )?(?:operations|administrator operations|admin dashboard|access settings)$/.test(target)) return 'operations';
   if (/^(?:my day|home|(?:the )?home page|my day (?:page|screen))$/.test(target)) return 'my_day';
   return undefined;
 }
@@ -36,6 +41,11 @@ const fixedReplies: Record<ClientView, string> = {
   groceries: 'Here is your grocery list.',
   activity: 'Here is your activity.',
   requests: 'Here are your requests.',
+  day_review: 'Here is your day review.',
+  routines: 'Here are your routines.',
+  support_team: 'Here is your Support Team.',
+  progress: 'Here is your progress.',
+  operations: 'Here are your operations and access settings.',
 };
 export function navigationReply(view: ClientView): string { return fixedReplies[view]; }
 export const navigationAcknowledgement = navigationReply;

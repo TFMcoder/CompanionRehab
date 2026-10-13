@@ -31,6 +31,10 @@ describe('Nancy conversation orchestration', () => {
     ['Can we look at the grocery list?', 'groceries'],
     ['Show my activity.', 'activity'],
     ['Open my ledger.', 'activity'],
+    ['Open my routines.', 'routines'],
+    ['Open shared routines.', 'routines'],
+    ['Show access settings.', 'operations'],
+    ['Open administrator operations.', 'operations'],
   ] as const)('routes a complete navigation request: %s', (utterance, view) => {
     expect(navigationIntent(utterance)).toBe(view);
   });

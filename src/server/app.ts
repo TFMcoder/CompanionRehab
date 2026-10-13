@@ -24,15 +24,17 @@ import { activityCommandSchema, activityDate } from '../shared/activity-contract
 import { isIP } from 'node:net';
 import { TaskRequestService } from './task-requests.js';
 import { taskRequestCommandSchema, taskRequestDraftSchema } from '../shared/task-request-contracts.js';
+import { createLocalFeatures, registerLocalFeatures, type LocalFeatures } from './local-features.js';
 
 type RequestService = Pick<TaskRequestService, 'workspace'|'review'|'command'|'receipt'|'authorityRevision'>;
-export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; taskRequests?: RequestService; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog } = {}) {
+export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; taskRequests?: RequestService; features?:LocalFeatures; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog } = {}) {
   const app = Fastify({ logger: false, bodyLimit: 100000, trustProxy: false, requestTimeout: 120000, genReqId: () => randomUUID(), requestIdHeader: false });
   const care: CareService = dependencies.care || (config.databaseUrl ? new LocalCare({ connectionString: config.databaseUrl }) : new Supabase(config));
   const voice = dependencies.voice || new VoiceService(config, care);
   const conversation = dependencies.conversation;
   const speech = dependencies.speech;
   const taskRequests = dependencies.taskRequests ?? (care instanceof LocalCare ? new TaskRequestService(care.pool) : undefined);
+  const features=dependencies.features??(care instanceof LocalCare?createLocalFeatures(care.pool):undefined);
   const speaking = new Map<string, AbortController>();
   const audioCache = new Map<string, Buffer>();
   const root = resolve(dependencies.staticRoot || 'dist/client');
@@ -111,12 +113,13 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     const authority=await care.authority?.(session);
     const role=authority?.active_role ?? await care.role?.(session) ?? null;
     const requestRevision=await taskRequests?.authorityRevision(session) ?? null;
+    const featureRevision=await features?.authorityRevision(session)??null;
     const boundOwner=!!authority && !!role && ['client','family_friend','administrator'].includes(role) && config.planUserId===session.user_id;
     const voiceEligible=boundOwner && (config.voiceTransport==='local' ? !!conversation : !!config.openaiKey);
     return {authenticated:true,actor_id:session.user_id,role,participant_id:authority?.client_id??null,
-      scope_key:createHash('sha256').update(JSON.stringify([authority??{actor_id:session.user_id,login_session_id:session.session_id},requestRevision])).digest('hex'),
+      scope_key:createHash('sha256').update(JSON.stringify([authority??{actor_id:session.user_id,login_session_id:session.session_id},requestRevision,featureRevision])).digest('hex'),
       voice_eligible:voiceEligible,voice_unavailable_reason:voiceEligible?null:'A qualified Nancy voice connection is not yet available for this account. You can use the buttons.',
-      task_requests_available:!!taskRequests};
+      task_requests_available:!!taskRequests,local_features_available:!!features};
   });
   app.post('/api/auth/logout', async (request, reply) => {
     const session = sessions.get(request)!;
@@ -131,6 +134,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   });
   app.get('/api/today', async request => { const today = await care.today(sessions.get(request)!); return today.profile ? { ...today, priority_context: priorityContext(today) } : today; });
   app.get('/api/priority-context', async request => priorityContext(await care.today(sessions.get(request)!)));
+  registerLocalFeatures(app,{features,sessions,care,speech,voiceOwner:config.planUserId,limit});
   const requestsService=()=>{
     if(!taskRequests)throw new ApiError(503,'requests_unavailable','Task requests are not available on this care connection.');
     return taskRequests;

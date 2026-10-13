@@ -7,12 +7,14 @@ import { PlanReasoner } from './plan-reasoner.js';
 import { ConversationService } from './conversation.js';
 import { RuntimeLog } from './telemetry.js';
 import { TaskRequestService } from './task-requests.js';
+import { createLocalFeatures } from './local-features.js';
 const startedAt = performance.now();
 loadEnvironment();
 const config = configFromEnv();
 const care = config.databaseUrl ? new LocalCare({ connectionString: config.databaseUrl }) : undefined;
 const runtimeLog = care ? new RuntimeLog(care.pool) : undefined;
 const taskRequests = care ? new TaskRequestService(care.pool) : undefined;
+const features=care?createLocalFeatures(care.pool):undefined;
 const reasoner = config.sessionKey && config.planUserId ? new PlanReasoner(new PlanStore(defaultPlanPath, config.sessionKey), config.planUserId) : undefined;
 const speech = config.voiceTransport === 'local' && care && reasoner && await reasoner.available() ? new LocalSpeech() : undefined;
 const conversation = speech && care && reasoner ? new ConversationService(care, reasoner, config.planUserId!, undefined, (text, signal) => speech.synthesize(text, signal), metric => {
@@ -21,8 +23,13 @@ const conversation = speech && care && reasoner ? new ConversationService(care, 
 }, metric => {
   const { actor_id, conversation_id, turn_id, outcome, ...measurements } = metric;
   runtimeLog?.record({ kind: 'conversation', actor_id, conversation_id, turn_id, outcome: outcome === 'completed' ? 'ok' : outcome === 'failed' ? 'error' : 'interrupted', measurements });
-}, taskRequests) : undefined;
-const app = await createApp(config, { care, speech, conversation, runtimeLog, taskRequests });
+}, taskRequests, features) : undefined;
+const app = await createApp(config, { care, speech, conversation, runtimeLog, taskRequests, features });
+// Durable due jobs survive process restarts; no model, microphone or external connector is called.
+let schedulerBusy=false;
+const runLocalJobs=async()=>{if(!features||schedulerBusy)return;schedulerBusy=true;try{await features.day.tick();await features.support.refreshNotifications();}catch{console.error('Local reminder maintenance failed; it will be checked again.');}finally{schedulerBusy=false;}};
+const scheduler=setInterval(()=>{void runLocalJobs();},30_000);scheduler.unref();
+app.addHook('onClose',async()=>{clearInterval(scheduler);});
 await app.listen({ host: '127.0.0.1', port: config.port });
 runtimeLog?.record({ kind: 'startup', outcome: 'ready', measurements: { stage: 'http_ready', duration_ms: performance.now() - startedAt } });
 console.log(`Nancy is running at ${config.origin}.`);

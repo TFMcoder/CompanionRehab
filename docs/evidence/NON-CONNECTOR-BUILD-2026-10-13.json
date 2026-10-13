@@ -1,0 +1,71 @@
+{
+  "evidence_id": "NON-CONNECTOR-BUILD-2026-10-13",
+  "observed_at": "2026-10-13T05:02:00.946Z",
+  "implementation_revision": "sha256:52cd2c970afbd3c06948be8b65951cc9c07ff4251272dfcd7b958588e2f0a614",
+  "scope": "Local non-connector engineering implementation; full slice and intended-person acceptance remain open",
+  "synthetic_data_in_active_client_database": false,
+  "new_paid_services": false,
+  "new_public_tunnel": false,
+  "validation": {
+    "typescript": "passed",
+    "production_build": "passed",
+    "regression_suite": {
+      "files": 65,
+      "passed": 525,
+      "failed": 0,
+      "skipped": 1,
+      "skipped_reason": "Optional pre-existing local-care PostgreSQL acceptance test requires its separate database environment; the new actual-PostgreSQL probe was run independently.",
+      "private_evidence_ref": ".local/probes/nonconnector-full-suite.json",
+      "revision_note": "Only trailing blank-line cleanups followed the final functional test runs. Focused conversation tests also passed after the final policy wording edit."
+    },
+    "actual_postgresql": {
+      "version": "17.11",
+      "passed": 7,
+      "failed": 0,
+      "disposable_databases_created": 3,
+      "disposable_databases_removed": 3,
+      "active_client_database_opened_by_probe": false,
+      "coverage": ["authenticated feature routes", "origin/schema rejection", "scope revocation", "server-issued wake consent", "cross-family idempotency keys", "durable-table backup completeness", "encrypted isolated restore"],
+      "private_evidence_ref": ".local/probes/local-features-postgres.json"
+    },
+    "active_database_upgrade": {
+      "status": "upgraded",
+      "checks_passed": 44,
+      "checks_total": 44,
+      "existing_care_rows_preserved": true,
+      "new_feature_tables_initially_empty": true,
+      "encrypted_backup_and_rehearsal": "passed",
+      "followup_catalog_comparison": "passed",
+      "followup_checks": 5,
+      "private_evidence_ref": ".local/upgrades/local-features-8eaeae1b7f6a4507b8838556a7e16135/evidence.json"
+    },
+    "running_owner_practice_services": {
+      "checks_passed": 16,
+      "checks_total": 16,
+      "scope": "Previously qualified owner-practice binding, local HTTP, no care writes or physical microphone",
+      "coverage": ["sign-in requirement", "empty client care data", "Heart greeting", "direct navigation", "actual local ASR on generated audio", "repository nutrition provenance", "nutrition speech", "logout revocation", "numeric per-call and turn usage", "no invented activity"],
+      "single_observation_ms": {"greeting_first_audio": 534, "cached_navigation_audio": 41, "generated_audio_turn": 5431, "nutrition_reply": 8296},
+      "private_evidence_ref": ".local/probes/client-readiness-live.json"
+    },
+    "browser": {
+      "environment": "Isolated in-memory synthetic account in in-app browser",
+      "widths_checked": [390, 1265],
+      "passed": ["check-in proposal and explicit acceptance", "accepted meal summary", "grocery create and acquire", "routine/progress empty states", "ordinary saved commands clear recovery markers", "primary and secondary mobile navigation"],
+      "physical_iphone_safari": "not_run"
+    }
+  },
+  "remaining_acceptance": [
+    "Physical iPhone/Safari audio, interruption, foreground wake, reconnect and notification behavior",
+    "Intended-user account/deployment eligibility and separate family/admin voice bindings",
+    "Consented genuine-day, carryover and household workflows",
+    "Human-approved routine, rehab, scoring and clinical archetype content",
+    "Remaining canonical automated matrices recorded as partial/blocked in roadmap test_results",
+    "Microsoft 365 and Asana authorization, implementation and live reconciliation"
+  ],
+  "limitations": [
+    "No full roadmap slice was marked done.",
+    "Passing implemented tests does not mean every canonical acceptance scenario has been exercised.",
+    "No transcript, audio, credential, clinical notes or private household records are included here.",
+    "Single latency samples are not percentiles or a claim of participant conversational quality."
+  ]
+}

@@ -1,6 +1,12 @@
 import type { AppConfig, AppRole, CareCommand, GroceryItem, Receipt, SetupInput, Today } from "../shared/contracts";
 import type { ActivityCommand, ActivityLedger, ActivityReceipt } from "../shared/activity-contracts";
 import type { TaskRequestCommand, TaskRequestDraft, TaskRequestReceipt, TaskRequestReview, TaskRequestWorkspace } from '../shared/task-request-contracts';
+import type { MealGroceryCommand, MealGroceryReceipt, MealGroceryWorkspace, GrocerySuggestion } from '../shared/meal-grocery-contracts';
+import type { LocalDayCommand, LocalDayReceipt, LocalDayWorkspace, PromptItem } from '../shared/local-day-contracts';
+import type { ProgramCommand, ProgramReceipt, ProgramWorkspace } from '../shared/program-contracts';
+import type { SupportCommand, SupportReceipt, SupportWorkspace, SupportWorkspaceQuery } from '../shared/support-contracts';
+import type { ProgressCommand, ProgressReceipt, ProgressRange, ProgressWorkspace } from '../shared/progress-contracts';
+import type { OperationsCommand, OperationsReceipt, OperationsQuery, OperationsWorkspace } from '../shared/operations-contracts';
 
 export class ApiError extends Error {
   constructor(
@@ -51,7 +57,7 @@ async function request<T>(path: string, init?: RequestInit, timeoutMs?: number):
 export interface ConversationReply { text: string; reply_id: string; navigate?: string; changed?: boolean; transcript?: string; speech_parts?: number }
 export interface ConversationStart extends ConversationReply { session_id: string }
 export interface GroceryInput { name: string; quantity?: string; idempotency_key: string }
-export interface SessionInfo { authenticated: true; role: AppRole; participant_id: string; scope_key: string; voice_eligible: boolean; voice_unavailable_reason?: string | null; task_requests_available?: boolean }
+export interface SessionInfo { authenticated: true; role: AppRole; participant_id: string; scope_key: string; voice_eligible: boolean; voice_unavailable_reason?: string | null; task_requests_available?: boolean; local_features_available?: boolean }
 
 export const api = {
   config: () => request<AppConfig>("/api/config"),
@@ -72,6 +78,27 @@ export const api = {
   reviewTaskRequest: (draft: TaskRequestDraft) => request<TaskRequestReview>('/api/task-requests/review', { method: 'POST', body: JSON.stringify(draft) }),
   taskRequestCommand: (command: TaskRequestCommand) => request<TaskRequestReceipt>('/api/task-requests/commands', { method: 'POST', body: JSON.stringify(command) }),
   taskRequestReceipt: (key: string) => request<TaskRequestReceipt>(`/api/task-requests/receipts/${encodeURIComponent(key)}`),
+  mealGroceryWorkspace: () => request<MealGroceryWorkspace>('/api/meals-groceries'),
+  mealGrocerySuggestions: (id: string) => request<GrocerySuggestion[]>(`/api/meals-groceries/suggestions/${encodeURIComponent(id)}`),
+  mealGroceryCommand: (command: MealGroceryCommand) => request<MealGroceryReceipt>('/api/meals-groceries/commands',{method:'POST',body:JSON.stringify(command)}),
+  mealGroceryReceipt: (key: string) => request<MealGroceryReceipt>(`/api/meals-groceries/receipts/${encodeURIComponent(key)}`),
+  localDayWorkspace: (before?: string) => request<LocalDayWorkspace>(`/api/local-day${before?`?before=${encodeURIComponent(before)}`:''}`),
+  localDayCommand: (command: LocalDayCommand) => request<LocalDayReceipt>('/api/local-day/commands',{method:'POST',body:JSON.stringify(command)}),
+  localDayReceipt: (key: string) => request<LocalDayReceipt>(`/api/local-day/receipts/${encodeURIComponent(key)}`),
+  claimPrompt: () => request<PromptItem|null>('/api/prompts/claim',{method:'POST',body:'{}'}),
+  promptAck: (id: string,claimToken:string,channel:string) => request<{ok:true}>(`/api/prompts/${encodeURIComponent(id)}/ack`,{method:'POST',body:JSON.stringify({claim_token:claimToken,channel})}),
+  programWorkspace: () => request<ProgramWorkspace>('/api/programs'),
+  programCommand: (command: ProgramCommand) => request<ProgramReceipt>('/api/programs/commands',{method:'POST',body:JSON.stringify(command)}),
+  programReceipt: (key: string) => request<ProgramReceipt>(`/api/programs/receipts/${encodeURIComponent(key)}`),
+  supportWorkspace: (query?: SupportWorkspaceQuery) => request<SupportWorkspace>(`/api/support-team${query?`?${new URLSearchParams(Object.entries(query).filter(([,value])=>value!==undefined).map(([field,value])=>[field,String(value)])).toString()}`:''}`),
+  supportCommand: (command: SupportCommand) => request<SupportReceipt>('/api/support-team/commands',{method:'POST',body:JSON.stringify(command)}),
+  supportReceipt: (key: string) => request<SupportReceipt>(`/api/support-team/receipts/${encodeURIComponent(key)}`),
+  progressWorkspace: (range: ProgressRange) => request<ProgressWorkspace>(`/api/progress?${new URLSearchParams(range).toString()}`),
+  progressCommand: (command: ProgressCommand) => request<ProgressReceipt>('/api/progress/commands',{method:'POST',body:JSON.stringify(command)}),
+  progressReceipt: (key: string) => request<ProgressReceipt>(`/api/progress/receipts/${encodeURIComponent(key)}`),
+  operationsWorkspace: (query?:OperationsQuery) => request<OperationsWorkspace>(`/api/operations${query?`?${new URLSearchParams(Object.entries(query).filter(([,value])=>value!==undefined).map(([field,value])=>[field,String(value)])).toString()}`:''}`),
+  operationsCommand: (command:OperationsCommand) => request<OperationsReceipt>('/api/operations/commands',{method:'POST',body:JSON.stringify(command)}),
+  operationsReceipt: (key:string) => request<OperationsReceipt>(`/api/operations/receipts/${encodeURIComponent(key)}`),
   conversationStart: (signal?: AbortSignal) => request<ConversationStart>("/api/conversation", { method: "POST", body: "{}", signal }, 90_000),
   conversationTurn: (id: string, text: string, turnId: string, signal?: AbortSignal) => request<ConversationReply>(`/api/conversation/${encodeURIComponent(id)}/turn`, { method: "POST", body: JSON.stringify({ text, turn_id: turnId }), signal }, 90_000),
   conversationAudio: (id: string, wav: string, turnId: string, signal?: AbortSignal) => request<ConversationReply>(`/api/conversation/${encodeURIComponent(id)}/audio`, { method: "POST", body: JSON.stringify({ wav, turn_id: turnId }), signal }, 90_000),
