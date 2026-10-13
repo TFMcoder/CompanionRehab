@@ -1,0 +1,84 @@
+{
+  "evidence_id": "MEAL-RECORDING-2026-10-13",
+  "observed_at": "2026-10-13T16:42:11.768Z",
+  "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+  "status": "engineering_verified",
+  "diagnosis": {
+    "reported": "Client meal report was not saved.",
+    "reproduced": "Actual owner-bound Sol-high read an empty ledger, then claimed it could not safely save without invoking prepare_activity_record. No database write was attempted in that reproduction.",
+    "limit": "Historical production logs contain counts, not transcript or tool arguments, so the original utterance cannot be replayed verbatim from telemetry."
+  },
+  "changes": [
+    "Explicit unplanned meal route without saved meal options or accepted day plan.",
+    "Unknown portions remain unknown; confirmation still precedes any write.",
+    "Distinct tool descriptions for report, correction and reschedule.",
+    "Bounded activity outcome and rejected-tool count metadata without transcript/audio/arguments."
+  ],
+  "automated": {
+    "test_files_passed": 65,
+    "tests_passed": 542,
+    "optional_tests_skipped": 1,
+    "typecheck": "passed",
+    "production_build": "passed"
+  },
+  "live": {
+    "status": "passed",
+    "observed_at": "2026-10-13T16:37:51.254Z",
+    "synthetic_only": true,
+    "checks": {
+      "empty_meal_options_plan_and_ledger": true,
+      "no_write_before_confirmation": true,
+      "model_prepared_unplanned_report": true,
+      "confirmed_save_receipt": true,
+      "confirmation_retry_replayed": true,
+      "one_durable_meal": true,
+      "food_slot_actual_time_and_unknown_portion": true,
+      "one_receipt_and_event": true,
+      "record_survives_new_connection": true,
+      "preparation_and_save_logged_without_transcript": true
+    },
+    "timings_ms": [
+      2565,
+      5250,
+      5901
+    ],
+    "database_removed": true,
+    "method": "Real selected model through full ConversationService and real PostgreSQL in a new disposable database; synthetic fixed clock and care data; explicit application playback acknowledgement and confirmation; no physical microphone test."
+  },
+  "deployment": {
+    "supervised_app_restarted": true,
+    "existing_approved_https": true,
+    "public_checks_passed": 19,
+    "public_checks": {
+      "public_dns_resolves": true,
+      "public_https_signin_page": true,
+      "valid_tls_certificate": true,
+      "hsts_enabled": true,
+      "private_requests_require_login": true,
+      "private_day_requires_login": true,
+      "preview_not_public": true,
+      "wrong_origin_denied": true,
+      "cookie_secure": true,
+      "cookie_httponly": true,
+      "cookie_samesite_strict": true,
+      "scoped_session": true,
+      "request_service_available": true,
+      "authorized_request_workspace": true,
+      "local_voice_ready": true,
+      "heart_greeting_over_public_https": true,
+      "voice_navigation": true,
+      "heart_audio_over_public_https": true,
+      "logout_revokes_access": true
+    },
+    "care_records_added_to_client_database": 0
+  },
+  "remaining": [
+    "Actual participant should repeat the previously unsaved report and review the saved meal.",
+    "Physical iPhone/Safari microphone and genuine-day acceptance remain open.",
+    "Owner-practice inference and existing consent/account gates remain unchanged."
+  ],
+  "private_evidence": [
+    ".local/probes/meal-recording-live.json",
+    ".local/probes/demo-public-https.json"
+  ]
+}

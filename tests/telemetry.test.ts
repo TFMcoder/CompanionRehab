@@ -8,6 +8,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 describe('operational metadata', () => {
+  it('distinguishes activity reviews and saves without retaining arbitrary action text', () => {
+    for (const outcome of ['none','review_prepared','saved','rejected','unconfirmed']) {
+      expect(safeEvent({kind:'conversation',outcome:'ok',measurements:{activity_outcome:outcome,tool_rejections:1}}).measurements)
+        .toEqual({activity_outcome:outcome,tool_rejections:1});
+    }
+    expect(safeEvent({kind:'conversation',outcome:'ok',measurements:{activity_outcome:'private meal text',tool_rejections:'private error'}}).measurements).toEqual({});
+  });
   it('keeps measurements and nutrition source hashes without bodies, tokens or arbitrary URLs', () => {
     const event = safeEvent({ kind:'conversation', outcome:'ok', actor_id:randomUUID(), turn_id:'secret-token', measurements:{
       duration_ms: 15.6, input_chars:500, transcript:'private care', access_token:'private token', route:'/api/conversation/:id/turn',

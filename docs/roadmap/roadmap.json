@@ -801,7 +801,7 @@
         "S03",
         "S04"
       ],
-      "implementation_revision": "sha256:9e7ad807ed90a25aefa0ac327c07619e88ae5bd69ffd232c51b4c3331fd892f8",
+      "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
       "blockers": [
         "October 5 latency fixes deployed; see docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Natural navigation now avoids two GPT calls, fixed Heart acknowledgements are primed, CUDA ASR is qualified on six synthetic phrases and validated first-part preparation overlaps some model output. Public exact-navigation estimates improved from 4.58-4.82s to 1.83-1.85s; natural navigation was 1.93s through HTTPS. General GPT answers remain variable (one public sample 9.17s). The owner subsequently accepted the faster response for advancing the MVP. Actual revised iPhone/Safari latency, interruption and participant acceptance are still required. Preserve Heart and Sol/high; S01 is not complete.",
         "S01-LIVE2 is partial: encrypted restore and integrated planning passed, but the complete provider-loss/revocation/allowance, device and full-role scenario remains open. S01-LIVE1 has not run on the consenting participant's iPhone/Safari with genuine tasks/meals.",
@@ -811,118 +811,119 @@
         "Actual task completion and meal reporting are S02; accepting a plan records intentions only. Daily reliance, operational recovery and background reminders remain gated.",
         "October 6 client readiness is engineering-verified in docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json. The separate client database starts empty and the practice database is preserved. Participant/account eligibility, consent, real content and physical-device/genuine-day acceptance remain open.",
         "October 7 governance hardening, numeric telemetry and owner-bound inference were implemented and regression-tested in docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json. October 13 engineering adds foreground wake and expanded meal/grocery flows; this is not actual iPhone/Safari wake, spoken planning or intended-account qualification. Genuine participant acceptance, provider-loss/device recovery and stable HTTPS remain open.",
-        "October 13 stable HTTPS deployment is engineering-verified (19 public checks, 16 voice/nutrition/logging checks). Owner-reported reboot exposed an absent external speech-runtime drive; the same pinned runtime now resides on the internal drive and passes live tests. Full reboot after this repair, physical iPhone, intended-account and participant acceptance remain open. See docs/evidence/DEMO-HOSTING-2026-10-13.json."
+        "October 13 stable HTTPS deployment is engineering-verified (19 public checks, 16 voice/nutrition/logging checks). Owner-reported reboot exposed an absent external speech-runtime drive; the same pinned runtime now resides on the internal drive and passes live tests. Full reboot after this repair, physical iPhone, intended-account and participant acceptance remain open. See docs/evidence/DEMO-HOSTING-2026-10-13.json.",
+        "October 13 meal-report failure reproduced and repaired in the agent recording path. Disposable actual-model/PostgreSQL verification passes; participant must repeat the unsaved report and verify Meals/Activity. See docs/evidence/MEAL-RECORDING-2026-10-13.json."
       ],
       "test_results": [
         {
-          "implementation_revision": "sha256:5ffcbebf73cdd6ab307665c17dad2f7239cf94b5c3a3fc831eee86dbfe262553",
-          "executed_at": "2026-10-13T06:37:35.586Z",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T16:42:11.768Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/DEMO-HOSTING-2026-10-13.json",
+          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
           "test_id": "S01-AUTO1",
           "outcome": "pass",
-          "notes": "Current regression coverage passed. Full suite: 539 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged. October 13 demo-hosting change: unchanged application regression suite re-passed 539 tests (one optional skip), typecheck and production build. Local supervisor recovery was separately exercised; public HTTPS has not been activated."
+          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Automated coverage only; no participant acceptance inferred."
         },
         {
-          "implementation_revision": "sha256:5ffcbebf73cdd6ab307665c17dad2f7239cf94b5c3a3fc831eee86dbfe262553",
-          "executed_at": "2026-10-13T06:37:35.586Z",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T16:42:11.768Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/DEMO-HOSTING-2026-10-13.json",
+          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
           "test_id": "S01-AUTO2",
           "outcome": "blocked",
-          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Physical device, complete provider-loss and account lifecycle, full new-workflow voice matrices remain open. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged. October 13 demo-hosting change: unchanged application regression suite re-passed 539 tests (one optional skip), typecheck and production build. Local supervisor recovery was separately exercised; public HTTPS has not been activated."
+          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Existing full-contract scenario gaps remain; this result remains blocked."
         },
         {
-          "implementation_revision": "sha256:5ffcbebf73cdd6ab307665c17dad2f7239cf94b5c3a3fc831eee86dbfe262553",
-          "executed_at": "2026-10-13T06:37:35.586Z",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T16:42:11.768Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/DEMO-HOSTING-2026-10-13.json",
+          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
           "test_id": "S01-AUTO3",
           "outcome": "blocked",
-          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Physical device, complete provider-loss and account lifecycle, full new-workflow voice matrices remain open. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged. October 13 demo-hosting change: unchanged application regression suite re-passed 539 tests (one optional skip), typecheck and production build. Local supervisor recovery was separately exercised; public HTTPS has not been activated."
+          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Existing full-contract scenario gaps remain; this result remains blocked."
         },
         {
-          "implementation_revision": "sha256:5ffcbebf73cdd6ab307665c17dad2f7239cf94b5c3a3fc831eee86dbfe262553",
-          "executed_at": "2026-10-13T06:37:35.586Z",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T16:42:11.768Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/DEMO-HOSTING-2026-10-13.json",
+          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
           "test_id": "S01-AUTO4",
           "outcome": "blocked",
-          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Physical device, complete provider-loss and account lifecycle, full new-workflow voice matrices remain open. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged. October 13 demo-hosting change: unchanged application regression suite re-passed 539 tests (one optional skip), typecheck and production build. Local supervisor recovery was separately exercised; public HTTPS has not been activated."
+          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Existing full-contract scenario gaps remain; this result remains blocked."
         },
         {
-          "implementation_revision": "sha256:5ffcbebf73cdd6ab307665c17dad2f7239cf94b5c3a3fc831eee86dbfe262553",
-          "executed_at": "2026-10-13T06:37:35.586Z",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T16:42:11.768Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/DEMO-HOSTING-2026-10-13.json",
+          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
           "test_id": "S01-AUTO5",
           "outcome": "blocked",
-          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Physical device, complete provider-loss and account lifecycle, full new-workflow voice matrices remain open. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged. October 13 demo-hosting change: unchanged application regression suite re-passed 539 tests (one optional skip), typecheck and production build. Local supervisor recovery was separately exercised; public HTTPS has not been activated."
+          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Existing full-contract scenario gaps remain; this result remains blocked."
         },
         {
-          "implementation_revision": "sha256:5ffcbebf73cdd6ab307665c17dad2f7239cf94b5c3a3fc831eee86dbfe262553",
-          "executed_at": "2026-10-13T06:37:35.586Z",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T16:42:11.768Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/DEMO-HOSTING-2026-10-13.json",
+          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
           "test_id": "S01-AUTO6",
           "outcome": "blocked",
-          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Physical device, complete provider-loss and account lifecycle, full new-workflow voice matrices remain open. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged. October 13 demo-hosting change: unchanged application regression suite re-passed 539 tests (one optional skip), typecheck and production build. Local supervisor recovery was separately exercised; public HTTPS has not been activated."
+          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Existing full-contract scenario gaps remain; this result remains blocked."
         },
         {
-          "implementation_revision": "sha256:5ffcbebf73cdd6ab307665c17dad2f7239cf94b5c3a3fc831eee86dbfe262553",
-          "executed_at": "2026-10-13T06:37:35.586Z",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T16:42:11.768Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/DEMO-HOSTING-2026-10-13.json",
+          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
           "test_id": "S01-AUTO7",
           "outcome": "pass",
-          "notes": "Current regression coverage passed. Full suite: 539 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged. October 13 demo-hosting change: unchanged application regression suite re-passed 539 tests (one optional skip), typecheck and production build. Local supervisor recovery was separately exercised; public HTTPS has not been activated."
+          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Automated coverage only; no participant acceptance inferred."
         },
         {
-          "implementation_revision": "sha256:5ffcbebf73cdd6ab307665c17dad2f7239cf94b5c3a3fc831eee86dbfe262553",
-          "executed_at": "2026-10-13T06:37:35.586Z",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T16:42:11.768Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/DEMO-HOSTING-2026-10-13.json",
+          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
           "test_id": "S01-AUTO8",
           "outcome": "pass",
-          "notes": "Current regression coverage passed. Full suite: 539 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged. October 13 demo-hosting change: unchanged application regression suite re-passed 539 tests (one optional skip), typecheck and production build. Local supervisor recovery was separately exercised; public HTTPS has not been activated."
+          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Automated coverage only; no participant acceptance inferred."
         },
         {
-          "implementation_revision": "sha256:5ffcbebf73cdd6ab307665c17dad2f7239cf94b5c3a3fc831eee86dbfe262553",
-          "executed_at": "2026-10-13T06:37:35.586Z",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T16:42:11.768Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/DEMO-HOSTING-2026-10-13.json",
+          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
           "test_id": "S01-AUTO9",
           "outcome": "pass",
-          "notes": "Current regression coverage passed. Full suite: 539 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged. October 13 demo-hosting change: unchanged application regression suite re-passed 539 tests (one optional skip), typecheck and production build. Local supervisor recovery was separately exercised; public HTTPS has not been activated."
+          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Automated coverage only; no participant acceptance inferred."
         },
         {
-          "implementation_revision": "sha256:9e7ad807ed90a25aefa0ac327c07619e88ae5bd69ffd232c51b4c3331fd892f8",
-          "executed_at": "2026-10-13T16:15:30.791Z",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T16:42:11.768Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/DEMO-HOSTING-2026-10-13.json",
+          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
           "test_id": "S01-LIVE2",
           "outcome": "blocked",
-          "notes": "Partial live contract: 19 public HTTPS checks and 16 current owner-bound speech/ASR/nutrition/logging checks pass; computer-use My Day login verified. Local app/supervisor/database recovery previously passed. App returned after owner-reported reboot; absent external-drive speech libraries were installed internally and re-qualified. No invented care activity. Full intended-person/device, post-repair reboot, complete provider-loss and remaining safety scenarios stay open; this full live gate remains blocked."
+          "notes": "Partial current-service evidence: 10 real-model/PostgreSQL meal-recording checks and 19 public HTTPS checks pass. Empty-ledger meal report, unknown portion, spoken-review acknowledgement, explicit confirmation, one event/receipt, replay and readback were verified in a disposable database and removed. No physical microphone or genuine participant day; full slice live gate remains blocked."
         }
       ],
       "human_actions": [
@@ -1309,7 +1310,7 @@
             "S02-AC01",
             "S02-AC02"
           ],
-          "scenario": "Replay generic task, meal and appointment commands; add an explicit unplanned entry; correct and void reports; mismatch a planned occurrence; inspect receipts, events and accepted plan history.",
+          "scenario": "Replay generic task, meal and appointment commands; add an explicit unplanned entry; correct and void reports; mismatch a planned occurrence; inspect receipts, events and accepted plan history. Include a newly initialized empty ledger with no saved meal choices/plan and an unplanned eaten meal with an unknown portion, application playback acknowledgement, explicit confirmation and duplicate turn replay.",
           "expected": "One effective mutation per idempotency key, correct ownership and occurrence links, and immutable prior facts/plan versions with a current corrected projection."
         },
         {
@@ -1371,7 +1372,8 @@
             "Check that revising a plan or appointment schedule cannot rewrite actual history or imply performance; restart and compare the ledger.",
             "Reschedule disposable task and appointment occurrences, replay commands and verify effective schedules, old/new events, receipts and absence of duplicate completion.",
             "Back up the local migration-003 ledger and restore it into the isolated disposable target; compare records, events and receipts.",
-            "Request exact and unknown nutrition claim/recipe IDs; verify bounded output, provenance/status/limitations and fail-closed behavior."
+            "Request exact and unknown nutrition claim/recipe IDs; verify bounded output, provenance/status/limitations and fail-closed behavior.",
+            "With an empty disposable ledger and no meal choices or accepted plan, use the real selected model to report food eaten, leave the portion unknown, hear the review and confirm it. Verify one persisted meal, event and receipt, plus a safe retry and action-state metadata."
           ],
           "expected": "No duplicate or unintended action; corrections, permission checks, effective schedules, durable history, plan-versus-actual separation and nutrition source boundaries hold."
         }
@@ -1386,56 +1388,57 @@
         "A05",
         "A06"
       ],
-      "implementation_revision": "sha256:ca3d935ef056ebd91ebdb41c2b02763bc48de24749b055157eb91c3c7b334775",
+      "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
       "blockers": [
         "S02-LIVE1 has not run through a genuine participant day; code and synthetic/disposable evidence do not complete the slice.",
         "S01 is unfinished. The explicit implementation authorization permits overlap and awaiting-live-test status only; S01 completion remains required before S02 can be done.",
-        "October 6 client readiness is engineering-verified in docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json. The separate client database starts empty and the practice database is preserved. Participant/account eligibility, consent, real content and physical-device/genuine-day acceptance remain open."
+        "October 6 client readiness is engineering-verified in docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json. The separate client database starts empty and the practice database is preserved. Participant/account eligibility, consent, real content and physical-device/genuine-day acceptance remain open.",
+        "October 13 meal-report failure reproduced and repaired in the agent recording path. Disposable actual-model/PostgreSQL verification passes; participant must repeat the unsaved report and verify Meals/Activity. See docs/evidence/MEAL-RECORDING-2026-10-13.json."
       ],
       "test_results": [
         {
           "test_id": "S02-LIVE2",
           "outcome": "blocked",
-          "implementation_revision": "sha256:96b03369152e33fb6400a202f85d808cd4da88490a85cc6a7038d68f7d766006",
-          "executed_at": "2026-10-08T06:41:51.530Z",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T16:42:11.768Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/FULL-SUITE-2026-10-08.json",
-          "notes": "Partial current-service verification: 70 isolated PostgreSQL checks, 15 authenticated HTTPS checks and 16 running voice/nutrition/telemetry checks pass. No care writes or actual microphone test. Full participant/iPhone, intended-user route and remaining slice scenarios stay open; this live gate remains blocked."
+          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
+          "notes": "Partial current-service evidence: 10 real-model/PostgreSQL meal-recording checks and 19 public HTTPS checks pass. Empty-ledger meal report, unknown portion, spoken-review acknowledgement, explicit confirmation, one event/receipt, replay and readback were verified in a disposable database and removed. No physical microphone or genuine participant day; full slice live gate remains blocked."
         },
         {
-          "implementation_revision": "sha256:ca3d935ef056ebd91ebdb41c2b02763bc48de24749b055157eb91c3c7b334775",
-          "executed_at": "2026-10-13T06:14:58.641Z",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T16:42:11.768Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/PRE-HUMAN-BROWSER-2026-10-13.json",
+          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
           "test_id": "S02-AUTO1",
           "outcome": "pass",
-          "notes": "Current regression coverage passed. Full suite: 539 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
+          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Automated coverage only; no participant acceptance inferred."
         },
         {
-          "implementation_revision": "sha256:ca3d935ef056ebd91ebdb41c2b02763bc48de24749b055157eb91c3c7b334775",
-          "executed_at": "2026-10-13T06:14:58.641Z",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T16:42:11.768Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/PRE-HUMAN-BROWSER-2026-10-13.json",
+          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
           "test_id": "S02-AUTO2",
           "outcome": "pass",
-          "notes": "Current regression coverage passed. Full suite: 539 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
+          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Automated coverage only; no participant acceptance inferred."
         },
         {
-          "implementation_revision": "sha256:ca3d935ef056ebd91ebdb41c2b02763bc48de24749b055157eb91c3c7b334775",
-          "executed_at": "2026-10-13T06:14:58.641Z",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T16:42:11.768Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/PRE-HUMAN-BROWSER-2026-10-13.json",
+          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
           "test_id": "S02-AUTO3",
           "outcome": "pass",
-          "notes": "Current regression coverage passed. Full suite: 539 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
+          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Automated coverage only; no participant acceptance inferred."
         }
       ],
       "human_actions": [

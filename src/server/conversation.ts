@@ -29,6 +29,8 @@ export interface ConversationTurnMetric {
   input_tokens: number | null; output_tokens: number | null; total_tokens: number | null;
   cached_input_tokens: number | null; reasoning_output_tokens: number | null;
   model_completed_calls: number; model_failed_calls: number; model_aborted_calls: number;
+  tool_rejections: number;
+  activity_outcome: 'none' | 'review_prepared' | 'saved' | 'rejected' | 'unconfirmed';
 }
 export interface InferenceCallMetric {
   conversation_id: string; turn_id: string; actor_id: string; outcome: 'completed' | 'failed' | 'interrupted';
@@ -120,6 +122,12 @@ function currentFacts(today: Today, now: Date) {
 function activityParameters(index:0|1|2) {
   const { $schema: _schema, ...parameters }=z.toJSONSchema(activityCommandSchema.options[index].omit({idempotency_key:true,type:true}));return parameters;
 }
+const activityDescriptions = [
+  'Record something the client actually did or deferred, including food already eaten. No saved meal choice or day plan is required. Use payload.activity_id for an exact ledger match; otherwise omit activity_id and use payload.unplanned with kind, title and optional meal_slot, with expected_revision 0. An empty ledger allows an unplanned report. Completion needs occurred_at; unknown portion is null or omitted. This prepares a review; the app saves only after client confirmation.',
+  'Correct an existing actual report using its exact activity_id and revision from the ledger. Never invent an ID. Explain the correction reason. This prepares a review for client confirmation.',
+  'Reschedule an existing activity using its exact activity_id and revision from the ledger. This changes its scheduled time, not its completion status, after client confirmation.',
+];
+const activityPolicy = 'When the client reports a meal eaten, prepare_activity_record is the recording path, including when meal_options, checkin or the ledger are empty. A meal does not need to have been planned or accepted to be reported. Use an exact matching ledger activity, or payload.unplanned with kind meal, the reported food as title and the stated meal_slot, expected_revision 0; omit activity_id for unplanned reports. Portion is optional: leave it null or omit it when unknown; do not invent it or delay an otherwise clear report. Ask only for missing food or actual time needed to identify what happened. Once clear, call prepare_activity_record for the application readback and confirmation. An empty ledger is not an outage. Claim recording is unavailable only after an actual tool error; never infer this from missing plans or options.';
 const definitions: OutputItem[] = [
   ...['get_daily_brief', 'get_day_plan', 'get_priority_context'].map(name => tool(name, 'Read authorized current facts. Completion is unknown unless explicitly reported.')),
   tool('get_grocery_list','Read a bounded grocery list. Search by item name if the first list omits it.',object({
@@ -137,7 +145,7 @@ const definitions: OutputItem[] = [
     search:{type:'string',maxLength:160,description:'Optional words from the activity title; use when the first list omits an item.'},
   },[])),
   tool('get_activity_receipt','Check an unconfirmed activity save by its exact receipt key; never repeat a write blindly.',object({key:{type:'string'}})),
-  ...activityTools.map((name,index)=>tool(name,'Prepare an exact activity report/correction/reschedule for spoken review. The application asks for confirmation and commits through the same care command as buttons. Use an activity_id from the ledger, or explicit unplanned kind/title; never guess an ID. Completion requires an actual time; deferral is not completion.',activityParameters(index as 0|1|2))),
+  ...activityTools.map((name,index)=>tool(name,activityDescriptions[index],activityParameters(index as 0|1|2))),
   tool('get_nutrition_reference','Retrieve repository nutrition knowledge. recipe_options returns two choices with first-recipe details. Use next_offset to browse more with the same filters, or search/exclude_ids to find alternatives after refusal (restart offset when filters change). Search is discovery, not an allergy-safety filter. Preserve source limitations; recipes are not approved saved meals.',object({
     kind:{type:'string',enum:['claim_index','claims','recipe_options','recipes']},ids:{type:'array',maxItems:2,items:{type:'string'}},
     category:{type:'string',enum:['breakfast','lunch','snack','dinner']},
@@ -298,6 +306,8 @@ export class ConversationService {
     let instructionChars = 0, contextChars = 0, historyChars = 0;
     const usages: InferenceUsage[] = [];
     let modelCompleted = 0, modelFailed = 0, modelAborted = 0;
+    let toolRejections = 0;
+    let activityOutcome: ConversationTurnMetric['activity_outcome'] = 'none';
     let outcome: ConversationTurnMetric['outcome'] = 'failed';
     const state = this.state(id, session);
     await this.validateScope(session, state);
@@ -370,11 +380,13 @@ export class ConversationService {
         let receipt;
         try {receipt=await this.care.activityCommand(session,pending.command);}
         catch(error){
+          activityOutcome=error instanceof ApiError&&error.status<500?'rejected':'unconfirmed';
           if(error instanceof ApiError&&error.status<500)throw error;
           receipt=await this.care.activityReceipt?.(session,pending.command.idempotency_key).catch(()=>null);
           if(!receipt)throw new ApiError(503,'outcome_unconfirmed','That activity save is unconfirmed. Check your activity ledger before reporting it again.');
         }
         ensureOpen();
+        activityOutcome='saved';
         reply=this.reply(id,state,receipt.result==='rescheduled'?'The new time is saved.':receipt.result==='corrected'?'Your correction is saved.':'Your activity is recorded.',true);
         state.history.push({role:'user',content:text});
       } else if (navigation) {
@@ -410,7 +422,7 @@ export class ConversationService {
         historyChars = JSON.stringify(history).length;
         const inputItems = [...history, { role: 'user', content: context }];
         const reference = currentNutritionReference();
-        const modelInstructions = (clientRole?instructions:'You are Nancy, a warm, practical AI companion. You are speaking with the authenticated '+state.binding.active_role+' about the client’s authorized shared views and requests. Be brief, ask one question at a time and use plain speech. You may discuss only data returned by the scoped tools. Do not infer general client care, appointment details, private rehab notes or other unshared facts. Navigation does not grant permissions; available destinations are limited to the navigate tool. Never configure grants or approve protocols, scoring rules or operations through a model tool. Keep responses under 500 characters except exact readbacks.') + '\n' + freshContextInstruction + (clientRole?'\n' + nutritionInstruction + '\n' + reference.authorityContext().text:'')+(workspace?'\n'+requestPolicy:'')+(this.features?'\n'+(clientRole?localWorkflowPolicy:sharedLocalWorkflowPolicy):'');
+        const modelInstructions = (clientRole?instructions+'\n'+activityPolicy:'You are Nancy, a warm, practical AI companion. You are speaking with the authenticated '+state.binding.active_role+' about the client’s authorized shared views and requests. Be brief, ask one question at a time and use plain speech. You may discuss only data returned by the scoped tools. Do not infer general client care, appointment details, private rehab notes or other unshared facts. Navigation does not grant permissions; available destinations are limited to the navigate tool. Never configure grants or approve protocols, scoring rules or operations through a model tool. Keep responses under 500 characters except exact readbacks.') + '\n' + freshContextInstruction + (clientRole?'\n' + nutritionInstruction + '\n' + reference.authorityContext().text:'')+(workspace?'\n'+requestPolicy:'')+(this.features?'\n'+(clientRole?localWorkflowPolicy:sharedLocalWorkflowPolicy):'');
         instructionChars = modelInstructions.length;
         let changed = false; let navigate: ClientView | undefined;
         for (let round = 0; round < 5 && !reply; round++) {
@@ -525,7 +537,7 @@ export class ConversationService {
                 const index=activityTools.indexOf(call.name as typeof activityTools[number]);
                 const command=activityCommandSchema.parse({...args,type:activityTypes[index],idempotency_key:this.key(turnId,call.call_id)});
                 const ledger=await this.care.ledger(session,command.local_date);ensureOpen();
-                reply=this.activityReview(id,state,today,ledger,command,changed,navigate);break;
+                reply=this.activityReview(id,state,today,ledger,command,changed,navigate);activityOutcome='review_prepared';break;
               }else if(call.name==='get_nutrition_reference'){
                 const query=z.discriminatedUnion('kind',[
                   z.object({kind:z.literal('claim_index')}).strict(),
@@ -563,6 +575,8 @@ export class ConversationService {
               } else throw new ApiError(400, 'unknown_tool', 'That action is not available.');
               }
             } catch (error) {
+              toolRejections++;
+              if((activityTools as readonly string[]).includes(String(call.name)))activityOutcome='rejected';
               if(error instanceof ZodError||error instanceof NutritionReferenceError){output={error:'invalid_input',outcome:'rejected',message:error instanceof ZodError ? error.issues.map(issue=>`${issue.path.join('.')}: ${issue.message}`).join('; ').slice(0,600) : error.message};
                 inputItems.push({type:'function_call_output',call_id:call.call_id,output:JSON.stringify(output)});continue;}
               if (!(error instanceof ApiError) || error.status >= 500) throw new ApiError(503, 'outcome_unconfirmed', 'That step is unconfirmed. Check the saved plan or grocery list before trying again.');
@@ -592,6 +606,7 @@ export class ConversationService {
         policy_version: NANCY_POLICY_VERSION, binding_ref: bindingRef(state.binding),
         ...this.usageMetric(sumInferenceUsage(usages)), model_completed_calls: modelCompleted,
         model_failed_calls: modelFailed, model_aborted_calls: modelAborted,
+        tool_rejections: toolRejections, activity_outcome: activityOutcome,
         nutrition_retrievals: nutritionRetrievals,
         nutrition_refs: [...references.values()].slice(0, 2).map(ref => ({ document_id: ref.document_id,
           sha256: ref.sha256, items: ref.items.slice(0, 14) })) }); }

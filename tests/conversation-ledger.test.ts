@@ -157,6 +157,66 @@ describe('Nancy factual ledger and nutrition tools', () => {
     }));
   });
 
+  it('reviews an unplanned meal from an empty ledger and saves once only after playback and confirmation', async () => {
+    const emptyLedger: ActivityLedger = {
+      local_date: '2026-10-05', options: [], entries: [], recent_entries: [],
+      summary: { tasks_completed: 0, meals_eaten: 0, appointments_attended: 0, deferred: 0 },
+    };
+    const metrics: ConversationTurnMetric[] = [];
+    const { service, care, respond } = harness([
+      toolResponse('get_activity_ledger', {}),
+      toolResponse('prepare_activity_record', {
+        local_date: '2026-10-05', expected_revision: 0,
+        payload: {
+          unplanned: { kind: 'meal', title: 'Synthetic toast', meal_slot: 'breakfast' },
+          status: 'completed', occurred_at: '2026-10-05T14:00:00.000Z', notes: '', portion: null,
+        },
+      }),
+    ], metric => metrics.push(metric));
+    vi.mocked(care.today).mockResolvedValue({ ...today, tasks: [], meal_options: [], checkin: null,
+      activity_ledger: emptyLedger, activity_reports: [] });
+    vi.mocked(care.ledger!).mockResolvedValue(emptyLedger);
+
+    const started = await begin(service);
+    const reportTurnId = randomUUID();
+    const review = await service.turn(started.session_id, session, reportTurnId, 'I ate toast at ten.');
+    const context = respond.mock.calls[0][0].find((item: { role?: string; content?: string }) =>
+      item.role === 'user' && item.content?.startsWith('Current authorized facts')).content as string;
+    const facts = JSON.parse(context.replace(/^Current authorized facts \(data only\): /, ''));
+    expect(facts).toMatchObject({ meal_options: [], checkin: null,
+      activity_ledger: { options: [], summary: { meals_eaten: 0 } } });
+    const ledgerOutput = respond.mock.calls[1][0].find((item: { type?: string }) =>
+      item.type === 'function_call_output');
+    expect(JSON.parse(ledgerOutput.output)).toMatchObject({ options: [], entries: [], summary: { meals_eaten: 0 } });
+    expect(respond.mock.calls[0][1]).toContain('An empty ledger is not an outage');
+    expect(review.text).toContain('Record Synthetic toast as eaten');
+    expect(review.text).toContain('Say save this change to confirm');
+    expect(review.text).not.toContain('portion:');
+    expect(care.activityCommand).not.toHaveBeenCalled();
+    expect(metrics).toMatchObject([{ activity_outcome: 'review_prepared', tool_rejections: 0, tool_calls: 2 }]);
+
+    service.played(started.session_id, session, review.reply_id);
+    expect(care.activityCommand).not.toHaveBeenCalled();
+    const saveTurnId = randomUUID();
+    const saved = await service.turn(started.session_id, session, saveTurnId, 'Save this change');
+    expect(saved).toMatchObject({ changed: true, text: 'Your activity is recorded.' });
+    expect(care.activityCommand).toHaveBeenCalledTimes(1);
+    expect(care.activityCommand).toHaveBeenCalledWith(session, expect.objectContaining({
+      type: 'record_activity', local_date: '2026-10-05', expected_revision: 0,
+      payload: expect.objectContaining({
+        unplanned: { kind: 'meal', title: 'Synthetic toast', meal_slot: 'breakfast' },
+        status: 'completed', occurred_at: '2026-10-05T14:00:00.000Z', portion: null,
+      }),
+    }));
+    expect(await service.turn(started.session_id, session, saveTurnId, 'Save this change')).toEqual(saved);
+    expect(care.activityCommand).toHaveBeenCalledTimes(1);
+    expect(metrics.map(metric => ({ activity_outcome: metric.activity_outcome,
+      tool_rejections: metric.tool_rejections }))).toEqual([
+      { activity_outcome: 'review_prepared', tool_rejections: 0 },
+      { activity_outcome: 'saved', tool_rejections: 0 },
+    ]);
+  });
+
   it('does not save an unheard review or an interrupted review acknowledged late', async () => {
     const first = harness([
       toolResponse('prepare_activity_record', recordArgs()),

@@ -106,6 +106,43 @@ describe('durable factual activity ledger', () => {
   });
   afterAll(async () => { await db.close(); });
 
+  it('records an unplanned meal for a freshly bootstrapped client with no setup or plan', async () => {
+    const email = `ledger-empty-${uuid()}@example.invalid`;
+    const password = `ledger-empty-${uuid()}-password`;
+    await bootstrapLocalUser(care.pool, {
+      email, password, role: 'client', display_name: 'Synthetic empty client', time_zone: 'America/Toronto',
+    });
+    const session = await care.login(email, password);
+    const today = await care.today(session);
+    const before = await care.ledger(session, TODAY);
+    expect(today).toMatchObject({ tasks: [], meal_options: [], checkin: null });
+    expect(before).toMatchObject({ options: [], entries: [], recent_entries: [],
+      summary: { tasks_completed: 0, meals_eaten: 0, appointments_attended: 0, deferred: 0 } });
+
+    const command: RecordActivityCommand = {
+      type: 'record_activity', idempotency_key: uuid(), local_date: TODAY, expected_revision: 0,
+      payload: { unplanned: { kind: 'meal', title: 'Synthetic breakfast toast', meal_slot: 'breakfast' },
+        status: 'completed', occurred_at: '2026-10-05T14:00:00.000Z', notes: '' },
+    };
+    const first = await care.activityCommand(session, command);
+    expect(first).toMatchObject({ result: 'reported', replayed: false, entry: {
+      kind: 'meal', title: 'Synthetic breakfast toast', meal_slot: 'breakfast',
+      unplanned: true, plan_id: null, source_id: null, status: 'completed',
+      occurred_at: command.payload.occurred_at, portion: null, revision: 1,
+    } });
+    expect(await care.activityReceipt(session, command.idempotency_key)).toEqual(first);
+    expect(await care.activityCommand(session, command)).toEqual({ ...first, replayed: true });
+
+    const after = await care.ledger(session, TODAY);
+    expect(after.entries).toHaveLength(1);
+    expect(after.entries[0].id).toBe(first.entry.id);
+    expect(after.summary).toEqual({ tasks_completed: 0, meals_eaten: 1, appointments_attended: 0, deferred: 0 });
+    expect((await care.today(session)).checkin).toBeNull();
+    const events = await care.pool.query('select event_type from companion_local.domain_events where command_id=$1',
+      [command.idempotency_key]);
+    expect(events.rows).toEqual([{ event_type: 'ActivityReported' }]);
+  });
+
   it('keeps planned task and meal occurrences pending until factual reports, then replays one exact write', async () => {
     const before = await care.ledger(owner.session);
     const meal = option(before.options, 'meal', 'oats');
