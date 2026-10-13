@@ -38,7 +38,7 @@ describe('local Nancy voice', () => {
     vi.spyOn(api, 'conversationEnd').mockResolvedValue({ ok: true });
     vi.spyOn(api, 'conversationInterrupt').mockResolvedValue({ ok: true });
   });
-  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+  afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
   it('encodes a mono 16 kHz PCM WAV from microphone samples', () => {
     const wav = wavPcm16([new Float32Array([0, 1, -1, 0])], 16_000);
@@ -151,11 +151,72 @@ describe('local Nancy voice', () => {
     const controller = new AbortController();
     const starting = startLocalVoice({ signal: controller.signal, onState: vi.fn(), onTranscript: vi.fn(), onChange: vi.fn(), onNavigate: vi.fn() });
     controller.abort();
-    await vi.waitFor(() => expect(context.close).toHaveBeenCalledTimes(1));
-    release({ getTracks: () => [{ stop: stopTrack }] } as unknown as MediaStream);
     await expect(starting).rejects.toThrow('Conversation ended.');
+    expect(context.close).toHaveBeenCalledTimes(1);
+    release({ getTracks: () => [{ stop: stopTrack }] } as unknown as MediaStream);
+    await vi.waitFor(() => expect(stopTrack).toHaveBeenCalledTimes(1));
     expect(stopTrack).toHaveBeenCalledTimes(1);
     expect(api.conversationStart).not.toHaveBeenCalled();
+  });
+
+  it('settles Stop while browser audio unlock remains pending', async () => {
+    let grantUnlock!: () => void;
+    vi.stubGlobal('AudioContext', class extends FakeAudioContext { constructor() {
+      super(); context = this;
+      this.resume.mockReturnValue(new Promise<undefined>(resolve => { grantUnlock = () => resolve(undefined); }));
+    } });
+    const controller = new AbortController();
+    const onState = vi.fn();
+    const starting = startLocalVoice({ signal: controller.signal, onState, onTranscript: vi.fn(), onChange: vi.fn(), onNavigate: vi.fn() });
+    // Microphone resolves first; AudioContext.resume remains pending.
+    await Promise.resolve();
+    await Promise.resolve();
+    controller.abort();
+    await expect(starting).rejects.toThrow('Conversation ended.');
+    expect(context.close).toHaveBeenCalledTimes(1);
+    expect(stopTrack).toHaveBeenCalledTimes(1);
+    expect(api.conversationStart).not.toHaveBeenCalled();
+    grantUnlock();
+    await Promise.resolve();
+    expect(api.conversationStart).not.toHaveBeenCalled();
+  });
+
+  it('stops a granted microphone when audio unlock itself times out', async () => {
+    vi.stubGlobal('AudioContext', class extends FakeAudioContext { constructor() {
+      super(); context = this;
+      this.resume.mockReturnValue(new Promise<undefined>(() => undefined));
+    } });
+    vi.useFakeTimers();
+    const starting = startLocalVoice({ onState: vi.fn(), onTranscript: vi.fn(), onChange: vi.fn(), onNavigate: vi.fn() });
+    const settled = starting.then(() => null, error => error as Error);
+    // Let the microphone grant settle while audio unlock remains pending.
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(stopTrack).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect((await settled)?.message).toContain('permission did not finish within 20 seconds');
+    expect(stopTrack).toHaveBeenCalledTimes(1);
+    expect(context.close).toHaveBeenCalledTimes(1);
+    expect(api.conversationStart).not.toHaveBeenCalled();
+  });
+
+  it('times out a pending browser permission and closes a later microphone grant', async () => {
+    let grant!: (stream: MediaStream) => void;
+    const lateStream = new Promise<MediaStream>(resolve => { grant = resolve; });
+    Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: () => lateStream } });
+    vi.useFakeTimers();
+    const onState = vi.fn();
+    const starting = startLocalVoice({ onState, onTranscript: vi.fn(), onChange: vi.fn(), onNavigate: vi.fn() });
+    const settled = starting.then(() => null, error => error as Error);
+    expect(onState).toHaveBeenCalledWith('connecting', expect.stringContaining('Allow microphone'));
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect((await settled)?.message).toContain('permission did not finish within 20 seconds');
+    expect(onState).toHaveBeenLastCalledWith('error', expect.stringContaining('permission did not finish'));
+    expect(context.close).toHaveBeenCalledTimes(1);
+    expect(api.conversationStart).not.toHaveBeenCalled();
+    grant({ getTracks: () => [{ stop: stopTrack }] } as unknown as MediaStream);
+    await Promise.resolve();
+    expect(stopTrack).toHaveBeenCalledTimes(1);
   });
 
   it('closes microphone and audio before reporting an unconfirmed interruption', async () => {

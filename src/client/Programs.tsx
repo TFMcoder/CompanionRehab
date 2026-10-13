@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { ProgramCapability, ProgramCommand, ProgramDraft, ProgramReceipt, ProgramRun, ProgramStep, ProgramWorkspace } from '../shared/program-contracts';
 
 export interface ProgramClientService {
@@ -9,37 +9,55 @@ export interface ProgramClientService {
 const emptyDraft = (kind: ProgramDraft['kind']): ProgramDraft => ({title:'',kind,steps:[],protected_start:null,protected_end:null,rest_minutes:0});
 const blankStep = (): ProgramStep => ({id:'',title:'',instruction:'',optional:false,depends_on:[],estimated_minutes:5});
 const accessOptions: ProgramCapability[] = ['read_routine','edit_routine','read_rehab','edit_rehab','approve_rehab'];
+type StepReportInput = { key:string; skipReason:string; difficulty:string; assistance:string; notes:string };
+const blankReport = (key=''):StepReportInput => ({key,skipReason:'',difficulty:'',assistance:'',notes:''});
 
 /** Focused client guide and scoped input; Nancy voice may call the same typed service. */
 export function Programs({service,scopeKey,onTalk,onPlan}: {service:ProgramClientService;scopeKey:string;onTalk:()=>void;onPlan?:()=>void}) {
+  const scopeEpoch=useRef(0);
   const [view,setView]=useState<ProgramWorkspace|null>(null);
   const [error,setError]=useState('');
   const [busy,setBusy]=useState(false);
-  const [pending,setPending]=useState<string|null>(null);
+  const [pending,setPending]=useState<ProgramCommand|null>(null);
   const [draft,setDraft]=useState<ProgramDraft|null>(null);
   const [revising,setRevising]=useState<{id:string;version:number}|null>(null);
   const [step,setStep]=useState<ProgramStep>(blankStep);
   const [approval,setApproval]=useState('');
-  const [reason,setReason]=useState('');
-  const [difficulty,setDifficulty]=useState('');
-  const [assistance,setAssistance]=useState('');
-  const [notes,setNotes]=useState('');
+  const [stepInput,setStepInput]=useState<StepReportInput>(blankReport);
+  const [pauseInput,setPauseInput]=useState({key:'',value:''});
+  const [endInput,setEndInput]=useState({key:'',value:''});
   const [reviewedConflicts,setReviewedConflicts]=useState<string|null>(null);
   const [access,setAccess]=useState<Record<string,ProgramCapability[]>>({});
-  useEffect(()=>{let live=true;setView(null);setError('');setReviewedConflicts(null);
+  useEffect(()=>{let live=true;++scopeEpoch.current;setView(null);setError('');setReviewedConflicts(null);
+    setBusy(false);setPending(null);setDraft(null);setRevising(null);setApproval('');setAccess({});
+    setStepInput(blankReport());setPauseInput({key:'',value:''});setEndInput({key:'',value:''});
     void service.workspace().then(value=>{if(live)setView(value);}).catch(e=>{if(live)setError(e instanceof Error?e.message:'Programs could not load.');});
     return()=>{live=false;};},[service,scopeKey]);
-  const refresh=async()=>{const value=await service.workspace();setView(value);setReviewedConflicts(null);return value;};
-  const run=async(command:ProgramCommand)=>{setBusy(true);setError('');setPending(command.idempotency_key);
-    try{await service.command(command);await refresh();setPending(null);setReason('');setDifficulty('');setAssistance('');setNotes('');setApproval('');setDraft(null);setRevising(null);}
-    catch(e){setError(e instanceof Error?e.message:'The change could not be confirmed.');}
-    finally{setBusy(false);}};
-  const checkPending=async()=>{if(!pending)return;setBusy(true);setError('');
-    try{await service.receipt(pending);await refresh();setPending(null);}catch(e){setError(e instanceof Error?e.message:'This save is still unconfirmed.');}
-    finally{setBusy(false);}};
+  const refresh=async(epoch:number)=>{const value=await service.workspace();if(epoch!==scopeEpoch.current)return;setView(value);setReviewedConflicts(null);};
+  const clearConfirmed=(command:ProgramCommand)=>{
+    if(command.type==='report_program_step'||command.type==='correct_program_step')setStepInput(blankReport());
+    if(command.type==='pause_program')setPauseInput({key:'',value:''});
+    if(command.type==='end_program')setEndInput({key:'',value:''});
+    if(command.type==='approve_program')setApproval('');
+    if(command.type==='create_program'||command.type==='revise_program'){setDraft(null);setRevising(null);}
+  };
+  const run=async(command:ProgramCommand)=>{if(busy||pending)return;const epoch=scopeEpoch.current;setBusy(true);setError('');setPending(command);
+    try{await service.command(command);if(epoch!==scopeEpoch.current)return;await refresh(epoch);if(epoch!==scopeEpoch.current)return;setPending(null);clearConfirmed(command);}
+    catch(e){if(epoch===scopeEpoch.current)setError(e instanceof Error?e.message:'The change could not be confirmed.');}
+    finally{if(epoch===scopeEpoch.current)setBusy(false);}};
+  const checkPending=async()=>{if(!pending)return;const epoch=scopeEpoch.current;setBusy(true);setError('');
+    try{await service.receipt(pending.idempotency_key);if(epoch!==scopeEpoch.current)return;await refresh(epoch);if(epoch!==scopeEpoch.current)return;setPending(null);clearConfirmed(pending);}
+    catch(e){if(epoch===scopeEpoch.current)setError(e instanceof Error?e.message:'This save is still unconfirmed.');}
+    finally{if(epoch===scopeEpoch.current)setBusy(false);}};
   const key=()=>crypto.randomUUID();
   const conflicts=view?.conflicts.map(item=>item.id)??[];
   const active=view?.runs.find(item=>item.status==='active'||item.status==='paused');
+  const reportKey=`${scopeKey}:${active?.id??''}:${active?.current_step?.id??''}`;
+  const reportInput=stepInput.key===reportKey?stepInput:blankReport(reportKey);
+  const updateReport=(change:Partial<Omit<StepReportInput,'key'>>)=>setStepInput(old=>({...old.key===reportKey?old:blankReport(reportKey),...change}));
+  const runKey=`${scopeKey}:${active?.id??''}`;
+  const pauseReason=pauseInput.key===runKey?pauseInput.value:'';
+  const endReason=endInput.key===runKey?endInput.value:'';
   const canActOnConflict=!conflicts.length||reviewedConflicts===active?.version_id;
   const currentVersion=view?.versions.find(item=>item.id===active?.version_id);
   const currentName=active?.title??currentVersion?.title??(active?'Your saved program':'');
@@ -51,8 +69,8 @@ export function Programs({service,scopeKey,onTalk,onPlan}: {service:ProgramClien
   const report=(item:ProgramRun,outcome:'completed'|'skipped')=>{
     if(!item.current_step)return;
     void run({type:'report_program_step',idempotency_key:key(),run_id:item.id,expected_revision:item.revision,step_id:item.current_step.id,
-      outcome,reason:outcome==='skipped'?reason.trim():'',difficulty:currentVersion?.kind==='rehab'?difficulty.trim():'',
-      assistance:currentVersion?.kind==='rehab'?assistance.trim():'',notes:currentVersion?.kind==='rehab'?notes.trim():'',
+      outcome,reason:outcome==='skipped'?reportInput.skipReason.trim():'',difficulty:currentVersion?.kind==='rehab'?reportInput.difficulty.trim():'',
+      assistance:currentVersion?.kind==='rehab'?reportInput.assistance.trim():'',notes:currentVersion?.kind==='rehab'?reportInput.notes.trim():'',
       acknowledged_conflicts:conflicts,confirmed:true});
   };
   return <section className="programs" aria-label="Morning and rehab programs">
@@ -74,18 +92,18 @@ export function Programs({service,scopeKey,onTalk,onPlan}: {service:ProgramClien
           <ul>{view.conflicts.map(item=><li key={item.id}>{item.title} · {new Date(item.starts_at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</li>)}</ul>
           <button type="button" onClick={()=>setReviewedConflicts(active.version_id)}>I reviewed this schedule</button></div>}
         {active.status==='active'&&!active.obsolete&&!active.blocked_reason&&active.current_step&&<>
-          {currentVersion?.kind==='rehab'&&<div className="request-form"><label>Difficulty, if any<textarea value={difficulty} onChange={e=>setDifficulty(e.target.value)} maxLength={500}/></label>
-            <label>Assistance, if any<textarea value={assistance} onChange={e=>setAssistance(e.target.value)} maxLength={500}/></label>
-            <label>Private session note<textarea value={notes} onChange={e=>setNotes(e.target.value)} maxLength={1000}/></label></div>}
-          <button type="button" disabled={busy||!canActOnConflict} onClick={()=>report(active,'completed')}>I completed this step</button>
-          {active.current_step.optional&&<><label>Why skip this optional step?<input value={reason} onChange={e=>setReason(e.target.value)} maxLength={500}/></label>
-            <button type="button" disabled={busy||!reason.trim()||!canActOnConflict} onClick={()=>report(active,'skipped')}>Skip with reason</button></>}
+          {currentVersion?.kind==='rehab'&&<div className="request-form"><label>Difficulty, if any<textarea value={reportInput.difficulty} onChange={e=>updateReport({difficulty:e.target.value})} maxLength={500}/></label>
+            <label>Assistance, if any<textarea value={reportInput.assistance} onChange={e=>updateReport({assistance:e.target.value})} maxLength={500}/></label>
+            <label>Private session note<textarea value={reportInput.notes} onChange={e=>updateReport({notes:e.target.value})} maxLength={1000}/></label></div>}
+          <button type="button" disabled={busy||!!pending||!canActOnConflict} onClick={()=>report(active,'completed')}>I completed this step</button>
+          {active.current_step.optional&&<><label>Why skip this optional step?<input value={reportInput.skipReason} onChange={e=>updateReport({skipReason:e.target.value})} maxLength={500}/></label>
+            <button type="button" disabled={busy||!!pending||!reportInput.skipReason.trim()||!canActOnConflict} onClick={()=>report(active,'skipped')}>Skip with reason</button></>}
         </>}
-        {active.status==='active'&&<><label>Why pause?<input value={reason} onChange={e=>setReason(e.target.value)} maxLength={500}/></label>
-          <button type="button" disabled={busy||!reason.trim()} onClick={()=>void run({type:'pause_program',idempotency_key:key(),run_id:active.id,expected_revision:active.revision,reason:reason.trim(),confirmed:true})}>Pause for rest or interruption</button></>}
-        {active.status==='paused'&&!active.obsolete&&<button type="button" disabled={busy||!canActOnConflict} onClick={()=>void run({type:'resume_program',idempotency_key:key(),run_id:active.id,expected_revision:active.revision,acknowledged_conflicts:conflicts,confirmed:true})}>Resume saved step</button>}
-        <label>Reason for ending this run<input value={reason} onChange={e=>setReason(e.target.value)} maxLength={500}/></label>
-        <button type="button" disabled={busy||!reason.trim()} onClick={()=>void run({type:'end_program',idempotency_key:key(),run_id:active.id,expected_revision:active.revision,reason:reason.trim(),confirmed:true})}>End this run</button>
+        {active.status==='active'&&<><label>Why pause?<input value={pauseReason} onChange={e=>setPauseInput({key:runKey,value:e.target.value})} maxLength={500}/></label>
+          <button type="button" disabled={busy||!!pending||!pauseReason.trim()} onClick={()=>void run({type:'pause_program',idempotency_key:key(),run_id:active.id,expected_revision:active.revision,reason:pauseReason.trim(),confirmed:true})}>Pause for rest or interruption</button></>}
+        {active.status==='paused'&&!active.obsolete&&<button type="button" disabled={busy||!!pending||!canActOnConflict} onClick={()=>void run({type:'resume_program',idempotency_key:key(),run_id:active.id,expected_revision:active.revision,acknowledged_conflicts:conflicts,confirmed:true})}>Resume saved step</button>}
+        <label>Reason for ending this run<input value={endReason} onChange={e=>setEndInput({key:runKey,value:e.target.value})} maxLength={500}/></label>
+        <button type="button" disabled={busy||!!pending||!endReason.trim()} onClick={()=>void run({type:'end_program',idempotency_key:key(),run_id:active.id,expected_revision:active.revision,reason:endReason.trim(),confirmed:true})}>End this run</button>
       </section>}
       {!active&&view.versions.filter(v=>v.current).map(version=><section key={version.id}>
         <h3>{version.title}</h3><p>{version.kind==='rehab'?'Approved rehab protocol':'Approved morning routine'} · version {version.version}</p>

@@ -102,6 +102,25 @@ describe("S01 participant plan UI", () => {
     expect(commandTypes).toEqual(["propose_day_plan", "accept_day_plan"]);
   });
 
+  it('shows both an explicit proposed time and the effective activity reschedule while the old plan remains accepted',async()=>{
+    const accepted={...proposed,tasks:[{...proposed.tasks[0],scheduled_time:'11:30'}],version:1,accepted_at:'2026-09-29T14:01:00Z'};
+    const proposal={...proposed,id:'99999999-9999-4999-8999-999999999999',tasks:[{...proposed.tasks[0],scheduled_time:'13:00'}]};
+    const activity={id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',kind:'task' as const,title:'Fold the laundry',local_date:'2026-09-29',source_id:ids.task,meal_slot:null,plan_id:accepted.id,scheduled_at:'2026-09-29T16:15:00Z',status:'pending' as const,revision:2,unplanned:false};
+    const current:Today={...today({revision:4,accepted,proposal}),activity_ledger:{local_date:'2026-09-29',options:[activity],entries:[{...activity,occurred_at:null,recorded_at:'2026-09-29T16:00:00Z',updated_at:'2026-09-29T16:00:00Z',notes:'',portion:null,last_action:'rescheduled'}],recent_entries:[],summary:{tasks_completed:0,meals_eaten:0,appointments_attended:0,deferred:0}}};
+    vi.stubGlobal('fetch',vi.fn(async(path:string)=>{
+      if(path==='/api/config')return response({configured:true,voice_available:false,assistant_name:'Nancy',missing:[]});
+      if(path==='/api/auth/session')return response({authenticated:true,role:'client',participant_id:ids.profile,scope_key:'client-test-scope',voice_eligible:true,task_requests_available:false});
+      if(path==='/api/today')return response(current);
+      throw new Error(`Unexpected request ${path}`);
+    }));
+    render(<App/>);
+    expect(await screen.findByRole('heading',{name:'Review this plan'})).toBeInTheDocument();
+    expect(screen.getByText(/Your accepted plan remains in place/)).toBeInTheDocument();
+    expect(screen.getByText(/Plan time 13:00 · Current activity schedule.*12:15/)).toBeInTheDocument();
+    expect(current.checkin?.accepted?.tasks[0].scheduled_time).toBe('11:30');
+    expect(current.checkin?.proposal?.tasks[0].scheduled_time).toBe('13:00');
+  });
+
   it('keeps unsaved choices on an unchanged refresh and resets them for a new plan version', async () => {
     let current = today();
     let reads = 0;

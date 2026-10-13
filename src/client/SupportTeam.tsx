@@ -10,7 +10,9 @@ export interface SupportTeamProps {service:SupportTeamClientService;scopeKey:str
 const errorMessage=(error:unknown)=>error instanceof Error?error.message:'Could not reach Support Team. Check again.';
 const emptyPrefs=(zone:string,revision=0)=>({revision,task_completion:false,meal_completion:false,task_reschedule:false,meal_reschedule:false,
   quiet_start:null as string|null,quiet_end:null as string|null,time_zone:zone});
-function when(value:string|null) {return value?new Date(value).toLocaleString():'Time not set';}
+function when(value:string|null,zone:string) {
+  return value?new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short',timeZone:zone}).format(new Date(value)):'Time not set';
+}
 export function SupportTeam({service,scopeKey,onTalk,onChanged,refreshVersion=0}:SupportTeamProps) {
   const [view,setView]=useState<SupportWorkspace|null>(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
   const [issue,setIssue]=useState(''),[notice,setNotice]=useState(''),[pending,setPending]=useState<SupportCommand|null>(null);
@@ -74,18 +76,18 @@ export function SupportTeam({service,scopeKey,onTalk,onChanged,refreshVersion=0}
           expected_revision:s.revision,share_tasks:false,share_meals:false,share_progress:false},'Sharing removed.')}>Remove sharing</button>
       </div>;})}</section>}
     {view&&<><h3>{view.role==='client'?'Today’s tasks and meals':'Shared tasks and meals'}</h3>
+      <p>Times shown in the client’s time zone ({view.time_zone}).</p>
       {!view.can_view_tasks&&!view.can_view_meals&&<p>No tasks or meals are shared with this account.</p>}
       {view.items.length===0&&(view.can_view_tasks||view.can_view_meals)&&<p>No shared items for this day.</p>}
-      {view.items.map(i=><article key={i.id}><strong>{i.title}</strong><p>{i.kind==='meal'?`${i.meal_slot??'Meal'} · `:''}{i.status==='completed'?'Completed':i.status==='deferred'?'Deferred':i.status==='planned'?'Planned':'Pending'} · {when(i.scheduled_at)}</p>
+      {view.items.map(i=><article key={i.id}><strong>{i.title}</strong><p>{i.kind==='meal'?`${i.meal_slot??'Meal'} · `:''}{i.status==='completed'?'Completed':i.status==='deferred'?'Deferred':i.status==='planned'?'Planned':'Pending'} · {when(i.scheduled_at,view.time_zone)}</p>
         {i.kind==='task'&&i.urgency&&<p>{i.urgency} priority</p>}</article>)}
       {view.next_items_cursor&&<button type="button" disabled={busy} onClick={()=>void more('items')}>More items</button>}
-      <h3>Progress</h3><p>Progress sharing is not available yet.</p>
       {view.role!=='client'&&<><h3>In-app alerts</h3>{view.notifications_quiet&&<p>Quiet hours are on. Alerts will appear afterward.</p>}
         {!view.notifications_quiet&&view.notifications.length===0&&<p>No alerts to show.</p>}
-        {view.notifications.map(n=><div key={n.id}><strong>{n.title}</strong><span> · {n.type==='completed'?'Completed':'Rescheduled'} · {when(n.created_at)}{n.read_at?' · Read':''}</span>
+        {view.notifications.map(n=><div key={n.id}><strong>{n.title}</strong><span> · {n.type==='completed'?'Completed':'Rescheduled'} · {when(n.created_at,view.time_zone)}{n.read_at?' · Read':''}</span>
           {!n.read_at&&<button type="button" disabled={locked} onClick={()=>void save({type:'mark_support_notification_read',idempotency_key:crypto.randomUUID(),notification_id:n.id},'Alert marked read.')}>Mark read</button>}</div>)}
         {view.next_notifications_cursor&&<button type="button" disabled={busy} onClick={()=>void more('notifications')}>More alerts</button>}
-        <h4>Alert choices</h4><p>These choices apply only to your account. Alerts stay in this app.</p>
+        <h4>Alert choices</h4><p>These choices apply only to your account. Alerts stay in this app. Quiet hours use the time zone below; shared times above use the client’s time zone.</p>
         <form onSubmit={savePrefs}>
           <label><input type="checkbox" checked={prefs.task_completion} onChange={e=>setPrefs({...prefs,task_completion:e.target.checked})} />Task completed</label>
           <label><input type="checkbox" checked={prefs.meal_completion} onChange={e=>setPrefs({...prefs,meal_completion:e.target.checked})} />Meal completed</label>

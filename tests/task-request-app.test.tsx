@@ -104,6 +104,19 @@ describe('role-bound request app integration', () => {
     await screen.findByRole('heading', { name: 'Welcome back' }); expect(mocked.handle.stop).toHaveBeenCalled();
   });
 
+  it('keeps the support voice startup timeout message after its promise rejects', async () => {
+    backend({ ...session, voice_eligible: true });
+    const timeoutMessage = 'Microphone or audio startup timed out after 20 seconds. Try again.';
+    vi.mocked(startLocalVoice).mockImplementationOnce(async options => {
+      options.onState('error', timeoutMessage);
+      throw new Error('internal startup details');
+    });
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Talk to Nancy' }));
+    expect(await screen.findByText(timeoutMessage)).toBeInTheDocument();
+    expect(screen.queryByText(/internal startup details/)).not.toBeInTheDocument();
+  });
+
   it('allows an eligible owner to check readiness while workers warm without granting eligibility to other accounts', async () => {
     const mocked = voiceMock(); let configs = 0;
     backend({ ...session, voice_eligible: true }, workspace, path => path === '/api/config' ? response({ configured: true, assistant_name: 'Nancy', missing: [], voice_available: ++configs > 1, voice_transport: 'local' }) : undefined);

@@ -25,7 +25,7 @@ export interface TaskRequestsProps {
 type Editor = { mode: 'submit' | 'accept'; draft: TaskRequestDraft; request?: TaskRequestItem };
 type Pending = { command: TaskRequestCommand; message: string; receiptMissing?: boolean };
 const priorityLabel = { high: 'High', medium: 'Medium', low: 'Low' };
-const statusLabel = { pending: 'Waiting for a decision', accepted: 'Accepted · planned, not completed', rejected: 'Help requested', withdrawn: 'Withdrawn' };
+const statusLabel = { pending: 'Waiting for a decision', accepted: 'Accepted · added to the plan', rejected: 'Help requested', withdrawn: 'Withdrawn' };
 const accessLabels: Record<RequestCapability, string> = { request_tasks: 'Request tasks', read_requests: 'View requests', help_requests: 'Receive help requests and reasons', review_request_flags: 'Review administrator flags and reasons' };
 const blank = (view: TaskRequestWorkspace): TaskRequestDraft => ({ task_name: '', priority: 'medium', requested_date: view.local_date, requested_time: '', participant_time_zone: view.participant.time_zone, estimated_duration_minutes: null, travel_minutes: 0, notes: '' });
 const errorText = (error: unknown) => error instanceof ApiError ? error.message : 'The connection was interrupted. Please check again.';

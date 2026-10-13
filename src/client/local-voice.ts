@@ -15,6 +15,7 @@ export interface LocalVoiceHandle { stop: () => Promise<void>; sendText: (text: 
 const endSilenceMs = 900;
 const idleMs = 30_000;
 const graceMs = 10_000;
+const startupPermissionMs = 20_000;
 // Leave room for the buffered onset below inside the server's 45-second WAV bound.
 const maxUtteranceMs = 44_000;
 
@@ -64,9 +65,14 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
   const context = new AudioContext();
   const unlocked = context.resume();
   let closed = false;
-  const streamPromise = navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 } });
-  void streamPromise.then(late => { if (closed) late.getTracks().forEach(track => track.stop()); }).catch(() => undefined);
   let stream: MediaStream | undefined, source: MediaStreamAudioSourceNode | undefined, processor: ScriptProcessorNode | undefined;
+  const streamPromise = navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 } });
+  // Keep the microphone handle as soon as it is granted. AudioContext.resume()
+  // can remain pending independently, so Stop must release this early grant.
+  void streamPromise.then(acquired => {
+    if (closed) acquired.getTracks().forEach(track => track.stop());
+    else stream = acquired;
+  }).catch(() => undefined);
   let merger: ChannelMergerNode | undefined, silent: GainNode | undefined;
   let playback: AudioBufferSourceNode | undefined, playbackDone: (() => void) | undefined;
   let sessionId: string | undefined, listening = false, working = false, automaticInterrupt = false;
@@ -90,7 +96,9 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     clearInterval(monitor); stopPlayback();
     processor?.disconnect(); source?.disconnect(); merger?.disconnect(); silent?.disconnect();
     stream?.getTracks().forEach(track => track.stop()); chunks = []; preRoll = [];
-    await context.close().catch(() => undefined);
+    // The browser may leave audio unlock pending while a permission prompt is open.
+    // Closing is initiated immediately, but must not hold Stop or startup cancellation.
+    void context.close().catch(() => undefined);
     window.removeEventListener('pagehide', onLeave);
     options.signal?.removeEventListener('abort', onLeave);
     options.onState(errorMessage ? 'error' : 'stopped', errorMessage);
@@ -202,9 +210,22 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
   };
   window.addEventListener('pagehide', onLeave);
   options.signal?.addEventListener('abort', onLeave, { once: true });
+  const waitForStartup = () => new Promise<MediaStream>((resolve, reject) => {
+    let settled = false;
+    const finish = (error?: unknown, ready?: MediaStream) => {
+      if (settled) return;
+      settled = true; clearTimeout(timer); signal.removeEventListener('abort', onAbort);
+      if (error) reject(error); else resolve(ready!);
+    };
+    const onAbort = () => finish(new Error('Conversation ended.'));
+    const timer = setTimeout(() => finish(new Error('Microphone or audio permission did not finish within 20 seconds. Check your browser’s permission prompt, then try Talk to Nancy again.')), startupPermissionMs);
+    signal.addEventListener('abort', onAbort, { once: true });
+    void Promise.all([unlocked, streamPromise]).then(([, ready]) => finish(undefined, ready), error => finish(error));
+    if (signal.aborted) onAbort();
+  });
   try {
-    options.onState('connecting', 'Starting Nancy…');
-    await unlocked; stream = await streamPromise; assertOpen();
+    options.onState('connecting', 'Allow microphone and audio access in your browser to start Nancy…');
+    stream = await waitForStartup(); assertOpen();
     // Only enable acoustic interruption when the browser confirms AEC is active.
     automaticInterrupt = stream.getAudioTracks?.()[0]?.getSettings?.().echoCancellation === true;
     const first = await api.conversationStart(signal);
@@ -252,7 +273,7 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
   } catch (error) {
     await stop();
     const permissionDenied = error !== null && typeof error === 'object' && 'name' in error && error.name === 'NotAllowedError';
-    const message = permissionDenied ? 'Microphone permission was not granted. You can use the day views and try again.'
+    const message = permissionDenied ? 'Microphone permission was not granted. Check your browser’s permission prompt or settings, then try Talk to Nancy again.'
       : error instanceof Error ? error.message : 'Nancy could not start. You can use the day views.';
     options.onState('error', message); throw new Error(message);
   }

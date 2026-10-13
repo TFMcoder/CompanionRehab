@@ -16,7 +16,7 @@ export interface SupportShare {actor_id:string;role:'family_friend'|'administrat
 export interface NotificationPreferences {revision:number;task_completion:boolean;meal_completion:boolean;task_reschedule:boolean;meal_reschedule:boolean;quiet_start:string|null;quiet_end:string|null;time_zone:string}
 export interface SharedItem {id:string;kind:'task'|'meal';title:string;local_date:string;scheduled_at:string|null;urgency:'high'|'medium'|'low'|null;meal_slot:'breakfast'|'lunch'|'dinner'|null;status:'planned'|'pending'|'completed'|'deferred';occurred_at:string|null}
 export interface SupportNotification {id:string;event_id:string;activity_id:string;kind:'task'|'meal';type:'completed'|'rescheduled';title:string;created_at:string;read_at:string|null}
-export interface SupportWorkspace {role:string;local_date:string;can_view_tasks:boolean;can_view_meals:boolean;progress_status:'unavailable';
+export interface SupportWorkspace {role:string;local_date:string;time_zone:string;can_view_tasks:boolean;can_view_meals:boolean;progress_status:'unavailable';
   shares:SupportShare[];preferences:NotificationPreferences|null;items:SharedItem[];next_items_cursor:string|null;
   notifications:SupportNotification[];next_notifications_cursor:string|null;notifications_quiet:boolean}
 export interface SupportReceipt {command_id:string;result:Record<string,unknown>;replayed:boolean}

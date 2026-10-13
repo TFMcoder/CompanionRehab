@@ -165,6 +165,22 @@ describe('My Day client workflow', () => {
     expect(screen.getByRole('button', { name: 'Stop voice' })).toBeInTheDocument();
   });
 
+  it('keeps a specific local voice startup error after its promise rejects, with a generic fallback otherwise', async () => {
+    mockRequests();
+    const timeoutMessage = 'Microphone or audio startup timed out after 20 seconds. Try again.';
+    vi.mocked(startLocalVoice).mockImplementationOnce(async options => {
+      options.onState('error', timeoutMessage);
+      throw new Error('internal startup details');
+    }).mockRejectedValueOnce(new Error('other internal details'));
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Talk to Nancy' }));
+    expect(await screen.findByText(timeoutMessage)).toBeInTheDocument();
+    expect(screen.queryByText(/internal startup details/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Talk to Nancy' }));
+    expect(await screen.findByText('Nancy could not finish that step. Please try again.')).toBeInTheDocument();
+    expect(screen.queryByText(/other internal details/)).not.toBeInTheDocument();
+  });
+
   it('shows greeting startup honestly and lets the participant interrupt before it finishes', async () => {
     mockRequests();
     type Handle = Awaited<ReturnType<typeof startLocalVoice>>;
@@ -459,6 +475,22 @@ describe('My Day client workflow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Meals' }));
     expect(screen.getByText('Oatmeal')).toBeInTheDocument();
     expect(screen.getByText('Meal eaten · Oct 5, 9:15 a.m. · one bowl')).toBeInTheDocument();
+  });
+
+  it('keeps an accepted request as planned work until the client reports an actual result',async()=>{
+    const accepted:ActivityEntry={...activityLedger.options[0],title:'Pick up asparagus',status:'pending',revision:1,
+      scheduled_at:'2026-10-05T16:15:00Z',occurred_at:null,recorded_at:'2026-10-05T14:00:00Z',updated_at:'2026-10-05T14:00:00Z',
+      notes:'',portion:null,last_action:'accepted'};
+    const current:Today={...day,activity_ledger:{local_date:day.local_date,options:[accepted],entries:[accepted],recent_entries:[accepted],
+      summary:{tasks_completed:0,meals_eaten:0,appointments_attended:0,deferred:0}}};
+    mockRequests(current);render(<App/>);
+    fireEvent.click(await screen.findByRole('button',{name:'Activity'}));
+    expect(screen.getByRole('heading',{name:'Pick up asparagus'})).toBeInTheDocument();
+    expect(screen.getByText(/Planned for.*12:15/)).toBeInTheDocument();
+    expect(screen.getByText('No actual activity was recorded on this date.')).toBeInTheDocument();
+    expect(screen.queryByText('Mistaken report removed')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button',{name:'Correct Pick up asparagus'})).not.toBeInTheDocument();
+    expect(screen.getByRole('button',{name:'Mark Pick up asparagus done'})).toBeInTheDocument();
   });
 
   it('reopens a voided planned item and reads a prior activity date', async () => {

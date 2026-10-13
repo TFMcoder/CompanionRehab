@@ -1,0 +1,201 @@
+{
+  "evidence_id": "PRE-HUMAN-BROWSER-2026-10-13",
+  "observed_at": "2026-10-13T06:14:58.641Z",
+  "implementation_revision": "sha256:ca3d935ef056ebd91ebdb41c2b02763bc48de24749b055157eb91c3c7b334775",
+  "scope": "Computer-use engineering rehearsal before intended-person testing; no slice or human gate completed",
+  "browser": {
+    "tool": "Codex computer use / in-app browser",
+    "database": "Actual disposable PostgreSQL 17.11",
+    "data_origin": "synthetic",
+    "inference_credentials_used_in_fixture": false,
+    "fixture_removed": true,
+    "care_records_written_to_active_client_database": false,
+    "workflows": [
+      "plan proposal and explicit acceptance",
+      "task/meal/appointment actual reports",
+      "correction and count changes",
+      "effective task reschedule and repeat-day proposal",
+      "meal alternative/portion/ingredient review",
+      "grocery deduplication/edit/acquisition",
+      "reviewed carryover help choice",
+      "durable due foreground meal prompt",
+      "routine pause/reload/resume/complete/optional skip",
+      "rehab result fields and end reason",
+      "family request/capacity gate/client acceptance",
+      "refusal with reason/help/administrator flag",
+      "helper volunteer and resolution",
+      "opted-in completion alert and read state",
+      "sharing revocation",
+      "unrelated-client isolation",
+      "administrator counts/audit/disconnected connectors",
+      "all five configured clinical views",
+      "scoped seven-day CSV export",
+      "server outage/receipt lookup/one explicit retry/reload",
+      "390px layout without horizontal overflow"
+    ],
+    "database_receipt_verification": {
+      "activity_statuses": [
+        {
+          "kind": "appointment",
+          "status": "completed",
+          "count": 1
+        },
+        {
+          "kind": "meal",
+          "status": "completed",
+          "count": 1
+        },
+        {
+          "kind": "task",
+          "status": "completed",
+          "count": 1
+        },
+        {
+          "kind": "task",
+          "status": "deferred",
+          "count": 1
+        },
+        {
+          "kind": "task",
+          "status": "pending",
+          "count": 1
+        }
+      ],
+      "accepted_plans": 5,
+      "recovered_grocery_count": 1,
+      "prompt_deliveries": [
+        {
+          "state": "delivered",
+          "channel": "in_app",
+          "count": 1
+        },
+        {
+          "state": "pending",
+          "channel": null,
+          "count": 1
+        }
+      ],
+      "program_runs": [
+        {
+          "status": "completed",
+          "count": 2
+        },
+        {
+          "status": "ended",
+          "count": 1
+        }
+      ],
+      "step_results": 5,
+      "requests": [
+        {
+          "status": "accepted",
+          "count": 1
+        },
+        {
+          "status": "rejected",
+          "count": 1
+        }
+      ],
+      "help": [
+        {
+          "status": "resolved",
+          "count": 1
+        }
+      ],
+      "flags": 1,
+      "exports": [
+        {
+          "format": "csv",
+          "fields": [
+            "local_date",
+            "status",
+            "score_percent",
+            "missing_count",
+            "plan_version",
+            "rule_version"
+          ],
+          "row_count": 7,
+          "config_version": 1,
+          "time_zone": "America/Toronto"
+        }
+      ],
+      "external_intents": 0
+    },
+    "private_screenshot_ref": ".local/probes/pre-human-mobile.jpg",
+    "voice_entry": "Owner-practice client login and bounded microphone/audio startup retested; physical microphone and playback acceptance not available in embedded browser",
+    "private_database_evidence_ref": ".local/probes/pre-human-browser-db.json"
+  },
+  "repaired": [
+    "review timing versus ledger reschedule",
+    "planned accepted request mislabelled as mistaken actual report",
+    "rehab notes carried between steps and shared pause/end input",
+    "stale shared-progress placeholder",
+    "viewer timezone used for client schedule",
+    "stale accepted-request completion wording",
+    "unbounded microphone/audio startup including late-grant cleanup and preservation of helpful UI error"
+  ],
+  "validation": {
+    "typescript": "passed",
+    "production_build": "passed",
+    "regression_suite": {
+      "files": 65,
+      "passed": 539,
+      "failed": 0,
+      "skipped": 1,
+      "skipped_reason": "Optional dedicated PostgreSQL test not enabled in the normal suite; separate actual PostgreSQL checks and browser database were exercised.",
+      "private_evidence_ref": ".local/probes/pre-human-final-suite.json"
+    },
+    "actual_postgresql": {
+      "passed": 7,
+      "total": 7,
+      "failed": 0,
+      "disposable_created": 3,
+      "disposable_removed": 3,
+      "private_evidence_ref": ".local/probes/local-features-postgres.json"
+    },
+    "owner_practice_services": {
+      "passed": 16,
+      "total": 16,
+      "scope": "Existing approved owner binding, local HTTP; no new binding or care activity",
+      "timings_ms": {
+        "greeting_first_audio_ms": 511,
+        "navigation_audio_ms": 31,
+        "generated_audio_turn_ms": 7111,
+        "nutrition_reply_ms": 8391
+      },
+      "startup": [
+        {
+          "outcome": "ready",
+          "measurements": {
+            "stage": "speech_ready",
+            "duration_ms": 3878
+          }
+        },
+        {
+          "outcome": "ready",
+          "measurements": {
+            "stage": "http_ready",
+            "duration_ms": 163
+          }
+        }
+      ],
+      "private_evidence_ref": ".local/probes/pre-human-owner-service.stdout.json"
+    }
+  },
+  "deployment": {
+    "local_service": "http://localhost:8787",
+    "running_tested_code": true,
+    "public_tunnel_running": false,
+    "new_paid_services": false,
+    "account_binding_changed": false
+  },
+  "limitations": [
+    "Generated audio to local ASR is not a physical microphone test.",
+    "No physical iPhone/Safari, real conversational turn-taking, acoustic interruption, foreground wake or OS notification acceptance.",
+    "No intended-user or family inference qualification, real care content approval, or genuine multi-day/household trial.",
+    "No live Microsoft 365 or Asana connector; no external action dispatched.",
+    "Browser datetime fill required native arrow-key input to commit in the automation runtime; this was not treated as an application bug.",
+    "Embedded-browser CSV download completion was unusually slow; no claim of app export latency is made.",
+    "Canonical full scenario matrices and human gates remain open."
+  ]
+}

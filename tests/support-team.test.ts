@@ -74,6 +74,15 @@ describe('Support Team grants and in-app alerts',()=>{
     const second=await service.workspace(family,{date:'2026-10-12',limit:1,items_cursor:first.next_items_cursor!});
     expect([...first.items,...second.items].map(i=>i.title).sort()).toEqual(['Private synthetic soup','Synthetic laundry']);
   });
+  it('returns the participant timezone when the recipient preference uses another zone',async()=>{
+    const client=await actor('client'),family=await actor('family_friend',client.user_id);
+    await pool.query("update companion_local.participant_profiles set time_zone='America/Vancouver' where id=$1",[client.user_id]);
+    await share(client,family,'family_friend',true,false);
+    await prefs(family);
+    const board=await service.workspace(family,{date:'2026-10-12'});
+    expect(board.time_zone).toBe('America/Vancouver');
+    expect(board.preferences?.time_zone).toBe('America/Toronto');
+  });
   it('materializes only opted-in committed task/meal changes once, then honors quiet hours, correction and revocation',async()=>{
     const client=await actor('client'),family=await actor('family_friend',client.user_id);
     await share(client,family,'family_friend',true,false);

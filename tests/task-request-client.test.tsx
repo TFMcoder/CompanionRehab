@@ -33,6 +33,12 @@ async function fillRequest() {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe('bounded task request UI', () => {
+  it('labels acceptance as a saved plan decision without claiming the task remains incomplete',async()=>{
+    const accepted={...request,status:'accepted' as const,accepted_draft:draft,accepted_at:'2026-10-07T13:00:00Z',can_withdraw:false};
+    mount(service({...workspace,requests:[accepted]}));
+    expect(await screen.findByText('Accepted · added to the plan')).toBeInTheDocument();
+    expect(screen.queryByText(/planned, not completed/)).not.toBeInTheDocument();
+  });
   it('requires a schedule review and an explicit send, and does not claim acceptance', async () => {
     const adapter = service(); mount(adapter); await fillRequest();
     expect(adapter.command).not.toHaveBeenCalled();

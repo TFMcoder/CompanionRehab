@@ -21,19 +21,21 @@ The typed command and receipt routes for these local modules are mounted behind 
 
 ## Verified build
 
+The figures below describe the initial build checkpoint. The later [computer-use rehearsal and repairs](PRE_HUMAN_TEST_2026-10-13.md) supersede its browser coverage and current-revision validation. That rehearsal used actual disposable PostgreSQL, exercised client/family/helper/admin/clinician paths and server-outage recovery, and kept intended-person gates open.
+
 - Full regression run: 525 passed, one optional integration test skipped, across 65 files; TypeScript and production build passed.
 - Actual PostgreSQL 17.11: seven route/authorization/backup checks passed in three disposable databases, all removed afterward. The probe did not open the client database.
 - Active local database upgrade: 44 checks passed, including encrypted backup, isolated restore, rehearsal, unchanged existing care rows, empty new feature tables and schema-definition comparison. A second inspection confirmed the complete installed schema, not merely table names.
 - Existing owner-practice service route: 16 checks passed for Heart audio, local ASR, authorized navigation, repository nutrition provenance, session revocation and numeric model/turn logging. No care activity was invented. Greeting first audio was 534 ms; cached navigation audio 41 ms; generated-audio recognition/turn 5,431 ms; repository nutrition reply 8,296 ms. These are single observations, not latency percentiles or iPhone microphone measurements.
 - Browser inspection used an isolated in-memory synthetic account: plan proposal/acceptance, accepted meal display, grocery create/acquire, current routine/progress empty states, clean successful-save recovery behavior and 390-pixel layout. No sample data entered the active client database.
 
-See [sanitized current-revision evidence](evidence/NON-CONNECTOR-BUILD-2026-10-13.json). The local application is available at `http://localhost:8787`; this run did not create a new public tunnel. Heart voice remains restricted to the previously qualified owner-practice route. New users do not inherit that credential.
+See [sanitized initial-build evidence](evidence/NON-CONNECTOR-BUILD-2026-10-13.json) and [subsequent browser-rehearsal evidence](evidence/PRE-HUMAN-BROWSER-2026-10-13.json). The local application is available at `http://localhost:8787`; this run did not create a new public tunnel. Heart voice remains restricted to the previously qualified owner-practice route. New users do not inherit that credential.
 
 Engineering coverage is not full canonical acceptance. Test results marked `blocked` record a partially exercised contract and its remaining scenarios, even when every implemented regression passes. No slice is marked complete, and no human gate was waived.
 
 ## Remaining engineering and live work
 
-- Expand scenario coverage during the planned slice trials: server-restart receipt recovery, DST/multi-day reminder behavior, concurrent grocery acquisition, offline routine recovery, protected-time changes, complete role/export matrices and all five configured clinical archetypes. Existing targeted tests and the integrated checks above are recorded separately from those remaining contract scenarios.
+- Expand scenario coverage during the planned slice trials: DST/multi-day reminder behavior, concurrent grocery acquisition, offline routine recovery, protected-time changes and complete role/export matrices. The subsequent browser rehearsal exercised server-restart receipt recovery and all five configured clinical archetypes; it did not exhaust their full contracts or establish intended-person acceptance.
 - Qualify the intended participant, family, administrator and clinician runtime/account bindings before their actual voice tests. Preserve owner-only practice restrictions; no shared subscription credential or silent model/billing fallback is authorized.
 - Obtain participant-approved actual tasks, meals, reminder preferences and recipient grants only when needed for live trials. Obtain human-approved routine, rehab, scoring and clinical archetype definitions before their respective real use. Keep real care records, transcripts, credentials and private observations out of this repository.
 - Run the slice-specific physical-device, genuine-day and consented household/operator/clinical tests recorded in the JSON. Until then the new slices stay `in_progress`, S02 stays `awaiting_live_test`, and no release or daily-reliance gate is met.
@@ -42,7 +44,7 @@ Engineering coverage is not full canonical acceptance. Test results marked `bloc
 
 Use `npm run check` for the engineering regression suite. `node --import tsx scripts/local-features-probe.ts` verifies the full schema and encrypted restore in newly created disposable loopback databases; its detailed evidence stays under ignored `.local/probes`. `node --import tsx scripts/upgrade-local-features.ts` inspects the established client database. Add `--apply` only to perform its backed-up, rehearsed atomic upgrade from revision `dbf7abe`; it refuses partial feature schemas. Historical backups require their pinned matching schema adapter. Do not rerun all migrations blindly against existing care data.
 
-Run `npm start` with the established private environment to start Nancy. The local scheduler checks consented prompts and support notifications every 30 seconds in bounded rotating batches. Neither worker calls a model or external connector. Foreground wake consent is a server-issued, session/scope-bound token that expires after 30 minutes and is revoked on Stop or page exit; enabling it still requires an explicit user microphone action.
+For the current localhost-only setup, set `$env:PUBLIC_ORIGIN = 'http://localhost:8787'` in PowerShell before `npm start`, using the established private environment. This overrides the historical temporary tunnel address saved in local configuration. No tunnel is currently running; a new HTTPS route must be configured and checked before a smartphone trial. The local scheduler checks consented prompts and support notifications every 30 seconds in bounded rotating batches. Neither worker calls a model or external connector. Foreground wake consent is a server-issued, session/scope-bound token that expires after 30 minutes and is revoked on Stop or page exit; enabling it still requires an explicit user microphone action.
 
 ## Connector boundary
 

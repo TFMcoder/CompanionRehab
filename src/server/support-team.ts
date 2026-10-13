@@ -155,7 +155,7 @@ export class SupportTeamService {
       const selected=allItems.slice(start,start+limit);
       const fresh=await this.guarded(this.pool,session);
       if(fresh.hash!==state.hash)throw new ApiError(403,'forbidden','Sharing changed. Refresh before continuing.');
-      return {role:ctx.role,local_date:date,can_view_tasks:canTasks,can_view_meals:canMeals,progress_status:'unavailable',shares,
+      return {role:ctx.role,local_date:date,time_zone:ctx.zone,can_view_tasks:canTasks,can_view_meals:canMeals,progress_status:'unavailable',shares,
         preferences:ctx.role==='client'?null:pref?{revision:pref.revision,task_completion:pref.task_completion,meal_completion:pref.meal_completion,
           task_reschedule:pref.task_reschedule,meal_reschedule:pref.meal_reschedule,quiet_start:pref.quiet_start?.slice(0,5)??null,
           quiet_end:pref.quiet_end?.slice(0,5)??null,time_zone:pref.time_zone}:null,

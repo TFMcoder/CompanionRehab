@@ -14,7 +14,7 @@ vi.mock('../src/client/pending-commands', () => ({ PendingCommands: class {
   async submit(key:string) { recovery.events.push(`submit:${key}`); const row=recovery.rows.find(item=>item.key===key)!; row.status='unknown'; if(recovery.failSubmit) throw { status:0,code:'connection_unconfirmed' }; row.status='saved';
     const input=recovery.commands.find(item=>item.command.idempotency_key===key);
     if(input?.family==='care'&&recovery.today){const current=recovery.today,command=input.command;
-      const plan={id:'88888888-8888-4888-8888-888888888888',task_ids:command.payload.task_ids,tasks:current.tasks.filter((task:any)=>command.payload.task_ids.includes(task.id)),meals:command.payload.meals.map((meal:any)=>({...meal,name:current.meal_options.find((option:any)=>option.id===meal.option_id)?.name})),created_at:'2026-10-13T12:00:00Z'};
+      const plan={id:'88888888-8888-4888-8888-888888888888',task_ids:command.payload.task_ids,tasks:current.tasks.filter((task:any)=>command.payload.task_ids.includes(task.id)).map((task:any)=>({...task,...command.payload.task_overrides?.find((override:any)=>override.id===task.id)})),meals:command.payload.meals.map((meal:any)=>({...meal,name:current.meal_options.find((option:any)=>option.id===meal.option_id)?.name})),created_at:'2026-10-13T12:00:00Z'};
       recovery.today={...current,checkin:{...current.checkin,revision:current.checkin.revision+1,proposal:plan}};
       return {command_id:key,checkin_id:current.checkin.id,revision:current.checkin.revision+1,result:'proposed',plan,replayed:false};
     }
@@ -120,11 +120,36 @@ describe('local feature client integration',()=>{
     expect(recovery.today.checkin.accepted).toBeNull();
   });
 
+  it('carries a same-day activity reschedule into a repeat proposal without replacing the accepted plan',async()=>{
+    const taskId='22222222-2222-4222-8222-222222222222',planId='77777777-7777-4777-8777-777777777777';
+    const task={id:taskId,title:'Fold clean towels',time_hint:null,scheduled_time:'11:30'};
+    const meals=[{slot:'breakfast',option_id:'33333333-3333-4333-8333-333333333333',name:'Oats'},
+      {slot:'lunch',option_id:'44444444-4444-4444-8444-444444444444',name:'Soup'},
+      {slot:'dinner',option_id:'55555555-5555-4555-8555-555555555555',name:'Rice'}];
+    const accepted={id:planId,task_ids:[taskId],tasks:[task],meals,created_at:'2026-10-13T12:00:00Z',version:1,accepted_at:'2026-10-13T12:01:00Z'};
+    const activity={id:'99999999-9999-4999-8999-999999999999',kind:'task',title:task.title,local_date:day.local_date,source_id:taskId,meal_slot:null,plan_id:planId,scheduled_at:'2026-10-13T16:15:00Z',status:'pending',revision:2,unplanned:false};
+    recovery.today={...day,tasks:[task],meal_options:meals.map(meal=>({id:meal.option_id,name:meal.name,slots:[meal.slot]})),
+      checkin:{id:'66666666-6666-4666-8666-666666666666',local_date:day.local_date,revision:2,proposal:accepted,accepted},
+      activity_ledger:{local_date:day.local_date,options:[activity],entries:[{...activity,occurred_at:null,recorded_at:'2026-10-13T16:00:00Z',updated_at:'2026-10-13T16:00:00Z',notes:'',portion:null,last_action:'rescheduled'}],recent_entries:[],summary:{tasks_completed:0,meals_eaten:0,appointments_attended:0,deferred:0}}};
+    backend();render(<App/>);
+    fireEvent.click(await screen.findByText('More'));
+    fireEvent.click(await screen.findByRole('button',{name:'Day review'}));
+    fireEvent.click(screen.getByRole('button',{name:'Propose routine test'}));
+    await waitFor(()=>expect(recovery.commands.some(item=>item.family==='care')).toBe(true));
+    expect(recovery.commands.find(item=>item.family==='care')!.command.payload.task_overrides[0].scheduled_time).toBe('12:15');
+    expect(recovery.today.checkin.accepted.tasks[0].scheduled_time).toBe('11:30');
+    fireEvent.click(screen.getByRole('button',{name:'My Day'}));
+    expect(await screen.findByRole('heading',{name:'Review this plan'})).toBeInTheDocument();
+    expect(screen.getByText(/Your accepted plan remains in place/)).toBeInTheDocument();
+    expect(screen.getByText('12:15')).toBeInTheDocument();
+    expect(recovery.today.checkin.proposal.tasks[0].scheduled_time).toBe('12:15');
+  });
+
   it('offers scoped clinical progress under secondary views without fetching a private client day',async()=>{
     const fetchMock=vi.fn(async(path:string)=>{
       if(path==='/api/config')return response({configured:true,assistant_name:'Nancy',missing:[],voice_available:true,voice_transport:'local'});
       if(path==='/api/auth/session')return response({authenticated:true,role:'clinician',participant_id:day.profile!.id,scope_key:'scope-a',voice_eligible:false,local_features_available:true,task_requests_available:false});
-      if(path==='/api/support-team')return response({local_date:'2026-10-13'});
+      if(path==='/api/support-team')return response({local_date:'2026-10-13',time_zone:'America/Toronto'});
       throw Error(`Unexpected request ${path}`);
     });
     vi.stubGlobal('fetch',fetchMock);render(<App/>);

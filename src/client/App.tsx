@@ -200,6 +200,20 @@ function mealTiming(activity: ActivityOption | undefined, zone: string) {
   return activity?.scheduled_at ? displayInstant(activity.scheduled_at, zone) : 'No time set';
 }
 
+function carriedTaskOverride(today: Today, source: Plan | AcceptedPlan | null | undefined, task: Plan['tasks'][number]) {
+  const accepted = today.checkin?.accepted;
+  const activity = effectiveActivity(today, 'task', task.id);
+  const entry = effectiveEntry(today, activity);
+  const localSchedule = activity?.scheduled_at ? localInputValue(activity.scheduled_at, today.profile!.time_zone) : null;
+  // A distinct pending proposal may contain an intentional new time. Only
+  // inherit a ledger reschedule when carrying the current accepted plan.
+  const inheritReschedule = Boolean(accepted && source?.id === accepted.id && entry?.last_action === 'rescheduled'
+    && localSchedule?.slice(0, 10) === today.local_date);
+  return { id: task.id, urgency: task.urgency,
+    scheduled_time: inheritReschedule ? localSchedule!.slice(11) : task.scheduled_time,
+    duration_minutes: task.duration_minutes };
+}
+
 export function App() {
   const [screen, setScreen] = useState<AppState>("loading");
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -495,6 +509,7 @@ function SupportHome({ session, voiceAvailable, voiceTransport, onCheckVoice, on
   const start = async () => {
     if (!eligible || requestUnconfirmed || handle.current || voice === 'connecting') return;
     const id = ++attempt.current, abort = new AbortController();
+    let reportedVoiceError: string | undefined;
     controller.current?.abort(); controller.current = abort;
     setVoice('connecting'); setVoiceMessage('Connecting to Nancy…');
     const current = () => active.current && attempt.current === id && !abort.signal.aborted;
@@ -504,7 +519,7 @@ function SupportHome({ session, voiceAvailable, voiceTransport, onCheckVoice, on
       if (!ready.voice_available || ready.voice_transport !== 'local') { setVoice('stopped'); setVoiceMessage('Nancy’s voice is not ready. You can use the request buttons while you wait.'); return; }
       const next = await startLocalVoice({ signal: abort.signal,
         onReady: next => { if (!current()) { void next.stop(); return; } handle.current = next; setVoiceActive(true); },
-        onState: (state, message) => { if (!current()) return; setVoice(state); setVoiceMessage(message); if (state === 'stopped' || state === 'error') { handle.current = null; setVoiceActive(false); } },
+        onState: (state, message) => { if (!current()) return; if (state === 'error' && message?.trim()) reportedVoiceError = message; setVoice(state); setVoiceMessage(message); if (state === 'stopped' || state === 'error') { handle.current = null; setVoiceActive(false); } },
         onTranscript: (speaker, text) => { if (current()) setTranscript(previous => [...previous.slice(-7), { speaker, text }]); },
         onChange: () => { if (current()) setRefreshVersion(value => value + 1); },
         onNavigate: destination => { if (!current()) return;
@@ -514,7 +529,7 @@ function SupportHome({ session, voiceAvailable, voiceTransport, onCheckVoice, on
       });
       if (!current()) { await next.stop(); return; }
       handle.current = next; setVoiceActive(true);
-    } catch (error) { if (current()) { handle.current = null; setVoiceActive(false); setVoice('error'); setVoiceMessage(friendlyError(error)); } }
+    } catch (error) { if (current()) { handle.current = null; setVoiceActive(false); setVoice('error'); setVoiceMessage(reportedVoiceError ?? friendlyError(error)); } }
   };
   const title = session.role === 'clinician' ? 'Clinician Partners' : session.role === 'administrator' ? 'Requests and help' : 'Support Team';
   const reviewPending=async(family:PendingFamily)=>{
@@ -634,7 +649,7 @@ function TodayView({ today, scopeKey, localFeaturesAvailable, voiceEligible, req
     const source=checkin.proposal??checkin.accepted;
     const task_overrides=selection.task_ids.flatMap(id=>{
       const task=source?.tasks.find(item=>item.id===id);
-      return task?[{id,urgency:task.urgency,scheduled_time:task.scheduled_time,duration_minutes:task.duration_minutes}]:[];
+      return task?[carriedTaskOverride(today,source,task)]:[];
     });
     await issue({type:checkin.accepted?'revise_day_plan':'propose_day_plan',idempotency_key:keyFor(),local_date:today.local_date,
       expected_revision:checkin.revision,payload:{task_ids:selection.task_ids,meals:selection.meals,task_overrides}},undefined,true);
@@ -677,6 +692,7 @@ function TodayView({ today, scopeKey, localFeaturesAvailable, voiceEligible, req
   const startSpeaking = async () => {
     if (!voiceEligible || requestUnconfirmed || voiceHandle.current || save.kind === "unconfirmed" || save.kind === "conflict") return;
     const attempt = ++voiceAttempt.current;
+    let reportedVoiceError: string | undefined;
     const controller = new AbortController();
     voiceAbort.current?.abort();
     voiceAbort.current = controller;
@@ -689,6 +705,7 @@ function TodayView({ today, scopeKey, localFeaturesAvailable, voiceEligible, req
         signal: controller.signal,
         onState: (state: VoiceState, message?: string) => {
           if (!active.current || attempt !== voiceAttempt.current) return;
+          if (state === "error" && message?.trim()) reportedVoiceError = message;
           setVoice(state); setVoiceMessage(message);
           if (state === "stopped" || state === "error") { voiceHandle.current = null; setVoiceSessionActive(false); }
         },
@@ -718,7 +735,7 @@ function TodayView({ today, scopeKey, localFeaturesAvailable, voiceEligible, req
       voiceAbort.current = null;
     } catch (error) {
       if (controller.signal.aborted || !active.current || attempt !== voiceAttempt.current) return;
-      if (active.current && attempt === voiceAttempt.current) { voiceHandle.current = null; setVoiceSessionActive(false); setVoice("error"); setVoiceMessage(friendlyError(error)); }
+      if (active.current && attempt === voiceAttempt.current) { voiceHandle.current = null; setVoiceSessionActive(false); setVoice("error"); setVoiceMessage(reportedVoiceError ?? friendlyError(error)); }
     }
   };
   const stopSpeaking = async () => {
@@ -1056,6 +1073,8 @@ function ActivityView({ initial, localDate, timeZone, onTodayRefresh }: { initia
   }}>Try again</button></>}</section>;
 
   const openActivities = ledger.options.filter(item => item.status === "pending" || item.status === "deferred" || item.status === "voided" && !item.unplanned);
+  const savedEntries = new Map(ledger.entries.map(item => [item.id,item]));
+  const actualReports = ledger.entries.filter(item => item.status === 'completed' || item.status === 'deferred' || item.status === 'voided');
   return <section className="data-view activity-view" aria-labelledby="activity-title">
     <div className="section-heading"><div><p className="eyebrow">What actually happened</p><h2 id="activity-title">Activity</h2><p>Plans are choices for the day. This list changes only when you report what happened.</p></div><button className="text-button" disabled={busy} onClick={() => { setBusy(true); void refreshLedger().then(() => setNotice(null)).catch(error => setNotice({ kind: "error", text: friendlyError(error) })).finally(() => setBusy(false)); }}>Refresh activity</button></div>
     {dateControl}
@@ -1077,10 +1096,10 @@ function ActivityView({ initial, localDate, timeZone, onTodayRefresh }: { initia
     </form>}
 
     <div className="activity-section-heading"><div><h3>Still to do or update</h3><p>These items have not been recorded as completed.</p></div><button className="secondary-button" disabled={busy || Boolean(pending)} onClick={() => setDraft({ mode: "unplanned", kind: "task", title: "", mealSlot: "breakfast", occurredLocal: activityDefaultTime(selectedDate, timeZone), notes: "", portion: "" })}>Add unplanned activity</button></div>
-    {openActivities.length ? <ul className="activity-list">{openActivities.map(item => <li key={item.id}><div><span className="activity-kind">{activityKindLabel(item.kind)}</span><h3>{item.title}</h3><p>{item.status === "deferred" ? "Deferred" : item.status === "voided" ? "Mistaken report removed · ready to report again" : item.scheduled_at ? `Planned for ${formatWhen(item.scheduled_at)}` : "No planned time"}</p></div><div className="activity-actions"><button className="primary-button" aria-label={`Mark ${item.title} ${activityVerb(item.kind)}`} disabled={busy || Boolean(pending)} onClick={() => openRecord(item, "completed")}>Mark {activityVerb(item.kind)}</button>{item.status !== "deferred" && <button className="secondary-button" aria-label={`Defer ${item.title}`} disabled={busy || Boolean(pending)} onClick={() => openRecord(item, "deferred")}>Defer</button>}<button className="text-button" aria-label={`Reschedule ${item.title}`} disabled={busy || Boolean(pending)} onClick={() => openReschedule(item)}>Reschedule</button></div></li>)}</ul> : <p className="activity-empty">Nothing is waiting for an update.</p>}
+    {openActivities.length ? <ul className="activity-list">{openActivities.map(item => <li key={item.id}><div><span className="activity-kind">{activityKindLabel(item.kind)}</span><h3>{item.title}</h3><p>{item.status === "deferred" ? "Deferred" : item.status === "voided" ? "Mistaken report removed · ready to report again" : item.scheduled_at ? `${savedEntries.get(item.id)?.last_action==='rescheduled'?'Rescheduled':'Planned'} for ${formatWhen(item.scheduled_at)}` : "No planned time"}</p></div><div className="activity-actions"><button className="primary-button" aria-label={`Mark ${item.title} ${activityVerb(item.kind)}`} disabled={busy || Boolean(pending)} onClick={() => openRecord(item, "completed")}>Mark {activityVerb(item.kind)}</button>{item.status !== "deferred" && <button className="secondary-button" aria-label={`Defer ${item.title}`} disabled={busy || Boolean(pending)} onClick={() => openRecord(item, "deferred")}>Defer</button>}<button className="text-button" aria-label={`Reschedule ${item.title}`} disabled={busy || Boolean(pending)} onClick={() => openReschedule(item)}>Reschedule</button></div></li>)}</ul> : <p className="activity-empty">Nothing is waiting for an update.</p>}
 
     <div className="activity-section-heading"><div><h3>{viewingToday ? "Recorded today" : `Recorded on ${selectedDayLabel}`}</h3><p>Only saved reports appear here. You can correct a mistake without changing the accepted plan.</p></div></div>
-    {ledger.entries.length ? <ul className="activity-list recorded-list">{ledger.entries.map(item => <li key={item.id}><div><span className="activity-kind">{item.unplanned ? `Unplanned ${activityKindLabel(item.kind).toLowerCase()}` : activityKindLabel(item.kind)}</span><h3>{item.title}</h3><p>{item.last_action === "rescheduled" ? `Rescheduled for ${formatWhen(item.scheduled_at)}` : item.status === "completed" ? `${activityKindLabel(item.kind)} ${activityVerb(item.kind)} · ${formatWhen(item.occurred_at)}` : item.status === "deferred" ? "Deferred" : "Mistaken report removed"}{item.portion ? ` · ${item.portion}` : ""}</p>{item.notes && <p>{item.notes}</p>}</div><button className="secondary-button" aria-label={`Correct ${item.title}`} disabled={busy || Boolean(pending)} onClick={() => openCorrection(item)}>Correct</button></li>)}</ul> : <p className="activity-empty">No actual activity was recorded on this date.</p>}
+    {actualReports.length ? <ul className="activity-list recorded-list">{actualReports.map(item => <li key={item.id}><div><span className="activity-kind">{item.unplanned ? `Unplanned ${activityKindLabel(item.kind).toLowerCase()}` : activityKindLabel(item.kind)}</span><h3>{item.title}</h3><p>{item.status === "completed" ? `${activityKindLabel(item.kind)} ${activityVerb(item.kind)} · ${formatWhen(item.occurred_at)}` : item.status === "deferred" ? "Deferred" : "Mistaken report removed"}{item.portion ? ` · ${item.portion}` : ""}</p>{item.notes && <p>{item.notes}</p>}</div><button className="secondary-button" aria-label={`Correct ${item.title}`} disabled={busy || Boolean(pending)} onClick={() => openCorrection(item)}>Correct</button></li>)}</ul> : <p className="activity-empty">No actual activity was recorded on this date.</p>}
   </section>;
 }
 
@@ -1151,17 +1170,26 @@ function PlanWorkspace({ today, editing, setEditing, save, onIssue }: { today: T
     const source = proposal ?? accepted;
     const task_overrides = choice.taskIds.flatMap(id => {
       const task = source?.tasks.find(item => item.id === id);
-      return task ? [{ id, urgency: task.urgency, scheduled_time: task.scheduled_time, duration_minutes: task.duration_minutes }] : [];
+      return task ? [carriedTaskOverride(today, source, task)] : [];
     });
     await onIssue({ type, idempotency_key: keyFor(), local_date: today.local_date, expected_revision: today.checkin!.revision, payload: { task_ids: choice.taskIds, meals: mealSlots.map(slot => ({ slot, option_id: choice.meals[slot] })), task_overrides } });
     setEditing(false);
   };
   const accept = async () => { if (proposal) await onIssue({ type: "accept_day_plan", idempotency_key: keyFor(), local_date: today.local_date, expected_revision: today.checkin!.revision, payload: { proposal_id: proposal.id } }); };
-  if (pending && !editing) return <ReviewPlan plan={proposal!} heading="Review this plan" explanation="Nothing has been accepted yet. Look it over, then choose what happens next." primaryLabel="Accept this plan" primary={accept} secondaryLabel="Make changes" secondary={() => setEditing(true)} busy={locked} />;
-  if (accepted && !editing) return <><ReviewPlan plan={accepted} heading="Today’s accepted plan" explanation="This is the plan you chose for today." primaryLabel="Revise today’s plan" primary={() => setEditing(true)} busy={locked} /><p className="plan-note">Changing it creates a new plan for you to review. It does not replace today’s accepted plan until you choose to accept the new one.</p></>;
+  if (pending && !editing) return <ReviewPlan today={today} plan={proposal!} heading="Review this plan" explanation={accepted?'Your accepted plan remains in place. Review these proposed changes before choosing whether to accept them.':'Nothing has been accepted yet. Look it over, then choose what happens next.'} primaryLabel="Accept this plan" primary={accept} secondaryLabel="Make changes" secondary={() => setEditing(true)} busy={locked} />;
+  if (accepted && !editing) return <><ReviewPlan today={today} plan={accepted} heading="Today’s accepted plan" explanation="This is the plan you chose for today." primaryLabel="Revise today’s plan" primary={() => setEditing(true)} busy={locked} /><p className="plan-note">Changing it creates a new plan for you to review. It does not replace today’s accepted plan until you choose to accept the new one.</p></>;
   return <section className="planner" aria-labelledby="planner-title"><div className="section-heading"><div><p className="eyebrow">{accepted ? "Make a change" : "Plan together"}</p><h2 id="planner-title">Choose what feels right today.</h2></div><span className="review-chip">Review before saving</span></div><fieldset disabled={locked}><legend>Tasks</legend>{today.tasks.map(task => <label className="choice-row" key={task.id}><input type="checkbox" checked={choice.taskIds.includes(task.id)} onChange={event => { const checked = event.target.checked; setChoice(current => ({ ...current, taskIds: checked ? [...current.taskIds, task.id] : current.taskIds.filter(id => id !== task.id) })); }} /><span>{task.title}{task.time_hint && <small>{task.time_hint}</small>}</span></label>)}</fieldset><fieldset disabled={locked}><legend>Meals</legend>{mealSlots.map(slot => <label className="meal-select" key={slot}>{labelForSlot[slot]}<select value={choice.meals[slot]} onChange={event => { const value = event.target.value; setChoice(current => ({ ...current, meals: { ...current.meals, [slot]: value } })); }}><option value="">Choose a meal</option>{today.meal_options.filter(option => option.slots.includes(slot)).map(option => <option value={option.id} key={option.id}>{option.name}</option>)}</select></label>)}</fieldset><div className="planner-actions"><button className="primary-button" disabled={!canSave || locked} onClick={() => void saveForReview()}>{save.kind === "saving" ? "Saving…" : "Save plan for review"}</button>{accepted && <button className="text-button" disabled={locked} onClick={() => setEditing(false)}>Keep accepted plan</button>}</div></section>;
 }
 
-function ReviewPlan({ plan, heading, explanation, primaryLabel, primary, secondaryLabel, secondary, busy }: { plan: Plan; heading: string; explanation: string; primaryLabel: string; primary: () => void | Promise<void>; secondaryLabel?: string; secondary?: () => void; busy: boolean }) {
-  return <section className="review-card" aria-labelledby="review-title"><p className="eyebrow">Your day</p><h2 id="review-title">{heading}</h2><p>{explanation}</p><div className="review-grid"><div><h3>Tasks</h3><ul>{plan.tasks.map(task => <li key={task.id}>{task.title}{(task.scheduled_time || task.urgency || task.duration_minutes || task.category && task.category !== 'task') && <small>{[task.scheduled_time, task.urgency ? `${task.urgency} urgency` : null, task.duration_minutes ? `${task.duration_minutes} min` : null, task.category && task.category !== 'task' ? task.category : null].filter(Boolean).join(' · ')}</small>}</li>)}</ul></div><div><h3>Meals</h3><dl>{mealSlots.map(slot => <div key={slot}><dt>{labelForSlot[slot]}</dt><dd>{plan.meals.find(meal => meal.slot === slot)?.name ?? "Not chosen"}</dd></div>)}</dl></div></div><div className="review-actions"><button className="primary-button" onClick={() => void primary()} disabled={busy}>{primaryLabel}</button>{secondary && <button className="secondary-button" disabled={busy} onClick={secondary}>{secondaryLabel}</button>}</div></section>;
+function ReviewPlan({ today, plan, heading, explanation, primaryLabel, primary, secondaryLabel, secondary, busy }: { today: Today; plan: Plan; heading: string; explanation: string; primaryLabel: string; primary: () => void | Promise<void>; secondaryLabel?: string; secondary?: () => void; busy: boolean }) {
+  return <section className="review-card" aria-labelledby="review-title"><p className="eyebrow">Your day</p><h2 id="review-title">{heading}</h2><p>{explanation}</p><div className="review-grid"><div><h3>Tasks</h3><ul>{plan.tasks.map(task => {
+    const activity=effectiveActivity(today,'task',task.id),entry=effectiveEntry(today,activity);
+    const rescheduled=entry?.last_action==='rescheduled'&&activity?.scheduled_at ? displayInstant(activity.scheduled_at,today.profile!.time_zone) : null;
+    const planSchedule=task.scheduled_time ? `${task.scheduled_date&&task.scheduled_date!==today.local_date?`${task.scheduled_date} `:''}${task.scheduled_time}` : null;
+    const effectiveLocal=activity?.scheduled_at?localInputValue(activity.scheduled_at,today.profile!.time_zone):null;
+    const differs=Boolean(rescheduled&&(!planSchedule||effectiveLocal?.slice(0,10)!==(task.scheduled_date??today.local_date)||effectiveLocal?.slice(11)!==task.scheduled_time));
+    const timing=differs?`${planSchedule?`Plan time ${planSchedule} · `:''}Current activity schedule ${rescheduled}`:planSchedule;
+    const details=[timing,task.urgency?`${task.urgency} urgency`:null,task.duration_minutes?`${task.duration_minutes} min`:null,task.category&&task.category!=='task'?task.category:null].filter(Boolean).join(' · ');
+    return <li key={task.id}>{task.title}{details&&<small>{details}</small>}</li>;
+  })}</ul></div><div><h3>Meals</h3><dl>{mealSlots.map(slot => <div key={slot}><dt>{labelForSlot[slot]}</dt><dd>{plan.meals.find(meal => meal.slot === slot)?.name ?? "Not chosen"}</dd></div>)}</dl></div></div><div className="review-actions"><button className="primary-button" onClick={() => void primary()} disabled={busy}>{primaryLabel}</button>{secondary && <button className="secondary-button" disabled={busy} onClick={secondary}>{secondaryLabel}</button>}</div></section>;
 }
