@@ -2,7 +2,7 @@
   "evidence_id": "DEMO-HOSTING-2026-10-13",
   "observed_at": "2026-10-13T06:37:35.586Z",
   "implementation_revision": "sha256:5ffcbebf73cdd6ab307665c17dad2f7239cf94b5c3a3fc831eee86dbfe262553",
-  "scope": "Local demo startup/recovery; public HTTPS activation blocked pending specific owner approval",
+  "scope": "Local demo startup/recovery verified; public HTTPS approved by the owner, awaiting Tailscale account sign-in and Funnel activation",
   "status": "partially_verified",
   "automated": {
     "test_files_passed": 65,
@@ -36,10 +36,12 @@
     "ingress_publicly_enabled": false,
     "existing_port_443_unchanged": true,
     "new_subscription_or_domain_purchase": false,
-    "public_activation_blocker": "Automatic approval review requires explicit approval for this public Tailscale destination; owner question is pending."
+    "public_activation_blocker": "Tailscale reports Funnel is not enabled on this tailnet. Account sign-in is waiting for the owner to enter the password in the provider page.",
+    "public_exposure_approved": true,
+    "approval_source": "Explicit owner reply approving this HTTPS demo URL on 2026-10-13"
   },
   "remaining": [
-    "Owner approval and activation of the specific public HTTPS destination",
+    "Complete existing Tailscale account sign-in and enable the approved Funnel route",
     "Public DNS/TLS/auth/cookie/voice tests outside the tailnet",
     "Tailscale persistent ingress/restart checks after activation",
     "Windows reboot/logon validation",

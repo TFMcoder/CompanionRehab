@@ -2,7 +2,7 @@
 
 Updated 2026-10-13. Nancy now runs under the **Nancy Local Demo** Windows scheduled task. The app and speech workers recover after a process failure; the supervisor restarts the existing local PostgreSQL instance if it stops. Windows retries the supervisor every minute and launches it when the configured user signs in. These scripts do not create users, seed care data, change inference credentials or run database migrations.
 
-The stable HTTPS candidate is Tailscale Funnel on port 8443, using the already connected host. Its machine address is stored only in ignored `.local/runtime/demo-host.json`. The existing port 443 service is preserved. **Public activation is pending specific owner approval following automatic approval review; no new public route is active yet.** The current app remains at `http://localhost:8787`.
+The approved stable HTTPS route is Tailscale Funnel on port 8443, using the already connected host. Its machine address is stored only in ignored `.local/runtime/demo-host.json`. The existing port 443 service is preserved. **The owner explicitly approved this public destination on October 13. Tailscale account sign-in and one-time Funnel activation are now pending; no new public route is active yet.** The current app remains at `http://localhost:8787`.
 
 Tailscale Funnel can retain its HTTPS address and configuration when started with `--bg`; its certificate is managed by Tailscale. This uses the installed service and requires no domain purchase or new paid subscription. [Funnel CLI and restart behavior](https://tailscale.com/docs/reference/tailscale-cli/funnel). Account policy, public reachability and HTTPS authentication must still pass before this candidate is advertised as live.
 
@@ -32,7 +32,7 @@ Remove the scheduled task with `pwsh -NoProfile -File scripts/install-local-demo
 
 ## HTTPS activation checklist
 
-1. Obtain approval for the prepared public hostname/port. The earlier approval for a temporary Cloudflare practice route does not satisfy the current automatic approval review for this Tailscale destination.
+1. Destination approval is complete: the owner explicitly approved the prepared public hostname/port on October 13. Complete the existing provider account sign-in and one-time Funnel activation. Do not ask again for the same publication approval.
 2. Set the private host configuration to the approved HTTPS origin and restart the supervised app. Preserve the independent service on port 443.
 3. Enable only the approved port with `tailscale funnel --bg --https=8443 http://127.0.0.1:8787`. Never use a global Funnel reset, which could affect other services.
 4. Verify public DNS and reachability from outside the tailnet, valid TLS, secure session cookies, unauthorized access denial, wrong-origin denial, logout revocation and Heart audio delivery. A successful test through the private tailnet alone is insufficient public evidence.
