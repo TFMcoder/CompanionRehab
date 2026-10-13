@@ -417,17 +417,17 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
 - [ ] **S06-H03: Authorize and try the selected Outlook mail/calendar account**
 
-  Owner: **account_owner**. Status: **pending**. Requirement: **required**.
+  Owner: **account_owner**. Status: **in_progress**. Requirement: **required**.
 
   **When:** Before live Microsoft 365 access, then during the consenting read/write trial.
   **Blocks:** Completing this feature slice.
 
   **Human action:**
 
-  - Identify the intended account/calendar/mailbox privately and obtain the company IT registration, consent, Conditional Access and AI/local-data-use decisions in docs/MICROSOFT365_IT_CHECKLIST.md. Microsoft 365 work/school and read/write scope are already decided. Rob's existing Microsoft account is the sole intended connected identity; Rob’s sign-in and delegated consent remain unresolved and unverified. IT uses its existing administrative access; no new Microsoft account is requested.
+  - Identify the intended account/calendar/mailbox privately and obtain the company IT registration, consent, Conditional Access and AI/local-data-use decisions in docs/MICROSOFT365_IT_CHECKLIST.md. Microsoft 365 work/school and read/write scope are already decided. Rob's existing Microsoft account is the sole intended connected identity. The owner reported Microsoft access available on October 13; Rob-account sign-in, delegated consent and approved resources still require verification using that access. IT uses its existing administrative access; no new Microsoft account is requested.
   - Complete the prepared sign-in/MFA and delegated consent when required; identify approved test resources/recipients and review a genuine low-stakes mail/calendar action after the disposable safety checks.
 
-  **Agent prepares or handles:** Prepare the single-tenant Web callback, protected credential setup and exact delegated scopes; IT owns tenant policy/consent and the account owner completes personal sign-in. No user engineering task or new subscription is assumed. Build bounded retrieval and reviewed external action commands, ledger/provider mappings, renewal/revocation and reconciliation; test safe failure and duplicate prevention on isolated/provider test records before the genuine trial.
+  **Agent prepares or handles:** Verify the existing app registration and newly reported Microsoft access first. Prepare the exact Web callback on the established HTTPS origin, protected credential setup and delegated scopes; reuse prior decisions and request only missing tenant decisions or interactive personal sign-in. No new subscription is assumed. Build bounded retrieval and reviewed external action commands, ledger/provider mappings, renewal/revocation and reconciliation; test safe failure and duplicate prevention on isolated/provider test records before the genuine trial.
 
   **Completion evidence:** Private tenant/account/resource consent, data-use and callback/credential custody references plus observed genuine authorized mail/calendar read/write outcomes; public summaries contain no messages, care details or credentials.
 

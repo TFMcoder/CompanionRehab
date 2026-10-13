@@ -341,9 +341,9 @@
     {
       "id": "I-CALENDAR-EXTERNAL",
       "status": "unresolved",
-      "default": "Microsoft 365 work/school Outlook is confirmed. October 8 scope is mail and calendar read/write using delegated Calendars.ReadWrite, Mail.ReadWrite and Mail.Send, with User.Read and identity/refresh scopes. Per the IT report, the app registration was created, an owner was assigned, and tenant/client IDs were received privately; do not publish those identifiers. Rob's Microsoft sign-in and delegated consent remain unresolved and unverified, as do selected resources, approved data flow, stable Web redirect and protected server credential. No live external access is enabled; local appointments remain available. Rob's existing Microsoft account is the sole intended connected mailbox/calendar identity; technical-lead or app-registration ownership is a separate administrative responsibility and does not authorize connecting another mailbox. No additional Microsoft user/service account or Nancy identity migration is required.",
+      "default": "Microsoft 365 work/school Outlook is confirmed. October 8 scope is mail and calendar read/write using delegated Calendars.ReadWrite, Mail.ReadWrite and Mail.Send, with User.Read and identity/refresh scopes. Per the IT report, the app registration was created, an owner was assigned, and tenant/client IDs were received privately; do not publish those identifiers. On October 13 the owner reported Microsoft access available. Actual Rob-account sign-in/delegated consent, selected resources, approved data flow and protected server credential remain to be verified. Stable Nancy HTTPS is active; the exact Microsoft Web callback is not yet implemented or registered by this application. No live external access is enabled; local appointments remain available. Rob's existing Microsoft account is the sole intended connected mailbox/calendar identity; technical-lead or app-registration ownership is a separate administrative responsibility and does not authorize connecting another mailbox. No additional Microsoft user/service account or Nancy identity migration is required.",
       "needed_for": "S06 scoped Outlook mail/calendar reads and reviewed writes",
-      "question": "Use the IT checklist to verify the privately received tenant/client IDs and app owner, then obtain selected account/resources, owner sign-in and consent, Conditional Access/data-use decisions, stable callback agreement and secure credential setup. Engineering prepares the connector before interactive sign-in and consenting live trials.",
+      "question": "Use newly reported access and the IT checklist to verify the existing registration, approved Rob account/resources and delegated consent, Conditional Access/data-use decisions and secure credential custody. Engineering prepares the exact callback and connector before any needed interactive sign-in and consenting live trial; do not repeat requests already satisfied.",
       "resolution_ref": "docs/MICROSOFT365_IT_CHECKLIST.md"
     }
   ],
@@ -657,7 +657,7 @@
             "S01-AC03",
             "S01-AC04"
           ],
-          "scenario": "Replay identical and changed-key payloads, race stale plan revisions, try another actor, then restart and restore a disposable database.",
+          "scenario": "Replay identical and changed-key payloads, race stale plan revisions, try another actor, then restart and restore a disposable database. Revoke the session or relevant grant while a care command waits for its participant lock.",
           "expected": "One authorized accepted version per command, no cross-user data, stale edits refused and exact history/readback preserved."
         },
         {
@@ -685,7 +685,7 @@
             "S01-AC09",
             "S01-AC10"
           ],
-          "scenario": "Simulate speech, thought, silence, echo, interruption, page hide, explicit End, idle expiry, late permission and unsupported wake route.",
+          "scenario": "Simulate speech, thought, silence, echo, interruption, page hide, explicit End, idle expiry, late permission and unsupported wake route. Reject speech fetching with 401 or scope_changed 403 and verify shared authorization cleanup stops the microphone.",
           "expected": "Session timing and microphone ownership are truthful; no duplicate turn, recording leak or false wake from Nancy audio; button path remains usable. General entry asks an open question, accepts an unrelated request, and continues one session while optional supporting views change."
         },
         {
@@ -694,7 +694,7 @@
             "S01-AC11",
             "S01-AC12"
           ],
-          "scenario": "Use fixed local times around an appointment and meals, stale revisions, several candidate meals, missing pantry item, rejected choices and duplicate grocery command. Exercise participant-local 07:59, 08:00, 10:59 and 11:00; breakfast pending/completed/unknown, accepted vs actually performed exercise/rehab, overdue items, near appointments, and client redirection. Use only supplied approved exercise/rehab fixtures.",
+          "scenario": "Use fixed local times around an appointment and meals, stale revisions, several candidate meals, missing pantry item, rejected choices and duplicate grocery command. Exercise participant-local 07:59, 08:00, 10:59 and 11:00; breakfast pending/completed/unknown, accepted vs actually performed exercise/rehab, overdue items, near appointments, and client redirection. Use only supplied approved exercise/rehab fixtures. Fill the appointment history cap and verify imminent appointments remain in current-time context.",
           "expected": "Relevant records drive ranked explanations; calendar/task changes require acceptance, unknown quantities are clarified and one confirmed grocery item is stored. Morning suggestions use the 08:00-11:00 window and actual known state; completed items are suppressed, unknown state is clarified, and the user can choose a different workflow. No autonomous rescheduling, completion or new exercise prescription."
         },
         {
@@ -803,16 +803,12 @@
       ],
       "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
       "blockers": [
-        "October 5 latency fixes deployed; see docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Natural navigation now avoids two GPT calls, fixed Heart acknowledgements are primed, CUDA ASR is qualified on six synthetic phrases and validated first-part preparation overlaps some model output. Public exact-navigation estimates improved from 4.58-4.82s to 1.83-1.85s; natural navigation was 1.93s through HTTPS. General GPT answers remain variable (one public sample 9.17s). The owner subsequently accepted the faster response for advancing the MVP. Actual revised iPhone/Safari latency, interruption and participant acceptance are still required. Preserve Heart and Sol/high; S01 is not complete.",
-        "S01-LIVE2 is partial: encrypted restore and integrated planning passed, but the complete provider-loss/revocation/allowance, device and full-role scenario remains open. S01-LIVE1 has not run on the consenting participant's iPhone/Safari with genuine tasks/meals.",
-        "Owner approved the temporary authenticated sample-data My Day Cloudflare route; HTTPS sign-in, care access denial, session revocation and Heart greeting delivery passed. See docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json. The owner reported an initial device trial; revised conversation quality and stable HTTPS operation remain unqualified.",
-        "The intended participant account/deployment eligibility and live credential lifecycle are not established by owner-only synthetic inference. No paid API/model fallback is enabled.",
-        "Participant consent, care-data retention/region, real day content, approved restrictions and timezone confirmation remain prerequisites for genuine care use.",
-        "Actual task completion and meal reporting are S02; accepting a plan records intentions only. Daily reliance, operational recovery and background reminders remain gated.",
-        "October 6 client readiness is engineering-verified in docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json. The separate client database starts empty and the practice database is preserved. Participant/account eligibility, consent, real content and physical-device/genuine-day acceptance remain open.",
-        "October 7 governance hardening, numeric telemetry and owner-bound inference were implemented and regression-tested in docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json. October 13 engineering adds foreground wake and expanded meal/grocery flows; this is not actual iPhone/Safari wake, spoken planning or intended-account qualification. Genuine participant acceptance, provider-loss/device recovery and stable HTTPS remain open.",
-        "October 13 stable HTTPS deployment is engineering-verified (19 public checks, 16 voice/nutrition/logging checks). Owner-reported reboot exposed an absent external speech-runtime drive; the same pinned runtime now resides on the internal drive and passes live tests. Full reboot after this repair, physical iPhone, intended-account and participant acceptance remain open. See docs/evidence/DEMO-HOSTING-2026-10-13.json.",
-        "October 13 meal-report failure reproduced and repaired in the agent recording path. Disposable actual-model/PostgreSQL verification passes; participant must repeat the unsaved report and verify Meals/Activity. See docs/evidence/MEAL-RECORDING-2026-10-13.json."
+        "S01-LIVE1 has not run on the consenting participant iPhone/Safari with genuine tasks/meals. Intended-user/deployment eligibility, credential lifecycle, participant consent, approved restrictions and care-data retention/region remain open; preserve owner-bound practice and no silent model/billing fallback.",
+        "S01-LIVE2 has partial planning/restore/provider evidence, but full provider-loss/revocation/allowance, physical-device and full-role scenarios are not complete.",
+        "Owner-approved stable HTTPS and startup supervision are verified in docs/evidence/DEMO-HOSTING-2026-10-13.json. The missing external speech-library dependency was repaired internally. Full post-repair reboot and actual iPhone/Safari interruption, wake and conversation acceptance remain unverified; the former temporary-tunnel blocker is superseded.",
+        "October 13 empty-ledger meal recording was repaired and verified using the actual owner model and disposable PostgreSQL. The participant must repeat the unsaved report and verify Meals/Activity; no report was backfilled. See docs/evidence/MEAL-RECORDING-2026-10-13.json.",
+        "AUD-01 reproduces a legacy care write after session revocation during a lock wait; AUD-04 drops an imminent appointment when 200 older appointments fill context; AUD-05 loses an uncertain spoken-save receipt identity; AUD-06 leaves listening active after speech-fetch authorization failure. See docs/evidence/HANDOFF-AUDIT-2026-10-13.json; no repair or live acceptance is claimed.",
+        "The established client database must be preserved as care data, not treated as an empty fixture. Actual reporting, daily reliance and broader operational acceptance remain governed by their slice and release gates."
       ],
       "test_results": [
         {
@@ -827,26 +823,26 @@
           "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Automated coverage only; no participant acceptance inferred."
         },
         {
+          "test_id": "S01-AUTO2",
+          "outcome": "fail",
           "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
-          "executed_at": "2026-10-13T16:42:11.768Z",
+          "executed_at": "2026-10-13T17:01:44.510Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
-          "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
-          "test_id": "S01-AUTO2",
-          "outcome": "blocked",
-          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Existing full-contract scenario gaps remain; this result remains blocked."
+          "observed_by": "Codex handoff audit",
+          "evidence_ref": "docs/evidence/HANDOFF-AUDIT-2026-10-13.json",
+          "notes": "AUD-01: the synthetic lock-wait probe committed a legacy care command after session revocation. An independent disposable actual-PostgreSQL reproduction agrees. Remaining full-contract scenarios are still not qualified."
         },
         {
+          "test_id": "S01-AUTO3",
+          "outcome": "fail",
           "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
-          "executed_at": "2026-10-13T16:42:11.768Z",
+          "executed_at": "2026-10-13T17:01:44.510Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
-          "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
-          "test_id": "S01-AUTO3",
-          "outcome": "blocked",
-          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Existing full-contract scenario gaps remain; this result remains blocked."
+          "observed_by": "Codex handoff audit",
+          "evidence_ref": "docs/evidence/HANDOFF-AUDIT-2026-10-13.json",
+          "notes": "AUD-05: after command failure and receipt-lookup failure, spoken activity state loses the original command identity; the next turn performs no receipt recovery. In-memory reproduction; no duplicate database write was claimed."
         },
         {
           "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
@@ -860,26 +856,26 @@
           "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Existing full-contract scenario gaps remain; this result remains blocked."
         },
         {
+          "test_id": "S01-AUTO5",
+          "outcome": "fail",
           "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
-          "executed_at": "2026-10-13T16:42:11.768Z",
+          "executed_at": "2026-10-13T17:01:44.510Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
-          "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
-          "test_id": "S01-AUTO5",
-          "outcome": "blocked",
-          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Existing full-contract scenario gaps remain; this result remains blocked."
+          "observed_by": "Codex handoff audit",
+          "evidence_ref": "docs/evidence/HANDOFF-AUDIT-2026-10-13.json",
+          "notes": "AUD-06: jsdom/fake-audio speech-fetch 401 leaves the session listening, with no authorization cleanup event or microphone stop. Other actual-device scenarios remain unqualified."
         },
         {
+          "test_id": "S01-AUTO6",
+          "outcome": "fail",
           "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
-          "executed_at": "2026-10-13T16:42:11.768Z",
+          "executed_at": "2026-10-13T17:01:44.510Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
-          "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
-          "test_id": "S01-AUTO6",
-          "outcome": "blocked",
-          "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Existing full-contract scenario gaps remain; this result remains blocked."
+          "observed_by": "Codex handoff audit",
+          "evidence_ref": "docs/evidence/HANDOFF-AUDIT-2026-10-13.json",
+          "notes": "AUD-04: 200 historical appointments fill the oldest-first context cap; a stored imminent appointment is absent from context and priorities. Synthetic/PGlite reproduction."
         },
         {
           "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
@@ -915,15 +911,15 @@
           "notes": "Full current regression suite: 542 passed, one optional test skipped; typecheck and build passed. New empty-ledger conversational and database meal-report regressions pass, including unknown portion, confirmation and retry. Automated coverage only; no participant acceptance inferred."
         },
         {
+          "test_id": "S01-LIVE2",
+          "outcome": "fail",
           "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
-          "executed_at": "2026-10-13T16:42:11.768Z",
+          "executed_at": "2026-10-13T17:01:44.510Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
-          "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/MEAL-RECORDING-2026-10-13.json",
-          "test_id": "S01-LIVE2",
-          "outcome": "blocked",
-          "notes": "Partial current-service evidence: 10 real-model/PostgreSQL meal-recording checks and 19 public HTTPS checks pass. Empty-ledger meal report, unknown portion, spoken-review acknowledgement, explicit confirmation, one event/receipt, replay and readback were verified in a disposable database and removed. No physical microphone or genuine participant day; full slice live gate remains blocked."
+          "observed_by": "Codex handoff audit",
+          "evidence_ref": "docs/evidence/HANDOFF-AUDIT-2026-10-13.json",
+          "notes": "AUD-01: actual disposable PostgreSQL reproduces a legacy care command/receipt committed after session revocation during a profile-lock wait. Fixture removed. Prior meal/HTTPS evidence remains valid for its scope; full live contract is not met."
         }
       ],
       "human_actions": [
@@ -1189,7 +1185,7 @@
       "id": "S02",
       "priority": 20,
       "title": "Track actual tasks, meals and appointments with grounded nutrition",
-      "status": "awaiting_live_test",
+      "status": "in_progress",
       "depends_on": [
         "S01"
       ],
@@ -1390,10 +1386,10 @@
       ],
       "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
       "blockers": [
-        "S02-LIVE1 has not run through a genuine participant day; code and synthetic/disposable evidence do not complete the slice.",
-        "S01 is unfinished. The explicit implementation authorization permits overlap and awaiting-live-test status only; S01 completion remains required before S02 can be done.",
-        "October 6 client readiness is engineering-verified in docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json. The separate client database starts empty and the practice database is preserved. Participant/account eligibility, consent, real content and physical-device/genuine-day acceptance remain open.",
-        "October 13 meal-report failure reproduced and repaired in the agent recording path. Disposable actual-model/PostgreSQL verification passes; participant must repeat the unsaved report and verify Meals/Activity. See docs/evidence/MEAL-RECORDING-2026-10-13.json."
+        "S02-LIVE1 has not run through a genuine participant day. S01 completion remains required; owner-authorized engineering overlap does not waive dependencies or acceptance.",
+        "The empty-ledger meal-report fix has actual-model/disposable-PostgreSQL evidence, but the participant still needs to retry the unsaved meal and verify readback. See docs/evidence/MEAL-RECORDING-2026-10-13.json.",
+        "Returned from awaiting_live_test to in_progress: AUD-05 requires engineering repair for uncertain spoken activity-save recovery; AUD-01 also affects legacy care write authority. Existing passing ledger regressions do not cover these failures. See docs/evidence/HANDOFF-AUDIT-2026-10-13.json; no repair or live acceptance is claimed.",
+        "Do not reset or seed the active care database or rerun checks requiring it to be empty. Use explicitly created disposable databases for further engineering tests."
       ],
       "test_results": [
         {
@@ -1659,32 +1655,32 @@
       ],
       "implementation_revision": "sha256:ca3d935ef056ebd91ebdb41c2b02763bc48de24749b055157eb91c3c7b334775",
       "blockers": [
-        "S02 remains awaiting a genuine-day live test; S03 cannot be completed until its dependency is done.",
-        "Durable device queue, receipt-first recovery and actual PostgreSQL encrypted restore passed engineering checks. Actual phone/connectivity behavior, complete restored-grant authorization and slice-specific live recovery acceptance remain open.",
-        "October 13 implementation is integrated and locally available. Still exercise actual server-restart receipt recovery and authorization under restored grants. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
+        "S02 is in_progress with engineering defects and a genuine-day trial outstanding; S03 cannot be completed until its dependency is done.",
+        "Device queue, encrypted restore and browser server-outage/restart receipt recovery have engineering evidence in docs/evidence/PRE-HUMAN-BROWSER-2026-10-13.json. Complete restored-grant authorization, before/after-commit and second-device matrices, physical phone/connectivity behavior and slice-specific live acceptance remain open.",
+        "AUD-03 dispatches a pending command after deactivation during an awaited storage update; AUD-05 loses uncertain spoken-save identity; AUD-06 resumes listening after speech authorization loss. See docs/evidence/HANDOFF-AUDIT-2026-10-13.json; no repair or live acceptance is claimed."
       ],
       "test_results": [
         {
-          "implementation_revision": "sha256:ca3d935ef056ebd91ebdb41c2b02763bc48de24749b055157eb91c3c7b334775",
-          "executed_at": "2026-10-13T06:14:58.641Z",
+          "test_id": "S03-AUTO1",
+          "outcome": "fail",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T17:01:44.510Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
-          "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/PRE-HUMAN-BROWSER-2026-10-13.json",
-          "test_id": "S03-AUTO1",
-          "outcome": "blocked",
-          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise actual server-restart receipt recovery and authorization under restored grants. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
+          "observed_by": "Codex handoff audit",
+          "evidence_ref": "docs/evidence/HANDOFF-AUDIT-2026-10-13.json",
+          "notes": "AUD-05: uncertain spoken-save recovery loses the command key after a single failed receipt lookup; original turn cannot resume and a new turn does not reconcile it. Pure-memory reproduction; UI queue happy-path coverage remains separate."
         },
         {
-          "implementation_revision": "sha256:ca3d935ef056ebd91ebdb41c2b02763bc48de24749b055157eb91c3c7b334775",
-          "executed_at": "2026-10-13T06:14:58.641Z",
+          "test_id": "S03-AUTO2",
+          "outcome": "fail",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T17:01:44.510Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
-          "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/PRE-HUMAN-BROWSER-2026-10-13.json",
-          "test_id": "S03-AUTO2",
-          "outcome": "pass",
-          "notes": "Current regression coverage passed. Full suite: 539 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
+          "observed_by": "Codex handoff audit",
+          "evidence_ref": "docs/evidence/HANDOFF-AUDIT-2026-10-13.json",
+          "notes": "AUD-03: pending command dispatch occurs after deactivation during an awaited storage status update. Synthetic controlled-promise reproduction."
         },
         {
           "implementation_revision": "sha256:ca3d935ef056ebd91ebdb41c2b02763bc48de24749b055157eb91c3c7b334775",
@@ -1695,7 +1691,7 @@
           "evidence_ref": "docs/evidence/PRE-HUMAN-BROWSER-2026-10-13.json",
           "test_id": "S03-AUTO3",
           "outcome": "blocked",
-          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise actual server-restart receipt recovery and authorization under restored grants. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Browser server-outage/restart receipt recovery was exercised in PRE-HUMAN-BROWSER-2026-10-13; full restored-grant authorization and physical-device recovery remain open. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
         }
       ],
       "human_actions": [
@@ -1917,7 +1913,7 @@
           "criterion_ids": [
             "S04-AC05"
           ],
-          "scenario": "Advance a durable scheduler across restart, DST, changed/cancelled meals, quiet hours, denied notification permission, closed page and repeated delivery attempts.",
+          "scenario": "Advance a durable scheduler across restart, DST, changed/cancelled meals, quiet hours, denied notification permission, closed page and repeated delivery attempts. Reschedule an appointment or meal and verify prompt timing/content uses its effective occurrence time.",
           "expected": "No duplicate prompt or silent missed run; foreground speech occurs only while active, fallback uses consented notifications, and microphone remains off."
         }
       ],
@@ -1977,7 +1973,8 @@
       "blockers": [
         "S03 is unfinished; its completion dependency remains in force.",
         "Prompt preferences require participant confirmation before actual delivery. Three genuine local days, a genuinely due consented prompt and physical-browser fallback have not been observed.",
-        "October 13 implementation is integrated and locally available. Still exercise full DST/missed-day, late-correction, three-date reconnect and notification-denial/closed-page matrices. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
+        "October 13 implementation is integrated and locally available. Still exercise full DST/missed-day, late-correction, three-date reconnect and notification-denial/closed-page matrices. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived.",
+        "AUD-07 reproduces appointment reminders at the original time after an accepted reschedule. Review effective meal schedules and stale prompt invalidation too. See docs/evidence/HANDOFF-AUDIT-2026-10-13.json; no repair or live acceptance is claimed."
       ],
       "test_results": [
         {
@@ -2014,15 +2011,15 @@
           "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full DST/missed-day, late-correction, three-date reconnect and notification-denial/closed-page matrices. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
         },
         {
-          "implementation_revision": "sha256:ca3d935ef056ebd91ebdb41c2b02763bc48de24749b055157eb91c3c7b334775",
-          "executed_at": "2026-10-13T06:14:58.641Z",
+          "test_id": "S04-AUTO4",
+          "outcome": "fail",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T17:01:44.510Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
-          "observed_by": "Codex engineering verification",
-          "evidence_ref": "docs/evidence/PRE-HUMAN-BROWSER-2026-10-13.json",
-          "test_id": "S04-AUTO4",
-          "outcome": "blocked",
-          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full DST/missed-day, late-correction, three-date reconnect and notification-denial/closed-page matrices. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
+          "observed_by": "Codex handoff audit",
+          "evidence_ref": "docs/evidence/HANDOFF-AUDIT-2026-10-13.json",
+          "notes": "AUD-07: isolated PGlite accepted a 10:00 to 11:00 appointment reschedule, but a 09:30 reminder still announced 10:00. Effective activity time was persisted correctly; prompt timing/readback was wrong."
         }
       ],
       "human_actions": [
@@ -2220,7 +2217,7 @@
           "criterion_ids": [
             "S05-AC03"
           ],
-          "scenario": "Run concurrent acquisition and unauthorized list reads.",
+          "scenario": "Run concurrent acquisition and unauthorized list reads. Revoke grocery editing during a concurrent mutation and deny the stale grant.",
           "expected": "One effective acquired state and denied unauthorized access."
         }
       ],
@@ -2241,6 +2238,18 @@
             "Confirm an S01 missing-ingredient item retains its identity in the expanded shared list."
           ],
           "expected": "The shared list reflects the real choices/purchase and correct access rules."
+        },
+        {
+          "id": "S05-LIVE2",
+          "criterion_ids": [
+            "S05-AC03"
+          ],
+          "data_policy": "disposable_live",
+          "steps": [
+            "In a newly created disposable PostgreSQL database, hold the participant row lock, start a permitted family grocery edit, revoke its sharing grant, release the lock and inspect the command, receipt and current access.",
+            "Exercise simultaneous acquisition and read/edit revocation without opening the active care database; remove only the created fixture database."
+          ],
+          "expected": "Revoked access cannot commit or replay a grocery mutation; concurrent acquisition has one effective result and receipt history remains consistent."
         }
       ],
       "story_refs": [
@@ -2251,7 +2260,8 @@
       "blockers": [
         "S01 and S02 completion dependencies remain open.",
         "Reviewed meal-derived suggestions, shared-list commands and scoped acquisition are implemented for engineering checks. Actual household grants, real ingredient/quantity review and live voice/touch sharing remain unverified.",
-        "October 13 implementation is integrated and locally available. Still exercise incompatible-unit overlaps and simultaneous acquisition scenarios. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
+        "October 13 implementation is integrated and locally available. Still exercise incompatible-unit overlaps and simultaneous acquisition scenarios. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived.",
+        "AUD-02 reproduces a shared grocery write after the edit grant is revoked during a profile-lock wait. Resolve and test revocation before household acceptance. See docs/evidence/HANDOFF-AUDIT-2026-10-13.json; no repair or live acceptance is claimed."
       ],
       "test_results": [
         {
@@ -2275,6 +2285,17 @@
           "test_id": "S05-AUTO2",
           "outcome": "blocked",
           "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise incompatible-unit overlaps and simultaneous acquisition scenarios. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
+        },
+        {
+          "test_id": "S05-LIVE2",
+          "outcome": "fail",
+          "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
+          "executed_at": "2026-10-13T17:01:44.510Z",
+          "environment": "live_real_services",
+          "data_origin": "disposable_live",
+          "observed_by": "Codex handoff audit",
+          "evidence_ref": "docs/evidence/HANDOFF-AUDIT-2026-10-13.json",
+          "notes": "AUD-02: actual disposable PostgreSQL committed a family grocery edit after its sharing grant was revoked during a profile-lock wait; subsequent reads were correctly denied. Fixture removed. Concurrent-acquisition matrix remains unqualified."
         }
       ],
       "human_actions": [
@@ -2571,7 +2592,12 @@
         "S04"
       ],
       "implementation_revision": null,
-      "blockers": [],
+      "blockers": [
+        "The owner now reports Microsoft access available. Verify the existing registration, Rob account, delegated consent, exact resources, credential custody, data-use decision and implemented callback using available access; do not repeat requests for already received identifiers. S06-H03 is partial, not complete.",
+        "Only dormant mappings and held external intents exist. No Graph/Asana OAuth callback, credential lifecycle, retrieval/write adapter, sync dispatcher or reconciliation is implemented. Asana access remains unresolved; no live connector is enabled.",
+        "Repair authority, uncertain-outcome and effective-schedule defects before enabling external writes. The held-intent schema and not_connected status are deliberate boundaries. See docs/evidence/HANDOFF-AUDIT-2026-10-13.json; no repair or live acceptance is claimed.",
+        "S02 completion, S06 automated scenarios and consenting real mail/calendar/household trials remain required."
+      ],
       "test_results": [],
       "human_actions": [
         {
@@ -2641,11 +2667,11 @@
           "requirement": "required",
           "condition": null,
           "human_must_do": [
-            "Identify the intended account/calendar/mailbox privately and obtain the company IT registration, consent, Conditional Access and AI/local-data-use decisions in docs/MICROSOFT365_IT_CHECKLIST.md. Microsoft 365 work/school and read/write scope are already decided. Rob's existing Microsoft account is the sole intended connected identity; Rob’s sign-in and delegated consent remain unresolved and unverified. IT uses its existing administrative access; no new Microsoft account is requested.",
+            "Identify the intended account/calendar/mailbox privately and obtain the company IT registration, consent, Conditional Access and AI/local-data-use decisions in docs/MICROSOFT365_IT_CHECKLIST.md. Microsoft 365 work/school and read/write scope are already decided. Rob's existing Microsoft account is the sole intended connected identity. The owner reported Microsoft access available on October 13; Rob-account sign-in, delegated consent and approved resources still require verification using that access. IT uses its existing administrative access; no new Microsoft account is requested.",
             "Complete the prepared sign-in/MFA and delegated consent when required; identify approved test resources/recipients and review a genuine low-stakes mail/calendar action after the disposable safety checks."
           ],
           "agent_can_do": [
-            "Prepare the single-tenant Web callback, protected credential setup and exact delegated scopes; IT owns tenant policy/consent and the account owner completes personal sign-in. No user engineering task or new subscription is assumed.",
+            "Verify the existing app registration and newly reported Microsoft access first. Prepare the exact Web callback on the established HTTPS origin, protected credential setup and delegated scopes; reuse prior decisions and request only missing tenant decisions or interactive personal sign-in. No new subscription is assumed.",
             "Build bounded retrieval and reviewed external action commands, ledger/provider mappings, renewal/revocation and reconciliation; test safe failure and duplicate prevention on isolated/provider test records before the genuine trial."
           ],
           "expected_evidence": "Private tenant/account/resource consent, data-use and callback/credential custody references plus observed genuine authorized mail/calendar read/write outcomes; public summaries contain no messages, care details or credentials.",
@@ -2657,7 +2683,7 @@
             "S06-LIVE4",
             "S06-LIVE5"
           ],
-          "status": "pending",
+          "status": "in_progress",
           "completion_ref": null,
           "completed_at": null,
           "not_applicable_reason": null
@@ -2791,7 +2817,8 @@
       "blockers": [
         "S02 and S04 completion dependencies remain open.",
         "No human-approved Morning Boot sequence has been supplied for actual use. Correct step-by-step voice/touch, rest, pause/resume and scheduling against genuine appointments still require live acceptance.",
-        "October 13 implementation is integrated and locally available. Still exercise offline/restarted duplicate-step recovery and a new task during protected morning time. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
+        "October 13 implementation is integrated and locally available. Still exercise offline/restarted duplicate-step recovery and a new task during protected morning time. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived.",
+        "AUD-08 rest-expiry refresh and AUD-09 participant-time display are source-verified but need focused UI reproduction. Effective protected-time conflict tests and a UI results-history/correction path also remain. See docs/evidence/HANDOFF-AUDIT-2026-10-13.json; no repair or live acceptance is claimed."
       ],
       "test_results": [
         {
@@ -3016,7 +3043,8 @@
       "blockers": [
         "S02 and S07 completion dependencies remain open.",
         "A human-approved rehab protocol and clinical-use authorization have not been supplied. Protocol-version, difficulty, correction and restricted-note behavior require consented live acceptance before clinical use.",
-        "October 13 implementation is integrated and locally available. Still exercise explicit same-key step replay and restricted notes through aggregate progress. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
+        "October 13 implementation is integrated and locally available. Still exercise explicit same-key step replay and restricted notes through aggregate progress. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived.",
+        "AUD-08 rest-expiry refresh and AUD-09 participant-time display are source-verified but need focused UI reproduction. Effective protected-time conflict tests and a UI results-history/correction path also remain. See docs/evidence/HANDOFF-AUDIT-2026-10-13.json; no repair or live acceptance is claimed."
       ],
       "test_results": [
         {
@@ -4127,7 +4155,7 @@
       "blockers": [
         "S09 and S11 completion dependencies remain open.",
         "Clinical partners have not approved the five archetype definitions, export scope or measure interpretation. Genuine multi-day history, permitted live export comparison and restricted-role review remain open.",
-        "October 13 implementation is integrated and locally available. Still exercise full DST/version/missingness trends, operator drill-down and all five configured archetype exports. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
+        "October 13 implementation is integrated and locally available. Five configured archetype views and a scoped seven-day CSV were exercised in PRE-HUMAN-BROWSER-2026-10-13. Full DST/version/missingness, operator drill-down and exhaustive all-archetype export/field-selection scenarios remain open. See docs/evidence/NON-CONNECTOR-BUILD-2026-10-13.json; no full-slice live gate is waived."
       ],
       "test_results": [
         {
@@ -4139,7 +4167,7 @@
           "evidence_ref": "docs/evidence/PRE-HUMAN-BROWSER-2026-10-13.json",
           "test_id": "S12-AUTO1",
           "outcome": "blocked",
-          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full DST/version/missingness trends, operator drill-down and all five configured archetype exports. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Five configured archetype views and a scoped seven-day CSV were exercised in PRE-HUMAN-BROWSER-2026-10-13. Full DST/version/missingness, operator drill-down and exhaustive all-archetype export/field-selection scenarios remain open. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
         },
         {
           "implementation_revision": "sha256:ca3d935ef056ebd91ebdb41c2b02763bc48de24749b055157eb91c3c7b334775",
@@ -4150,7 +4178,7 @@
           "evidence_ref": "docs/evidence/PRE-HUMAN-BROWSER-2026-10-13.json",
           "test_id": "S12-AUTO2",
           "outcome": "blocked",
-          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full DST/version/missingness trends, operator drill-down and all five configured archetype exports. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Five configured archetype views and a scoped seven-day CSV were exercised in PRE-HUMAN-BROWSER-2026-10-13. Full DST/version/missingness, operator drill-down and exhaustive all-archetype export/field-selection scenarios remain open. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
         },
         {
           "implementation_revision": "sha256:ca3d935ef056ebd91ebdb41c2b02763bc48de24749b055157eb91c3c7b334775",
@@ -4161,7 +4189,7 @@
           "evidence_ref": "docs/evidence/PRE-HUMAN-BROWSER-2026-10-13.json",
           "test_id": "S12-AUTO3",
           "outcome": "blocked",
-          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Still exercise full DST/version/missingness trends, operator drill-down and all five configured archetype exports. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
+          "notes": "Partial contract coverage: implemented regressions pass, but this canonical scenario is not fully exercised. Five configured archetype views and a scoped seven-day CSV were exercised in PRE-HUMAN-BROWSER-2026-10-13. Full DST/version/missingness, operator drill-down and exhaustive all-archetype export/field-selection scenarios remain open. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged."
         }
       ],
       "human_actions": [
