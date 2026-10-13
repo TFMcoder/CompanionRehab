@@ -1,9 +1,9 @@
 {
   "evidence_id": "DEMO-HOSTING-2026-10-13",
-  "observed_at": "2026-10-13T06:37:35.586Z",
-  "implementation_revision": "sha256:5ffcbebf73cdd6ab307665c17dad2f7239cf94b5c3a3fc831eee86dbfe262553",
-  "scope": "Local demo startup/recovery verified; public HTTPS approved by the owner, awaiting Tailscale account sign-in and Funnel activation",
-  "status": "partially_verified",
+  "observed_at": "2026-10-13T16:15:30.791Z",
+  "implementation_revision": "sha256:9e7ad807ed90a25aefa0ac327c07619e88ae5bd69ffd232c51b4c3331fd892f8",
+  "scope": "Stable public HTTPS activation, authenticated browser, speech and local recovery engineering verification; participant acceptance remains open",
+  "status": "engineering_verified",
   "automated": {
     "test_files_passed": 65,
     "tests_passed": 539,
@@ -11,7 +11,9 @@
     "typecheck": "passed",
     "production_build": "passed",
     "supervisor_node_syntax": "passed",
-    "installer_powershell_syntax": "passed"
+    "installer_powershell_syntax": "passed",
+    "regression_source_revision": "sha256:5ffcbebf73cdd6ab307665c17dad2f7239cf94b5c3a3fc831eee86dbfe262553",
+    "current_change_validation": "GPU setup default changed from external drive to workspace-local path; PowerShell syntax parsed and the same pinned installation qualified on the internal drive. Application code unchanged; full application suite was not repeated for this path-only change."
   },
   "live_local": {
     "existing_owner_route": true,
@@ -24,7 +26,16 @@
     "stale_lock_and_orphan_recovery_seconds": 10,
     "unrelated_process_preserved": true,
     "final_script_process_identity_hardening": "tested with unrelated live PID and orphan app",
-    "initial_readiness_attempt": "Started before app was ready; fetch failed. The retry after speech readiness passed 16 checks."
+    "initial_readiness_attempt": "Started before app was ready; fetch failed. The retry after speech readiness passed 16 checks.",
+    "current_https_timings": {
+      "greeting_first_audio_ms": 95,
+      "navigation_audio_ms": 72,
+      "generated_audio_turn_ms": 10968,
+      "nutrition_reply_ms": 9121
+    },
+    "reboot_observation": "Owner reported shutdown and restart. Tailscale, PostgreSQL and supervised Nancy HTTP were running after Windows sign-in; speech was unavailable because its configured external D: drive was absent.",
+    "speech_repair": "Installed unchanged pinned NVIDIA CUDA libraries into ignored workspace-local storage on the internal drive. GPU ASR startup (CUDA float16), Heart, generated-audio recognition and repository nutrition all passed afterward. No CPU, voice or model fallback.",
+    "readiness_poll_limit": "One PowerShell readiness poll reported failure; independent HTTP config and both subsequent live probes confirmed voice ready. No successful recovery timing is inferred from that poll."
   },
   "deployment": {
     "scheduled_task_installed": true,
@@ -32,19 +43,18 @@
     "startup": "current Windows user logon",
     "supervisor_retry_minutes": 1,
     "health_check_seconds": 5,
-    "ingress_candidate": "Existing Tailscale Funnel on separate port 8443",
-    "ingress_publicly_enabled": false,
+    "ingress_publicly_enabled": true,
     "existing_port_443_unchanged": true,
     "new_subscription_or_domain_purchase": false,
-    "public_activation_blocker": "Tailscale reports Funnel is not enabled on this tailnet. Account sign-in is waiting for the owner to enter the password in the provider page.",
+    "public_activation_blocker": null,
     "public_exposure_approved": true,
-    "approval_source": "Explicit owner reply approving this HTTPS demo URL on 2026-10-13"
+    "approval_source": "Explicit owner reply approving this HTTPS demo URL on 2026-10-13",
+    "ingress": "Tailscale Funnel, background-persisted port 8443",
+    "provider_signin_complete": true,
+    "tls_certificate": "Provider-managed, valid in browser and public HTTPS probe"
   },
   "remaining": [
-    "Complete existing Tailscale account sign-in and enable the approved Funnel route",
-    "Public DNS/TLS/auth/cookie/voice tests outside the tailnet",
-    "Tailscale persistent ingress/restart checks after activation",
-    "Windows reboot/logon validation",
+    "Full Windows reboot/logon validation after the internal-drive speech repair and public activation",
     "Intended-account and physical iPhone/Safari acceptance",
     "Existing care consent and daily-reliance gates"
   ],
@@ -54,7 +64,43 @@
     ".local/probes/demo-recovery.jsonl",
     ".local/probes/demo-supervisor-recovery.json",
     ".local/probes/demo-postgres-recovery.json",
-    ".local/probes/demo-lock-recovery.json"
+    ".local/probes/demo-lock-recovery.json",
+    ".local/probes/demo-public-https.json",
+    ".local/probes/demo-readiness-summary.json",
+    ".local/probes/demo-cuda-install.log",
+    ".local/probes/nancy-https-live.png"
   ],
-  "limitations": "Recovery timings are individual observations. Local startup and process recovery do not establish public availability, pre-login operation or participant acceptance."
+  "limitations": "Individual engineering observations, not an uptime SLA or physical microphone test. Computer power, internet and Windows sign-in after reboot remain required. Owner-only inference binding and all participant/consent gates are preserved.",
+  "public_https": {
+    "status": "passed",
+    "checks_passed": 19,
+    "checks": {
+      "public_dns_resolves": true,
+      "public_https_signin_page": true,
+      "valid_tls_certificate": true,
+      "hsts_enabled": true,
+      "private_requests_require_login": true,
+      "private_day_requires_login": true,
+      "preview_not_public": true,
+      "wrong_origin_denied": true,
+      "cookie_secure": true,
+      "cookie_httponly": true,
+      "cookie_samesite_strict": true,
+      "scoped_session": true,
+      "request_service_available": true,
+      "authorized_request_workspace": true,
+      "local_voice_ready": true,
+      "heart_greeting_over_public_https": true,
+      "voice_navigation": true,
+      "heart_audio_over_public_https": true,
+      "logout_revokes_access": true
+    },
+    "timings": {
+      "https_signin_page_ms": 264,
+      "greeting_audio_ms": 1955
+    },
+    "route": "Public DNS-over-HTTPS resolution; HTTPS connection forced to public Funnel IPv4 rather than tailnet DNS; normal TLS validation preserved",
+    "browser": "Authenticated My Day loaded at the stable HTTPS origin using computer use",
+    "same_origin_after_app_restart": true
+  }
 }

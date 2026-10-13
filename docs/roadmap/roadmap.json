@@ -73,8 +73,8 @@
       "worker": "Same computer when the current slice requires durable background work",
       "database": "Local PostgreSQL on this computer initially; portable to another local server or cloud provider later. Supabase cloud is no longer an S01 prerequisite.",
       "synthetic_database": "Separate disposable local database",
-      "ingress": "Owner-approved stable My Day browser HTTPS via existing Tailscale Funnel on separate port 8443; no domain purchase or new subscription. One-time provider sign-in and Funnel activation are pending, followed by actual public verification. Existing port 443 is preserved; MCP transport remains separate.",
-      "availability": "Windows user-logon scheduled task now supervises Nancy and the existing PostgreSQL instance, retries a failed supervisor every minute and checks app/database state every five seconds. App, supervisor/orphan, stale-PID and database recovery tested. Computer power/internet and Windows sign-in after reboot remain required; public ingress, reboot and actual-device acceptance remain pending."
+      "ingress": "Stable owner-approved My Day HTTPS is active through existing Tailscale Funnel on port 8443, persisted with --bg. Public DNS/TLS/auth/cookie/Heart tests passed; existing port 443 is preserved. No domain purchase or new subscription; MCP remains separate.",
+      "availability": "Windows user-logon task supervises Nancy and PostgreSQL; five-second health checks and one-minute supervisor retry. App, supervisor/orphan, stale-PID and database recovery tested. App/database/Tailscale returned after an actual owner-reported shutdown; missing external-drive speech libraries were relocated to internal storage and live voice re-tested. Computer power/internet and Windows sign-in remain required; full reboot after the repair and physical-device acceptance remain open."
     },
     "data": {
       "first_live_use": "A consenting participant's genuine task list, meal choices and accepted day plan during the 10:00 Nancy check-in; disposable records for destructive/provider failure tests.",
@@ -196,8 +196,8 @@
     },
     {
       "id": "I-DOMAIN",
-      "status": "unresolved",
-      "default": "October 13: the owner explicitly approved the persistent HTTPS Tailscale Funnel address and port 8443 after automatic approval review. Private exact address is recorded in .local/runtime/demo-host.json. Local startup/recovery is installed and verified. Tailscale now requires the existing account sign-in to enable Funnel; password entry is handed to the owner in the provider page. No new public route is active. Public auth/voice and iPhone checks remain pending.",
+      "status": "resolved",
+      "default": "October 13: owner explicitly approved the persistent Tailscale address; provider sign-in and Funnel enablement completed. Nineteen checks passed using forced public ingress with valid TLS, scoped login/cookies, denial/revocation and Heart audio. Browser My Day and sixteen speech/nutrition/logging checks also passed. Exact address and credentials remain local. Physical iPhone acceptance and broader intended-user/availability gates remain open.",
       "needed_for": "S01 HTTPS routing and auth redirects",
       "question": "Identify an available HTTPS hostname/account for the actual device; sender setup is conditional on the chosen invitation/recovery flow.",
       "resolution_ref": "docs/evidence/DEMO-HOSTING-2026-10-13.json"
@@ -364,7 +364,7 @@
     },
     {
       "id": "tunnel",
-      "choice": "Owner-approved existing Tailscale Funnel on port 8443 for stable My Day HTTPS, awaiting one-time provider sign-in, activation and public verification",
+      "choice": "Existing Tailscale Funnel, background-persisted port 8443, owner-approved and public HTTPS verified",
       "plan": "Existing installation; no new paid service or domain purchase",
       "introduced_in": "S01",
       "incremental_subscription": 0
@@ -801,7 +801,7 @@
         "S03",
         "S04"
       ],
-      "implementation_revision": "sha256:5ffcbebf73cdd6ab307665c17dad2f7239cf94b5c3a3fc831eee86dbfe262553",
+      "implementation_revision": "sha256:9e7ad807ed90a25aefa0ac327c07619e88ae5bd69ffd232c51b4c3331fd892f8",
       "blockers": [
         "October 5 latency fixes deployed; see docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. Natural navigation now avoids two GPT calls, fixed Heart acknowledgements are primed, CUDA ASR is qualified on six synthetic phrases and validated first-part preparation overlaps some model output. Public exact-navigation estimates improved from 4.58-4.82s to 1.83-1.85s; natural navigation was 1.93s through HTTPS. General GPT answers remain variable (one public sample 9.17s). The owner subsequently accepted the faster response for advancing the MVP. Actual revised iPhone/Safari latency, interruption and participant acceptance are still required. Preserve Heart and Sol/high; S01 is not complete.",
         "S01-LIVE2 is partial: encrypted restore and integrated planning passed, but the complete provider-loss/revocation/allowance, device and full-role scenario remains open. S01-LIVE1 has not run on the consenting participant's iPhone/Safari with genuine tasks/meals.",
@@ -811,7 +811,7 @@
         "Actual task completion and meal reporting are S02; accepting a plan records intentions only. Daily reliance, operational recovery and background reminders remain gated.",
         "October 6 client readiness is engineering-verified in docs/evidence/S01-S02-CLIENT-READINESS-2026-10-06.json. The separate client database starts empty and the practice database is preserved. Participant/account eligibility, consent, real content and physical-device/genuine-day acceptance remain open.",
         "October 7 governance hardening, numeric telemetry and owner-bound inference were implemented and regression-tested in docs/evidence/S01-S10-GOVERNANCE-2026-10-07.json. October 13 engineering adds foreground wake and expanded meal/grocery flows; this is not actual iPhone/Safari wake, spoken planning or intended-account qualification. Genuine participant acceptance, provider-loss/device recovery and stable HTTPS remain open.",
-        "October 13: owner explicitly approved the persistent Tailscale destination. Local supervision and recovery pass; provider account sign-in and Funnel activation are pending. Public HTTPS and physical-device verification remain open. See docs/evidence/DEMO-HOSTING-2026-10-13.json."
+        "October 13 stable HTTPS deployment is engineering-verified (19 public checks, 16 voice/nutrition/logging checks). Owner-reported reboot exposed an absent external speech-runtime drive; the same pinned runtime now resides on the internal drive and passes live tests. Full reboot after this repair, physical iPhone, intended-account and participant acceptance remain open. See docs/evidence/DEMO-HOSTING-2026-10-13.json."
       ],
       "test_results": [
         {
@@ -914,15 +914,15 @@
           "notes": "Current regression coverage passed. Full suite: 539 passed, one optional test skipped; seven separate actual-PostgreSQL route/restore checks passed. This result covers automated behavior only, not participant acceptance. October 13 computer-use rehearsal additionally exercised actual PostgreSQL UI workflows and repairs; see the linked evidence for scope. Full-contract gaps and human acceptance remain unchanged. October 13 demo-hosting change: unchanged application regression suite re-passed 539 tests (one optional skip), typecheck and production build. Local supervisor recovery was separately exercised; public HTTPS has not been activated."
         },
         {
-          "implementation_revision": "sha256:5ffcbebf73cdd6ab307665c17dad2f7239cf94b5c3a3fc831eee86dbfe262553",
-          "executed_at": "2026-10-13T06:37:35.586Z",
+          "implementation_revision": "sha256:9e7ad807ed90a25aefa0ac327c07619e88ae5bd69ffd232c51b4c3331fd892f8",
+          "executed_at": "2026-10-13T16:15:30.791Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
           "observed_by": "Codex engineering verification",
           "evidence_ref": "docs/evidence/DEMO-HOSTING-2026-10-13.json",
           "test_id": "S01-LIVE2",
           "outcome": "blocked",
-          "notes": "Partial live evidence: owner-bound local speech/ASR/nutrition/logging 16/16; app, supervisor, orphan/stale-lock and PostgreSQL restart recovery exercised. Previous disposable PostgreSQL and browser evidence remains in PRE-HUMAN-BROWSER-2026-10-13.json. The owner has approved the specific destination; Tailscale account sign-in and Funnel activation are pending. Public route, physical-device, intended-person and remaining safety scenarios stay open; this full live gate is blocked."
+          "notes": "Partial live contract: 19 public HTTPS checks and 16 current owner-bound speech/ASR/nutrition/logging checks pass; computer-use My Day login verified. Local app/supervisor/database recovery previously passed. App returned after owner-reported reboot; absent external-drive speech libraries were installed internally and re-qualified. No invented care activity. Full intended-person/device, post-repair reboot, complete provider-loss and remaining safety scenarios stay open; this full live gate remains blocked."
         }
       ],
       "human_actions": [
@@ -980,7 +980,7 @@
             "Reuse docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json and the saved key. Prepare a concrete fallback proposal if needed; no repeated sign-in, key setup or funding requests without a remaining technical need.",
             "Prepare the actor/account/runtime eligibility assessment and concrete binding/storage design first; test isolation, renewal, revocation and allowance failure. Continue reversible UI/database/server work while intended-user access is pending."
           ],
-          "expected_evidence": "Owner app-specific OAuth consent and exact Sol-high inference remain evidenced by the October 4 connection record. docs/evidence/S01-MY-DAY-2026-10-05.json adds actual owner-bound authorized care planning, local PostgreSQL/auth, encrypted disposable restore, Heart and ASR integration using synthetic records. Completion still needs intended-user/deployment eligibility, remaining live credential lifecycle/allowance checks, the actual device conversation and HTTPS route. The owner subsequently approved the new authenticated sample-data test tunnel; docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json records successful HTTPS sign-in, access denial, session revocation and Heart audio delivery. Actual iPhone acceptance and stable deployment remain open. Credentials and private evidence remain local; S01-H02 and both full live gates remain incomplete. Required intended-route evidence also identifies runtime control, local token custody and per-user usage isolation; separate logins are not sufficient. October 13 local demo startup/recovery is verified; the persistent Tailscale destination is explicitly owner-approved; provider sign-in, activation and actual public HTTPS verification remain pending in docs/evidence/DEMO-HOSTING-2026-10-13.json. Existing intended-user/account gates remain unchanged.",
+          "expected_evidence": "Owner app-specific OAuth consent and exact Sol-high inference remain evidenced by the October 4 connection record. docs/evidence/S01-MY-DAY-2026-10-05.json adds actual owner-bound authorized care planning, local PostgreSQL/auth, encrypted disposable restore, Heart and ASR integration using synthetic records. Completion still needs intended-user/deployment eligibility, remaining live credential lifecycle/allowance checks, the actual device conversation and HTTPS route. The owner subsequently approved the new authenticated sample-data test tunnel; docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json records successful HTTPS sign-in, access denial, session revocation and Heart audio delivery. Actual iPhone acceptance and stable deployment remain open. Credentials and private evidence remain local; S01-H02 and both full live gates remain incomplete. Required intended-route evidence also identifies runtime control, local token custody and per-user usage isolation; separate logins are not sufficient. October 13 local demo startup/recovery is verified; the persistent Tailscale destination is explicitly owner-approved; provider sign-in, activation and actual public HTTPS verification remain pending in docs/evidence/DEMO-HOSTING-2026-10-13.json. Existing intended-user/account gates remain unchanged. October 13 completion update: specific persistent HTTPS approval, Tailscale provider sign-in and public verification are complete (19 public checks plus 16 speech/nutrition/logging checks). The preceding pending HTTPS statements are historical. Do not repeat approval or sign-in unless actual account state requires it. Intended-user/account eligibility and remaining live gates still keep this human action in progress.",
           "related_input_ids": [
             "I-ACCOUNTS",
             "I-DOMAIN",

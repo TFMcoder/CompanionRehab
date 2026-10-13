@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory = $false)]
-    [string]$Target = 'D:\CompanionRehabSpeechRuntime\site-packages'
+    [string]$Target = (Join-Path (Split-Path -Parent $PSScriptRoot) '.local/speech/cuda-runtime/site-packages')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -16,6 +16,7 @@ New-Item -ItemType Directory -Path $targetPath -Force | Out-Null
 $tempPath = Join-Path (Split-Path -Parent $targetPath) 'pip-temp'
 New-Item -ItemType Directory -Path $tempPath -Force | Out-Null
 
+# Keep the default beside the app so an absent external drive cannot disable voice.
 # Use official NVIDIA wheels from PyPI, installed only into this dedicated target.
 # Keep pip's large temporary wheel downloads on the same drive as the target.
 # No system PATH or machine-wide CUDA settings are changed.
