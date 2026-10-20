@@ -802,7 +802,7 @@
             "S01-AC01",
             "S01-AC04"
           ],
-          "scenario": "Read the shipped entry page and open the normal and former Focus URLs. Verify the selected Current layout, existing navigation/voice boundaries and no automatic microphone. Exercise public-file/credential payload rejection, fixed fixture-clock login and explicit expiry denial, and the final cross-feature disposable-service regression.",
+          "scenario": "Read the shipped entry page and open the normal and former Focus URLs. Verify the selected Current layout, existing navigation/voice boundaries and no automatic microphone. Exercise public-file/credential payload rejection, fixed fixture-clock login and explicit expiry denial, and the final cross-feature disposable-service regression. Create each synthetic caregiver fixture in its own fresh private directory so the tests run on clean public checkouts.",
           "expected": "Current stays the approved production design; the experiment cannot reopen via a stale link, private material is excluded from publication, and deterministic tests preserve actual authorization/expiry rules. Live/person/device gates remain separate."
         }
       ],
@@ -1091,7 +1091,7 @@
           "data_origin": "synthetic",
           "observed_by": "Codex automated, disposable PostgreSQL/listening HTTP, critical-path source review and authenticated deployed-browser verification",
           "evidence_ref": "docs/evidence/MERGE-PREP-2026-10-19.json",
-          "notes": "Final full suite 963 passed, 1 optional skip across 105 files; actual PostgreSQL matrix 219/219, listening HTTP 67/67, typecheck/build, zero registry advisories and both publication scans pass. Initial clock-only failures are preserved and repaired, with expiry denial retained. Production Current is verified at normal and old Focus links. No live microphone, real inference/provider mutation, care migration or full human gate completion."
+          "notes": "Final full suite 963 passed, 1 optional skip across 105 files; actual PostgreSQL matrix 219/219, listening HTTP 67/67, typecheck/build, zero registry advisories and both publication scans pass. Initial clock-only failures are preserved and repaired, with expiry denial retained. Production Current is verified at normal and old Focus links. No live microphone, real inference/provider mutation, care migration or full human gate completion. The first GitHub Linux/Windows runs exposed only a missing private test-directory assumption (12 fixture failures each). A test-only per-fixture directory repair passes all 12 focused checks; production/runtime source is unchanged. Consult the proposal CI for the final head."
         }
       ],
       "human_actions": [

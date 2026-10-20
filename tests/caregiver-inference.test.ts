@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { rm, writeFile } from 'node:fs/promises';
+import { mkdir, rm, rmdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { dailyLoopDatabase } from './helpers/daily-loop-database.js';
 import { bootstrapLocalUser, LocalCare } from '../src/server/local-care.js';
@@ -34,8 +34,10 @@ describe('explicit caregiver connection with independent care authority', () => 
     const care = new LocalCare({ pool: db.pool }), session = await care.login(email, password);
     const ownerSession = await care.login(ownerEmail, password);
     const grants = (await db.pool.query('select id,actor_id from companion_local.role_grants where participant_id=$1', [client.participant_id])).rows;
-    const path = resolve('.local/probes/caregiver-test-' + randomUUID() + '.json');
-    cleanups.push(() => rm(path, { force: true }));
+    const directory = resolve('.local/caregiver-test-' + randomUUID());
+    const path = resolve(directory, 'authorization.json');
+    await mkdir(directory, { recursive: true });
+    cleanups.push(async () => { await rm(path, { force: true }); await rmdir(directory); });
     const credential: PlanCredential = { issuer: 'https://auth.openai.com', subject: 'synthetic-owner', clientId: 'oaiapp_fixture',
       idToken: 'synthetic-id', accessToken: 'synthetic-access', refreshToken: 'synthetic-refresh',
       scopes: ['chatgpt.tokens.use.direct'], expiresAt: Date.now() + 3600000 };

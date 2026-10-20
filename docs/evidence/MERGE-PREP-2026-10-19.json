@@ -1,13 +1,13 @@
 {
   "evidence_id": "MERGE-PREP-2026-10-19",
-  "observed_at": "2026-10-20T00:09:18.29Z",
+  "observed_at": "2026-10-20T00:17:46.211Z",
   "status": "local_engineering_validation_passed_merge_proposal_preparation",
   "owner_decision": "Current is the approved locked production design; Focus is preserved with the shipped review switch disabled.",
   "implementation_revision": "sha256:f50fd9292c845d88deab0b20d3d01a4694ae68da430f2014299c7dbaaccead87",
   "source_manifest": {
     "runtime_revision": "sha256:f50fd9292c845d88deab0b20d3d01a4694ae68da430f2014299c7dbaaccead87",
     "runtime_files": 144,
-    "all_source_revision": "sha256:d413d96a0ab9bde34d0d7b4edc06a351d3ca64db29138986c918e675db65373b",
+    "all_source_revision": "sha256:cb459a7e47674abd9b7e19ea9b377ba1d162726fd15718d497c7b2458c953c57",
     "all_source_files": 316,
     "method": "SHA-256 of sorted path, NUL, file bytes, NUL. Runtime covers src/db and entry/package/build/test config; all_source adds scripts/tests/CI and public environment/ignore templates. Private files and documentation are excluded.",
     "private_reference": ".local/probes/merge-source-manifest.json"
@@ -17,7 +17,8 @@
     "base_commit": "763c3c3c527cdf99bd6a6620b1e96c7ddf0d7627",
     "base_was_synced_with_origin": true,
     "main_merge_not_performed": true,
-    "github_ci": "Run after publication of the prepared proposal; consult its live checks for the result."
+    "github_ci": "Consult the proposal checks for the current head. The first clean-checkout run exposed the fixture-directory assumption recorded below; its result is not a final pass.",
+    "proposal": "https://github.com/TFMcoder/CompanionRehab/pull/1"
   },
   "final_checks": {
     "typecheck": "passed",
@@ -28,7 +29,8 @@
       "failed": 0,
       "optional_skips": 1,
       "files": 105,
-      "private_reference": ".local/probes/merge-final-full-suite.json"
+      "private_reference": ".local/probes/merge-final-full-suite.json",
+      "source_scope": "Completed before the subsequent test-only fixture isolation repair. Production/runtime source is unchanged; the proposal CI checks the complete final candidate."
     },
     "actual_postgresql": {
       "observed_at": "2026-10-20T00:06:22.577Z",
@@ -74,6 +76,13 @@
       "findings": 0,
       "passed": true,
       "private_reference": ".local/probes/merge-private-boundary.json"
+    },
+    "clean_checkout_fixture": {
+      "passed": 12,
+      "failed": 0,
+      "success": true,
+      "private_reference": ".local/probes/merge-caregiver-clean-fixture-host.json",
+      "scope": "Synthetic caregiver binding, revocation, speech and wake authorization with a freshly created per-fixture private directory. No real model request or established care database."
     }
   },
   "review": {
@@ -82,7 +91,8 @@
       "Lock the owner-selected Current design in the real production entry; test stale review links.",
       "Sanitize household names from public documents; exclude private credentials, runtime identifiers, records, screenshots and logs.",
       "Repair two synthetic-date fixture failures without changing production authority/expiry; add an explicit expired-session rejection.",
-      "Refresh superseded README navigation/account status and add a public-boundary guard to both CI platforms."
+      "Refresh superseded README navigation/account status and add a public-boundary guard to both CI platforms.",
+      "Remove a clean-checkout dependency on a pre-existing private probes directory: each synthetic caregiver fixture creates and cleans its own directory. Production authorization is unchanged."
     ],
     "remaining_blocking_code_findings": [],
     "scope_limit": "Critical-path source inspection, regression and publication checks; not an independent penetration test or full-slice/clinical certification."
@@ -99,7 +109,24 @@
       "optional_skips": 1,
       "private_reference": ".local/probes/merge-full-suite.json"
     },
-    "cause": "Fixed-date fixture sessions were combined with real-clock feature authorization. Both failing tests now use the fixture Date; an additional test proves later expiry still denies access."
+    "cause": "Fixed-date fixture sessions were combined with real-clock feature authorization. Both failing tests now use the fixture Date; an additional test proves later expiry still denies access.",
+    "github_first_run": {
+      "head": "ad9be77546b493377d8e6f6f3cf014bc54f7a1c4",
+      "run": "https://github.com/TFMcoder/CompanionRehab/actions/runs/39346145893",
+      "platforms": [
+        "ubuntu-latest",
+        "windows-latest"
+      ],
+      "failed_tests_per_platform": 12,
+      "passed_tests_per_platform": 951,
+      "optional_skips_per_platform": 1,
+      "cause": "Synthetic caregiver fixtures tried to write into an ignored private probes directory that is absent from a clean checkout.",
+      "repair": "Create and remove an owned per-fixture directory under the ignored local boundary; retain every account/grant/host binding assertion.",
+      "private_references": [
+        ".local/probes/merge-ci-linux-first.log",
+        ".local/probes/merge-ci-windows-first.log"
+      ]
+    }
   },
   "deployment": {
     "observed_at": "2026-10-20T00:02:06.8550721Z",
@@ -149,5 +176,13 @@
     "genuine_day": "awaiting_live_test",
     "full_slices_completed": 0,
     "scope": "Engineering merge preparation and owner design selection do not complete actual person/device, remaining provider lifecycle, canonical full-matrix, clinical or release gates."
+  },
+  "test_only_followup": {
+    "previous_all_source_revision": "sha256:d413d96a0ab9bde34d0d7b4edc06a351d3ca64db29138986c918e675db65373b",
+    "current_all_source_revision": "sha256:cb459a7e47674abd9b7e19ea9b377ba1d162726fd15718d497c7b2458c953c57",
+    "runtime_revision_unchanged": true,
+    "changed_source": "tests/caregiver-inference.test.ts",
+    "local_focused_checks": 12,
+    "full_final_head_checks": "Consult the current proposal CI; the first failed run is retained above."
   }
 }

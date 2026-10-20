@@ -27,9 +27,12 @@ The automated scan is a bounded source/publication check, and the dependency aud
 | Household person names remained in public documentation. | Replace them with role descriptions; keep private account/host/credential values and screenshots outside Git. |
 | Two voice-choice tests combined fixed-date logins with real-clock feature authorization, so their fixture sessions expired as calendar time advanced. | Control Date in those tests while keeping database I/O/timers real, and explicitly test that an expired login is denied. No production expiry or permission rule was weakened. |
 | README setup/status text still described superseded navigation and pending account activation. | Point to the locked design, current handoff and exact bounded operational connection, retaining outstanding live gates. |
+| Fresh public checkouts had no ignored private probes directory, causing the first Linux and Windows runs to fail all 12 caregiver fixtures before authorization assertions. | Each fixture now creates and cleans its own private directory. All 12 focused checks pass; production authorization is unchanged. |
 | Public-boundary checks were not part of CI. | Add a location-only credential/private-artifact scan, synthetic regression cases and the same check to existing Linux/Windows CI. |
 
 Final checks pass **963 tests with one optional skip across 105 files**, **219 actual disposable-PostgreSQL matrix checks**, and **67 listening-HTTP recovery/restore checks**. Typecheck/build, roadmap/generated view, dependency audit (zero advisories) and both publication scans pass.
+
+The first GitHub clean-checkout run caught a test-only directory assumption after those local full-suite checks. Its 12-case repair passes locally; the runtime fingerprint is unchanged. The [proposal checks](https://github.com/TFMcoder/CompanionRehab/pull/1/checks) establish the final complete candidate on Linux and Windows.
 
 Final measured results, source revisions and private evidence references are recorded in [the merge preparation evidence](evidence/MERGE-PREP-2026-10-19.json). The initial failed clock runs remain private diagnostic evidence; only completed final checks are reported as passing.
 
