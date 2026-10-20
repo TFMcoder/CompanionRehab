@@ -1,15 +1,15 @@
 {
   "evidence_id": "MERGE-PREP-2026-10-19",
-  "observed_at": "2026-10-20T00:17:46.211Z",
+  "observed_at": "2026-10-20T00:21:36.021Z",
   "status": "local_engineering_validation_passed_merge_proposal_preparation",
   "owner_decision": "Current is the approved locked production design; Focus is preserved with the shipped review switch disabled.",
   "implementation_revision": "sha256:f50fd9292c845d88deab0b20d3d01a4694ae68da430f2014299c7dbaaccead87",
   "source_manifest": {
     "runtime_revision": "sha256:f50fd9292c845d88deab0b20d3d01a4694ae68da430f2014299c7dbaaccead87",
     "runtime_files": 144,
-    "all_source_revision": "sha256:cb459a7e47674abd9b7e19ea9b377ba1d162726fd15718d497c7b2458c953c57",
-    "all_source_files": 316,
-    "method": "SHA-256 of sorted path, NUL, file bytes, NUL. Runtime covers src/db and entry/package/build/test config; all_source adds scripts/tests/CI and public environment/ignore templates. Private files and documentation are excluded.",
+    "all_source_revision": "sha256:c2209a85e9650aa1aad9752d646a55e679f73e69ed276ccde1b8df9e0b5a36d6",
+    "all_source_files": 311,
+    "method": "SHA-256 of sorted path, NUL, file bytes, NUL, using Git candidate files only. Runtime covers src/db and entry/package/build/test config; all_source adds scripts/tests/CI and public environment/ignore templates. Ignored generated caches, private files and documentation are excluded.",
     "private_reference": ".local/probes/merge-source-manifest.json"
   },
   "git_preparation": {
@@ -29,8 +29,8 @@
       "failed": 0,
       "optional_skips": 1,
       "files": 105,
-      "private_reference": ".local/probes/merge-final-full-suite.json",
-      "source_scope": "Completed before the subsequent test-only fixture isolation repair. Production/runtime source is unchanged; the proposal CI checks the complete final candidate."
+      "private_reference": ".local/probes/merge-clean-full-suite-host.json",
+      "source_scope": "Final isolated public-source copy; all 311 source files match the candidate. No private runtime files were copied. Production build and typecheck also pass in that copy."
     },
     "actual_postgresql": {
       "observed_at": "2026-10-20T00:06:22.577Z",
@@ -83,6 +83,26 @@
       "success": true,
       "private_reference": ".local/probes/merge-caregiver-clean-fixture-host.json",
       "scope": "Synthetic caregiver binding, revocation, speech and wake authorization with a freshly created per-fixture private directory. No real model request or established care database."
+    },
+    "isolated_source_identity": {
+      "observed_at": "2026-10-20T00:20:41.417Z",
+      "source_files": 311,
+      "current_and_isolated_match": true,
+      "mismatches": 0,
+      "all_source_revision": "sha256:c2209a85e9650aa1aad9752d646a55e679f73e69ed276ccde1b8df9e0b5a36d6",
+      "private_runtime_copied": false,
+      "private_reference": ".local/probes/merge-clean-source-identity.json"
+    },
+    "clean_public_checkout": {
+      "success": true,
+      "typecheck": "passed",
+      "production_build": "passed",
+      "full_suite_passed": 963,
+      "full_suite_failed": 0,
+      "private_runtime_copied": false,
+      "source_identity_verified": true,
+      "source_files": 311,
+      "client_assets_identical": true
     }
   },
   "review": {
@@ -92,7 +112,8 @@
       "Sanitize household names from public documents; exclude private credentials, runtime identifiers, records, screenshots and logs.",
       "Repair two synthetic-date fixture failures without changing production authority/expiry; add an explicit expired-session rejection.",
       "Refresh superseded README navigation/account status and add a public-boundary guard to both CI platforms.",
-      "Remove a clean-checkout dependency on a pre-existing private probes directory: each synthetic caregiver fixture creates and cleans its own directory. Production authorization is unchanged."
+      "Remove a clean-checkout dependency on a pre-existing private probes directory: each synthetic caregiver fixture creates and cleans its own directory. Production authorization is unchanged.",
+      "Correct the all-source fingerprint to exclude five ignored generated Python caches, then verify all 311 public source files match the isolated test copy exactly."
     ],
     "remaining_blocking_code_findings": [],
     "scope_limit": "Critical-path source inspection, regression and publication checks; not an independent penetration test or full-slice/clinical certification."
@@ -126,6 +147,12 @@
         ".local/probes/merge-ci-linux-first.log",
         ".local/probes/merge-ci-windows-first.log"
       ]
+    },
+    "sandbox_clean_checkout": {
+      "tests_executed": 0,
+      "cause": "Sandbox denied Vite temporary-file renames before test modules could execute.",
+      "private_reference": ".local/probes/merge-clean-full-suite.json",
+      "recovery": "The same isolated public-source copy passes the complete suite and build on the host."
     }
   },
   "deployment": {
@@ -179,10 +206,25 @@
   },
   "test_only_followup": {
     "previous_all_source_revision": "sha256:d413d96a0ab9bde34d0d7b4edc06a351d3ca64db29138986c918e675db65373b",
-    "current_all_source_revision": "sha256:cb459a7e47674abd9b7e19ea9b377ba1d162726fd15718d497c7b2458c953c57",
+    "current_all_source_revision": "sha256:c2209a85e9650aa1aad9752d646a55e679f73e69ed276ccde1b8df9e0b5a36d6",
     "runtime_revision_unchanged": true,
     "changed_source": "tests/caregiver-inference.test.ts",
     "local_focused_checks": 12,
-    "full_final_head_checks": "Consult the current proposal CI; the first failed run is retained above."
+    "full_final_head_checks": "The complete final public-source copy passes the local full suite, typecheck and build; consult the proposal checks for final-head Linux/Windows CI.",
+    "previous_fingerprint_scope": "Earlier all-source fingerprints also included five ignored generated Python cache files; the corrected fingerprint excludes them. Production/runtime fingerprints were unaffected."
+  },
+  "fingerprint_correction": {
+    "previous_all_source_revision": "sha256:cb459a7e47674abd9b7e19ea9b377ba1d162726fd15718d497c7b2458c953c57",
+    "ignored_generated_cache_files_excluded": 5,
+    "runtime_revision_unchanged": true,
+    "reason": "The initial all-source walker included ignored Python bytecode. The corrected method hashes only Git candidate source files; generated caches were never committed or copied into the isolated test checkout."
+  },
+  "earlier_completed_full_suite": {
+    "passed": 963,
+    "failed": 0,
+    "optional_skips": 1,
+    "files": 105,
+    "private_reference": ".local/probes/merge-final-full-suite.json",
+    "source_scope": "Completed before the subsequent test-only fixture isolation repair. Production/runtime source is unchanged; the proposal CI checks the complete final candidate."
   }
 }

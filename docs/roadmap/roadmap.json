@@ -1086,12 +1086,12 @@
           "test_id": "S01-AUTO14",
           "outcome": "pass",
           "implementation_revision": "sha256:f50fd9292c845d88deab0b20d3d01a4694ae68da430f2014299c7dbaaccead87",
-          "executed_at": "2026-10-20T00:09:18.290Z",
+          "executed_at": "2026-10-20T00:21:36.021Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex automated, disposable PostgreSQL/listening HTTP, critical-path source review and authenticated deployed-browser verification",
           "evidence_ref": "docs/evidence/MERGE-PREP-2026-10-19.json",
-          "notes": "Final full suite 963 passed, 1 optional skip across 105 files; actual PostgreSQL matrix 219/219, listening HTTP 67/67, typecheck/build, zero registry advisories and both publication scans pass. Initial clock-only failures are preserved and repaired, with expiry denial retained. Production Current is verified at normal and old Focus links. No live microphone, real inference/provider mutation, care migration or full human gate completion. The first GitHub Linux/Windows runs exposed only a missing private test-directory assumption (12 fixture failures each). A test-only per-fixture directory repair passes all 12 focused checks; production/runtime source is unchanged. Consult the proposal CI for the final head."
+          "notes": "Final full suite 963 passed, 1 optional skip across 105 files; actual PostgreSQL matrix 219/219, listening HTTP 67/67, typecheck/build, zero registry advisories and both publication scans pass. Initial clock-only failures are preserved and repaired, with expiry denial retained. Production Current is verified at normal and old Focus links. No live microphone, real inference/provider mutation, care migration or full human gate completion. The first GitHub Linux/Windows runs exposed only a missing private test-directory assumption (12 fixture failures each). A test-only per-fixture directory repair passes all 12 focused checks; production/runtime source is unchanged. Consult the proposal CI for the final head. The corrected source manifest excludes five ignored generated Python caches and matches all 311 public source files in the isolated test copy; runtime fingerprint is unchanged. Final isolated public-source copy subsequently passes 963 tests, one optional skip, typecheck and build, with all 311 source files matching this candidate and no private runtime copied."
         }
       ],
       "human_actions": [
