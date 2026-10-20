@@ -66,193 +66,6 @@ describe("S01 participant plan UI", () => {
   });
   afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 
-  it("keeps a proposal separate until the participant explicitly accepts it", async () => {
-    let current = today();
-    const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
-      if (path === "/api/config") return response({ configured: true, voice_available: false, assistant_name: "Nancy", missing: [] });
-      if (path === "/api/auth/session") return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
-      if (path === "/api/today") return response(current);
-      if (path === "/api/commands") {
-        const command = JSON.parse(String(init?.body));
-        if (command.type === "propose_day_plan") {
-          current = today({ revision: 2, proposal: proposed, accepted: null });
-          return response({ command_id: command.idempotency_key, checkin_id: ids.checkin, revision: 2, result: "proposed", plan: proposed, replayed: false });
-        }
-        if (command.type === "accept_day_plan") {
-          current = today({ revision: 3, proposal: proposed, accepted: { ...proposed, version: 1, accepted_at: "2026-09-29T14:01:00Z" } });
-          return response({ command_id: command.idempotency_key, checkin_id: ids.checkin, revision: 3, result: "accepted", plan: current.checkin!.accepted, replayed: false });
-        }
-      }
-      throw new Error(`Unexpected request ${path}`);
-    });
-    vi.stubGlobal("fetch", fetchMock);
-
-    render(<App />);
-    expect(await screen.findByRole("heading", { name: "Choose what feels right today." })).toBeInTheDocument();
-    chooseMeals();
-    fireEvent.click(screen.getByRole("button", { name: "Save plan for review" }));
-    expect(await screen.findByRole("heading", { name: "Review this plan" })).toBeInTheDocument();
-    expect(screen.getByText("Nothing has been accepted yet. Look it over, then choose what happens next.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Accept this plan" })).toBeInTheDocument();
-    expect(screen.queryByText("Today’s accepted plan")).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "Accept this plan" }));
-    expect(await screen.findByRole("heading", { name: "Today’s accepted plan" })).toBeInTheDocument();
-    const commandTypes = fetchMock.mock.calls.filter(([path]) => path === "/api/commands").map(([, init]) => JSON.parse(String((init as RequestInit).body)).type);
-    expect(commandTypes).toEqual(["propose_day_plan", "accept_day_plan"]);
-  });
-
-  it('shows both an explicit proposed time and the effective activity reschedule while the old plan remains accepted',async()=>{
-    const accepted={...proposed,tasks:[{...proposed.tasks[0],scheduled_time:'11:30'}],version:1,accepted_at:'2026-09-29T14:01:00Z'};
-    const proposal={...proposed,id:'99999999-9999-4999-8999-999999999999',tasks:[{...proposed.tasks[0],scheduled_time:'13:00'}]};
-    const activity={id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',kind:'task' as const,title:'Fold the laundry',local_date:'2026-09-29',source_id:ids.task,meal_slot:null,plan_id:accepted.id,scheduled_at:'2026-09-29T16:15:00Z',status:'pending' as const,revision:2,unplanned:false};
-    const current:Today={...today({revision:4,accepted,proposal}),activity_ledger:{local_date:'2026-09-29',options:[activity],entries:[{...activity,occurred_at:null,recorded_at:'2026-09-29T16:00:00Z',updated_at:'2026-09-29T16:00:00Z',notes:'',portion:null,last_action:'rescheduled'}],recent_entries:[],summary:{tasks_completed:0,meals_eaten:0,appointments_attended:0,deferred:0}}};
-    vi.stubGlobal('fetch',vi.fn(async(path:string)=>{
-      if(path==='/api/config')return response({configured:true,voice_available:false,assistant_name:'Nancy',missing:[]});
-      if(path==='/api/auth/session')return response({authenticated:true,role:'client',participant_id:ids.profile,scope_key:'client-test-scope',voice_eligible:true,task_requests_available:false});
-      if(path==='/api/today')return response(current);
-      throw new Error(`Unexpected request ${path}`);
-    }));
-    render(<App/>);
-    expect(await screen.findByRole('heading',{name:'Review this plan'})).toBeInTheDocument();
-    expect(screen.getByText(/Your accepted plan remains in place/)).toBeInTheDocument();
-    expect(screen.getByText(/Plan time 13:00 · Current activity schedule.*12:15/)).toBeInTheDocument();
-    expect(current.checkin?.accepted?.tasks[0].scheduled_time).toBe('11:30');
-    expect(current.checkin?.proposal?.tasks[0].scheduled_time).toBe('13:00');
-  });
-
-  it('keeps unsaved choices on an unchanged refresh and resets them for a new plan version', async () => {
-    let current = today();
-    let reads = 0;
-    vi.stubGlobal('fetch', vi.fn(async (path: string) => {
-      if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
-      if (path === '/api/today') { reads += 1; return response(current); }
-      throw new Error(`Unexpected request ${path}`);
-    }));
-    render(<App />);
-    await screen.findByRole('heading', { name: 'Choose what feels right today.' });
-    chooseMeals();
-    fireEvent.click(screen.getByRole('checkbox', { name: /Fold the laundry/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
-    await waitFor(() => expect(reads).toBe(2));
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Refresh' })).toBeEnabled());
-    expect(screen.getByLabelText('Breakfast')).toHaveValue(ids.breakfast);
-    expect(screen.getByRole('checkbox', { name: /Fold the laundry/ })).not.toBeChecked();
-    current = today({ revision: 2, proposal: proposed });
-    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Make changes' }));
-    expect(screen.getByRole('checkbox', { name: /Fold the laundry/ })).toBeChecked();
-    expect(screen.getByLabelText('Breakfast')).toHaveValue(ids.breakfast);
-    expect(screen.getByRole('button', { name: 'Save plan for review' })).toBeEnabled();
-  });
-
-  it("does not retry an unconfirmed plan write and retains its receipt key until confirmation", async () => {
-    let receiptAttempts = 0;
-    const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
-      if (path === "/api/config") return response({ configured: true, voice_available: false, assistant_name: "Nancy", missing: [] });
-      if (path === "/api/auth/session") return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
-      if (path === "/api/today") return response(today());
-      if (path === "/api/commands") return response({ error: { code: "temporarily_unavailable", message: "Try later" } }, 503);
-      if (String(path).startsWith("/api/receipts/")) {
-        receiptAttempts += 1;
-        if (receiptAttempts === 1) return Promise.reject(new TypeError("still offline"));
-        return response({ command_id: "88888888-8888-4888-888888888888", checkin_id: ids.checkin, revision: 2, result: "proposed", plan: proposed, replayed: false });
-      }
-      throw new Error(`Unexpected request ${path} ${init?.method ?? "GET"}`);
-    });
-    vi.stubGlobal("fetch", fetchMock);
-
-    render(<App />);
-    expect(await screen.findByRole("heading", { name: "Choose what feels right today." })).toBeInTheDocument();
-    chooseMeals();
-    fireEvent.click(screen.getByRole("button", { name: "Save plan for review" }));
-    expect(await screen.findByRole("button", { name: "Check saved plan" })).toBeInTheDocument();
-    expect(screen.getByText("Save unconfirmed. Check saved plan.")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Check saved plan" }));
-    await waitFor(() => expect(screen.getByText("Save is still unconfirmed. It was not sent again.")).toBeInTheDocument());
-    expect(screen.getByRole("button", { name: "Check saved plan" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Check saved plan" }));
-    await waitFor(() => expect(screen.getByText("Your plan is ready for review.")).toBeInTheDocument());
-    expect(fetchMock.mock.calls.filter(([path]) => path === "/api/commands")).toHaveLength(1);
-    expect(fetchMock.mock.calls.filter(([path]) => String(path).startsWith("/api/receipts/"))).toHaveLength(2);
-  });
-
-  it("discards a late command result after this view has closed", async () => {
-    let resolveCommand: ((value: Response) => void) | undefined;
-    const command = new Promise<Response>(resolve => { resolveCommand = resolve; });
-    const fetchMock = vi.fn(async (path: string) => {
-      if (path === "/api/config") return response({ configured: true, voice_available: false, assistant_name: "Nancy", missing: [] });
-      if (path === "/api/auth/session") return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
-      if (path === "/api/today") return response(today());
-      if (path === "/api/commands") return command;
-      throw new Error(`Unexpected request ${path}`);
-    });
-    vi.stubGlobal("fetch", fetchMock);
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
-    const { unmount } = render(<App />);
-    expect(await screen.findByRole("heading", { name: "Choose what feels right today." })).toBeInTheDocument();
-    chooseMeals();
-    fireEvent.click(screen.getByRole("button", { name: "Save plan for review" }));
-    unmount();
-    resolveCommand!(response({ command_id: "88888888-8888-4888-888888888888", checkin_id: ids.checkin, revision: 2, result: "proposed", plan: proposed, replayed: false }));
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(fetchMock.mock.calls.filter(([path]) => path === "/api/today")).toHaveLength(1);
-    expect(consoleError).not.toHaveBeenCalled();
-    consoleError.mockRestore();
-  });
-
-  it("preserves retained task and meal IDs when choices are edited", async () => {
-    let setupPayload: Record<string, unknown> | undefined;
-    const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
-      if (path === "/api/config") return response({ configured: true, voice_available: false, assistant_name: "Nancy", missing: [] });
-      if (path === "/api/auth/session") return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
-      if (path === "/api/today") return response(today());
-      if (path === "/api/setup") {
-        setupPayload = JSON.parse(String(init?.body));
-        return response(today());
-      }
-      throw new Error(`Unexpected request ${path}`);
-    });
-    vi.stubGlobal("fetch", fetchMock);
-
-    render(<App />);
-    expect(await screen.findByRole("button", { name: "Edit choices" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Edit choices" }));
-    expect(await screen.findByRole("button", { name: "Save choices" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Save choices" }));
-    await waitFor(() => expect(setupPayload).toBeDefined());
-    expect(setupPayload).toMatchObject({ expected_revision: 1, tasks: [{ id: ids.task }] });
-    expect(setupPayload?.meal_options).toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: ids.breakfast, name: "Oatmeal", slots: ["breakfast"] }),
-      expect.objectContaining({ id: ids.lunch, name: "Soup", slots: ["lunch"] }),
-      expect.objectContaining({ id: ids.dinner, name: "Pasta", slots: ["dinner"] }),
-    ]));
-  });
-
-  it('saves one real task without requiring invented meal choices', async () => {
-    let setupPayload: Record<string, unknown> | undefined;
-    const empty: Today = { ...today(), profile: null, tasks: [], meal_options: [], checkin: null };
-    vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => {
-      if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
-      if (path === '/api/today') return response(empty);
-      if (path === '/api/setup') { setupPayload = JSON.parse(String(init?.body)); return response({ ...empty, profile: today().profile, tasks: [{ id: ids.task, title: 'Call the clinic', time_hint: null }] }); }
-      throw new Error(`Unexpected request ${path}`);
-    }));
-    render(<App />);
-    fireEvent.change(await screen.findByLabelText('What should Nancy call you?'), { target: { value: 'Pat' } });
-    fireEvent.change(screen.getByLabelText('Tasks to choose from'), { target: { value: 'Call the clinic' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Continue to today' }));
-    await waitFor(() => expect(setupPayload).toBeDefined());
-    expect(setupPayload).toMatchObject({ tasks: [{ title: 'Call the clinic' }], meal_options: [] });
-    expect(setupSchema.safeParse(setupPayload).success).toBe(true);
-    expect(await screen.findByRole('heading', { name: 'Add meal choices to plan today' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Add choices' })).toBeInTheDocument();
-  });
-
   it("aborts a still-connecting voice start and stops its late handle", async () => {
     let resolveVoice: ((value: { stop: () => Promise<void> }) => void) | undefined;
     const stop = vi.fn().mockResolvedValue(undefined);
@@ -304,21 +117,6 @@ describe("S01 participant plan UI", () => {
     await assertion;
   });
 
-  it("clears participant data when a command discovers revoked access", async () => {
-    vi.stubGlobal('fetch', vi.fn(async (path: string) => {
-      if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
-      if (path === '/api/today') return response(today({ proposal: proposed }));
-      if (path === '/api/commands') return response({ error: { code: 'unauthorized', message: 'Please sign in.' } }, 401);
-      throw new Error('Unexpected request');
-    }));
-    render(<App />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Accept this plan' }));
-    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
-    expect(screen.queryByText('Fold the laundry')).not.toBeInTheDocument();
-    expect(screen.queryByText('Oatmeal')).not.toBeInTheDocument();
-  });
-
   it("does not present an uncertain logout as confirmed", async () => {
     let attempts = 0;
     vi.stubGlobal('fetch', vi.fn(async (path: string) => {
@@ -335,26 +133,6 @@ describe("S01 participant plan UI", () => {
     fireEvent.click(screen.getByRole('button', { name: 'Try sign-out again' }));
     expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
     expect(attempts).toBe(2);
-  });
-
-  it('uses a confirmed acceptance receipt even when the following read fails', async () => {
-    let committed = false;
-    vi.stubGlobal('fetch', vi.fn(async (path: string) => {
-      if (path === '/api/config') return response({ configured: true, voice_available: false, assistant_name: 'Nancy', missing: [] });
-      if (path === '/api/auth/session') return response({ authenticated: true, role: 'client', participant_id: '11111111-1111-4111-8111-111111111111', scope_key: 'client-test-scope', voice_eligible: true, task_requests_available: true });
-      if (path === '/api/today') { if (committed) throw new TypeError('read unavailable'); return response(today({ proposal: proposed })); }
-      if (path === '/api/commands') {
-        committed = true;
-        return response({ command_id: ids.proposal, checkin_id: ids.checkin, revision: 2, result: 'accepted', plan: { ...proposed, version: 1, accepted_at: '2026-09-29T14:00:00Z' }, replayed: false });
-      }
-      throw new Error('Unexpected request');
-    }));
-    render(<App />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Accept this plan' }));
-    expect(await screen.findByRole('heading', { name: 'Today’s accepted plan' })).toBeInTheDocument();
-    expect(await screen.findByText('Your plan is saved.')).toBeInTheDocument();
-    expect(await screen.findByText(/Your last confirmed plan is still shown/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Accept this plan' })).not.toBeInTheDocument();
   });
 
   it('discards an older Today read when a newer voice-triggered refresh has already finished', async () => {
@@ -375,9 +153,9 @@ describe("S01 participant plan UI", () => {
     expect(reads).toHaveLength(2);
     const latest = today({ revision: 3, proposal: proposed, accepted: { ...proposed, version: 1, accepted_at: '2026-09-29T14:00:00Z' } });
     await act(async () => { reads[1](response(latest)); });
-    expect(await screen.findByRole('heading', { name: 'Today’s accepted plan' })).toBeInTheDocument();
+    expect(await screen.findAllByText('In accepted plan')).toHaveLength(3);
     await act(async () => { reads[0](response(today())); });
-    expect(screen.getByRole('heading', { name: 'Today’s accepted plan' })).toBeInTheDocument();
+    expect(screen.getAllByText('In accepted plan')).toHaveLength(3);
   });
 
   it('treats malformed successful write responses as unconfirmed', async () => {

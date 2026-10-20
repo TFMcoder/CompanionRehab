@@ -35,10 +35,21 @@ describe('local Nancy voice', () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) })));
     vi.spyOn(api, 'conversationStart').mockResolvedValue({ session_id: 's1', text: 'Good morning.', reply_id: 'r1' });
     vi.spyOn(api, 'conversationPlayed').mockResolvedValue({ ok: true });
+    vi.spyOn(api, 'conversationReceived').mockResolvedValue({ok:true});
     vi.spyOn(api, 'conversationEnd').mockResolvedValue({ ok: true });
     vi.spyOn(api, 'conversationInterrupt').mockResolvedValue({ ok: true });
   });
   afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+  it.each([{status:401,code:'unauthorized',event:'nancy:session-expired'},{status:403,code:'scope_changed',event:'nancy:scope-changed'}])('stops microphone and conversation on speech $status',async({status,code,event})=>{
+    const states:string[]=[],notify=vi.fn();window.addEventListener(event,notify);
+    const starting=startLocalVoice({onState:s=>states.push(s),onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()});
+    await vi.waitFor(()=>expect(context.source).toBeDefined());context.source!.onended?.();const handle=await starting;
+    vi.spyOn(api,'conversationTurn').mockResolvedValue({text:'Saved reply',reply_id:'r2'});
+    vi.mocked(fetch).mockResolvedValueOnce({ok:false,status,json:async()=>({error:{code}})} as Response);
+    await handle.sendText('Check my activity');
+    expect(notify).toHaveBeenCalledTimes(1);expect(stopTrack).toHaveBeenCalledTimes(1);expect(api.conversationEnd).toHaveBeenCalledWith('s1');
+    expect(states.at(-1)).not.toBe('listening');window.removeEventListener(event,notify);
+  });
 
   it('encodes a mono 16 kHz PCM WAV from microphone samples', () => {
     const wav = wavPcm16([new Float32Array([0, 1, -1, 0])], 16_000);
@@ -49,6 +60,28 @@ describe('local Nancy voice', () => {
     expect(view.getUint32(40, true)).toBe(8);
     expect(view.getInt16(46, true)).toBe(32767);
     expect(view.getInt16(48, true)).toBe(-32768);
+  });
+
+  it('reports numeric playback scheduling once without treating it as observed audibility', async () => {
+    const starting = startLocalVoice({onState:vi.fn(),onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()});
+    await vi.waitFor(()=>expect(context.source).toBeDefined());
+    const timingCalls=vi.mocked(fetch).mock.calls.filter(([url])=>String(url).endsWith('/timing'));
+    expect(timingCalls).toHaveLength(1);
+    const payload=JSON.parse(String(timingCalls[0][1]?.body));
+    expect(payload).toMatchObject({reply_id:'r1',input_mode:'opening',session_phase:'first_reply',audible_response_ms:null,
+      endpointing_ms:null,speech_end_to_playback_start_ms:null,reported_output_latency_ms:null});
+    expect(payload.input_to_playback_start_ms).toBeGreaterThanOrEqual(0);
+    expect(JSON.stringify(payload)).not.toContain('Good morning');
+    context.source!.onended?.();const handle=await starting;await handle.stop();
+  });
+
+  it('continues audio when the optional metric transport fails synchronously', async () => {
+    vi.mocked(fetch).mockImplementation((url)=>{if(String(url).endsWith('/timing'))throw new Error('Diagnostic offline');
+      return Promise.resolve({ok:true,arrayBuffer:async()=>new ArrayBuffer(8)} as Response);});
+    const states:string[]=[];
+    const starting=startLocalVoice({onState:s=>states.push(s),onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()});
+    await vi.waitFor(()=>expect(context.source).toBeDefined());context.source!.onended?.();const handle=await starting;
+    expect(states.at(-1)).toBe('listening');expect(api.conversationPlayed).toHaveBeenCalledTimes(1);await handle.stop();
   });
 
   it('acknowledges a reply only after playback ends', async () => {
@@ -65,11 +98,52 @@ describe('local Nancy voice', () => {
     await handle.stop();
   });
 
+  it('acknowledges a saved result after retaining its text without waiting for audio or the acknowledgement response',async()=>{
+    const events:string[]=[];
+    const starting=startLocalVoice({onState:vi.fn(),onTranscript:(_speaker,text)=>events.push('text:'+text),onChange:vi.fn(),onNavigate:vi.fn()});
+    await vi.waitFor(()=>expect(context.source).toBeDefined());context.source!.onended?.();const handle=await starting;
+    const previous=context.source;let finishAck!:(value:{ok:true})=>void;
+    vi.mocked(api.conversationReceived).mockImplementationOnce(()=>{events.push('received');return new Promise(resolve=>{finishAck=resolve;});});
+    vi.spyOn(api,'conversationTurn').mockResolvedValue({text:'Your activity is recorded.',reply_id:'r2',acknowledgement_required:true,changed:true});
+    const turn=handle.sendText('save this change');
+    await vi.waitFor(()=>expect(context.source).not.toBe(previous));
+    expect(events.indexOf('text:Your activity is recorded.')).toBeLessThan(events.indexOf('received'));
+    expect(api.conversationReceived).toHaveBeenCalledWith('s1','r2',expect.any(AbortSignal));
+    expect(api.conversationPlayed).toHaveBeenCalledTimes(1);
+    context.source!.onended?.();await turn;
+    expect(api.conversationPlayed).toHaveBeenCalledTimes(2);
+    finishAck({ok:true});await handle.stop();
+  });
+
+  it('continues speaking a retained saved result after a lost acknowledgement request',async()=>{
+    const states:string[]=[];
+    const starting=startLocalVoice({onState:s=>states.push(s),onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()});
+    await vi.waitFor(()=>expect(context.source).toBeDefined());context.source!.onended?.();const handle=await starting;
+    const previous=context.source;
+    vi.mocked(api.conversationReceived).mockRejectedValueOnce(new Error('Synthetic acknowledgement connection loss'));
+    vi.spyOn(api,'conversationTurn').mockResolvedValue({text:'Your activity is recorded.',reply_id:'r2',acknowledgement_required:true});
+    const turn=handle.sendText('save this change');await vi.waitFor(()=>expect(context.source).not.toBe(previous));
+    context.source!.onended?.();await turn;
+    expect(api.conversationReceived).toHaveBeenCalledTimes(1);expect(states.at(-1)).toBe('listening');await handle.stop();
+  });
+
+  it('does not acknowledge an empty result or one that the UI could not retain',async()=>{
+    const transcript=vi.fn();
+    const starting=startLocalVoice({onState:vi.fn(),onTranscript:transcript,onChange:vi.fn(),onNavigate:vi.fn()});
+    await vi.waitFor(()=>expect(context.source).toBeDefined());context.source!.onended?.();const handle=await starting;
+    const turn=vi.spyOn(api,'conversationTurn');
+    turn.mockResolvedValueOnce({text:'',reply_id:'r2',acknowledgement_required:true});await handle.sendText('save this change');
+    turn.mockResolvedValueOnce({text:'Your activity is recorded.',reply_id:'r3',acknowledgement_required:true});
+    transcript.mockImplementation((speaker,text)=>{if(speaker==='nancy'&&text==='Your activity is recorded.')throw new Error('Synthetic render failure');});
+    await handle.sendText('retry this activity save');
+    expect(api.conversationReceived).not.toHaveBeenCalled();await handle.stop();
+  });
+
   it('prefetches one following sentence and acknowledges only after the final sentence drains', async () => {
     vi.mocked(api.conversationStart).mockResolvedValue({ session_id: 's1', text: 'One sentence. Two sentences.', reply_id: 'r1', speech_parts: 2 } as never);
     const starting = startLocalVoice({ onState: vi.fn(), onTranscript: vi.fn(), onChange: vi.fn(), onNavigate: vi.fn() });
     await vi.waitFor(() => expect(context.source).toBeDefined());
-    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(vi.mocked(fetch).mock.calls.filter(([url])=>String(url).includes('/speech?'))).toHaveLength(2));
     expect(fetch).toHaveBeenNthCalledWith(1, '/api/conversation/s1/speech?turn_id=r1&part=0', expect.any(Object));
     expect(fetch).toHaveBeenNthCalledWith(2, '/api/conversation/s1/speech?turn_id=r1&part=1', expect.any(Object));
     expect(api.conversationPlayed).not.toHaveBeenCalled();
@@ -88,7 +162,7 @@ describe('local Nancy voice', () => {
     const controller = new AbortController();
     const starting = startLocalVoice({ signal: controller.signal, onState: vi.fn(), onTranscript: vi.fn(), onChange: vi.fn(), onNavigate: vi.fn() });
     await vi.waitFor(() => expect(context.source).toBeDefined());
-    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(vi.mocked(fetch).mock.calls.filter(([url])=>String(url).includes('/speech?'))).toHaveLength(2));
     const fetchCalls = vi.mocked(fetch).mock.calls;
     const nextSignal = (fetchCalls[1]?.[1] as RequestInit).signal as AbortSignal;
     expect(nextSignal.aborted).toBe(false);

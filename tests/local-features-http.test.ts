@@ -42,6 +42,10 @@ describe('local feature HTTP with durable local identity', () => {
   const headers = (session: Session) => ({ host: 'localhost:8787', origin: 'http://localhost:8787',
     cookie: `nancy_session=${sealSession(session, config.sessionKey!)}` });
   beforeAll(async () => {
+    // All feature services must observe the same date as LocalCare. Otherwise
+    // real time eventually expires these fixed-date HTTP fixture sessions.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(now);
     const external = process.env.LOCAL_FEATURE_HTTP_URL;
     if (external) {
       const own = new URL(disposableUrl(external));
@@ -72,7 +76,10 @@ describe('local feature HTTP with durable local identity', () => {
     const conversation = { close: vi.fn() } as unknown as ConversationService;
     app = await createApp(config, { care, speech, conversation, revocations: new SessionRevocations() });
   });
-  afterAll(async () => { await app?.close(); if (db) await db.close(); else await pool?.end(); });
+  afterAll(async () => {
+    try { await app?.close(); if (db) await db.close(); else await pool?.end(); }
+    finally { vi.useRealTimers(); }
+  });
 
   it('auto-registers each feature on real LocalCare, authenticates, and rejects invalid origin/schema', async () => {
     for (const url of routes) {

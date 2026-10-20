@@ -8,12 +8,13 @@ import { LocalCare } from '../src/server/local-care.js';
 import { LocalDayService, isQuiet } from '../src/server/local-day.js';
 import type { Session } from '../src/server/session.js';
 import type { LocalDayCommand, PromptPreferences } from '../src/shared/local-day-contracts.js';
+import { localCareMigrations } from '../src/server/local-migrations.js';
 
 describe('local day review and consented scheduler',()=>{
  let db:PGlite,pool:Pool,care:LocalCare,service:LocalDayService;
  let now=new Date('2026-10-13T12:00:00Z');
  beforeAll(async()=>{db=new PGlite();pool=pglitePool(db) as unknown as Pool;
-  for(const file of ['002_local_care.sql','003_activity_ledger.sql','004_client_readiness.sql','005_runtime_observability.sql','006_family_task_requests.sql','008_local_day.sql'])await db.exec(await readFile(new URL('../db/'+file,import.meta.url),'utf8'));
+  for(const file of localCareMigrations)await db.exec(await readFile(new URL('../db/'+file,import.meta.url),'utf8'));
   care=new LocalCare({pool,clock:()=>now});service=new LocalDayService(pool,()=>now);
  });
  afterAll(async()=>db.close());

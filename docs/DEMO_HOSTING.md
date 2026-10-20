@@ -41,3 +41,9 @@ Remove the scheduled task with `pwsh -NoProfile -File scripts/install-local-demo
 5. The same HTTPS origin served before and after the app restart for the speech repair. Physical iPhone/Safari acceptance and a full post-repair reboot remain open. Each future connector must use an explicitly registered redirect URI matching its deployed route.
 
 See [sanitized deployment evidence](evidence/DEMO-HOSTING-2026-10-13.json). Local recovery and public HTTPS engineering checks passed. This does not complete a feature slice, intended-account qualification or participant acceptance gate.
+
+## October 17 startup repair
+
+The existing once-per-minute recovery task was repeatedly launching PowerShell after the supervisor failed to parse a NUL-corrupted diagnostic state file. The failing task was temporarily disabled, then reinstalled with `wscript.exe` and `scripts/start-local-demo.vbs` as a windowless host. PowerShell and child services remain hidden; the existing logon/retry triggers and single-instance policy are retained.
+
+The supervisor now preserves an unreadable diagnostic file under an ignored `.local/runtime/*.invalid-*` name and recovers without trusting old process IDs. Existing executable/launch-marker and occupied-port checks still apply. The repaired supervisor reported `ready` with zero app restarts; this is operational recovery evidence, not a full reboot or participant acceptance test. Care databases, credentials and public-ingress settings were not changed by the launcher repair.

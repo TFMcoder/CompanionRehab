@@ -8,7 +8,7 @@ import type { LocalSpeech } from './local-speech.js';
 import { uuid } from '../shared/contracts.js';
 import { MealGroceryService } from './meal-grocery.js';
 import { mealGroceryCommandSchema } from '../shared/meal-grocery-contracts.js';
-import { LocalDayService } from './local-day.js';
+import { LocalDayService, type LocalDayOptions } from './local-day.js';
 import { localDayCommandSchema } from '../shared/local-day-contracts.js';
 import { ProgramService } from './programs.js';
 import { programCommandSchema } from '../shared/program-contracts.js';
@@ -22,7 +22,7 @@ import { OperationsService } from './operations.js';
 import { operationsCommandSchema, operationsQuerySchema } from '../shared/operations-contracts.js';
 import { randomUUID } from 'node:crypto';
 
-export function createLocalFeatures(pool:Pool) {return {meals:new MealGroceryService(pool),day:new LocalDayService(pool),programs:new ProgramService(pool),support:new SupportTeamService(pool),progress:new ProgressService(pool),operations:new OperationsService(pool),
+export function createLocalFeatures(pool:Pool,options:LocalDayOptions={}) {return {meals:new MealGroceryService(pool),day:new LocalDayService(pool,()=>new Date(),options),programs:new ProgramService(pool),support:new SupportTeamService(pool),progress:new ProgressService(pool),operations:new OperationsService(pool),
  authorityRevision:async(session:Session)=>{
   const ctx=await localAuthority(pool,session,new Date());
   const revisions=await pool.query(`select 'groceries' as source,revision from companion_local.grocery_shares where participant_id=$1 and actor_id=$2 and role=$3
@@ -34,8 +34,9 @@ export function createLocalFeatures(pool:Pool) {return {meals:new MealGrocerySer
  }};}
 export type LocalFeatures=ReturnType<typeof createLocalFeatures>;
 /** Registered after the application's common session/origin hooks. Services recheck durable authority. */
-export function registerLocalFeatures(app:FastifyInstance,options:{features?:LocalFeatures;sessions:WeakMap<FastifyRequest,Session>;care:CareService;speech?:LocalSpeech;voiceOwner?:string;limit:(request:FastifyRequest,key:string,max:number)=>void}) {
+export function registerLocalFeatures(app:FastifyInstance,options:{features?:LocalFeatures;sessions:WeakMap<FastifyRequest,Session>;care:CareService;speech?:LocalSpeech;voiceOwner?:string;voiceAccess?:(session:Session)=>Promise<string|null>;limit:(request:FastifyRequest,key:string,max:number)=>void}) {
  const {features,sessions,care,speech,voiceOwner,limit}=options;
+ const voiceAccess=options.voiceAccess??(async(s:Session)=>s.user_id===voiceOwner?'owner:'+s.user_id:null);
  const get=()=>{if(!features)throw new ApiError(503,'local_features_unavailable','This feature is not available on this care connection.');return features;};
  const session=(r:FastifyRequest)=>sessions.get(r)!;
  const key=(r:FastifyRequest)=>uuid.parse((r.params as {key:string}).key);
@@ -61,27 +62,32 @@ export function registerLocalFeatures(app:FastifyInstance,options:{features?:Loc
  app.post('/api/operations/commands',r=>{write(r);return get().operations.command(session(r),operationsCommandSchema.parse(r.body));});
  app.get('/api/operations/receipts/:key',r=>receipt(get().operations.receipt(session(r),key(r))));
  app.post('/api/prompts/claim',r=>{z.object({}).strict().parse(r.body);limit(r,`prompt-claim:${session(r).session_id}`,12);return get().day.claimPrompt(session(r));});
+ app.get('/api/prompts/resume',r=>get().day.resumePrompt(session(r)));
+ app.get('/api/prompts/:id/current',async r=>({current:await get().day.currentPrompt(session(r),uuid.parse((r.params as {id:string}).id))}));
  const claim=z.object({claim_token:uuid}).strict();
  app.post('/api/prompts/:id/ack',r=>{write(r);const input=claim.extend({channel:z.enum(['in_app','speech','notification'])}).parse(r.body);return get().day.acknowledgePrompt(session(r),uuid.parse((r.params as {id:string}).id),input.claim_token,input.channel);});
  app.post('/api/prompts/:id/speech',async(r,reply)=>{
   const input=claim.parse(r.body),id=uuid.parse((r.params as {id:string}).id),s=session(r);write(r);
-  if(!speech||s.user_id!==voiceOwner)throw new ApiError(403,'voice_unavailable','Spoken reminders are not enabled for this account.');
+  const voiceBinding=await voiceAccess(s);
+  if(!speech||!voiceBinding)throw new ApiError(403,'voice_unavailable','Spoken reminders are not enabled for this account.');
   const text=await get().day.beginPromptSpeech(s,id,input.claim_token),controller=new AbortController();
   reply.raw.once('close',()=>{if(!reply.raw.writableFinished)controller.abort();});
   const audio=await speech.synthesize(text,controller.signal);
   // A preference, login or grant revocation while Heart was speaking invalidates delivery.
   await get().day.promptText(s,id,input.claim_token);
+  if(await voiceAccess(s)!==voiceBinding)throw new ApiError(403,'voice_unavailable','The voice connection changed. Review the reminder on screen.');
   return reply.type('audio/wav').send(audio);
  });
  const wakeBindings=new Map<string,{scope:string;sessionId:string;expires:number}>(),wakeBusy=new Set<string>();
  const purgeWakeBindings=()=>{for(const [token,entry] of wakeBindings)if(entry.expires<=Date.now())wakeBindings.delete(token);};
  const wakeScope=async(s:Session)=>{
-  if(!speech||s.user_id!==voiceOwner||speech.readiness().asr!=='ready'||!care.authority)
+  const voiceBinding=await voiceAccess(s);
+  if(!speech||!voiceBinding||speech.readiness().asr!=='ready'||!care.authority)
    throw new ApiError(403,'voice_unavailable','The foreground listener is not available for this account.');
   const authority=await care.authority(s);
   if(!['client','administrator','family_friend'].includes(authority.active_role))
    throw new ApiError(403,'forbidden','The foreground listener is not available in this role.');
-  return JSON.stringify(authority);
+  return JSON.stringify([authority,voiceBinding]);
  };
  app.post('/api/wake/consent',r=>{
   z.object({enabled:z.literal(true)}).strict().parse(r.body);
@@ -112,7 +118,7 @@ export function registerLocalFeatures(app:FastifyInstance,options:{features?:Loc
   const controller=new AbortController();wakeBusy.add(s.session_id);reply.raw.once('close',()=>{if(!reply.raw.writableFinished)controller.abort();});
   try {const transcript=await speech!.transcribe(parsed.audio,controller.signal);
    if(wakeBindings.get(parsed.consentToken)!==binding)throw new ApiError(403,'consent_revoked','The foreground listener was stopped.');
-   if(JSON.stringify(await care.authority!(s))!==scope)throw new ApiError(403,'scope_changed','Your access changed. Enable the listener again.');
+   if(await wakeScope(s)!==scope)throw new ApiError(403,'scope_changed','Your access changed. Enable the listener again.');
    const detected=isHeyNancyPhrase(transcript);if(detected)wakeBindings.delete(parsed.consentToken);
    return {detected};
   }finally{wakeBusy.delete(s.session_id);parsed.audio.fill(0);}

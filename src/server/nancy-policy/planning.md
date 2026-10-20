@@ -1,0 +1,5 @@
+# Nancy skill: planning v1
+
+Day planning works at any hour. Use the current temporal phase and actual reports; skip completed morning steps and simplify a late start without compressing missed work. Ask what matters and about client-stated readiness. Discuss breakfast, planning and existing approved exercise/rehab when relevant; do not invent routines.
+
+Propose or revise using exact existing task and meal-option IDs. Ask meal preferences first. Compare known duration with appointments and the soft finish target; preparation, travel and rest may be unknown. A proposal is not accepted until the application reads it back and obtains confirmation; do not make another review call after proposing. Meal-option acceptance does not mean the meal was eaten. For saved meal proposals, pantry, repeat choices or unfinished work, read a local workflow only when its facts are missing. Review carryover without declaring missing completion a failure. Dinner preparation is a planning checkpoint, not an instruction to eat immediately.

@@ -1,6 +1,6 @@
 # Human actions by implementation stage
 
-Updated: 2026-10-13. Generated from the canonical roadmap; all statuses below come from that file.
+Updated: 2026-10-19. Generated from the canonical roadmap; all statuses below come from that file.
 
 Source: [roadmap.json](roadmap/roadmap.json), in each slice's human_actions array. Edit the JSON, then run the renderer; do not maintain a separate checklist here. See [ROADMAP.md](ROADMAP.md) for feature scope and live tests.
 
@@ -64,7 +64,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Agent prepares or handles:** Prepare and test the HTTPS page for iPhone/Safari; separately qualify Safari tab and Home Screen web-app audio/lifecycle behavior before relying on either. Configure and debug microphone/audio code; provide short test prompts.
 
-  **Completion evidence:** Device/browser and actual microphone plus audible observations, first for the sample device preview and then linked to the integrated S01 live evidence. A desktop phone-sized viewport, generated audio or dictated-text mock is insufficient. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. The owner subsequently accepted the faster response for advancing the MVP, while general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required.
+  **Completion evidence:** Device/browser and actual microphone plus audible observations, first for the sample device preview and then linked to the integrated S01 live evidence. A desktop phone-sized viewport, generated audio or dictated-text mock is insufficient. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. The owner subsequently accepted the faster response for advancing the MVP, while general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required. October 19 client simplification is desktop-browser and engineering-qualified only; actual intended-person/iPhone/Safari acceptance remains awaiting_live_test while the intended client is unavailable. See docs/evidence/CLIENT-INTERFACE-2026-10-19.json. October 19 owner comparison is complete: Current with its top Talk banner is selected and locked; Focus review is disabled. Remaining actual-device sessions qualify the selected Current conversation, including voice state and stopping/recovery. The source/build/desktop restore checks in docs/evidence/FOCUS-UI-2026-10-19.json do not complete this human gate.
 
   **Linked inputs/tests:** I-DEVICE, S01-LIVE1, S01-LIVE2.
 
@@ -83,9 +83,9 @@ Routine coding, technical service configuration, database work, synthetic tests 
   - Temporary public exposure of the password-protected sample-data My Day app is explicitly owner-approved on 2026-10-05. The HTTPS practice route is verified; do not ask for this same approval again. This does not approve real care-data use, a paid service or another participant account binding.
   - For your own intended reasoning use, complete only missing personal sign-in/consent and confirm who controls the proposed runtime and token storage. Do not lend the owner subscription or credentials to other clients/family members.
 
-  **Agent prepares or handles:** First prepare and qualify the lowest-cost supported ChatGPT-plan adapter for exact gpt-6-sol high, with app-specific auth, allowance/error handling and actual completed inference evidence. Preserve independent care-service authorization and user/account boundaries. Qualify speech input/output independently; disclose any new costs before a paid step. Do not claim a tunnel or subscription text call proves voice support. Configure local database/auth, shared care commands and My Day HTTPS. Add local MCP or Secure MCP Tunnel only for a concrete supported caller; preserve per-client grants and test revocation. Reuse docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json and the saved key. Prepare a concrete fallback proposal if needed; no repeated sign-in, key setup or funding requests without a remaining technical need. Prepare the actor/account/runtime eligibility assessment and concrete binding/storage design first; test isolation, renewal, revocation and allowance failure. Continue reversible UI/database/server work while intended-user access is pending.
+  **Agent prepares or handles:** First prepare and qualify the lowest-cost supported ChatGPT-plan adapter for exact gpt-6-sol high, with app-specific auth, allowance/error handling and actual completed inference evidence. Preserve independent care-service authorization and user/account boundaries. Qualify speech input/output independently; disclose any new costs before a paid step. Do not claim a tunnel or subscription text call proves voice support. Configure local database/auth, shared care commands and My Day HTTPS. Add local MCP or Secure MCP Tunnel only for a concrete supported caller; preserve per-client grants and test revocation. Reuse docs/evidence/S01-OPENAI-CONNECTION-2026-10-04.json and the saved key. Prepare a concrete fallback proposal if needed; no repeated sign-in, key setup or funding requests without a remaining technical need. Prepare the actor/account/runtime eligibility assessment and concrete binding/storage design first; test isolation, renewal, revocation and allowance failure. Continue reversible UI/database/server work while intended-user access is pending. Use the prepared distinct-client provisioning flow only after the real identity/participant linkage is verified; preserve existing records and historical actors, and qualify the intended-client inference binding without sharing the owner Pro route.
 
-  **Completion evidence:** Owner app-specific OAuth consent and exact Sol-high inference remain evidenced by the October 4 connection record. docs/evidence/S01-MY-DAY-2026-10-05.json adds actual owner-bound authorized care planning, local PostgreSQL/auth, encrypted disposable restore, Heart and ASR integration using synthetic records. Completion still needs intended-user/deployment eligibility, remaining live credential lifecycle/allowance checks, the actual device conversation and HTTPS route. The owner subsequently approved the new authenticated sample-data test tunnel; docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json records successful HTTPS sign-in, access denial, session revocation and Heart audio delivery. Actual iPhone acceptance and stable deployment remain open. Credentials and private evidence remain local; S01-H02 and both full live gates remain incomplete. Required intended-route evidence also identifies runtime control, local token custody and per-user usage isolation; separate logins are not sufficient. October 13 local demo startup/recovery is verified; the persistent Tailscale destination is explicitly owner-approved; provider sign-in, activation and actual public HTTPS verification remain pending in docs/evidence/DEMO-HOSTING-2026-10-13.json. Existing intended-user/account gates remain unchanged. October 13 completion update: specific persistent HTTPS approval, Tailscale provider sign-in and public verification are complete (19 public checks plus 16 speech/nutrition/logging checks). The preceding pending HTTPS statements are historical. Do not repeat approval or sign-in unless actual account state requires it. Intended-user/account eligibility and remaining live gates still keep this human action in progress.
+  **Completion evidence:** Owner app-specific OAuth consent and exact Sol-high inference remain evidenced by the October 4 connection record. docs/evidence/S01-MY-DAY-2026-10-05.json adds actual owner-bound authorized care planning, local PostgreSQL/auth, encrypted disposable restore, Heart and ASR integration using synthetic records. Completion still needs intended-user/deployment eligibility, remaining live credential lifecycle/allowance checks, the actual device conversation and HTTPS route. The owner subsequently approved the new authenticated sample-data test tunnel; docs/evidence/S01-MY-DAY-HTTPS-2026-10-05.json records successful HTTPS sign-in, access denial, session revocation and Heart audio delivery. Actual iPhone acceptance and stable deployment remain open. Credentials and private evidence remain local; S01-H02 and both full live gates remain incomplete. Required intended-route evidence also identifies runtime control, local token custody and per-user usage isolation; separate logins are not sufficient. October 13 local demo startup/recovery is verified; the persistent Tailscale destination is explicitly owner-approved; provider sign-in, activation and actual public HTTPS verification remain pending in docs/evidence/DEMO-HOSTING-2026-10-13.json. Existing intended-user/account gates remain unchanged. October 13 completion update: specific persistent HTTPS approval, Tailscale provider sign-in and public verification are complete (19 public checks plus 16 speech/nutrition/logging checks). The preceding pending HTTPS statements are historical. Do not repeat approval or sign-in unless actual account state requires it. Intended-user/account eligibility and remaining live gates still keep this human action in progress. October 18: independent engineering gap repairs, actual disposable PostgreSQL/HTTP and desktop-browser recovery/reminder checks, and code-only HTTPS deployment are recorded in docs/evidence/DAILY-LOOP-GAPS-2026-10-18.json. Intended-person/device/genuine-day requirements remain open; no human action is completed from synthetic evidence. October 18 personal-connection request: docs/PERSONAL_REASONING_CONNECTION.md prepares the deployment assessment and activation contract; 37 synthetic checks pass in docs/evidence/PERSONAL-REASONING-PREFLIGHT-2026-10-18.json. Owner follow-up: the personal plan is not available yet and migration is for later. Retain current local hosting and defer immediate personal sign-in/purchase/migration; account entitlement and runtime/token control still need qualification when resumed. Human action and intended-user route remain in progress/unqualified. Subsequent clarification: intended-client voice is wanted now on the current host, before later migration. The existing-project API proposal and illustrative cost are prepared in docs/PERSONAL_REASONING_CONNECTION.md. Current funded inference, route/budget approval and actual-device acceptance remain unverified; migration does not block independent preparation. Latest owner preference retains no API billing. Directly verified SIWC sections 2 and 4 explain why temporary owner-plan use cannot qualify the client. Personal entitlement/runtime or separately provider-authorized alternatives remain open; no exception, account purchase or new route is assumed. Final caregiver continuation: explicit informed owner approval and the permitted resubmitted review cover this exact route. docs/evidence/CAREGIVER-VOICE-2026-10-18.json records 900 regression passes (one optional skip), one completed real Sol/high request within 16 actual service checks, exact activation, 7 HTTPS checks and enabled Talk in the existing authenticated client browser. Reuse completed action approval; remaining provider-contract, credential lifecycle, person/device and full-slice requirements keep this action in progress.
 
   **Linked inputs/tests:** I-ACCOUNTS, I-DOMAIN, I-MODEL, S01-LIVE1, S01-LIVE2.
 
@@ -116,15 +116,16 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Tap Talk to Nancy during the 08:00-11:00 local morning routine; answer the open question or redirect the suggestion, discuss today’s actual tasks and meals and explicitly accept the reviewed day plan. No prior workflow screen is required.
+  - Use Talk to Nancy during a genuine preferred or delayed morning; answer or redirect, discuss actual tasks/meals and explicitly accept the reviewed plan. No prior workflow screen, exact time or mandatory questionnaire is required.
   - Complete the supported planning flow by voice, then independently open My Day/tasks/meals through buttons and verify matching records. Check that switching views does not discard the active conversation.
-  - Try Lets Plan the Day/Today within the 08:00-11:00 window, review one upcoming local appointment, multiple meal options and a missing-ingredient grocery capture; compare the suggested task duration, urgency and calendar placement with what is practical.
+  - Try Lets Plan the Day/Today during the preferred or delayed morning; review genuine available appointments, meals and missing ingredients, and compare task duration, urgency and placement with what is practical. The agent covers absent branches using disposable records.
+  - Confirm one genuine lasting preference through the prepared short review and check it in a later session; distinguish it from a one-day choice. Report perceived response delay while the agent measures stages.
 
   **Agent prepares or handles:** Prepare the working combined voice/task/meal feature before asking for a session. Verify committed plan versions, permissions, duplicate/stale protection and restore behavior; collect sanitized technical observations.
 
   **Completion evidence:** Observed actual two-way voice, accepted plan and revision/readback evidence on the intended device; do not substitute a dictated-text mock.
 
-  **Linked inputs/tests:** S01-LIVE1.
+  **Linked inputs/tests:** S01-LIVE1, S01-LIVE3.
 
 - [x] **S01-H05: Clarify currency before paid spending**
 
@@ -156,8 +157,8 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Provide genuine tasks with urgency and scheduled date/time where known, available/preferred meals, known restrictions and who maintains these choices. Meals appear as tasks. The morning categories are already supplied: breakfast, day planning, post-breakfast exercise and rehab between 08:00 and 11:00. Request only the actual task details and existing approved exercise/rehab routine needed for the live trial; do not ask the owner to decide this UX again.
-  - Confirm or correct the participant's time zone once; 10:00 refers to that local zone. Reuse choices and decisions already supplied.
+  - Provide only missing genuine task details, meal choices, known restrictions and existing approved exercise/rehab content. Reuse supplied choices. The agreed preferred/delayed morning and later daily rhythm are recorded in product_contract.daily_companion; do not ask the owner to decide this UX again.
+  - Confirm or correct the participant time zone once and reuse it; there is no fixed 10:00 check-in requirement.
   - Provide known pantry ingredients, portion preferences and a small genuine local appointment where available; S01 can use manual entry without external calendar OAuth.
 
   **Agent prepares or handles:** Prepare minimal setup forms and a concrete task/meal proposal; do not require an administrator dashboard. Record private input references and configure ownership, options and local-time behavior.
@@ -197,11 +198,11 @@ Routine coding, technical service configuration, database work, synthetic tests 
   **Human action:**
 
   - Voice selection is complete: the owner chose Kokoro Heart (af_heart) and closed comparison. When the integrated conversation is ready, check audible delivery and usability on iPhone/Safari; no further audition or preferred-voice decision is required.
-  - Decide whether to enable foreground Hey Nancy while My Day is open after seeing the microphone indicator, stop control and disclosed processing location.
+  - If foreground Hey Nancy is offered again, decide whether to opt in only after its processing location, microphone state and stop control are explained. The October 19 simplified client removes its control and never enables it implicitly; do not request this decision while no reviewed voice-first opt-in is available.
 
   **Agent prepares or handles:** Integrate the selected Heart voice with warm local synthesis, coherent sentence delivery, cancellation and the Sol-high/care-command flow. Finish the working day-planning and nutrition conversation before asking for its actual-device trial. Archive alternative-model experiments; do not extend the voice search. Save only the selected preference and consent state; keep raw samples/audio private or synthetic.
 
-  **Completion evidence:** Owner Heart-selection decision is recorded at docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart. Remaining evidence: actual-device conversation delivery and foreground-wake consent references; neither is a new voice-choice gate. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. The owner subsequently accepted the faster response for advancing the MVP, while general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required.
+  **Completion evidence:** Owner Heart-selection decision is recorded at docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart. Remaining evidence: actual-device conversation delivery and foreground-wake consent references; neither is a new voice-choice gate. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. The owner subsequently accepted the faster response for advancing the MVP, while general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required. The October 19 client simplification removes the foreground wake control; no new wake consent or activation is inferred. Current voice-only interface acceptance remains awaiting_live_test. See docs/evidence/CLIENT-INTERFACE-2026-10-19.json.
 
   **Linked inputs/tests:** I-VOICE-CHOICE, I-WAKE-CONSENT, S01-LIVE1, S01-LIVE2.
 
@@ -221,7 +222,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Agent prepares or handles:** Prepare working voice/touch reporting and a short trial flow covering task, meal and appointment actuals. Run duplicate, unknown-target, stale-device, correction/void, reschedule and unauthorized-access checks with disposable records.
 
-  **Completion evidence:** Observed genuine-day reports and pending/current-next behavior linked to database readback; branches that did not naturally occur are explicitly identified as disposable-only evidence.
+  **Completion evidence:** Observed genuine-day reports and pending/current-next behavior linked to database readback; branches that did not naturally occur are explicitly identified as disposable-only evidence. October 18: independent engineering gap repairs, actual disposable PostgreSQL/HTTP and desktop-browser recovery/reminder checks, and code-only HTTPS deployment are recorded in docs/evidence/DAILY-LOOP-GAPS-2026-10-18.json. Intended-person/device/genuine-day requirements remain open; no human action is completed from synthetic evidence.
 
   **Linked inputs/tests:** S02-LIVE1.
 
@@ -237,12 +238,13 @@ Routine coding, technical service configuration, database work, synthetic tests 
   - Compare Nancy's ledger and summary with what actually happened and identify any mistaken report.
   - Ask a normal meal or nutrition question and confirm that repository reference guidance is clearly limited and respects the participant's preferences and safety.
   - Correct a real mistake if one exists; otherwise the agent exercises correction and void behavior on disposable records.
+  - Check that suggestions reflect the time and kind of genuinely reported food; do not alter eating or invent gaps for testing. The agent covers missing/corrected/late-report branches with disposable records as needed.
 
   **Agent prepares or handles:** Reconcile reports, effective reschedules, correction history, nutrition provenance and plan versions; the human need not do database checks. Collect concise usability observations and keep detailed evidence private.
 
   **Completion evidence:** Participant observations of the factual readback, pending suggestions, clean UI and bounded nutrition response; corrections are evidenced honestly in the appropriate live lane.
 
-  **Linked inputs/tests:** S02-LIVE1, S02-LIVE2.
+  **Linked inputs/tests:** S02-LIVE1, S02-LIVE2, S02-LIVE3.
 
 ## S03: Resume check-ins and tracking after interruptions
 
@@ -260,7 +262,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Agent prepares or handles:** Prepare disposable live records and a step-by-step test before asking. Stop/restart only task-owned services, inspect queued commands and verify recovery; avoid disrupting unrelated work.
 
-  **Completion evidence:** Observed actual-device interruption, reconnect and fallback observations linked to S03 live evidence.
+  **Completion evidence:** Observed actual-device interruption, reconnect and fallback observations linked to S03 live evidence. October 18: independent engineering gap repairs, actual disposable PostgreSQL/HTTP and desktop-browser recovery/reminder checks, and code-only HTTPS deployment are recorded in docs/evidence/DAILY-LOOP-GAPS-2026-10-18.json. Intended-person/device/genuine-day requirements remain open; no human action is completed from synthetic evidence.
 
   **Linked inputs/tests:** S03-LIVE1, S03-LIVE2.
 
@@ -311,9 +313,11 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Return at the intended 10:00 routine, review actual prior-day history and explicitly choose today's tasks/meals.
+  - Return across three genuine local dates, preferably in the agreed morning or delayed window, review actual history and explicitly choose today's tasks/meals. No exact-time attendance is required.
   - Review genuine unfinished work or an explicit choice not to carry it, reopen a same-day session, and report usefulness or friction. Use existing genuine history where suitable.
   - During the genuine multi-day trial, opt into a limited reminder window if comfortable and observe one real meal or appointment prompt; review the visible reminder/notification behavior and whether timing helps.
+  - Check remembered preferences and relevant carryover; review a significant-event handoff only if one naturally exists. Never manufacture an injury or other incident.
+  - When comfortable with opt-in, observe a useful food-related prompt and then a focus check during a real task at an agreed interval; report whether either interrupted unnecessarily. Do not deliberately skip food or work four hours for a test.
 
   **Agent prepares or handles:** Prepare the complete working loop and independently verify one check-in per local day, plan versions and report history. Exercise synthetic DST/midnight cases and disposable service scenarios separately; never manufacture elapsed days or real-life activity.
 
@@ -330,14 +334,14 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Choose meal/appointment prompt opt-in, quiet hours, preferred audible/notification mode and notification permission on the actual device; keep the microphone off until a separate user action.
+  - Choose which prepared food/appointment/focus prompts to enable, waking/quiet hours, an individual focus interval, preferred supported delivery and actual-device notification permission. Quiet preparation is separate and never starts the microphone or authorizes outreach.
   - Observe or report one actual scheduled prompt and whether its timing/content was helpful.
 
-  **Agent prepares or handles:** Prepare the precise due-time and consent UI, durable scheduler and permission fallback. Test duplicate, restart, missed-run, changed-schedule and closed-browser cases using disposable records before the genuine prompt.
+  **Agent prepares or handles:** Prepare the concise consent controls, existing scheduler extension and durable snooze/decline with truthful active-page fallback; qualify broader delivery separately. Test duplicate, restart, missed-run, changed-schedule and closed-browser cases using disposable records before the genuine prompt.
 
-  **Completion evidence:** Private consent/preference reference and observed actual prompt or explicit declined permission, with disposable service evidence for denied/closed paths.
+  **Completion evidence:** Private consent/preference reference and observed actual prompt or explicit declined permission, with disposable service evidence for denied/closed paths. October 18: independent engineering gap repairs, actual disposable PostgreSQL/HTTP and desktop-browser recovery/reminder checks, and code-only HTTPS deployment are recorded in docs/evidence/DAILY-LOOP-GAPS-2026-10-18.json. Intended-person/device/genuine-day requirements remain open; no human action is completed from synthetic evidence.
 
-  **Linked inputs/tests:** I-REMINDER-PREF, S04-LIVE1, S04-LIVE2.
+  **Linked inputs/tests:** I-REMINDER-PREF, S04-LIVE1, S04-LIVE2, S04-LIVE3.
 
 ## S05: Build and use groceries from the meal plan
 
@@ -424,14 +428,14 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Human action:**
 
-  - Identify the intended account/calendar/mailbox privately and obtain the company IT registration, consent, Conditional Access and AI/local-data-use decisions in docs/MICROSOFT365_IT_CHECKLIST.md. Microsoft 365 work/school and read/write scope are already decided. Rob's existing Microsoft account is the sole intended connected identity. The owner reported Microsoft access available on October 13; Rob-account sign-in, delegated consent and approved resources still require verification using that access. IT uses its existing administrative access; no new Microsoft account is requested.
+  - Identify the intended account/calendar/mailbox privately and confirm consent, Conditional Access and local/AI-data-use decisions in docs/MICROSOFT365_IT_CHECKLIST.md. Microsoft 365 work/school, read/write scope and the intended client's existing account are decided. IT confirmed the technical lead's Cloud Application Administrator assignment October 15; do not request it again. the intended client-account sign-in, delegated consent and approved resources remain separate.
   - Complete the prepared sign-in/MFA and delegated consent when required; identify approved test resources/recipients and review a genuine low-stakes mail/calendar action after the disposable safety checks.
 
   **Agent prepares or handles:** Verify the existing app registration and newly reported Microsoft access first. Prepare the exact Web callback on the established HTTPS origin, protected credential setup and delegated scopes; reuse prior decisions and request only missing tenant decisions or interactive personal sign-in. No new subscription is assumed. Build bounded retrieval and reviewed external action commands, ledger/provider mappings, renewal/revocation and reconciliation; test safe failure and duplicate prevention on isolated/provider test records before the genuine trial.
 
-  **Completion evidence:** Private tenant/account/resource consent, data-use and callback/credential custody references plus observed genuine authorized mail/calendar read/write outcomes; public summaries contain no messages, care details or credentials.
+  **Completion evidence:** Reuse completed exact-account setup, sole-user assignment, assignment requirement, seven-scope consent and client OAuth. The October 19 owner-authorized selected-resource reasoning use and exact disposable email/15-minute invitation tests are deployed and provider-verified; receipts persist and Nancy retrieves the live event time. See docs/evidence/OUTLOOK-CONVERSATIONS-2026-10-19.json. No repeated sign-in, password, IT role or access decision is needed. Genuine intended-person/device/workflow acceptance, broader edits/cancellation and real revocation/disconnect recovery remain open; this action stays in_progress.
 
-  **Linked inputs/tests:** I-CALENDAR-EXTERNAL, S06-LIVE3, S06-LIVE4, S06-LIVE5.
+  **Linked inputs/tests:** I-CALENDAR-EXTERNAL, S06-LIVE3, S06-LIVE4, S06-LIVE5, S06-LIVE6.
 
 ## S07: Follow Morning Boot one step at a time
 

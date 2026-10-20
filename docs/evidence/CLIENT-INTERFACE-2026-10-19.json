@@ -1,0 +1,125 @@
+{
+  "evidence_id": "CLIENT-INTERFACE-2026-10-19",
+  "observed_at": "2026-10-19T22:10:33.649Z",
+  "status": "deployed_engineering_qualified",
+  "intended_person_device_acceptance": "awaiting_live_test",
+  "implementation_revision": "sha256:a593770edaa6822848a097cc427962ebcd79ab301cae0702215aca63c4c52c34",
+  "source_manifest": {
+    "runtime_revision": "sha256:a593770edaa6822848a097cc427962ebcd79ab301cae0702215aca63c4c52c34",
+    "runtime_files": 142,
+    "all_source_revision": "sha256:2c78a7f32279c7baad2243b6395b42c2e03c339a29f8c62fb60302d7e521c2fb",
+    "all_source_files": 307,
+    "private_reference": ".local/probes/client-cleanup-source-manifest.json",
+    "method": "SHA-256 of sorted repository path, NUL, file bytes, NUL; runtime includes all src/db and package/build/test config; all_source also includes all scripts/tests. Private files and documentation are excluded."
+  },
+  "authorization": {
+    "owner_requested_exact_five_client_tabs": true,
+    "manual_client_entry_removed": true,
+    "staff_setup_remains_separate": true,
+    "existing_microsoft_and_caregiver_authorization_preserved": true,
+    "new_credentials_permissions_model_or_api_billing": false
+  },
+  "implemented": {
+    "client_tabs": [
+      "Tasks",
+      "Meals",
+      "Groceries",
+      "Progress",
+      "Ask for Help"
+    ],
+    "primary_entry": "Talk to Nancy remains available across views, with one continuing conversation.",
+    "homepage": "Read-only participant-local timeline, timed tasks/meals/local appointments and selected Outlook calendar events; untimed entries separate; source, cancellation and freshness/failure retained.",
+    "removed": [
+      "More and extra client tabs/settings",
+      "subscription attribution and usage link",
+      "wake/off-state explanatory text and wake control",
+      "manual client care forms and typed conversation",
+      "Add appointment",
+      "Edit choices",
+      "redundant See tasks/See meals links"
+    ],
+    "faq": "Ways to use Nancy opens eight short expandable answers without starting a microphone.",
+    "suggestions": "Top button opens a voice feedback entry. Exact completed spoken review followed immediately by save this suggestion; separate actor-bound event and idempotent receipt, unknown-save reconciliation, scoped administrator read, no outbound notification.",
+    "help": "Explicit focused voice start; opening the page alone neither starts a microphone nor contacts another person.",
+    "voice_capability_repairs": [
+      "add ordinary task choice without accepting a plan or reporting completion",
+      "add local appointment without sending a provider invitation"
+    ],
+    "existing_boundary": "Existing server permissions, client-only approval, reviewed Outlook writes and exact caregiver/account binding remain. Removed settings destinations cannot reopen through client voice navigation."
+  },
+  "automated_checks": {
+    "typecheck": "passed",
+    "isolated_production_build": "passed",
+    "client_bundle": "app-aAOMdFqm.js",
+    "full_suite": {
+      "passed": 938,
+      "failed": 0,
+      "optional_skips": 1,
+      "files": 103,
+      "private_reference": ".local/probes/client-cleanup-final-full-suite.json"
+    },
+    "final_focused": {
+      "passed": 42,
+      "failed": 0,
+      "files": 4,
+      "private_reference": ".local/probes/client-cleanup-final-focused.json"
+    },
+    "actual_postgresql": {
+      "passed": 43,
+      "failed": 0,
+      "disposable_database_removed": true,
+      "provider_calls": 0,
+      "private_reference": ".local/probes/client-cleanup-postgres.json"
+    },
+    "retired_obsolete_manual_ui_assertions": {
+      "blocks": 34,
+      "reason": "Owner explicitly removed the tested manual client forms and settings screens. Their obsolete UI assertions are replaced by the new five-tab/read-only/voice tests; underlying server authorization, ledger, command/receipt and staff-form tests remain.",
+      "private_reference": ".local/probes/client-ui-retired-tests.json"
+    }
+  },
+  "deployment": {
+    "passed": true,
+    "checks": {
+      "configured": true,
+      "local_transport": true,
+      "new_client_bundle": true,
+      "anonymous_suggestions_denied": true,
+      "anonymous_calendar_denied": true,
+      "original_supervisor_retained": true,
+      "app_restart_verified": true,
+      "account_credentials_and_configuration_preserved": true,
+      "schema_unchanged": true
+    },
+    "private_reference": ".local/probes/client-cleanup-deployment.json",
+    "new_migration": false,
+    "api_billing_enabled": false
+  },
+  "deployed_browser_review": {
+    "authenticated_existing_client_session": true,
+    "all_five_tabs_opened": true,
+    "faq_opened_and_answer_expanded": true,
+    "suggestions_page_opened": true,
+    "manual_inputs_and_dropdowns_absent": true,
+    "removed_links_absent": true,
+    "existing_selected_outlook_test_event_in_timeline": true,
+    "talk_ready_after_speech_warmup": true,
+    "microphone_activated": false,
+    "conversation_or_provider_mutation_submitted": false,
+    "returned_to_homepage_for_owner_review": true,
+    "private_screenshot": ".local/probes/client-interface-home-2026-10-19.png"
+  },
+  "preservation": {
+    "care_tables_checked": 9,
+    "care_table_rows_and_hashes_unchanged": true,
+    "private_before_reference": ".local/probes/client-cleanup-care-before.json",
+    "private_after_reference": ".local/probes/client-cleanup-care-after.json",
+    "account_configuration_credentials_and_bindings_unchanged": true
+  },
+  "limitations": [
+    "the intended client was unavailable; no actual-person microphone/audible/physical-device acceptance is claimed.",
+    "Current foreground wake control is removed from the simplified client; it is not implicitly enabled. Future opt-in access needs a reviewed voice-first design.",
+    "Full S01-S04/S06, genuine-day usefulness, remaining provider recovery and human gates remain open.",
+    "Engineering tests use synthetic fixtures; browser read verification does not establish new real voice-write acceptance.",
+    "Earlier authorized test email/invitation were not repeated."
+  ]
+}

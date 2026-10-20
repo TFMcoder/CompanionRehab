@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { Pool, PoolClient } from 'pg';
+import {effectiveAppointments} from './effective-schedule.js';
 import { ZodError } from 'zod';
 import { dateInZone } from '../shared/contracts.js';
 import { localDateTimeWithOffset } from '../shared/local-time.js';
@@ -61,8 +62,7 @@ export class ProgramService {
     const end=localDateTimeWithOffset(`${localDate}T${String(version.protected_end).slice(0,5)}`,ctx.zone);
     if(!start.ok) return fail('conflict','The protected window is ambiguous on this day. Review the schedule.');
     if(!end.ok) return fail('conflict','The protected window is ambiguous on this day. Review the schedule.');
-    const rows=(await db.query(`select id,title,starts_at from companion_local.appointments where participant_id=$1 and starts_at >= $2 and starts_at < $3 order by starts_at,id`,
-      [ctx.participant,start.value,end.value])).rows;
+    const rows=await effectiveAppointments(db,ctx.participant,{from:start.value,to:end.value});
     return rows.map(r=>({id:r.id,title:r.title,starts_at:iso(r.starts_at)!}));
   }
   private async checkConflicts(db:LocalDb,ctx:Context,version:any,localDate:string,acknowledged:string[]) {
@@ -95,6 +95,7 @@ export class ProgramService {
     return {id:row.id,definition_id:row.definition_id,version_id:row.version_id,title:row.title,local_date:day(row.local_date),status:row.status,
       revision:row.revision,current_step:blocked||restUntil>this.clock().getTime()?null:next,obsolete:row.current_version!==row.version,results,
       pause_reason:row.pause_reason??null,
+      rest_until:restUntil>this.clock().getTime()?new Date(restUntil).toISOString():null,
       blocked_reason:blocked?`Step ${next!.title} depends on a step that was skipped. Review this run.`
         :restUntil>this.clock().getTime()?`Rest until ${new Date(restUntil).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:zone})}.`:null};
   }

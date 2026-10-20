@@ -80,4 +80,28 @@ describe('bounded local workflows in Nancy voice',()=>{
   const review=await prepareLocalAction(features,session,{family:'programs',command:{type:'start_program',version_id:versionId,local_date:'2026-10-13',acknowledged_conflicts:[appointmentId]}},true,randomUUID());
   expect(review.text).toContain('Synthetic appointment at 2026-10-13T14:30:00Z');
  });
+ it('reads back an exact current reminder response without claiming intake or completion',async()=>{
+  const {features}=make(),promptId=randomUUID();
+  features.day={workspace:vi.fn(async()=>({prompts:[{id:promptId,message:'Have you eaten recently?',response_revision:2,state:'delivered'}]}))} as unknown as LocalFeatures['day'];
+  const command={type:'respond_prompt',prompt_id:promptId,expected_revision:2,decision:'snooze',snooze_minutes:15};
+  const review=await prepareLocalAction(features,session,{family:'day',command},true,randomUUID());
+  expect(review.text).toContain('Snooze for 15 minutes');expect(review.text).toContain('does not record eating or task completion');
+  await expect(prepareLocalAction(features,session,{family:'day',command:{...command,expected_revision:1}},true,randomUUID())).rejects.toMatchObject({status:409});
+  await expect(prepareLocalAction(features,session,{family:'day',command:{...command,decision:'decline'}},true,randomUUID())).rejects.toMatchObject({status:400});
+ });
+ it('reviews explicit focus starts and state changes without treating session finish as completion',async()=>{
+  const {features}=make(),activityId=randomUUID(),focusId=randomUUID(),sourceVersion='a'.repeat(64);
+  const workspace=vi.fn().mockResolvedValue({preferences:{enabled:true},focus:null,focus_options:[{activity_id:activityId,title:'Synthetic sorting',activity_revision:0,source_version:sourceVersion}]});
+  features.day={workspace} as unknown as LocalFeatures['day'];
+  const command={type:'start_task_focus',activity_id:activityId,expected_activity_revision:0,expected_activity_version:sourceVersion,interval_minutes:25};
+  expect((await prepareLocalAction(features,session,{family:'day',command},true,randomUUID())).text).toContain('check-in interval of 25 minutes');
+  await expect(prepareLocalAction(features,session,{family:'day',command:{...command,expected_activity_version:'b'.repeat(64)}},true,randomUUID())).rejects.toMatchObject({status:409});
+  workspace.mockResolvedValue({preferences:{enabled:true},focus:{id:focusId,title:'Synthetic sorting',revision:1,state:'active'}});
+  await expect(prepareLocalAction(features,session,{family:'day',command},true,randomUUID())).rejects.toMatchObject({status:409});
+  expect((await prepareLocalAction(features,session,{family:'day',command:{type:'pause_task_focus',focus_id:focusId,expected_revision:1}},true,randomUUID())).text).toContain('focus reminder will pause');
+  await expect(prepareLocalAction(features,session,{family:'day',command:{type:'resume_task_focus',focus_id:focusId,expected_revision:1,interval_minutes:20}},true,randomUUID())).rejects.toMatchObject({status:409});
+  workspace.mockResolvedValue({preferences:{enabled:true},focus:{id:focusId,title:'Synthetic sorting',revision:2,state:'paused'}});
+  expect((await prepareLocalAction(features,session,{family:'day',command:{type:'resume_task_focus',focus_id:focusId,expected_revision:2,interval_minutes:20}},true,randomUUID())).text).toContain('not uninterrupted work');
+  expect((await prepareLocalAction(features,session,{family:'day',command:{type:'finish_task_focus',focus_id:focusId,expected_revision:2}},true,randomUUID())).text).toContain('does not record the task as completed');
+ });
 });

@@ -1,16 +1,19 @@
 import { createHash } from 'node:crypto';
 import type { CareAuthority } from './care-access.js';
 
-export const NANCY_POLICY_VERSION = 'nancy-2026-10-13-v2';
+export const NANCY_POLICY_VERSION = 'nancy-2026-10-19-v5';
 export interface InferenceScope extends CareAuthority { policy_version: string }
 export interface InferenceBinding extends InferenceScope {
   route_id: string;
   account_binding_id: string;
-  qualification: 'owner_practice' | 'intended_user';
+  qualification: 'owner_practice' | 'intended_user' | 'caregiver_authorized';
+  account_owner_actor_id?: string;
+  authorization_ref?: string;
 }
 export function bindingRef(binding: InferenceBinding): string {
   return 'sha256:' + createHash('sha256').update(JSON.stringify([
     binding.actor_id, binding.login_session_id, binding.active_role, binding.client_id,
     binding.grant_revision, binding.policy_version, binding.route_id, binding.account_binding_id, binding.qualification,
+    binding.account_owner_actor_id, binding.authorization_ref,
   ])).digest('hex');
 }

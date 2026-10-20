@@ -52,16 +52,20 @@ createInterface({input:process.stdin}).on('line', line => {
 
 // Run lifecycle failures in a real Node process, where an unobserved startup
 // rejection terminates the server instead of merely failing a mocked promise.
-async function workerLifecycleProbe(mode: 'initial-failure' | 'failed-restart' | 'recovery' | 'close-starting') {
+async function workerLifecycleProbe(mode: 'initial-failure' | 'failed-restart' | 'recovery' | 'close-starting' | 'retry-initial' | 'retry-restart') {
   const dir = await mkdtemp(resolve(tmpdir(), 'nancy-worker-lifecycle-'));
   dirs.push(dir);
   const worker = resolve(dir, 'worker.mjs'), harness = resolve(dir, 'harness.mjs');
   await writeFile(worker, `import { createInterface } from 'node:readline';
-import { existsSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 const [kind, mode, marker] = process.argv.slice(2);
+const launchMarker = marker + '.' + kind;
+writeFileSync(launchMarker, String(existsSync(launchMarker) ? Number(readFileSync(launchMarker,'utf8')) + 1 : 1));
 if (kind === 'kokoro') {
   if (mode === 'initial-failure' || mode === 'failed-restart' && existsSync(marker)) process.exit(1);
-  writeFileSync(marker, 'started');
+  const attempts = existsSync(marker) ? Number(readFileSync(marker,'utf8')) + 1 : 1;
+  writeFileSync(marker, String(attempts));
+  if (mode === 'retry-initial' && attempts === 1 || mode === 'retry-restart' && attempts === 2) process.exit(1);
 }
 if (mode !== 'close-starting') console.log(JSON.stringify({type:'ready'}));
 createInterface({input:process.stdin}).on('line', line => {
@@ -71,6 +75,7 @@ createInterface({input:process.stdin}).on('line', line => {
 });
 `, 'utf8');
   await writeFile(harness, `import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { LocalSpeech } from ${JSON.stringify(new URL('../src/server/local-speech.ts', import.meta.url).href)};
 const mode = ${JSON.stringify(mode)};
 const spec = kind => ({ executable:process.execPath, args:[${JSON.stringify(worker)},kind,mode,${JSON.stringify(resolve(dir, 'marker'))}], cwd:${JSON.stringify(dir)}, env:process.env });
@@ -88,16 +93,25 @@ try {
   } else if (mode === 'initial-failure') {
     await waitFor(() => speech.readiness().kokoro === 'unavailable');
     await assert.rejects(speech.ready(), /unavailable/);
+  } else if (mode === 'retry-initial') {
+    await waitFor(() => speech.readiness().kokoro === 'unavailable');
+    // Concurrent warmup callers must share one replacement child.
+    await Promise.all([speech.primeNavigation(), speech.primeNavigation(), speech.ready()]);
+    assert.equal((await speech.synthesize('The worker recovered.')).length,46);
   } else {
     await speech.ready();
     await assert.rejects(speech.synthesize('crash'), /unavailable/);
     await waitFor(() => speech.readiness().kokoro === (mode === 'recovery' ? 'ready' : 'unavailable'));
-    if (mode === 'recovery') {
+    if (mode === 'recovery' || mode === 'retry-restart') {
       await speech.ready();
       assert.equal((await speech.synthesize('The worker recovered.')).length, 46);
     } else {
       await assert.rejects(speech.ready(), /unavailable/);
     }
+  }
+  if (mode === 'retry-initial' || mode === 'retry-restart') {
+    assert.equal(Number(readFileSync(${JSON.stringify(resolve(dir, 'marker.asr'))},'utf8')),1);
+    assert.equal(Number(readFileSync(${JSON.stringify(resolve(dir, 'marker.kokoro'))},'utf8')),mode === 'retry-initial' ? 2 : 3);
   }
   console.log(JSON.stringify({mode, survived:true, readiness:speech.readiness()}));
 } finally { await speech.close(); }
@@ -187,6 +201,10 @@ describe('LocalSpeech input bounds and worker lifecycle', () => {
 
   it('recovers a ready worker after failure and accepts a later synthesis request', async () => {
     expect(await workerLifecycleProbe('recovery')).toMatchObject({ survived: true, readiness: { kokoro: 'ready', asr: 'ready' } });
+  });
+
+  it.each(['retry-initial', 'retry-restart'] as const)('relaunches the selected worker after %s without replacing healthy speech', async mode => {
+    expect(await workerLifecycleProbe(mode)).toMatchObject({ survived: true, readiness: { kokoro: 'ready', asr: 'ready' } });
   });
 
   it('suppresses cancelled output and queues one next request behind the still-warm worker', async () => {

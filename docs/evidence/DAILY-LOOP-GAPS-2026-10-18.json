@@ -1,0 +1,163 @@
+{
+  "evidence_id": "DAILY-LOOP-GAPS-2026-10-18",
+  "status": "scoped_engineering_repaired_tested_and_deployed",
+  "observed_at": "2026-10-18T23:18:32.139Z",
+  "implementation_revision": "sha256:e6f0ecc68fd19e223edf23c4286459ea0545110dfb68656f9b616453b73a9795",
+  "authorization": "Owner explicitly requested closing planning, meal reporting, recovery and reminder engineering gaps while Microsoft account recovery is handled separately.",
+  "source_manifest": {
+    "runtime_revision": "sha256:e6f0ecc68fd19e223edf23c4286459ea0545110dfb68656f9b616453b73a9795",
+    "runtime_files": 135,
+    "all_source_revision": "sha256:c549f355e93cf957b9a5a868f5983f24c553b0186388d99730bb087f6687a04a",
+    "all_source_files": 293,
+    "private_reference": ".local/probes/daily-loop-source-manifest.json",
+    "method": "SHA-256 of sorted repository path, NUL, bytes, NUL. Runtime revision covers src/db and package/TypeScript/Vite/Vitest configuration; separate all-source manifest also includes tests/scripts. Docs/private runtime excluded."
+  },
+  "repairs": [
+    "Invalidates delayed reminder work across even a brief conversation or page visibility interruption; rechecks source freshness after audio preparation and falls back to on-screen text.",
+    "Binds recovered commands and receipt reads to the exact server-derived actor/login/client/grants; rechecks after device persistence and inside care transactions, serializes same-key operations and protects retained payload copies.",
+    "Revalidates day/ledger/activity/day-receipt authority before returning late reads.",
+    "Keeps latest actual intake of each known kind in bounded current context when unrelated edits fill recent history across midnight.",
+    "Adds reviewed typed personal full-meal spacing and food-report check intervals, projected from existing versioned care receipts, shared by Nancy/touch/context/scheduler; no database migration or implied prompt consent.",
+    "Names the meal slot in Activity entries, reviews and action labels when foods repeat across breakfast/lunch/dinner.",
+    "Makes isolated HTTP fixtures explicitly disable Microsoft and corrects the PGlite adapter to finish non-default export/restore transactions."
+  ],
+  "verification": {
+    "typecheck": "pass",
+    "production_build": "pass",
+    "client_bundle": "app-D8sclKVi.js",
+    "full_suite": {
+      "passed": 887,
+      "failed": 0,
+      "skipped": 1,
+      "files": 97,
+      "private_reference": ".local/probes/daily-loop-full-suite.json"
+    },
+    "actual_postgresql": {
+      "passed": 16,
+      "failed": 0,
+      "disposable_databases_remaining": 0,
+      "actual_listening_http": true,
+      "private_reference": ".local/probes/daily-loop-postgres.json"
+    },
+    "actual_recovery_http": {
+      "passed": 67,
+      "total": 67,
+      "disposable_databases": 7,
+      "all_disposable_databases_removed": true,
+      "actual_response_drops": 1,
+      "app_restarts": 1,
+      "reasoner": "synthetic stub",
+      "private_reference": ".local/probes/final-audit-http.json"
+    },
+    "browser": {
+      "status": "pass",
+      "observations": [
+        "Synthetic account sign-in and sign-out on owned isolated origins",
+        "Distinct breakfast/lunch/dinner labels for identical meal names, including report and correction controls",
+        "Personal food timing reviewed before save and retained as 180/240 minutes after browser reload",
+        "One reported meal with unknown portion/intake kind; correction to snack leaves one report and unchanged accepted plan",
+        "Corrected factual meal readback in My Day after reload",
+        "Explicit synthetic food-check consent and one foreground text reminder at its configured due time",
+        "Snooze disappears immediately, stays dismissed after reload, and returns after the chosen interval",
+        "Decline remains dismissed after reload; no microphone or notification permission was requested",
+        "Post-commit dropped-response fixture yields one effective breakfast report",
+        "Pre-commit interruption leaves an uncertain typed lunch report visible in the actual IndexedDB queue after reload",
+        "Missing receipt requires current-ledger review before enabling exact retained retry; retry saves one lunch and shows two total meals",
+        "Synthetic browser tabs closed and owned fixture stop files used; each fixture reported disposable database removal"
+      ],
+      "private_reference": ".local/probes/daily-loop-browser-observations.json"
+    },
+    "deployed": {
+      "status": "passed",
+      "checks": {
+        "supervisor_ready": true,
+        "new_owned_app_run": true,
+        "public_config": true,
+        "speech_workers_ready": true,
+        "public_ui": true,
+        "current_client_bundle": true,
+        "care_denied": true,
+        "session_denied": true,
+        "microsoft_denied": true
+      },
+      "code_only_restart": true,
+      "database_migration": false,
+      "care_writes": false,
+      "credentials_changed": false,
+      "private_reference": ".local/probes/daily-loop-deployment.json",
+      "policy_version": "nancy-2026-10-18-v3",
+      "code_only_app_restarts": 2
+    },
+    "final_policy_and_daily_loop_recheck": {
+      "passed": 29,
+      "meal_skill_version": 2,
+      "policy_version": "nancy-2026-10-18-v3"
+    }
+  },
+  "reproduced_and_intermediate_failures": [
+    "Two new reminder tests initially failed because stale claims were displayed after a brief conversation/visibility interruption; both pass after the repair.",
+    "Initial sandbox Vitest execution reproduced the documented vitest/config resolution failure; approved host execution worked.",
+    "The initial new matrix needed an explicit preference-removal acknowledgement and exposed the synthetic PGlite export-transaction adapter defect; repaired and re-run.",
+    "The first actual-PostgreSQL run passed 15/16 with zero leftover fixtures; isolated HTTP initialization inherited live Microsoft configuration. The fixture now disables Microsoft explicitly; final result is 16/16.",
+    "The old dated browser fixture needed extended disposable session expiry for later real-date browser checks. Only disposable sessions were changed.",
+    "Final full regression is 887 passed, one optional skip; earlier 886-test run preceded the added same-food slot regression.",
+    "A later full run reported 885 passed and two test-expectation failures: the already-loaded fixed-clock HTTP fixture expired after its eight-hour window, and the guidance test still expected meal skill v1 after the explicit v2 tag. The HTTP boundary fixture now uses wall time, the expected skill version is updated, and the final complete suite is green. The failed report is preserved privately in daily-loop-full-suite-clock-expiry-failure.json.",
+    "A subsequent already-started run retained only the stale guidance assertion (886 passed, one failed, one optional skip); its report is preserved in daily-loop-full-suite-stale-assertion-failure.json. The corrected guidance and daily-loop tests passed 29/29, followed by the final clean full run against frozen files."
+  ],
+  "automated_contract_coverage": {
+    "S01-AUTO10": {
+      "outcome": "pass",
+      "notes": "Shared rhythm/duration tests plus fresh opening/next-turn facts, known versus unknown user-stated energy as lower-trust input, versioned lasting/today preferences, correction/removal/restart and changed/revoked scope. Empty schedule never becomes capacity."
+    },
+    "S02-AUTO4": {
+      "outcome": "pass",
+      "notes": "Personal meal spacing/check interval now persists with exact-version receipts and affects occurrence-time context/scheduler. Full meal/snack/unknown, late/corrected/voided food, prior-day history beyond the cap, DST, retries and changed user scope are covered."
+    },
+    "S03-AUTO1": {
+      "outcome": "pass",
+      "notes": "Device preparation failure, uncertain response, receipt-first exact retry, actual IndexedDB reload, dropped committed HTTP response and one service restart preserve one effective activity."
+    },
+    "S03-AUTO2": {
+      "outcome": "pass",
+      "notes": "Two-device exact-occurrence race, scope-bound HTTP commands/receipts, grant changes during reads and before transaction commit, deactivation and late callbacks fail closed; device payload copies cannot alter retained commands."
+    },
+    "S03-AUTO3": {
+      "outcome": "pass",
+      "notes": "Encrypted isolated restore preserves facts/revisions/events/receipts, timing and active handoffs, excludes live sessions, denies restored revoked grants, and reconciles the original actor-scoped pending key. Device scope filtering rejects another login/grant."
+    },
+    "S04-AUTO4": {
+      "outcome": "pass",
+      "notes": "Scheduler/effective-schedule suites plus atomic claim/speech/ack source checks, quiet/DST/missed/restarted jobs, denied browser channel fallback, pagehide/visibility interruption and durable snooze/decline. No closed-page delivery or microphone is inferred."
+    },
+    "S04-AUTO5": {
+      "outcome": "pass",
+      "notes": "Repeated and missed preparation, source/grant changes, direct spring/fall DST local-six checks and quiet hours preserve one metadata marker with no care plan, activity, prompt, model or microphone action."
+    },
+    "S04-AUTO6": {
+      "outcome": "pass",
+      "notes": "Handoff persistence/correction/resolution and source/receipt tests plus encrypted restore and policy-like handoff text kept only in lower-trust facts. Revocation removes access; ordinary dialogue/tasks do not create notes or accepted carryover."
+    },
+    "S04-AUTO7": {
+      "outcome": "pass",
+      "notes": "Personal food intervals, corrections and report uncertainty, then chosen focus intervals with pause/resume/finish; concurrent claims/ack/snooze, brief conversation/visibility interruption, restart, quiet and revocation tests. Actual desktop text snooze/decline also verified."
+    }
+  },
+  "remaining": [
+    "No complete slice or live gate is passed by this evidence.",
+    "S01 broader AUTO6 adaptive-routine/meal-choice/grocery branches and AUTO11 timing qualification retain their separate open matrix; S04 AUTO1-AUTO3 broader repeat-day qualification is not claimed here.",
+    "Intended-client reasoning/account eligibility, physical iPhone/Safari microphone/audio, full service-failure/live matrices, genuine tracked day and three genuine local dates remain open.",
+    "Microsoft sign-in is blocked by user-reported administrator-required recovery; no Microsoft consent, Graph read/write, provider-content disclosure or Asana action occurred."
+  ],
+  "safeguards": {
+    "established_database_reset_or_seeded": false,
+    "established_database_migrated": false,
+    "genuine_care_commands_issued": false,
+    "real_credentials_changed": false,
+    "inference_provider_called": false,
+    "microsoft_called": false,
+    "paid_service_added": false,
+    "git_commit_or_push": false,
+    "slice_completed": false
+  },
+  "policy_version": "nancy-2026-10-18-v3"
+}

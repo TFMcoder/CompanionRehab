@@ -20,6 +20,9 @@ export function navigationIntent(input: string): ClientView | undefined {
   ];
   const target = patterns.map(pattern => words.match(pattern)?.[1]).find(Boolean);
   if (!target) return undefined;
+  if (/^(?:ask for help|help|help page)$/.test(target)) return 'ask_for_help';
+  if (/^(?:ways to use nancy|nancy faq|faq)$/.test(target)) return 'ways_to_use';
+  if (/^(?:suggestions for nancy|nancy suggestions|suggestions)$/.test(target)) return 'suggestions';
   if (/^(?:(?:my|the) )?(?:tasks?|task list|tasks list|tasks? (?:page|screen))$/.test(target)) return 'tasks';
   if (/^(?:(?:my|the) )?(?:meals?|meal choices|meals? (?:page|screen))$/.test(target)) return 'meals';
   if (/^(?:(?:my|the) )?(?:groceries|grocery list|groceries (?:page|screen))$/.test(target)) return 'groceries';
@@ -30,11 +33,15 @@ export function navigationIntent(input: string): ClientView | undefined {
   if (/^(?:(?:my|the) )?(?:support team|sharing)$/.test(target)) return 'support_team';
   if (/^(?:(?:my|the) )?(?:progress|achievements)$/.test(target)) return 'progress';
   if (/^(?:(?:my|the) )?(?:operations|administrator operations|admin dashboard|access settings)$/.test(target)) return 'operations';
+  if (/^(?:(?:my|the) )?(?:outlook|outlook connection|outlook settings)$/.test(target)) return 'outlook';
   if (/^(?:my day|home|(?:the )?home page|my day (?:page|screen))$/.test(target)) return 'my_day';
   return undefined;
 }
 
 const fixedReplies: Record<ClientView, string> = {
+  ask_for_help:'What would you like a hand with?',
+  ways_to_use:'Here are some ways to use Nancy.',
+  suggestions:'What would you like to improve about Nancy?',
   my_day: 'Here is My Day.',
   tasks: 'Here are your tasks.',
   meals: 'Here are your meals.',
@@ -46,6 +53,7 @@ const fixedReplies: Record<ClientView, string> = {
   support_team: 'Here is your Support Team.',
   progress: 'Here is your progress.',
   operations: 'Here are your operations and access settings.',
+  outlook: 'Here is your Outlook connection.',
 };
 export function navigationReply(view: ClientView): string { return fixedReplies[view]; }
 export const navigationAcknowledgement = navigationReply;

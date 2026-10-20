@@ -107,10 +107,15 @@ export class MealGroceryService {
     try {
       const cmd=mealGroceryCommandSchema.parse(raw);
       return await this.transaction(async db=>{
-        const s=await this.scope(db,session,true); this.requireRead(s);
+        let s=await this.scope(db,session); this.requireRead(s);
         if(['propose_meal','accept_meal','set_grocery_share'].includes(cmd.type)) this.requireClient(s); else this.requireEdit(s);
         // Serializes edits and receipt checks for one client, including the old S01 command ledger.
         const profile=(await db.query('select revision from companion_local.participant_profiles where id=$1 for update',[s.participant])).rows[0];
+        const participant=s.participant;
+        s=await this.scope(db,session,true);
+        if(s.participant!==participant)throw new ApiError(403,'scope_changed','Your care scope changed. Refresh before saving.');
+        this.requireRead(s);
+        if(['propose_meal','accept_meal','set_grocery_share'].includes(cmd.type))this.requireClient(s);else this.requireEdit(s);
         const prior=(await db.query('select actor_id,command,result from companion_local.meal_grocery_receipts where participant_id=$1 and command_id=$2',[s.participant,cmd.idempotency_key])).rows[0];
         if(prior) {
           if(prior.actor_id!==s.actor||canonical(prior.command)!==canonical(cmd)) return conflict('This request key was already used for another change.');

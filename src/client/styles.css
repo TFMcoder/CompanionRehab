@@ -77,6 +77,8 @@ h1, h2, h3, p { margin-top: 0; } h1 { font-size: clamp(2rem, 5vw, 3.6rem); lette
 .workflow-row { align-items: center; border-top: 1px solid #dce6d8; display: flex; flex-wrap: wrap; gap: .55rem 1rem; justify-content: space-between; min-width: 0; padding: .8rem 0; }
 .workflow-row > span { flex: 1 1 12rem; min-width: 0; }
 .workflow-actions { display: flex; flex-wrap: wrap; gap: .45rem; }
+.task-focus button, .preferences button { margin: .25rem .4rem .25rem 0; }
+.task-focus > label { max-width: 30rem; }
 @media (max-width: 480px) {
   .workflow-fields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .workflow-fields > :first-child { grid-column: 1 / -1; }
@@ -84,3 +86,9 @@ h1, h2, h3, p { margin-top: 0; } h1 { font-size: clamp(2rem, 5vw, 3.6rem); lette
   .workflow-actions { width: 100%; }
   .workflow-actions button { flex: 1 1 7rem; }
 }
+.outlook-panel fieldset { margin: 1rem 0; padding: 1rem; border: 1px solid var(--line, #cad6d1); border-radius: .75rem; }
+.outlook-panel .outlook-choice { display: flex; align-items: center; gap: .75rem; padding: .6rem 0; }
+.outlook-panel .outlook-choice input { width: 1.4rem; height: 1.4rem; flex: 0 0 auto; }
+.outlook-panel article { border-top: 1px solid var(--line, #cad6d1); padding: .8rem 0; overflow-wrap: anywhere; }
+.outlook-panel article h4 { margin: .25rem 0; }
+.outlook-panel article p { margin: .3rem 0; }

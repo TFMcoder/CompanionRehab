@@ -1,5 +1,6 @@
 import type { PriorityContext, Today } from './contracts.js';
 import type { ActivityKind, ActivityOption } from './activity-contracts.js';
+import { dailyContext } from './daily-context.js';
 
 function localDate(instant: string, zone: string) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(instant));
@@ -11,13 +12,13 @@ function localTime(instant: string, zone: string) {
 
 /** Uses facts, never inferred completion. Shared by the screen and Nancy's tools. */
 export function priorityContext(today: Today, now = new Date()): PriorityContext {
-  const zone = today.profile?.time_zone || 'America/Toronto';
-  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: zone, hourCycle: 'h23', hour: '2-digit', minute: '2-digit' }).formatToParts(now);
-  const hour = Number(parts.find(p => p.type === 'hour')!.value);
-  const minute = Number(parts.find(p => p.type === 'minute')!.value);
-  const local_time = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-  const period = hour >= 8 && hour < 11 ? 'morning_routine' : hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const temporal = dailyContext(today, now);
+  const { time_zone: zone, local_time, period } = temporal;
+  const hour = Number(local_time.slice(0, 2));
+  const morning = period === 'morning_routine' || period === 'morning_catchup';
+  const greeting = hour < 12 ? 'Good morning' : period === 'evening' ? 'Good evening' : 'Good afternoon';
+  if (!temporal.facts_are_current_day) return { greeting, period, local_time, local_date: temporal.local_date, temporal,
+    suggestions: [{ kind: 'refresh', label: 'Review the current day', reason: 'These care facts belong to another local date. Refresh before making a time-sensitive suggestion.' }] };
   const suggestions: PriorityContext['suggestions'] = [];
   const ledger = today.activity_ledger;
   const activity = (kind: ActivityKind, source?: string, mealSlot?: 'breakfast' | 'lunch' | 'dinner'): ActivityOption | undefined => {
@@ -34,7 +35,7 @@ export function priorityContext(today: Today, now = new Date()): PriorityContext
   const reports = (today.activity_reports || []).filter(report => report.local_date === today.local_date);
   const resolved = new Set(reports.filter(report => report.status === 'completed' || report.status === 'deferred').map(report => report.target_id));
   const mealResolved = (slot: 'breakfast' | 'lunch' | 'dinner') => reports.some(report => report.meal_slot === slot && (report.status === 'completed' || report.status === 'deferred'));
-  const breakfastEaten = reports.some(report => report.status === 'completed' && report.meal_slot === 'breakfast');
+  const breakfastEaten = temporal.morning.breakfast_status === 'reported';
   const appointmentCandidates = (today.appointments || []).flatMap(appointment => {
     const option = activity('appointment', appointment.id);
     if (!pending(option) || resolved.has(appointment.id)) return [];
@@ -52,17 +53,23 @@ export function priorityContext(today: Today, now = new Date()): PriorityContext
   const appointments = appointmentCandidates.sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
   const appointment = appointments[0];
   if (appointment) suggestions.push({ kind: 'appointment', label: appointment.title, reason: `Starts in ${Math.ceil(appointment.delta / 60000)} minutes. Check preparation and travel time together.` });
+  if (temporal.intake.check_needed) suggestions.push({ kind: 'intake_check', label: 'Check recent food',
+    reason: 'There has been no recent food report during the preferred day window. Ask whether and when food was eaten; missing reports do not prove fasting or that the person was awake.' });
+  const canSuggestMeal = temporal.intake.automatic_full_meal === 'eligible' && !temporal.intake.check_needed;
+  let mealNeedsReview = false;
   const mealSlot = hour >= 11 && hour < 14 ? 'lunch' : hour >= 17 && hour < 20 ? 'dinner' : undefined;
   if (mealSlot) {
     const meal = today.checkin?.accepted?.meals.find(m => m.slot === mealSlot);
     if (!mealResolved(mealSlot) && pending(activity('meal', meal?.option_id, mealSlot))) {
-      suggestions.push({ kind: mealSlot, label: meal ? `${mealSlot}: ${meal.name}` : `Choose ${mealSlot}`, reason: 'Ask whether this meal has been eaten and what sounds appealing.' });
+      mealNeedsReview = true;
+      if (canSuggestMeal) suggestions.push({ kind: mealSlot, label: meal ? `${mealSlot}: ${meal.name}` : `Choose ${mealSlot}`, reason: 'Ask whether this meal has been eaten and what sounds appealing.' });
     }
   }
-  if (period === 'morning_routine') {
+  if (morning) {
     const planned = today.checkin?.accepted?.meals.find(m => m.slot === 'breakfast');
     if (!breakfastEaten && !mealResolved('breakfast') && pending(activity('meal', planned?.option_id, 'breakfast'))) {
-      suggestions.push({ kind: 'breakfast', label: planned ? `Breakfast: ${planned.name}` : 'Choose breakfast', reason: 'Ask whether breakfast has been eaten; a planned meal is not a meal report.' });
+      mealNeedsReview = true;
+      if (canSuggestMeal) suggestions.push({ kind: 'breakfast', label: planned ? `Breakfast: ${planned.name}` : 'Choose breakfast', reason: 'Ask whether breakfast has been eaten; a planned meal is not a meal report.' });
     }
     if (breakfastEaten) {
       for (const category of ['exercise', 'rehab'] as const) {
@@ -73,6 +80,10 @@ export function priorityContext(today: Today, now = new Date()): PriorityContext
       }
     }
   }
+  if (mealNeedsReview && temporal.intake.automatic_full_meal === 'clarify_recent_unknown_intake') suggestions.push({
+    kind: 'intake_check', label: 'Check recent food', reason: 'Food was reported recently, but whether it was a full meal or a snack is unknown. Ask before suggesting another full meal.' });
+  if (hour === 16 && !mealResolved('dinner')) suggestions.push({ kind: 'dinner_preparation', label: 'Review dinner preparation',
+    reason: 'Check the preferred dinner time and known preparation duration. This is an evening planning checkpoint, not a meal deadline or an instruction to eat now.' });
   const scheduled = (today.checkin?.accepted?.tasks || []).flatMap(task => {
     const option = activity('task', task.id);
     return !resolved.has(task.id) && pending(option) ? [{ key: option?.id ?? `task:${task.id}`, title: task.title, urgency: task.urgency, scheduledAt: option?.scheduled_at, fallbackTime: task.scheduled_time, ledgerOnly: false }] : [];
@@ -94,8 +105,14 @@ export function priorityContext(today: Today, now = new Date()): PriorityContext
     const bTime = b.scheduledAt ? localTime(b.scheduledAt, zone) : b.fallbackTime;
     return (aTime || '99:99').localeCompare(bTime || '99:99') || rank[a.urgency || 'medium'] - rank[b.urgency || 'medium'];
   });
-  if (scheduled[0]) {
-    const { title, scheduledAt, fallbackTime, ledgerOnly } = scheduled[0];
+  const quietTaskWindow = temporal.task_window.after_finish_target || period === 'before_morning';
+  const feasibleTask = quietTaskWindow ? undefined : scheduled.find(candidate => {
+    const option = ledger?.options.find(item => item.id === candidate.key);
+    const source = option?.source_id ?? (candidate.key.startsWith('task:') ? candidate.key.slice(5) : null);
+    return temporal.task_timing.find(item => item.task_id === source)?.duration_fits_before_finish_target !== false;
+  });
+  if (feasibleTask) {
+    const { title, scheduledAt, fallbackTime, ledgerOnly } = feasibleTask;
     const time = scheduledAt ? localTime(scheduledAt, zone) : fallbackTime;
     const suggestion = { kind: 'task', label: title, reason: time ? `Planned for ${time}; ask about its current status.` : 'From the accepted plan; check timing and readiness.' };
     if (!suggestions.some(existing => existing.label === title)) {
@@ -105,7 +122,8 @@ export function priorityContext(today: Today, now = new Date()): PriorityContext
       } else suggestions.push(suggestion);
     }
   }
-  if (period === 'morning_routine' && !today.checkin?.accepted && suggestions.length < 2) suggestions.push({ kind: 'planning', label: 'Plan the day', reason: 'Review today’s tasks and meal choices together.' });
-  if (!suggestions.length) suggestions.push({ kind: 'planning', label: today.checkin?.accepted ? 'Review today’s plan' : 'Plan the day', reason: 'You can choose tasks, meals, or the grocery list.' });
-  return { greeting, period, local_time, local_date: today.local_date, suggestions: suggestions.slice(0, 2) };
+  if (morning && !today.checkin?.accepted && suggestions.length < 2) suggestions.push({ kind: 'planning', label: 'Plan the day', reason: 'Review today’s tasks and meal choices together.' });
+  if (!suggestions.length && quietTaskWindow) suggestions.push({ kind: 'conversation', label: 'Talk to Nancy', reason: 'Conversation and support remain available. Review remaining work only if you want to; the daily rhythm is a preference, not an access restriction.' });
+  if (!suggestions.length) suggestions.push({ kind: 'planning', label: today.checkin?.accepted ? 'Review today’s plan' : 'Plan the day', reason: scheduled.length && !feasibleTask ? 'The known task duration does not fit before the preferred evening finish. Review a smaller step or another time together.' : 'You can choose tasks, meals, or the grocery list.' });
+  return { greeting, period, local_time, local_date: temporal.local_date, temporal, suggestions: suggestions.slice(0, 2) };
 }

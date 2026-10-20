@@ -1,0 +1,230 @@
+{
+  "evidence_id": "MERGE-PREP-2026-10-19",
+  "observed_at": "2026-10-20T00:21:36.021Z",
+  "status": "local_engineering_validation_passed_merge_proposal_preparation",
+  "owner_decision": "Current is the approved locked production design; Focus is preserved with the shipped review switch disabled.",
+  "implementation_revision": "sha256:f50fd9292c845d88deab0b20d3d01a4694ae68da430f2014299c7dbaaccead87",
+  "source_manifest": {
+    "runtime_revision": "sha256:f50fd9292c845d88deab0b20d3d01a4694ae68da430f2014299c7dbaaccead87",
+    "runtime_files": 144,
+    "all_source_revision": "sha256:c2209a85e9650aa1aad9752d646a55e679f73e69ed276ccde1b8df9e0b5a36d6",
+    "all_source_files": 311,
+    "method": "SHA-256 of sorted path, NUL, file bytes, NUL, using Git candidate files only. Runtime covers src/db and entry/package/build/test config; all_source adds scripts/tests/CI and public environment/ignore templates. Ignored generated caches, private files and documentation are excluded.",
+    "private_reference": ".local/probes/merge-source-manifest.json"
+  },
+  "git_preparation": {
+    "branch": "codex/current-ui-merge-prep-2026-10-19",
+    "base_commit": "763c3c3c527cdf99bd6a6620b1e96c7ddf0d7627",
+    "base_was_synced_with_origin": true,
+    "main_merge_not_performed": true,
+    "github_ci": "Consult the proposal checks for the current head. The first clean-checkout run exposed the fixture-directory assumption recorded below; its result is not a final pass.",
+    "proposal": "https://github.com/TFMcoder/CompanionRehab/pull/1"
+  },
+  "final_checks": {
+    "typecheck": "passed",
+    "production_build": "passed",
+    "client_bundle": "app-DjZdbnEO.js",
+    "full_suite": {
+      "passed": 963,
+      "failed": 0,
+      "optional_skips": 1,
+      "files": 105,
+      "private_reference": ".local/probes/merge-clean-full-suite-host.json",
+      "source_scope": "Final isolated public-source copy; all 311 source files match the candidate. No private runtime files were copied. Production build and typecheck also pass in that copy."
+    },
+    "actual_postgresql": {
+      "observed_at": "2026-10-20T00:06:22.577Z",
+      "passed": 219,
+      "failed": 0,
+      "files": 11,
+      "success": true,
+      "actual_postgresql": true,
+      "model_or_graph_provider_calls": 0,
+      "established_care_database_opened": false,
+      "owned_fixture_databases_removed": 2,
+      "additional_disposable_databases_remaining": 0,
+      "scope": "Fixture-backed tests use actual disposable PostgreSQL; pure OAuth/Graph transport tests retain synthetic provider responses. No established care database or real provider is used.",
+      "private_reference": ".local/probes/merge-final-postgres.json"
+    },
+    "listening_http": {
+      "passed": 67,
+      "total": 67,
+      "actual_postgresql": true,
+      "actual_http": true,
+      "provider_inference": false,
+      "actual_speech": false,
+      "disposable_databases_removed": true,
+      "private_reference": ".local/probes/merge-http-recovery.json"
+    },
+    "dependency_advisories": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "public_boundary": {
+      "files_scanned": 394,
+      "findings": [],
+      "passed": true,
+      "private_reference": ".local/probes/merge-public-scan-final.json"
+    },
+    "private_value_comparison": {
+      "files_scanned": 394,
+      "known_private_values_checked": 11,
+      "findings": 0,
+      "passed": true,
+      "private_reference": ".local/probes/merge-private-boundary.json"
+    },
+    "clean_checkout_fixture": {
+      "passed": 12,
+      "failed": 0,
+      "success": true,
+      "private_reference": ".local/probes/merge-caregiver-clean-fixture-host.json",
+      "scope": "Synthetic caregiver binding, revocation, speech and wake authorization with a freshly created per-fixture private directory. No real model request or established care database."
+    },
+    "isolated_source_identity": {
+      "observed_at": "2026-10-20T00:20:41.417Z",
+      "source_files": 311,
+      "current_and_isolated_match": true,
+      "mismatches": 0,
+      "all_source_revision": "sha256:c2209a85e9650aa1aad9752d646a55e679f73e69ed276ccde1b8df9e0b5a36d6",
+      "private_runtime_copied": false,
+      "private_reference": ".local/probes/merge-clean-source-identity.json"
+    },
+    "clean_public_checkout": {
+      "success": true,
+      "typecheck": "passed",
+      "production_build": "passed",
+      "full_suite_passed": 963,
+      "full_suite_failed": 0,
+      "private_runtime_copied": false,
+      "source_identity_verified": true,
+      "source_files": 311,
+      "client_assets_identical": true
+    }
+  },
+  "review": {
+    "scope_reference": "docs/MERGE_READINESS_2026-10-19.md",
+    "resolved": [
+      "Lock the owner-selected Current design in the real production entry; test stale review links.",
+      "Sanitize household names from public documents; exclude private credentials, runtime identifiers, records, screenshots and logs.",
+      "Repair two synthetic-date fixture failures without changing production authority/expiry; add an explicit expired-session rejection.",
+      "Refresh superseded README navigation/account status and add a public-boundary guard to both CI platforms.",
+      "Remove a clean-checkout dependency on a pre-existing private probes directory: each synthetic caregiver fixture creates and cleans its own directory. Production authorization is unchanged.",
+      "Correct the all-source fingerprint to exclude five ignored generated Python caches, then verify all 311 public source files match the isolated test copy exactly."
+    ],
+    "remaining_blocking_code_findings": [],
+    "scope_limit": "Critical-path source inspection, regression and publication checks; not an independent penetration test or full-slice/clinical certification."
+  },
+  "initial_failed_runs": {
+    "postgres": {
+      "passed": 216,
+      "failed": 2,
+      "private_reference": ".local/probes/merge-postgres.json"
+    },
+    "full_suite": {
+      "passed": 960,
+      "failed": 2,
+      "optional_skips": 1,
+      "private_reference": ".local/probes/merge-full-suite.json"
+    },
+    "cause": "Fixed-date fixture sessions were combined with real-clock feature authorization. Both failing tests now use the fixture Date; an additional test proves later expiry still denies access.",
+    "github_first_run": {
+      "head": "ad9be77546b493377d8e6f6f3cf014bc54f7a1c4",
+      "run": "https://github.com/TFMcoder/CompanionRehab/actions/runs/39346145893",
+      "platforms": [
+        "ubuntu-latest",
+        "windows-latest"
+      ],
+      "failed_tests_per_platform": 12,
+      "passed_tests_per_platform": 951,
+      "optional_skips_per_platform": 1,
+      "cause": "Synthetic caregiver fixtures tried to write into an ignored private probes directory that is absent from a clean checkout.",
+      "repair": "Create and remove an owned per-fixture directory under the ignored local boundary; retain every account/grant/host binding assertion.",
+      "private_references": [
+        ".local/probes/merge-ci-linux-first.log",
+        ".local/probes/merge-ci-windows-first.log"
+      ]
+    },
+    "sandbox_clean_checkout": {
+      "tests_executed": 0,
+      "cause": "Sandbox denied Vite temporary-file renames before test modules could execute.",
+      "private_reference": ".local/probes/merge-clean-full-suite.json",
+      "recovery": "The same isolated public-source copy passes the complete suite and build on the host."
+    }
+  },
+  "deployment": {
+    "observed_at": "2026-10-20T00:02:06.8550721Z",
+    "passed": true,
+    "checks": {
+      "normal_served": true,
+      "current_locked": true,
+      "old_focus_link_uses_locked_entry": true,
+      "assets_unchanged": true,
+      "anonymous_care_denied": true,
+      "voice_ready": true,
+      "service_not_restarted": true,
+      "account_config_and_credentials_preserved": true
+    },
+    "client_bundle": "app-DjZdbnEO.js",
+    "database_migration": false,
+    "provider_mutations": 0,
+    "api_billing_enabled": false,
+    "private_reference": ".local/probes/merge-deployment.json"
+  },
+  "browser": {
+    "observed_at": "2026-10-20T00:02:36.943Z",
+    "current_normal_link": true,
+    "old_focus_link_current": true,
+    "production_switch_disabled": true,
+    "top_banner_preserved": true,
+    "microphone_activated": false,
+    "care_write_submitted": false,
+    "private_screenshot": ".local/probes/current-ui-locked.png",
+    "passed": true,
+    "private_reference": ".local/probes/merge-browser.json"
+  },
+  "preserved": {
+    "existing_static_assets": true,
+    "original_supervised_backend": true,
+    "existing_microsoft_and_caregiver_configuration": true,
+    "credentials": true,
+    "verified_current_rollback": true,
+    "established_care_data_excluded_from_feature_tests": true,
+    "new_migration": false,
+    "real_provider_mutations": 0,
+    "real_model_requests": 0,
+    "api_billing_enabled": false
+  },
+  "acceptance": {
+    "intended_person_and_device": "awaiting_live_test",
+    "genuine_day": "awaiting_live_test",
+    "full_slices_completed": 0,
+    "scope": "Engineering merge preparation and owner design selection do not complete actual person/device, remaining provider lifecycle, canonical full-matrix, clinical or release gates."
+  },
+  "test_only_followup": {
+    "previous_all_source_revision": "sha256:d413d96a0ab9bde34d0d7b4edc06a351d3ca64db29138986c918e675db65373b",
+    "current_all_source_revision": "sha256:c2209a85e9650aa1aad9752d646a55e679f73e69ed276ccde1b8df9e0b5a36d6",
+    "runtime_revision_unchanged": true,
+    "changed_source": "tests/caregiver-inference.test.ts",
+    "local_focused_checks": 12,
+    "full_final_head_checks": "The complete final public-source copy passes the local full suite, typecheck and build; consult the proposal checks for final-head Linux/Windows CI.",
+    "previous_fingerprint_scope": "Earlier all-source fingerprints also included five ignored generated Python cache files; the corrected fingerprint excludes them. Production/runtime fingerprints were unaffected."
+  },
+  "fingerprint_correction": {
+    "previous_all_source_revision": "sha256:cb459a7e47674abd9b7e19ea9b377ba1d162726fd15718d497c7b2458c953c57",
+    "ignored_generated_cache_files_excluded": 5,
+    "runtime_revision_unchanged": true,
+    "reason": "The initial all-source walker included ignored Python bytecode. The corrected method hashes only Git candidate source files; generated caches were never committed or copied into the isolated test checkout."
+  },
+  "earlier_completed_full_suite": {
+    "passed": 963,
+    "failed": 0,
+    "optional_skips": 1,
+    "files": 105,
+    "private_reference": ".local/probes/merge-final-full-suite.json",
+    "source_scope": "Completed before the subsequent test-only fixture isolation repair. Production/runtime source is unchanged; the proposal CI checks the complete final candidate."
+  }
+}

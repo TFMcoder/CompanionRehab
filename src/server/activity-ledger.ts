@@ -14,7 +14,7 @@ export function activityRow(row: any): ActivityEntry {
   return { id:row.id, kind:row.kind, title:row.title, local_date: typeof row.local_date==='string' ? row.local_date : dateInZone(row.local_date,'UTC'),
     source_id:row.source_id, meal_slot:row.meal_slot, plan_id:row.plan_id, unplanned:row.unplanned,
     scheduled_at:iso(row.scheduled_at), status:row.status, occurred_at:iso(row.occurred_at), notes:row.notes,
-    portion:row.portion, revision:row.revision, last_action:row.last_action, recorded_at:iso(row.recorded_at)!, updated_at:iso(row.updated_at)! };
+    portion:row.portion, intake_kind:row.intake_kind??'unknown', revision:row.revision, last_action:row.last_action, recorded_at:iso(row.recorded_at)!, updated_at:iso(row.updated_at)! };
 }
 export function plannedActivities(today: Today, currentDate: string): ActivityOption[] {
   const profile=today.profile;if(!profile)return [];
@@ -66,8 +66,19 @@ export function projectLedger(today:Today, saved:ActivityEntry[], currentDate:st
   const entries=saved.filter(entry => entry.status==='completed' ? onDate(entry.occurred_at)===day
     : entry.local_date===day || onDate(entry.scheduled_at)===day);
   const count=(kind:ActivityKind)=>entries.filter(e=>e.kind===kind&&e.status==='completed').length;
+  // Preserve the latest full meal, snack and unknown report even when a burst
+  // of other edits fills the bounded recent-history window across midnight.
+  const eligibleRecent=saved.filter(e=>e.local_date<=currentDate || (e.occurred_at&&onDate(e.occurred_at)!<=currentDate));
+  const latestIntakes=new Map<string,ActivityEntry>();
+  for(const entry of [...eligibleRecent].filter(e=>e.kind==='meal'&&e.status==='completed'&&e.occurred_at)
+    .sort((a,b)=>b.occurred_at!.localeCompare(a.occurred_at!)||a.id.localeCompare(b.id))){
+    if(!latestIntakes.has(entry.intake_kind??'unknown'))latestIntakes.set(entry.intake_kind??'unknown',entry);
+  }
+  const essential=new Set([...latestIntakes.values()].map(e=>e.id));
+  const recent=[...latestIntakes.values(),...eligibleRecent.filter(e=>!essential.has(e.id)).slice(0,100-essential.size)]
+    .sort((a,b)=>b.updated_at.localeCompare(a.updated_at)||a.id.localeCompare(b.id));
   return {local_date:day,options:[...options.values()].sort((a,b)=>(a.scheduled_at??'z').localeCompare(b.scheduled_at??'z')||a.title.localeCompare(b.title)),
     entries:entries.sort((a,b)=>(b.occurred_at??b.updated_at).localeCompare(a.occurred_at??a.updated_at)),
-    recent_entries:saved.filter(e=>e.local_date<=currentDate || (e.occurred_at&&onDate(e.occurred_at)!<=currentDate)).slice(0,100),
+    recent_entries:recent,
     summary:{tasks_completed:count('task'),meals_eaten:count('meal'),appointments_attended:count('appointment'),deferred:entries.filter(e=>e.status==='deferred').length}};
 }

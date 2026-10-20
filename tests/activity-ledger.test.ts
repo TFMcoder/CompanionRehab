@@ -106,6 +106,27 @@ describe('durable factual activity ledger', () => {
   });
   afterAll(async () => { await db.close(); });
 
+  it('preserves explicit intake kind and actual time through replay, corrections and a fresh sign-in', async () => {
+    const fixture=await createParticipant(care,'intake');
+    const command:RecordActivityCommand={type:'record_activity',idempotency_key:uuid(),local_date:TODAY,expected_revision:0,
+      payload:{unplanned:{kind:'meal',title:'Synthetic fruit'},status:'completed',occurred_at:'2026-10-05T13:00:00.000Z',notes:'',intake_kind:'snack'}};
+    const saved=await care.activityCommand(fixture.session,command);
+    expect(saved.entry).toMatchObject({intake_kind:'snack',occurred_at:'2026-10-05T13:00:00.000Z',recorded_at:NOW.toISOString()});
+    expect(await care.activityCommand(fixture.session,command)).toEqual({...saved,replayed:true});
+    await expect(care.activityCommand(fixture.session,{...command,payload:{...command.payload,intake_kind:'full_meal'}})).rejects.toMatchObject({code:'conflict'});
+    const corrected=await care.activityCommand(fixture.session,{type:'correct_activity',idempotency_key:uuid(),local_date:TODAY,expected_revision:1,
+      payload:{activity_id:saved.entry.id,status:'completed',occurred_at:'2026-10-05T13:15:00.000Z',notes:'',intake_kind:'full_meal',reason:'Client clarified the report'}});
+    const signedIn=await care.login('ledger-intake@example.invalid','ledger-intake-password');
+    expect((await care.ledger(signedIn)).entries.find(entry=>entry.id===saved.entry.id)).toMatchObject({intake_kind:'full_meal',revision:2,occurred_at:'2026-10-05T13:15:00.000Z',recorded_at:NOW.toISOString()});
+    const correction=await care.activityCommand(signedIn,{type:'correct_activity',idempotency_key:uuid(),local_date:TODAY,expected_revision:2,
+      payload:{activity_id:saved.entry.id,status:'completed',occurred_at:corrected.entry.occurred_at,notes:'Timing retained',reason:'Corrected note only'}});
+    expect(correction.entry.intake_kind).toBe('full_meal');
+    const events=(await care.pool.query('select data from companion_local.domain_events where command_id=$1',[corrected.command_id])).rows;
+    expect(events[0].data).toMatchObject({before:{intake_kind:'snack'},after:{intake_kind:'full_meal'}});
+    const task=(await care.ledger(signedIn)).options.find(entry=>entry.kind==='task')!;
+    await expect(care.activityCommand(signedIn,record(task,{payload:{activity_id:task.id,status:'completed',occurred_at:'2026-10-05T13:30:00.000Z',notes:'',intake_kind:'snack'}}))).rejects.toMatchObject({code:'invalid_input'});
+  });
+
   it('records an unplanned meal for a freshly bootstrapped client with no setup or plan', async () => {
     const email = `ledger-empty-${uuid()}@example.invalid`;
     const password = `ledger-empty-${uuid()}-password`;

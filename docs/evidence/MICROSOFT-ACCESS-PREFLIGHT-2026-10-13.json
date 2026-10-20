@@ -1,0 +1,208 @@
+{
+  "evidence_id": "MICROSOFT-ACCESS-PREFLIGHT-2026-10-13",
+  "observed_at": "2026-10-13T22:34:28.796Z",
+  "status": "management_read_access_verified_setup_incomplete",
+  "scope": "Existing Microsoft registration access and permission readiness before connector implementation. No mailbox/calendar records or provider writes requested.",
+  "authorization": "Owner requested reading the IT permission emails and verifying proper Microsoft access, then supplied the existing guest invitation for sign-in.",
+  "verified": {
+    "it_emails_read": true,
+    "it_registration_report": true,
+    "it_app_owner_report": true,
+    "tenant_and_app_ids_received_privately": true,
+    "guest_invitation_reached_correct_company_My_Apps": true,
+    "selected_tenant_matches_IT_email": true,
+    "user_resupplied_matching_application_and_tenant_ids": true,
+    "My_Account_and_Security_info_accessible": true,
+    "direct_Security_info_company_verified": true,
+    "direct_manage_mode_method_chooser_accessible": true,
+    "Authenticator_registered_by_user_and_visible_in_UI": true,
+    "management_signin_with_MFA_in_correct_company": true,
+    "Nancy_registration_matches_supplied_IDs": true,
+    "application_owner_listing_matches_signed_in_guest_object": true,
+    "single_tenant_account_type": true,
+    "all_seven_required_scopes_configured_as_delegated": true,
+    "redirect_URI_absent": true,
+    "certificate_secret_and_federation_counts_zero": true
+  },
+  "not_yet_verified": [
+    "Effective registration-edit rights: required controls are disabled in both Azure and current Entra admin center",
+    "Actual user/tenant delegated consent grants; configured-permission Status cells are blank",
+    "the intended client account object ID, eligible mailbox and approved calendar/folders",
+    "Callback implementation and exact Web redirect registration; no redirect URI currently configured",
+    "Protected application credential custody and rotation; all credential counts are zero",
+    "Effective tenant Conditional Access and downstream AI/local data-use approval",
+    "Scoped live OAuth, token refresh/revocation and reviewed mail/calendar acceptance"
+  ],
+  "required_delegated_scopes": [
+    "Calendars.ReadWrite",
+    "Mail.ReadWrite",
+    "Mail.Send",
+    "User.Read",
+    "openid",
+    "profile",
+    "offline_access"
+  ],
+  "proposed_callback": {
+    "path": "/api/integrations/microsoft/callback",
+    "origin": "Established Nancy HTTPS origin in private runtime configuration",
+    "implemented": false,
+    "registration_status": "not_registered_UI_verified"
+  },
+  "boundaries": {
+    "mailbox_identity": "the intended client existing account only",
+    "management_identity": "Existing technical-lead guest app owner; separate from mailbox authorization",
+    "application_permissions_requested": false,
+    "shared_permissions_requested": false,
+    "cloud_hosting_requested": false,
+    "provider_write_performed": false,
+    "mail_or_calendar_content_read": false
+  },
+  "source_references": {
+    "it_emails": "October 9 and October 13 application-registration thread; private message/account references in ignored preflight file",
+    "ownership": "https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/delegate-app-roles",
+    "permissions": "https://learn.microsoft.com/en-us/graph/permissions-reference",
+    "guest_signin": "https://learn.microsoft.com/en-us/entra/external-id/one-time-passcode",
+    "redemption_repair": "https://learn.microsoft.com/en-us/entra/external-id/reset-redemption-status",
+    "registration_troubleshooting": "https://learn.microsoft.com/en-us/entra/identity/authentication/howto-registration-mfa-sspr-combined-troubleshoot",
+    "signin_diagnostics": "https://learn.microsoft.com/en-us/entra/identity/monitoring-health/concept-sign-in-log-activity-details",
+    "combined_registration": "https://learn.microsoft.com/en-us/entra/identity/authentication/concept-registration-mfa-sspr-combined",
+    "mandatory_management_MFA": "https://learn.microsoft.com/en-us/entra/identity/authentication/concept-mandatory-multifactor-authentication",
+    "refresh_tokens": "https://learn.microsoft.com/en-us/entra/identity-platform/refresh-tokens",
+    "default_owner_and_guest_permissions": "https://learn.microsoft.com/en-us/entra/fundamentals/users-default-permissions",
+    "scoped_application_role_permissions": "https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/custom-available-permissions",
+    "selected_development_role": "https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permissions-reference#cloud-application-administrator",
+    "admin_consent_boundary": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/grant-admin-consent"
+  },
+  "private_evidence_ref": ".local/integrations/microsoft/access-preflight.json",
+  "application_code_changed": false,
+  "slice_completed": false,
+  "management_signin": {
+    "identity_recognized": true,
+    "Authenticator_registration": "completed_by_user_and_verified",
+    "MFA_management_signin": "verified_in_correct_company",
+    "previous_error": "BadRequest during interrupted enrollment; direct manage-mode enrollment resolved the sign-in blocker",
+    "original_error_root_cause": "not_established",
+    "owner_portal_listing_reached": true,
+    "owner_object_matches_current_user": true,
+    "current_Entra_crosscheck": true,
+    "latest_state": "App can be read; authentication, credential and permission edit controls disabled",
+    "effective_management_write_access": "not_qualified",
+    "followup_prepared": true,
+    "followup_sent": false
+  },
+  "automatic_approval_review": {
+    "action": "Next on MFA enrollment introduction",
+    "result": "historical_rejection_resolved_by_user_enrollment",
+    "reason": "May initiate or alter an account security setting.",
+    "resolution": "Account owner completed direct manage-mode phone pairing; no pending enrollment-click approval required"
+  },
+  "private_diagnostic_references": [
+    ".local/integrations/microsoft/access-preflight.json",
+    ".local/integrations/microsoft/mfa-registration-error.png",
+    ".local/integrations/microsoft/it-access-followup.txt",
+    ".local/integrations/microsoft/management-mfa-current.png",
+    ".local/integrations/microsoft/Company-Microsoft-Portal.url",
+    ".local/integrations/microsoft/mfa-registration-error-221139.png",
+    ".local/integrations/microsoft/security-info-method-chooser.png",
+    ".local/integrations/microsoft/Company-Security-Info.url",
+    ".local/integrations/microsoft/authenticator-registered.png",
+    ".local/integrations/microsoft/azure-management-mfa-success.png",
+    ".local/integrations/microsoft/nancy-app-overview.png",
+    ".local/integrations/microsoft/nancy-api-permissions.png",
+    ".local/integrations/microsoft/nancy-owner-list.png",
+    ".local/integrations/microsoft/nancy-credential-counts.png",
+    ".local/integrations/microsoft/nancy-authentication-readonly.png",
+    ".local/integrations/microsoft/nancy-entra-app-readonly.png",
+    ".local/integrations/microsoft/registered-apps-auxiliary-token-warning.png",
+    ".local/integrations/microsoft/Company-Nancy-App.url",
+    ".local/integrations/microsoft/nancy-entra-api-permissions.png",
+    ".local/integrations/microsoft/development-access-request.txt",
+    ".local/integrations/microsoft/nancy-app-roles-access-denied.png"
+  ],
+  "signin_options": {
+    "user_report": "Email codes only; no password set or provided",
+    "password_form_requires_current_password": true,
+    "password_changed": false,
+    "direct_tenant_shortcut_prepared_privately": true,
+    "invitation_replay_not_required_for_direct_tenant_signin": true,
+    "email_codes_and_tenant_MFA_may_still_be_required": true,
+    "identity_provider_change": "Not performed; IT must verify a supported identity binding and preserve existing app ownership",
+    "direct_manage_mode": {
+      "current_methods": "Password card and Microsoft Authenticator Push MFA",
+      "available_methods_include_Authenticator_and_phone": true,
+      "directory_verified_in_Organizations_dialog": true,
+      "new_method_registered": true,
+      "user_phone_pairing": "completed_and_verified",
+      "registered_by": "account_owner"
+    },
+    "direct_app_shortcut_prepared_privately": true
+  },
+  "registration_configuration": {
+    "display_name": "Nancy",
+    "supported_account_types": "My organization only",
+    "application_state": "Activated",
+    "configured_permissions": [
+      {
+        "name": "Calendars.ReadWrite",
+        "type": "Delegated",
+        "default_admin_consent_required": false,
+        "status_text": ""
+      },
+      {
+        "name": "Mail.ReadWrite",
+        "type": "Delegated",
+        "default_admin_consent_required": false,
+        "status_text": ""
+      },
+      {
+        "name": "Mail.Send",
+        "type": "Delegated",
+        "default_admin_consent_required": false,
+        "status_text": ""
+      },
+      {
+        "name": "User.Read",
+        "type": "Delegated",
+        "default_admin_consent_required": false,
+        "status_text": ""
+      },
+      {
+        "name": "openid",
+        "type": "Delegated",
+        "default_admin_consent_required": false,
+        "status_text": ""
+      },
+      {
+        "name": "profile",
+        "type": "Delegated",
+        "default_admin_consent_required": false,
+        "status_text": ""
+      },
+      {
+        "name": "offline_access",
+        "type": "Delegated",
+        "default_admin_consent_required": false,
+        "status_text": ""
+      }
+    ],
+    "actual_consent": "not_verified",
+    "redirect_URI_count": 0,
+    "certificate_count": 0,
+    "client_secret_count": 0,
+    "federated_credential_count": 0,
+    "allow_public_client_flows": false,
+    "application_configuration_changed_by_agent": false
+  },
+  "development_access_decision": {
+    "selected_role": "Cloud Application Administrator",
+    "selected_scope": "Company tenant; all application registrations and enterprise applications",
+    "purpose": "Company-wide application development, including additional applications beyond Nancy",
+    "explicitly_selected_by_user": true,
+    "assignment_status": "pending_IT_assignment_and_effective_access_verification",
+    "role_assigned_by_agent": false,
+    "company_wide_application_admin_request_prepared": true,
+    "request_sent": false,
+    "Nancy_mailbox_identity": "the intended client existing account only; unchanged",
+    "separate_Graph_application_permissions_requested": false
+  }
+}

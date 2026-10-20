@@ -30,6 +30,7 @@ class WarmWorker {
   private pending: Pending | null = null;
   private waiting = false;
   private claimed = false;
+  private closed = false;
   private state: LocalSpeechReadiness['kokoro'] = 'starting';
   private startup!: Promise<void>;
   private resolveStartup!: () => void;
@@ -41,7 +42,15 @@ class WarmWorker {
   }
 
   readiness() { return this.state; }
-  ready() { return this.startup; }
+  ready() {
+    // A failed initial launch (or failed automatic restart) has no child left.
+    // Retry the selected worker, rather than reusing its rejected startup promise.
+    if (!this.closed && !this.child && this.state === 'unavailable') {
+      this.resetStartup();
+      this.launch();
+    }
+    return this.startup;
+  }
 
   private resetStartup() {
     this.startup = new Promise<void>((resolveStartup, rejectStartup) => {
@@ -55,6 +64,7 @@ class WarmWorker {
   }
 
   async close() {
+    this.closed = true;
     const child = this.child;
     this.child = null;
     this.state = 'unavailable';

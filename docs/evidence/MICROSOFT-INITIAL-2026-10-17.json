@@ -1,0 +1,101 @@
+{
+  "evidence_id": "MICROSOFT-INITIAL-2026-10-17",
+  "observed_at": "2026-10-17T22:07:59.743Z",
+  "status": "engineering_complete_awaiting_provider_activation",
+  "implementation_revision": "sha256:c9bb2c818bdf1b16b7a4f4e3643e903f2e1a97230e89ce8c0e78e9c1adc3a88d",
+  "revision_method": "SHA-256 of sorted path, NUL, file bytes, NUL for src/db/scripts/tests and package/TypeScript/Vite/Vitest configuration files; private runtime and docs excluded.",
+  "revision_file_count": 284,
+  "scope": "Initial S06 Microsoft account-bound OAuth, protected credentials, selected-resource reads and Outlook UI. No provider writes, model disclosure or Asana implementation.",
+  "access": {
+    "cloud_application_administrator": "IT-confirmed October 15; fresh portal verification pending personal administrator sign-in",
+    "tenant_and_app_ids": "private existing registration reused",
+    "live_client_consent": false,
+    "production_configuration_enabled": false,
+    "private_disabled_configuration_ref": ".local/integrations/microsoft/connection.pending.json"
+  },
+  "verification": {
+    "typescript": "passed",
+    "production_build": "passed",
+    "production_dependency_audit_advisories": 0,
+    "automated": {
+      "files": 94,
+      "total": 853,
+      "passed": 852,
+      "failed": 0,
+      "skipped": 1
+    },
+    "microsoft_oauth_and_credential_tests": 56,
+    "microsoft_graph_tests": 52,
+    "microsoft_service_and_http_tests": 21,
+    "microsoft_ui_tests": 11,
+    "actual_postgresql_service_and_http_tests": {
+      "passed": 21,
+      "provider": "synthetic",
+      "database": "new disposable loopback PostgreSQL; removed after verification"
+    },
+    "running_portal": {
+      "passed": true,
+      "provider": "injected synthetic Microsoft provider",
+      "database": "real disposable PostgreSQL",
+      "checks": [
+        "Client signs in to Nancy",
+        "Outlook available only through eligible session configuration",
+        "Resource listing is explicit",
+        "Calendar/folder selection saved through actual HTTP and PostgreSQL",
+        "Today-only appointment and mail previews displayed with retrieval time",
+        "Talk to Nancy entry remains visible with truthful disconnected speech status",
+        "Disconnect requires confirmation and clears displayed content",
+        "Disconnected state survives page reload",
+        "Cancelled sign-in marker displays recovery controls and cleans URL",
+        "Local Meals view remains usable",
+        "Logout returns to sign-in",
+        "Test server closed and disposable database removed"
+      ],
+      "screenshot_ref": ".local/microsoft-portal-read.png",
+      "speech_or_model_inference": false
+    },
+    "live_microsoft_oauth": false,
+    "live_microsoft_graph_read": false,
+    "provider_write": false,
+    "real_household_data_used": false,
+    "regression_repair": "The first full run exposed the backup coverage assertion expecting the intentionally excluded connection/token tables. Its explicit backup exclusion contract was updated; the final full run is the result above."
+  },
+  "launcher_repair": {
+    "cause_observed": "Scheduled retry launched PowerShell after parsing a NUL-corrupted diagnostic state file failed.",
+    "changes": [
+      "Preserve unreadable diagnostic state and recover without trusting old process IDs",
+      "Use wscript.exe windowless launcher for scheduled PowerShell startup"
+    ],
+    "verified": {
+      "scheduled_task_running": true,
+      "supervisor_ready": true,
+      "app_restarts": 0,
+      "visible_launcher_terminal_windows": 0,
+      "http_config_200": true
+    },
+    "not_tested": "Full Windows reboot"
+  },
+  "safeguards": [
+    "Care actor/participant/grant and exact tenant/account binding",
+    "Tenant PKCE/nonce and signed identity verification",
+    "Separate short-lived callback binding cookie; same-origin authenticated finish",
+    "AES-GCM credential binding; serialized refresh and no code replay",
+    "Authorization checked before provider pages and before committing results",
+    "Bounded Graph origin, pagination, bytes, items and shared provider deadline",
+    "Provider text rendered as data; no disclosure to model",
+    "No provider credential state included in restorable care backups"
+  ],
+  "remaining": [
+    "Administrator interactive sign-in and effective portal access verification",
+    "Register exact HTTPS Web callback and public certificate; protect private credential files",
+    "Verify intended client Microsoft object ID, mailbox, local data approval and actual delegated consent",
+    "Run genuine scoped OAuth/read/refresh/revocation/disconnect acceptance",
+    "Later reviewed provider writes/reconciliation, Asana work and full S06 dependency/participant gates"
+  ],
+  "references": [
+    "docs/MICROSOFT_INITIAL_CONNECTION.md",
+    "docs/MICROSOFT365_IT_CHECKLIST.md",
+    "docs/DEMO_HOSTING.md"
+  ],
+  "slice_completed": false
+}

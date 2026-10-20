@@ -64,6 +64,7 @@ export interface ProgramResult {
 export interface ProgramRun {
   id: string; definition_id: string; version_id: string; title: string; local_date: string; status: 'active'|'paused'|'completed'|'ended';
   revision: number; current_step: ProgramStep|null; obsolete: boolean; blocked_reason: string|null; pause_reason: string|null; results: ProgramResult[];
+  rest_until?:string|null;
 }
 export interface ProgramAccess { actor_id: string; label: string; role: 'administrator'|'family_friend'|'clinician'; revision: number; capabilities: ProgramCapability[] }
 export interface ProgramWorkspace {

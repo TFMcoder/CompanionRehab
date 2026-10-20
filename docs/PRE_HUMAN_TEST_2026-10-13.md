@@ -36,8 +36,8 @@ The changes include regression tests. See the [machine-readable evidence](eviden
 
 ## What tomorrow still needs to prove
 
-- Rob's actual iPhone/Safari microphone permission, Heart playback quality and volume, natural turn-taking, interruption, foreground wake, and reconnection.
-- The intended user's approved runtime/account binding. Owner-practice success does not qualify Rob, family or clinician inference accounts.
+- the intended client's actual iPhone/Safari microphone permission, Heart playback quality and volume, natural turn-taking, interruption, foreground wake, and reconnection.
+- The intended user's approved runtime/account binding. Owner-practice success does not qualify the intended client, family or clinician inference accounts.
 - A real, consented day with actual tasks, meals, portions, times and carryover; appropriate client-facing language and capacity decisions.
 - Family use with real sharing preferences and separate account bindings, and reminder behavior under the phone's actual foreground/notification constraints.
 - Human-reviewed routine, rehab, scoring and clinical content before those features are used for care.

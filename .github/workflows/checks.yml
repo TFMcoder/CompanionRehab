@@ -30,6 +30,7 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - run: npm run scan:public
       - run: npm run check
       - run: npm audit --audit-level=high
       - name: Validate roadmap

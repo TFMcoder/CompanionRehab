@@ -1,6 +1,6 @@
 // Windows demo supervisor. Private settings stay in .local; this never creates
 // users, seeds data, changes inference credentials, or publishes a tunnel.
-import { readFileSync, writeFileSync, openSync, closeSync, unlinkSync, mkdirSync, existsSync, renameSync } from 'node:fs';
+import { readFileSync, writeFileSync, openSync, closeSync, unlinkSync, mkdirSync, existsSync, renameSync, copyFileSync } from 'node:fs';
 import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
@@ -40,7 +40,16 @@ const pgBin = path.join(root, '.local/postgres/pgsql/bin');
 const pgData = path.join(root, '.local/postgres/data');
 let child, stopping = false, restarts = 0, failures = 0, started = 0, runId;
 const stateFile = path.join(runtime, 'demo-supervisor.json');
-const previousState = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')) : null;
+let previousState = null;
+if (existsSync(stateFile)) {
+  try { previousState = JSON.parse(readFileSync(stateFile, 'utf8')); }
+  catch {
+    // A power loss can leave the diagnostic state unreadable. Preserve it,
+    // then recover without trusting any old PID. The port/launch-marker checks
+    // below still prevent adopting or killing an unrelated running service.
+    copyFileSync(stateFile, stateFile + '.invalid-' + randomUUID());
+  }
+}
 function record(state, reason) {
   const next = stateFile + '.tmp';
   writeFileSync(next, JSON.stringify({ updated_at: new Date().toISOString(), state, reason,

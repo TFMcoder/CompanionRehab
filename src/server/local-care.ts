@@ -6,8 +6,12 @@ import { activityCommandSchema, activityDate, type ActivityCommand, type Activit
 import { activityId, activityRow, projectLedger } from './activity-ledger.js';
 import { ApiError, unavailable } from './errors.js';
 import type { Session } from './session.js';
+import { assertReviewedAuthority } from './session.js';
 import type { AppointmentInput, CareAccess, CareAuthority, GroceryInput, GroceryItem, LocalRole } from './care-access.js';
 import { TaskRequestService } from './task-requests.js';
+import {PreferenceService} from './preferences.js';
+import type {PreferenceCommand} from '../shared/preference-contracts.js';
+import {readIntakeTiming} from './intake-timing.js';
 
 const scrypt = (password: string, salt: Buffer, length: number, options: object) => new Promise<Buffer>((resolve, reject) => {
   scryptCallback(password, salt, length, options, (error, key) => error ? reject(error) : resolve(Buffer.from(key)));
@@ -168,14 +172,17 @@ export class LocalCare implements CareAccess {
     } catch (error) { mapError(error); }
   }
 
-  private async context(session: Session, client?: PoolClient) {
+  private async context(session: Session, client?: PoolClient, lock = false) {
     const query = client ? client.query.bind(client) : this.pool.query.bind(this.pool);
     const { rows } = await query(`select s.actor_id,s.participant_id,s.role,g.id as grant_id,g.granted_at
       from companion_local.sessions s join companion_local.accounts a on a.id=s.actor_id
       join companion_local.role_grants g on g.actor_id=s.actor_id and g.participant_id=s.participant_id and g.role=s.role
-      where s.id=$1 and s.access_hash=$2 and s.expires_at>$3 and s.revoked_at is null and a.disabled_at is null and g.revoked_at is null`, [session.session_id, tokenHash(session.access_token), this.clock()]);
+      where s.id=$1 and s.access_hash=$2 and s.expires_at>$3 and s.revoked_at is null and a.disabled_at is null and g.revoked_at is null
+      ${lock ? 'for share of s,a,g' : ''}`, [session.session_id, tokenHash(session.access_token), this.clock()]);
     const row = rows[0];
     if (!row || row.actor_id !== session.user_id) throw new ApiError(401, 'unauthorized', 'Please sign in again.');
+    assertReviewedAuthority(session,{actor_id:row.actor_id,login_session_id:session.session_id,active_role:row.role,client_id:row.participant_id,
+      grant_revision:createHash('sha256').update(`${row.grant_id}:${new Date(row.granted_at).toISOString()}`).digest('hex')});
     return { actorId: row.actor_id as string, participantId: row.participant_id as string, role: row.role as LocalRole,
       grantRevision: createHash('sha256').update(`${row.grant_id}:${new Date(row.granted_at).toISOString()}`).digest('hex') };
   }
@@ -190,8 +197,17 @@ export class LocalCare implements CareAccess {
     try { return (await this.context(session)).role; } catch (error) { return mapError(error); }
   }
   private async clientContext(session: Session, client?: PoolClient) {
-    const value = await this.context(session, client);
+    let value = await this.context(session, client);
     if (value.role !== 'client') throw new ApiError(403, 'forbidden', 'This action requires the participant role.');
+    if (client) {
+      // A mutation may wait here while logout, account disablement or grant
+      // revocation commits. Read and protect authority again after that wait.
+      await client.query('select id from companion_local.participant_profiles where id=$1 for update', [value.participantId]);
+      const current = await this.context(session, client, true);
+      if (current.participantId !== value.participantId || current.role !== value.role)
+        throw new ApiError(403, 'scope_changed', 'Your care scope changed. Refresh before saving.');
+      value = current;
+    }
     return value;
   }
   private async localDate(client: QueryClient, participantId: string) {
@@ -205,7 +221,7 @@ export class LocalCare implements CareAccess {
     if (!p) throw new ApiError(409, 'setup_required', 'Complete participant setup before planning the day.');
     const currentDate = await this.localDate(client, participantId);
     const day = selectedDate ?? currentDate;
-    const [taskResult, mealResult, checkResult, appointmentResult, groceryResult] = await Promise.all([
+    const [taskResult, mealResult, checkResult, appointmentResult, groceryResult, intakeTiming] = await Promise.all([
       client.query(`select id,title,time_hint,urgency,scheduled_date::text as scheduled_date,to_char(scheduled_time,'HH24:MI') as scheduled_time,category,duration_minutes
         from companion_local.task_definitions where participant_id=$1 and active order by scheduled_date nulls last,scheduled_time nulls last,created_at,id`, [participantId]),
       client.query(`select id,name,slots from companion_local.meal_options where participant_id=$1 and active order by created_at,id`, [participantId]),
@@ -213,10 +229,14 @@ export class LocalCare implements CareAccess {
         from companion_local.daily_checkins c left join companion_local.day_plan_proposals p on p.id=c.current_proposal_id
         left join companion_local.accepted_day_plan_versions a on a.checkin_id=c.id and a.version=c.accepted_version
         where c.participant_id=$1 and c.local_date=$2`, [participantId, day]),
-      client.query(`select id,title,starts_at from companion_local.appointments where participant_id=$1
+      client.query(`select id,title,starts_at,count(*) over()::int as total_count from companion_local.appointments where participant_id=$1
         and starts_at >= (($2::date - interval '30 days') at time zone $3)
-        and starts_at < (($2::date + interval '31 days') at time zone $3) order by starts_at limit 200`, [participantId,day,p.time_zone]),
+        and starts_at < (($2::date + interval '31 days') at time zone $3)
+        order by case when starts_at >= (case when $2::date=($4::timestamptz at time zone $3)::date then $4::timestamptz else $2::date at time zone $3 end) then 0 else 1 end,
+          case when starts_at >= (case when $2::date=($4::timestamptz at time zone $3)::date then $4::timestamptz else $2::date at time zone $3 end) then starts_at end,
+          starts_at desc,id limit 200`, [participantId,day,p.time_zone,this.clock()]),
       client.query(`select id,name,quantity from companion_local.grocery_items where participant_id=$1 order by created_at,id`, [participantId]),
+      readIntakeTiming(client,participantId),
     ]);
     const tasks = taskResult.rows.map((t: any) => ({ id: t.id, title: t.title, time_hint: t.time_hint, urgency: t.urgency, scheduled_date: t.scheduled_date, scheduled_time: t.scheduled_time, category: t.category, duration_minutes: t.duration_minutes })) as Task[];
     const meal_options = mealResult.rows.map((m: any) => ({ id: m.id, name: m.name, slots: m.slots })) as MealOption[];
@@ -225,12 +245,14 @@ export class LocalCare implements CareAccess {
     const groceries = groceryResult.rows.map((g: any) => ({ id: g.id, name: g.name, ...(g.quantity ? { quantity: g.quantity } : {}) }));
     const today:Today = { profile: { id: p.id, display_name: p.display_name, time_zone: p.time_zone, preferences: p.preferences, revision: p.revision }, local_date: day, tasks, meal_options,
       checkin: check ? { id: check.id, local_date: check.local_date, revision: check.revision, proposal: check.proposal, accepted: check.accepted } : null,
-      groceries, appointments } as Today;
+      groceries, appointments,intake_timing:intakeTiming,appointment_context:{total_count:appointmentResult.rows[0]?.total_count??0,
+        omitted_count:Math.max(0,(appointmentResult.rows[0]?.total_count??0)-appointments.length)} } as Today;
     const rows = (await client.query(`select *,local_date::text as local_date from companion_local.activity_records where participant_id=$1
       and (local_date=$2::date or (occurred_at at time zone $3)::date=$2::date or (scheduled_at at time zone $3)::date=$2::date
         or (kind='task' and local_date<$2::date and (scheduled_at at time zone $3)::date>=$2::date)
-        or id in (select id from companion_local.activity_records where participant_id=$1 order by updated_at desc,id limit 100))
-      order by updated_at desc,id`, [participantId,day,p.time_zone])).rows;
+        or id in (select id from companion_local.activity_records where participant_id=$1 order by updated_at desc,id limit 100)
+        or id in (select distinct on (intake_kind) id from companion_local.activity_records where participant_id=$1 and kind='meal' and status='completed' and occurred_at<=$4 order by intake_kind,occurred_at desc,id limit 3))
+      order by updated_at desc,id`, [participantId,day,p.time_zone,this.clock()])).rows;
     today.activity_ledger = projectLedger(today,rows.map(activityRow),currentDate);
     today.activity_reports = today.activity_ledger.entries.filter(e=>e.status==='completed'||e.status==='deferred').map(e=>({
       target_id:e.source_id??e.id, local_date:e.occurred_at?dateInZone(new Date(e.occurred_at),p.time_zone):e.local_date,
@@ -238,28 +260,108 @@ export class LocalCare implements CareAccess {
     return today;
   }
   async today(session: Session): Promise<Today> {
-    try { const { participantId, role } = await this.clientContext(session); return { ...await this.todayFor(this.pool, participantId), role }; } catch (error) { return mapError(error); }
+    try { const ctx = await this.clientContext(session),today=await this.todayFor(this.pool,ctx.participantId);
+      if(canonical(await this.clientContext(session))!==canonical(ctx))throw new ApiError(403,'scope_changed','Your care scope changed. Refresh before continuing.');
+      return { ...today, role:ctx.role };
+    } catch (error) { return mapError(error); }
+  }
+  /** Internal quiet preparation only; deliberately not an HTTP authorization path. */
+  async preparationFacts(participantId:string,localDate:string):Promise<Today>{
+    uuidSchema.parse(participantId);activityDate.parse(localDate);
+    const permitted=async()=>!!(await this.pool.query(`select 1 from companion_local.role_grants g join companion_local.accounts a on a.id=g.actor_id
+      where g.participant_id=$1 and g.role='client' and g.revoked_at is null and a.disabled_at is null limit 1`,[participantId])).rows.length;
+    if(!await permitted())throw new ApiError(403,'forbidden','No active client authority is available for preparation.');
+    const facts=await this.todayFor(this.pool,participantId,localDate);
+    if(!await permitted())throw new ApiError(403,'forbidden','Client authority changed during preparation.');
+    return facts;
   }
 
   async ledger(session:Session,date?:string):Promise<ActivityLedger> {
-    try { const {participantId}=await this.clientContext(session);if(date)activityDate.parse(date);
-      return (await this.todayFor(this.pool,participantId,date)).activity_ledger!;
+    try { const ctx=await this.clientContext(session);if(date)activityDate.parse(date);
+      const ledger=(await this.todayFor(this.pool,ctx.participantId,date)).activity_ledger!;
+      if(canonical(await this.clientContext(session))!==canonical(ctx))throw new ApiError(403,'scope_changed','Your care scope changed. Refresh before continuing.');
+      return ledger;
     } catch(error){return mapError(error);}
   }
+  preferences(session:Session){return new PreferenceService(this.pool,this.clock).workspace(session);}
+  preferenceCommand(session:Session,command:PreferenceCommand){return new PreferenceService(this.pool,this.clock).command(session,command);}
+  preferenceReceipt(session:Session,key:string){return new PreferenceService(this.pool,this.clock).receipt(session,key);}
+  retryPreferenceCommand(session:Session,key:string){return new PreferenceService(this.pool,this.clock).retry(session,key);}
+  acknowledgePreferenceCommand(session:Session,key:string){return new PreferenceService(this.pool,this.clock).acknowledge(session,key);}
+  discardPreferenceCommand(session:Session,key:string){return new PreferenceService(this.pool,this.clock).discard(session,key);}
   async activityReceipt(session:Session,key:string):Promise<ActivityReceipt|null> {
-    try {const {participantId}=await this.clientContext(session);
-      const row=(await this.pool.query(`select result from companion_local.append_only_mutations where participant_id=$1 and command_id=$2 and event_type in ('ActivityReported','ActivityCorrected','ActivityRescheduled')`,[participantId,uuidSchema.parse(key)])).rows[0];
+    try {const ctx=await this.clientContext(session);
+      const row=(await this.pool.query(`select result from companion_local.append_only_mutations where participant_id=$1 and command_id=$2 and actor_id=$3 and event_type in ('ActivityReported','ActivityCorrected','ActivityRescheduled')`,[ctx.participantId,uuidSchema.parse(key),ctx.actorId])).rows[0];
+      if(canonical(await this.clientContext(session))!==canonical(ctx))throw new ApiError(403,'scope_changed','Your care scope changed. Refresh before continuing.');
       return row?.result??null;
     }catch(error){return mapError(error);}
   }
-  async activityCommand(session:Session,input:ActivityCommand):Promise<ActivityReceipt> {
+  async holdActivityCommand(session:Session,input:ActivityCommand):Promise<void> {
+    const command=activityCommandSchema.parse(input);
+    await transaction(this.pool,async db=>{
+      const ctx=await this.clientContext(session,db);
+      const old=(await db.query('select command_id,command from companion_local.pending_activity_commands where participant_id=$1 and actor_id=$2',[ctx.participantId,ctx.actorId])).rows[0];
+      if(old){if(old.command_id!==command.idempotency_key||canonical(old.command)!==canonical(command))
+        throw new ApiError(409,'outcome_unconfirmed','Check the previous activity save before recording another activity.');return;}
+      await db.query('insert into companion_local.pending_activity_commands(participant_id,actor_id,command_id,grant_revision,command,confirmed_at) values($1,$2,$3,$4,$5,$6)',
+        [ctx.participantId,ctx.actorId,command.idempotency_key,ctx.grantRevision,JSON.stringify(command),this.clock()]);
+    });
+  }
+  async pendingActivityCommand(session:Session):Promise<{command:ActivityCommand;scope_matches:boolean}|null> {
+    try{const ctx=await this.clientContext(session);
+      const row=(await this.pool.query('select command,grant_revision from companion_local.pending_activity_commands where participant_id=$1 and actor_id=$2',[ctx.participantId,ctx.actorId])).rows[0];
+      const current=await this.clientContext(session);
+      if(current.participantId!==ctx.participantId||current.grantRevision!==ctx.grantRevision)
+        throw new ApiError(403,'scope_changed','Your care scope changed. Refresh before continuing.');
+      return row?{command:activityCommandSchema.parse(row.command),scope_matches:row.grant_revision===ctx.grantRevision}:null;
+    }catch(error){return mapError(error);}
+  }
+  async clearPendingActivityCommand(session:Session,key:string):Promise<void> {
+    await transaction(this.pool,async db=>{const ctx=await this.clientContext(session,db);
+      await db.query('delete from companion_local.pending_activity_commands where participant_id=$1 and actor_id=$2 and command_id=$3',[ctx.participantId,ctx.actorId,uuidSchema.parse(key)]);});
+  }
+  async acknowledgeActivityCommand(session:Session,key:string):Promise<void> {
+    await transaction(this.pool,async db=>{
+      const ctx=await this.clientContext(session,db),commandId=uuidSchema.parse(key);
+      const receipt=(await db.query(`select 1 from companion_local.append_only_mutations where participant_id=$1 and actor_id=$2 and command_id=$3
+        and event_type in ('ActivityReported','ActivityCorrected','ActivityRescheduled')`,[ctx.participantId,ctx.actorId,commandId])).rows[0];
+      if(!receipt)throw new ApiError(409,'outcome_unconfirmed','This activity has no saved receipt yet.');
+      // An old acknowledgement cannot erase a newer pending activity.
+      await db.query('delete from companion_local.pending_activity_commands where participant_id=$1 and actor_id=$2 and command_id=$3',[ctx.participantId,ctx.actorId,commandId]);
+    });
+  }
+  async discardPendingActivityCommand(session:Session,key:string):Promise<boolean> {
+    return transaction(this.pool,async db=>{
+      const ctx=await this.clientContext(session,db),commandId=uuidSchema.parse(key);
+      // Serialize against the actual save. A committed command must be acknowledged,
+      // and an in-flight held command cannot write after its envelope is discarded.
+      const receipt=(await db.query('select 1 from companion_local.append_only_mutations where participant_id=$1 and command_id=$2',[ctx.participantId,commandId])).rows[0];
+      if(receipt)return false;
+      await db.query('delete from companion_local.pending_activity_commands where participant_id=$1 and actor_id=$2 and command_id=$3',[ctx.participantId,ctx.actorId,commandId]);
+      return true;
+    });
+  }
+  async commitPendingActivityCommand(session:Session,input:ActivityCommand):Promise<ActivityReceipt> {
+    return this.activityCommand(session,input,true);
+  }
+  async activityCommand(session:Session,input:ActivityCommand,requireHeldCommand=false):Promise<ActivityReceipt> {
     try {
       input=activityCommandSchema.parse(input);
       return await transaction(this.pool,async client=>{
-        const {participantId,actorId}=await this.clientContext(session,client);
+        const {participantId,actorId,grantRevision}=await this.clientContext(session,client);
         const profile=(await client.query('select id,time_zone from companion_local.participant_profiles where id=$1 for update',[participantId])).rows[0];
         const old=await this.priorMutation(client,participantId,input.idempotency_key);
-        if(old){if(old.family!=='other'||canonical(old.command)!==canonical(input))fail('conflict','That request key was already used for a different change.');return {...old.result,replayed:true};}
+        if(old){
+          if(old.family!=='other'||canonical(old.command)!==canonical(input))fail('conflict','That request key was already used for a different change.');
+          if(requireHeldCommand&&!(await client.query('select 1 from companion_local.append_only_mutations where participant_id=$1 and actor_id=$2 and command_id=$3',[participantId,actorId,input.idempotency_key])).rows.length)
+            fail('conflict','That request key belongs to another actor.');
+          return {...old.result,replayed:true};
+        }
+        if(requireHeldCommand){
+          const held=(await client.query('select command,grant_revision from companion_local.pending_activity_commands where participant_id=$1 and actor_id=$2 and command_id=$3',[participantId,actorId,input.idempotency_key])).rows[0];
+          if(!held||held.grant_revision!==grantRevision||canonical(held.command)!==canonical(input))
+            throw new ApiError(409,'activity_review_required','That activity request was cancelled or its permissions changed. Review it again before saving.');
+        }
         const now=this.clock(),currentDate=dateInZone(now,profile.time_zone);
         if(input.type!=='reschedule_activity'&&input.local_date>currentDate)fail('invalid_activity_time','An actual report cannot be dated in the future.',400);
         const snapshot=await this.todayFor(client,participantId,input.local_date);
@@ -285,8 +387,9 @@ export class LocalCare implements CareAccess {
             fail('invalid_activity_time','Use the actual time and its matching local date; future completion is not allowed.',400);
         }
         if(completedPayload?.portion&&target.kind!=='meal')fail('invalid_input','Portions apply only to meals.',400);
+        if(completedPayload?.intake_kind!==undefined&&target.kind!=='meal')fail('invalid_input','Intake kind applies only to food reports.',400);
         const stamp=now.toISOString();
-        const entry:ActivityEntry={...target,revision:target.revision+1,occurred_at:prior?.occurred_at??null,notes:prior?.notes??'',portion:prior?.portion??null,
+        const entry:ActivityEntry={...target,revision:target.revision+1,occurred_at:prior?.occurred_at??null,notes:prior?.notes??'',portion:prior?.portion??null,intake_kind:prior?.intake_kind??'unknown',
           recorded_at:prior?.recorded_at??stamp,updated_at:stamp,last_action:input.type==='record_activity'?'reported':input.type==='correct_activity'?'corrected':'rescheduled'};
         let requestScheduleReview:Awaited<ReturnType<TaskRequestService['reconcileReschedule']>>=null;
         if(input.type==='reschedule_activity'){
@@ -297,14 +400,15 @@ export class LocalCare implements CareAccess {
         }else{
           entry.status=input.payload.status;entry.occurred_at=input.payload.occurred_at?new Date(input.payload.occurred_at).toISOString():null;
           entry.notes=input.payload.notes;entry.portion=target.kind==='meal'?input.payload.portion??null:null;
+          entry.intake_kind=target.kind==='meal'?input.payload.intake_kind??prior?.intake_kind??'unknown':'unknown';
         }
         const fields=[entry.id,participantId,entry.local_date,entry.kind,entry.title,entry.source_id,entry.meal_slot,entry.plan_id,entry.unplanned,entry.scheduled_at,
           entry.status,entry.occurred_at,entry.notes,entry.portion,entry.revision,entry.last_action,entry.recorded_at,entry.updated_at];
-        await client.query(`insert into companion_local.activity_records(id,participant_id,local_date,kind,title,source_id,meal_slot,plan_id,unplanned,scheduled_at,status,occurred_at,notes,portion,revision,last_action,recorded_at,updated_at,last_actor_id,last_command_id)
-          values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+        await client.query(`insert into companion_local.activity_records(id,participant_id,local_date,kind,title,source_id,meal_slot,plan_id,unplanned,scheduled_at,status,occurred_at,notes,portion,revision,last_action,recorded_at,updated_at,last_actor_id,last_command_id,intake_kind)
+          values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
           on conflict(id) do update set status=excluded.status,occurred_at=excluded.occurred_at,scheduled_at=excluded.scheduled_at,notes=excluded.notes,
-            portion=excluded.portion,revision=excluded.revision,last_action=excluded.last_action,updated_at=excluded.updated_at,
-            last_actor_id=excluded.last_actor_id,last_command_id=excluded.last_command_id`,[...fields,actorId,input.idempotency_key]);
+            portion=excluded.portion,intake_kind=excluded.intake_kind,revision=excluded.revision,last_action=excluded.last_action,updated_at=excluded.updated_at,
+            last_actor_id=excluded.last_actor_id,last_command_id=excluded.last_command_id`,[...fields,actorId,input.idempotency_key,entry.intake_kind]);
         const eventType=input.type==='record_activity'?'ActivityReported':input.type==='correct_activity'?'ActivityCorrected':'ActivityRescheduled';
         const result:ActivityReceipt={command_id:input.idempotency_key,result:input.type==='record_activity'?'reported':input.type==='correct_activity'?'corrected':'rescheduled',entry,replayed:false};
         await client.query('insert into companion_local.append_only_mutations(participant_id,command_id,command,result,event_type,actor_id) values($1,$2,$3,$4,$5,$6)',[participantId,input.idempotency_key,JSON.stringify(input),JSON.stringify(result),eventType,actorId]);
