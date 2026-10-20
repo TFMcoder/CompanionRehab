@@ -1,0 +1,127 @@
+{
+  "evidence_id": "MICROSOFT-CONNECTED-2026-10-19",
+  "observed_at": "2026-10-19T19:47:08.941Z",
+  "status": "restricted_admin_consented_connected_and_selected_read_verified",
+  "implementation_revision": "sha256:d2eeea0df5de04bf3e5ab393552d0f85ace11dbf86f18f1e2bbb9f15a832c0f3",
+  "source_manifest": {
+    "runtime_revision": "sha256:d2eeea0df5de04bf3e5ab393552d0f85ace11dbf86f18f1e2bbb9f15a832c0f3",
+    "runtime_files": 136,
+    "all_source_revision": "sha256:0f62247d29e53b42c7b37f0cc2051d3be92b61d816a2d8dd608a508e65cf0e00",
+    "all_source_files": 295,
+    "private_reference": ".local/probes/microsoft-source-manifest.json",
+    "method": "SHA-256 of sorted repository path, NUL, file bytes, NUL; runtime covers src/db and package/build/typecheck/test configuration; all-source adds scripts/tests. Docs/private files excluded."
+  },
+  "authorization": {
+    "owner_requested_restriction_consent_connection_and_bounded_read": true,
+    "exact_assignment_restriction_and_seven_scope_grant_confirmed_at_action_time": true,
+    "administrator_personal_sign_in_completed_by_user": true,
+    "initial_restriction_save_blocked_before_rob_assignment": true,
+    "initial_unsaved_change_discarded": true,
+    "safer_order_allowed_after_rob_assignment": true,
+    "personal_passwords_or_codes_entered_by_agent": false
+  },
+  "microsoft_access": {
+    "existing_tenant_application_and_callback_match": true,
+    "sole_assigned_user_matches_protected_nancy_account_object": true,
+    "assigned_user_count": 1,
+    "assigned_group_count": 0,
+    "assignment_role": "Default Access",
+    "assignment_required_saved": true,
+    "sign_in_enabled": true,
+    "directory_admin_roles_changed": false,
+    "admin_consent_granted": true,
+    "consented_scope_type": "Delegated",
+    "consented_scopes": [
+      "openid",
+      "profile",
+      "offline_access",
+      "User.Read",
+      "Calendars.ReadWrite",
+      "Mail.ReadWrite",
+      "Mail.Send"
+    ],
+    "application_permissions_added": false,
+    "consent_scope": "tenant-wide delegated consent with sole-user assignment and exact care-service tenant/object/client binding",
+    "administrator_exception": "Microsoft Global Administrators are exempt from assignment requirements. Nancy independently rejects a different Microsoft object or unauthorized care actor. No tenant administrator role was changed.",
+    "original_workflow_request_status_after_grant": "Not reviewed",
+    "original_request_marker_resolved": false,
+    "workflow_limit": "My Pending is empty; All still labels the earlier request Not reviewed. Actual grants and a working connection are independently verified. Reviewer policy, denial and block were not changed to clear this marker."
+  },
+  "connection": {
+    "fresh_client_authorization_and_signed_exact_identity_passed": true,
+    "graph_identity_validation_passed": true,
+    "encrypted_connection_saved": true,
+    "calendar_selection_count": 1,
+    "mail_folder_selection_count": 1,
+    "selected_resources": [
+      "main Calendar",
+      "Inbox"
+    ],
+    "bounded_real_provider_read_passed": true,
+    "partial_result": false,
+    "connection_and_exact_selections_survive_browser_reload": true,
+    "real_content_or_identifiers_in_public_evidence": false,
+    "provider_content_sent_to_nancy_reasoning": false,
+    "provider_write_or_send_performed": false,
+    "care_facts_or_plan_approval_written": false,
+    "caregiver_reasoning_route_changed": false
+  },
+  "repair": {
+    "initial_failure": "oauth_invalid_scopes at token_exchange",
+    "diagnosed_metadata": {
+      "missing_graph_scopes": [],
+      "unexpected_scope_count": 1,
+      "email_returned": true
+    },
+    "cause": "Entra returned its documented default OIDC email scope in addition to the seven requested scopes; the response validator rejected it.",
+    "fix": "Accept email only as response metadata. Keep requested scopes, required Graph scopes, signed exact tenant/object and care authorization unchanged. Reject reduced or expanded Graph permissions and never use email as account authority.",
+    "diagnostics": "Fixed phase/error enums, bounded numeric HTTP/AADSTS codes, static missing-scope names and counts/booleans only. No raw provider errors, tokens, codes, identifiers, mail, care content or transcripts. Consume failed single-use exchanges without replay."
+  },
+  "verification": {
+    "focused_microsoft": {
+      "passed": 150,
+      "failed": 0,
+      "files": 6,
+      "provider_data": "synthetic",
+      "private_reference": ".local/probes/microsoft-final-targeted-tests.json"
+    },
+    "typecheck": "passed",
+    "isolated_production_build": "passed",
+    "client_bundle_unchanged": "app-CeMFabsv.js",
+    "full_suite": {
+      "status": "passed",
+      "passed": 910,
+      "failed": 0,
+      "skipped": 1,
+      "files": 98,
+      "private_reference": ".local/probes/microsoft-final-full-suite.json"
+    },
+    "backend_restart": {
+      "owned_app_only": true,
+      "original_supervisor_retained": true,
+      "configured_https": true,
+      "local_transport": true,
+      "anonymous_denied": true,
+      "private_reference": ".local/probes/microsoft-diagnostic-restart.json"
+    },
+    "live_read_private_reference": ".local/probes/microsoft-live-read-summary-2026-10-19.json"
+  },
+  "remaining_gates": [
+    "The earlier request's workflow marker remains Not reviewed despite verified administrator grants; its reviewer decision is not claimed complete.",
+    "Real token-expiry refresh, authorization loss, disconnect and recovery remain open, so S06-LIVE6 is not a complete pass. Do not dismantle the working connection merely to manufacture acceptance.",
+    "Intended-person/device and full S06 acceptance remain open; S06-H03 stays in_progress.",
+    "Provider writes, provider content in Nancy reasoning, Asana and later full-slice work remain outside initial setup."
+  ],
+  "private_screenshot_refs": [
+    ".local/probes/microsoft-rob-assigned-2026-10-19.png",
+    ".local/probes/microsoft-assignment-required-2026-10-19.png",
+    ".local/probes/microsoft-consent-granted-2026-10-19.png",
+    ".local/probes/microsoft-outlook-connected-2026-10-19.png"
+  ],
+  "provider_references": [
+    "https://learn.microsoft.com/en-us/entra/identity-platform/howto-restrict-your-app-to-a-set-of-users",
+    "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/grant-admin-consent",
+    "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/review-admin-consent-requests",
+    "https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md"
+  ]
+}

@@ -3,6 +3,7 @@ import type { Pool, PoolClient } from 'pg';
 import type { Session } from './session.js';
 import type { AppRole } from '../shared/contracts.js';
 import { ApiError } from './errors.js';
+import { assertReviewedAuthority } from './session.js';
 
 export type LocalDb = Pick<PoolClient, 'query'>;
 export interface LocalAuthority { actor: string; participant: string; role: AppRole; zone: string; profileRevision: number; grant: string }
@@ -20,6 +21,8 @@ export async function localAuthority(db: LocalDb, session: Session, now: Date, l
     where s.id=$1 and s.access_hash=$2 and s.expires_at>$3 and s.revoked_at is null and a.disabled_at is null and g.revoked_at is null
     ${lock?'for share of s,a,g':''}`, [session.session_id,createHash('sha256').update(session.access_token).digest(),now])).rows[0];
   if(!row || row.actor_id!==session.user_id) throw new ApiError(401,'unauthorized','Please sign in again.');
+  assertReviewedAuthority(session,{actor_id:row.actor_id,login_session_id:session.session_id,active_role:row.role,client_id:row.participant_id,
+    grant_revision:createHash('sha256').update(`${row.id}:${new Date(row.granted_at).toISOString()}`).digest('hex')});
   return {actor:row.actor_id,participant:row.participant_id,role:row.role,zone:row.time_zone,profileRevision:row.revision,
     grant:createHash('sha256').update(canonicalJson([row.id,row.granted_at,row.role])).digest('hex')};
 }

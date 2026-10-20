@@ -22,6 +22,35 @@ function fixture(storage = new MemoryStorage(), scope = 'actor-login-client-gran
 }
 
 describe('device pending commands', () => {
+  it('rechecks authority after durable storage finishes and before dispatch',async()=>{
+    const f=fixture();await f.controller.activate('actor-login-client-grants-v1');await f.controller.queue('care',command);
+    const write=f.storage.write.bind(f.storage);
+    f.storage.write=async items=>{await write(items);if(items.some(item=>item.status==='unknown'))vi.mocked(f.transport.scopeKey).mockResolvedValue('another-login');};
+    expect(await f.controller.submit(key)).toBeNull();expect(f.transport.command).not.toHaveBeenCalled();expect(f.storage.items).toEqual([]);
+  });
+  it('serializes duplicate submit and receipt checks for the same device command',async()=>{
+    const f=fixture();await f.controller.activate('actor-login-client-grants-v1');await f.controller.queue('care',command);
+    let release!:(value:unknown)=>void;vi.mocked(f.transport.command).mockImplementationOnce(()=>new Promise(resolve=>{release=resolve;}));
+    const first=f.controller.submit(key);await vi.waitFor(()=>expect(f.transport.command).toHaveBeenCalledOnce());
+    const duplicate=f.controller.submit(key),check=f.controller.reconcile(key);
+    release({result:'resumed'});expect(await Promise.all([first,duplicate,check])).toEqual([{result:'resumed'},{result:'resumed'},{result:'resumed'}]);
+    expect(f.transport.command).toHaveBeenCalledOnce();expect(f.transport.receipt).not.toHaveBeenCalled();
+    expect(f.controller.snapshot[0]).toMatchObject({status:'saved',command:null});
+  });
+  it('does not expose mutable command payloads through queue results or snapshots',async()=>{
+    const f=fixture();await f.controller.activate('actor-login-client-grants-v1');
+    const queued=await f.controller.queue('care',command);(queued.command as CareCommand).local_date='2026-10-12';
+    (f.controller.snapshot[0].command as CareCommand).local_date='2026-10-11';await f.controller.submit(key);
+    expect(f.transport.command).toHaveBeenCalledWith('care',command,'actor-login-client-grants-v1');
+  });
+  it('never dispatches when deactivated during the durable preparation wait',async()=>{
+    const storage=new MemoryStorage();let release!:()=>void,reached!:()=>void;
+    const entered=new Promise<void>(resolve=>{reached=resolve;}),held=new Promise<void>(resolve=>{release=resolve;});
+    const write=storage.write.bind(storage);storage.write=async items=>{await write(items);if(items.some(i=>i.status==='unknown')){reached();await held;}};
+    const f=fixture(storage);await f.controller.activate('actor-login-client-grants-v1');await f.controller.queue('care',command);
+    const submitted=f.controller.submit(key);await entered;await f.controller.deactivate();release();
+    expect(await submitted).toBeNull();expect(f.transport.command).not.toHaveBeenCalled();expect(storage.items).toEqual([]);
+  });
   it('persists before dispatch and restores a never-submitted command without calling the server', async () => {
     const f = fixture();
     await f.controller.activate('actor-login-client-grants-v1');
@@ -68,7 +97,7 @@ describe('device pending commands', () => {
     expect(f.transport.command).toHaveBeenCalledTimes(1);
     expect(await f.controller.retry(key)).toEqual({ result: 'resumed' });
     expect(f.transport.command).toHaveBeenCalledTimes(2);
-    expect(f.transport.command).toHaveBeenLastCalledWith('care', command);
+    expect(f.transport.command).toHaveBeenLastCalledWith('care', command, 'actor-login-client-grants-v1');
   });
 
   it('requires review after a stale-version conflict and never alters the original payload', async () => {

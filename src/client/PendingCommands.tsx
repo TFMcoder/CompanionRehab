@@ -12,10 +12,11 @@ const messages: Record<PendingCommand['status'], string> = {
 };
 
 /** Compact status surface; parent activates/deactivates the controller with server session scope. */
-export function PendingCommandsPanel({ controller, onSaved, onReview }: {
+export function PendingCommandsPanel({ controller, onSaved, onReview, readOnly=false }: {
   controller: PendingController;
   onSaved?: (receipt: unknown) => void | Promise<void>;
   onReview?: (family:PendingFamily) => Promise<void>;
+  readOnly?:boolean;
 }) {
   const [items, setItems] = useState<PendingCommand[]>(controller.snapshot);
   const [busy, setBusy] = useState<string | null>(null);
@@ -31,18 +32,18 @@ export function PendingCommandsPanel({ controller, onSaved, onReview }: {
   };
   return <section className="pending-commands" aria-label="Pending changes">
     <h2>Pending changes</h2>
-    <p>Voice needs a connection. Typed changes saved here can be checked when you reconnect.</p>
+    <p>{readOnly?'A previous change needs checking. Your saved records will not be changed automatically.':'Voice needs a connection. Typed changes saved here can be checked when you reconnect.'}</p>
     <ul>{items.map(item => <li key={item.key}>
       <strong>{labels[item.family]}</strong> <span role="status">{messages[item.status]}</span>
       {item.reason && <p>{item.reason}</p>}
       <div className="request-actions">
-        {item.status === 'queued' && <button type="button" disabled={busy !== null} onClick={() => void run(item.key, () => controller.submit(item.key))}>Send pending change</button>}
+        {!readOnly&&item.status === 'queued' && <button type="button" disabled={busy !== null} onClick={() => void run(item.key, () => controller.submit(item.key))}>Send pending change</button>}
         {item.status === 'unknown' && <button type="button" disabled={busy !== null} onClick={() => void run(item.key, () => controller.reconcile(item.key))}>Check saved receipt</button>}
-        {item.status === 'ready_retry' && <>
+        {!readOnly&&item.status === 'ready_retry' && <>
           {onReview && <button type="button" disabled={busy !== null} onClick={() => void run(item.key, async () => { await onReview(item.family); setReviewed(item.key); return null; })}>Review latest {labels[item.family].toLowerCase()}</button>}
           <button type="button" disabled={busy !== null || reviewed !== item.key} onClick={() => void run(item.key, () => controller.retry(item.key))}>Retry same change</button>
         </>}
-        <button type="button" disabled={busy !== null} onClick={() => void run(item.key, async () => { await controller.discard(item.key); return null; })}>{item.status === 'saved' ? 'Dismiss' : 'Discard device copy'}</button>
+        {!readOnly&&<button type="button" disabled={busy !== null} onClick={() => void run(item.key, async () => { await controller.discard(item.key); return null; })}>{item.status === 'saved' ? 'Dismiss' : 'Discard device copy'}</button>}
       </div>
     </li>)}</ul>
     {error && <p role="alert">{error}</p>}

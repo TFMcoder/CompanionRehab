@@ -1,0 +1,130 @@
+{
+  "evidence_id": "MICROSOFT-MIGRATION-2026-10-17",
+  "observed_at": "2026-10-17T23:05:05.721Z",
+  "status": "migration_deployed_registration_verified_awaiting_client_binding_and_consent",
+  "implementation_revision": "sha256:2cd0977fc4bea406226b10f4b72471d8579ba1664394140503c82078d61bdfe6",
+  "revision_method": "SHA-256 of sorted path, NUL, file bytes, NUL for src/db/scripts/tests and package/TypeScript/Vite/Vitest configuration files; private runtime and docs excluded.",
+  "revision_file_count": 286,
+  "scope": "Repair and qualify the additive 017-to-018 migration path; apply after encrypted backup/isolated restore; deploy the current backend; prepare local credentials with Microsoft access still disabled.",
+  "repair": {
+    "shared_upgrade_module": "src/server/local-schema-upgrade.ts",
+    "runner": "scripts/upgrade-local-schema.ts",
+    "regressions": "tests/local-schema-upgrade.test.ts",
+    "covers": [
+      "Only reviewed additions, without replaying historical migrations",
+      "Partial tables, missing columns and missing unique indexes refused",
+      "Revalidate reviewed schema under locks",
+      "Rollback schema and care changes on failure",
+      "Preserve original care/access rows",
+      "Encrypted 017 backup restores into 018",
+      "Repeat execution is a no-op",
+      "Restored backups exclude Microsoft credentials and selections"
+    ]
+  },
+  "verification": {
+    "typescript": "passed",
+    "production_build": "passed",
+    "automated": {
+      "files": 95,
+      "passed": 860,
+      "failed": 0,
+      "skipped": 1
+    },
+    "disposable_postgresql": {
+      "tests_passed": 8,
+      "failed": 0,
+      "created_databases_removed": true,
+      "active_care_database_opened_by_tests": false
+    },
+    "established_database_upgrade": {
+      "from": "017_food_focus.sql",
+      "to": "018_microsoft.sql",
+      "applied": true,
+      "checks_passed": 146,
+      "checks_total": 146,
+      "encrypted_backup_verified": true,
+      "isolated_restore_verified": true,
+      "restored_tables": 63,
+      "preserved_tables": 63,
+      "disposable_restore_removed": true,
+      "repeat_status": "already_current",
+      "care_values_logged": false
+    },
+    "deployed_https": {
+      "public_https_voice_ready": true,
+      "public_ui": true,
+      "care_unauthenticated_denied": true,
+      "microsoft_unauthenticated_denied": true,
+      "current_callback_failure_route": true,
+      "prepared_connection_disabled": true
+    }
+  },
+  "credentials": {
+    "prepared_locally": true,
+    "private_acl_owner_and_system_only": true,
+    "rsa_bits": 3072,
+    "certificate_matches_private_key": true,
+    "encryption_key_bytes": 32,
+    "certificate_expires_at": "2027-04-15T23:00:18.0000000Z",
+    "public_certificate_uploaded": true,
+    "connector_enabled": false,
+    "secret_values_logged": false
+  },
+  "remaining": [
+    "Verify mailbox access through the identified intended-client account during its authorized OAuth/read trial",
+    "Review and activate the distinct permanent Nancy client identity without changing care history or borrowing the owner's inference route",
+    "Select the approved calendar and mail folders during the intended-client connection",
+    "Complete intended-client delegated OAuth/read/refresh/authorization-loss/disconnect acceptance",
+    "Later reviewed writes, model disclosure and Asana remain outside this increment"
+  ],
+  "safeguards": {
+    "care_rows_seeded_or_relabelled": false,
+    "live_microsoft_called": false,
+    "model_called": false,
+    "tailscale_routes_changed": false,
+    "full_windows_reboot_tested": false
+  },
+  "private_evidence_refs": [
+    ".local/probes/microsoft-migration-full-suite.json",
+    ".local/probes/microsoft-schema-postgres-results.json",
+    ".local/probes/microsoft-schema-applied.json",
+    ".local/probes/microsoft-deployment-check.json",
+    ".local/probes/microsoft-credential-preparation.json",
+    ".local/integrations/microsoft/registration-verified-2026-10-17.json",
+    ".local/integrations/microsoft/client-binding-preflight.json",
+    ".local/integrations/microsoft/client-identity-verified.json",
+    ".local/provisioning/microsoft-client-request.json",
+    ".local/integrations/microsoft/local-preview-approval.json"
+  ],
+  "slice_completed": false,
+  "registration_observed_at": "2026-10-17T23:35:39.493Z",
+  "registration": {
+    "administrator_mfa_signin_verified": true,
+    "effective_edit_access_verified": true,
+    "exact_web_callback_registered": true,
+    "public_certificate_matches_local_key": true,
+    "agreed_seven_delegated_permissions_present": true,
+    "application_permissions_added": false,
+    "tenant_wide_consent_granted_by_agent": false,
+    "actual_client_consent_verified": false,
+    "permanent_client_transition_applied": false,
+    "permanent_client_transition_read_only_review_prepared": true,
+    "permanent_client_transition_owner_decision_pending": true,
+    "graph_content_read": false,
+    "intended_client_directory_identity_verified": true,
+    "intended_client_account_enabled": true,
+    "existing_microsoft_365_license_active": true,
+    "graph_mailbox_access_verified": false
+  },
+  "client_identity_observed_at": "2026-10-17T23:38:31.960Z",
+  "local_preview_approval": {
+    "recorded_at": "2026-10-17T23:54:20.053Z",
+    "source": "Project owner confirmation of company approval",
+    "calendar": true,
+    "mail": true,
+    "scope": "Explicitly selected local previews",
+    "provider_content_to_gpt": false,
+    "provider_writes": false,
+    "account_transition": false
+  }
+}

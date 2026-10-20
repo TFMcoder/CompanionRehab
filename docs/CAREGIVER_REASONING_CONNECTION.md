@@ -1,0 +1,33 @@
+# Caregiver-authorized Nancy connection
+
+October 18, 2026: the owner states that Nancy is for their caregiver purposes and explicitly directs proceeding with the existing Pro connection before later hosting migration. API billing remains unselected. This is the application authorization for the scoped engineering change below; it is not evidence of a provider exception to the SIWC terms.
+
+## Implementation
+
+The existing owner connection remains immutable. An optional ignored local authorization file binds one named client actor and participant to that exact account binding and host, with the caregiver's active administrator/family grant and the client's active grant. The server derives the actual speaker, login, role, participant and grant revision from care authorization. It keeps the reasoning-account owner separately identified; it does not rename a client as the owner or select credentials from a mutable active account.
+
+`src/server/caregiver-inference.ts` validates the authorization and rechecks both exact grants and account status whenever a binding is used. Missing, disabled or invalid authorization, changed account/host, revoked grants and disabled accounts fail closed. Changes to the authorization or grant identity invalidate existing conversations. Model refresh and every model/tool round retain the same immutable account; late revoked results are discarded while supplied usage remains factual.
+
+`ConversationService` admits only the existing owner route or the exact caregiver-authorized client route. Session eligibility, conversation speech, optional spoken reminders and opted-in foreground wake use the same authorization. Wake consent includes the voice binding, and speech checks it again before delivery. All other actors stay unavailable. Care tools retain their independent role checks and client-only task acceptance; an administrator cannot approve for the client. Existing history, credentials, care data and Microsoft permissions are untouched.
+
+My Day identifies the connection as using the caregiver's ChatGPT plan and links to plan usage. Talk to Nancy remains the entry across views. The selected Sol/high model, local ASR and Heart voice are unchanged; no API fallback or paid service is introduced.
+
+## Current activated connection
+
+Final engineering verification passes **900 tests, one optional skip across 98 files**, plus typecheck and the isolated client build. Twelve authorization scenarios pass on actual disposable PostgreSQL. Twelve actual listening-HTTP/local Heart/ASR checks pass with synthetic provider responses, and browser checks verify sign-in, Talk, connection attribution, navigation and reload. Owned fixture databases and the synthetic browser tab were removed. These synthetic checks remain separate from the actual provider/deployment evidence below and do not complete the human acceptance gates.
+
+After the initial rejection below, the owner explicitly approved resubmitting the exact two-request synthetic Pro test and the named client route, acknowledging the account-use concern and retaining no API billing. The resubmitted review allowed the test. It completed **16/16 real-service checks with one actual Sol/high request**, actual listening HTTP, disposable PostgreSQL, Heart synthesis and ASR of generated speech. The provider supplied 5,171 input and 12 output tokens (5,183 total, zero reasoning output reported); the model stage took 4,407 ms in this one synthetic observation. This is not a latency guarantee or physical-device trial.
+
+The exact caregiver/client/account/host configuration was freshly reviewed and applied with no credential copying or care-record writes. Its file is restricted to the local owner and SYSTEM. The tested `app-CeMFabsv.js` client and frozen backend were deployed, the verified owned app process restarted under the existing supervisor, and **7/7 public HTTPS readiness/access checks passed**. The existing authenticated client browser shows an enabled Talk to Nancy button and the caregiver-plan label. Its microphone was not activated by the agent. The original account binding and care identities/history are preserved. All owned fixture databases were removed.
+
+The first automatic approval review rejected the proposed live test through the real Pro connection, stating that it crossed the recorded owner-only/account-use boundary even with synthetic payloads and a two-request cap. That rejected attempt made no provider request. The later review followed new, explicit informed owner approval of the same test and route; it was not a different-transport workaround. These application/action approvals do not constitute a provider-issued exception to the SIWC terms. Preserve that distinction and all remaining participant/device/full-slice gates.
+
+The earlier disposable PostgreSQL and HTTP/browser/Heart/ASR tests used synthetic credentials and provider responses with zero provider requests. The subsequent bounded live check supplies actual selected-model transport evidence separately. Neither establishes physical microphone/audible client acceptance or completes a slice.
+
+## Operation and remaining live acceptance
+
+1. Keep the exact local authorization and immutable account binding. Recheck both care grants, account state and host on use; disabling the file or revoking either grant stops the route. Do not widen this to other people, accounts or profiles or introduce API/model fallback.
+2. Reuse the working private login and original care history. No reprovisioning, credential rotation, database migration or hosting move is needed. User login and microphone permission remain ordinary private user actions when actually missing.
+3. The user can refresh the established HTTPS app and tap Talk to Nancy. Complete the consenting actual iPhone/Safari speech, interruption and care-command readback. Keep S01/S02 participant/genuine-day and remaining credential/provider-loss gates open until observed; one synthetic provider turn is not full acceptance.
+
+Private continuation: `.local/runtime/caregiver-voice.json` is active; `NANCY_CAREGIVER_VOICE_CONFIG` points there. `.local/probes/configure-caregiver-voice.ts` prepares/rechecks the exact activation; `.local/probes/caregiver-live.json` records the successful resubmitted probe and `.local/probes/caregiver-deployment.json` the verified restart/readiness. `.local/probes/check-caregiver-offline.ts` is the separate zero-provider fixture. Full identifiers and credentials remain ignored. The public [engineering evidence](evidence/CAREGIVER-VOICE-2026-10-18.json) records sanitized results and both approval-review outcomes.

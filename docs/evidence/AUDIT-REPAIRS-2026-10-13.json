@@ -1,0 +1,250 @@
+{
+  "evidence_id": "AUDIT-REPAIRS-2026-10-13",
+  "status": "engineering_repair_list_complete",
+  "implementation_revision": "sha256:a06b57af8a5467fee62d04aa0309f6674a9048ae9075bb470e32f65f8521d59e",
+  "observed_at": "2026-10-13T20:53:31.864Z",
+  "authorization": "Owner requested fixes in audit order with backend and live portal testing before integration.",
+  "scope": "Nine handoff audit repairs plus Programs saved-result history/correction UI; isolated synthetic engineering checks and additive local deployment.",
+  "repair_order": [
+    "AUD-01",
+    "AUD-02",
+    "AUD-05",
+    "AUD-03",
+    "AUD-06",
+    "AUD-04",
+    "AUD-07",
+    "AUD-08",
+    "AUD-09"
+  ],
+  "repairs": [
+    {
+      "id": "AUD-01",
+      "change": "Recheck session, account and role-grant authority after the participant lock, holding shared authority locks through legacy mutations.",
+      "tests": [
+        "tests/mutation-authority.test.ts"
+      ],
+      "live": "Actual PostgreSQL and running portal HTTP lock-wait/revocation probes denied the command with no receipt.",
+      "status": "fixed_engineering_verified"
+    },
+    {
+      "id": "AUD-02",
+      "change": "Re-read family grocery sharing after the participant lock before permitting a mutation.",
+      "tests": [
+        "tests/mutation-authority.test.ts"
+      ],
+      "live": "Actual PostgreSQL and running portal HTTP sharing-revocation race denied the edit with no receipt.",
+      "status": "fixed_engineering_verified"
+    },
+    {
+      "id": "AUD-05",
+      "change": "Durably retain the confirmed command and scope before dispatch; reconcile its receipt before model use or another report. Explicit retries reuse that exact command. Changed turn payloads remain rejected; definite retry rejection clears the intent.",
+      "tests": [
+        "tests/activity-recovery.test.ts"
+      ],
+      "live": "Real owner-bound Sol/high prepared a synthetic meal; actual Heart audio was acknowledged. Lost response and receipt lookup were recovered after actual API restart. Missing receipt required explicit same-key retry. Browser reload reconciled one saved entry; final restarted HTTP probe verified changed-turn and definite-rejection boundaries.",
+      "status": "fixed_engineering_verified"
+    },
+    {
+      "id": "AUD-03",
+      "change": "Recheck active scope/epoch after awaited device-storage preparation and before dispatch.",
+      "tests": [
+        "tests/pending-commands.test.ts"
+      ],
+      "live": "Browser touch save and receipt failed before commit; pending status stayed honest. Logout cleared the device queue; relogin did not replay and actual PostgreSQL confirmed no activity. The exact paused-storage interleaving is automated, not claimed as a physical-device reproduction.",
+      "status": "fixed_engineering_verified"
+    },
+    {
+      "id": "AUD-06",
+      "change": "Speech GET 401 and scope_changed 403 use shared authorization cleanup; voice immediately stops microphone/audio and cannot resume listening.",
+      "tests": [
+        "tests/my-day-client-voice.test.ts"
+      ],
+      "live": "Running browser received injected speech 401/403 from the real portal: sign-in or scope refresh appeared, generated native MediaStreamTrack ended and listening did not resume.",
+      "status": "fixed_engineering_verified"
+    },
+    {
+      "id": "AUD-04",
+      "change": "Prefer current/upcoming appointments over history in bounded context; expose total/omitted counts.",
+      "tests": [
+        "tests/effective-schedule.test.ts"
+      ],
+      "live": "Running portal HTTP plus browser My Day retained the imminent record with 200 older synthetic appointments; truncation was explicit.",
+      "status": "fixed_engineering_verified"
+    },
+    {
+      "id": "AUD-07",
+      "change": "Use an effective occurrence projection for appointment reminders and protected program conflicts. Meal prompt versions include effective due times and respect deferral/completion.",
+      "tests": [
+        "tests/effective-schedule.test.ts"
+      ],
+      "live": "Running portal HTTP invalidated the old appointment claim and used the changed due time. Browser showed the effective appointment schedule. Meal, deferral/completion and protected conflict regressions passed in PGlite; full DST/three-genuine-date prompt matrix remains open.",
+      "status": "fixed_engineering_verified"
+    },
+    {
+      "id": "AUD-08",
+      "change": "Expose rest_until and refresh server guidance automatically at its boundary, with scoped cleanup and bounded retry; add manual refresh.",
+      "tests": [
+        "tests/programs-ui.test.tsx"
+      ],
+      "live": "Actual browser/portal/PostgreSQL one-minute rest expired and next-step controls appeared without reload or manual refresh.",
+      "status": "fixed_engineering_verified"
+    },
+    {
+      "id": "AUD-09",
+      "change": "Format both program conflict lists in workspace.time_zone and label the zone.",
+      "tests": [
+        "tests/programs-ui.test.tsx"
+      ],
+      "live": "Browser displayed America/Vancouver 1:32 p.m. before and after routine start while the host/browser used America/Toronto.",
+      "status": "fixed_engineering_verified"
+    }
+  ],
+  "program_ui_gap": {
+    "status": "fixed_engineering_verified",
+    "change": "Authorized saved step history, correction fields, required client reason, exact result revision and receipt handling. Required steps cannot be changed to skipped in the form.",
+    "live": "Client changed an optional synthetic step from skipped to completed; corrected result was visible after reload."
+  },
+  "additional_repair": {
+    "source": "src/server/speech-startup.ts",
+    "change": "Bounded retry of the same selected local speech warmup after deployed startup failure; no provider/model fallback.",
+    "automated": "Retry and shutdown tests passed.",
+    "live": "Supervised restart returned public voice_available true."
+  },
+  "verification": {
+    "typecheck": "passed",
+    "tests": {
+      "passed": 561,
+      "optional_skipped": 1,
+      "files_passed": 69
+    },
+    "build": "passed",
+    "dependency_vulnerabilities": 0,
+    "actual_service_probes": {
+      "fix-portal-http.json": {
+        "status": "passed",
+        "assertions": 17,
+        "all_assertions_passed": true
+      },
+      "fix-voice-http.json": {
+        "status": "passed",
+        "assertions": 15,
+        "all_assertions_passed": true
+      },
+      "fix-portal-final-recovery.json": {
+        "status": "passed",
+        "assertions": 12,
+        "all_assertions_passed": true
+      },
+      "fix-portal-browser.json": {
+        "status": "passed",
+        "assertions": 16,
+        "all_assertions_passed": true
+      },
+      "fix-portal-browser-db.json": {
+        "status": "passed",
+        "assertions": 3,
+        "all_assertions_passed": true
+      },
+      "audit-repairs-public-readiness.json": {
+        "status": "passed",
+        "assertions": 5,
+        "all_assertions_passed": true
+      },
+      "activity-recovery-upgrade.json": {
+        "status": "passed",
+        "assertions": 62,
+        "all_assertions_passed": true
+      },
+      "audit-repairs-public-https.json": {
+        "status": "passed",
+        "assertions": 13,
+        "all_assertions_passed": true
+      }
+    },
+    "public_browser": "Updated Programs controls verified on the existing authenticated HTTPS tab; no care-record mutation.",
+    "active_account_http_smoke": {
+      "status": "passed",
+      "assertions": 13,
+      "observed_at": "2026-10-13T21:31:10.327Z",
+      "user_authorization": "Explicit account-specific approval received on 2026-10-13.",
+      "scope": "existing approved client-trial account; navigation and local Heart speech only; no model or microphone",
+      "care_record_writes": false
+    },
+    "remote_ci": "Not run at this uncommitted implementation revision; prior CI is not claimed for these changes.",
+    "physical_microphone_followup": {
+      "status": "deferred_by_user",
+      "observed_at": "2026-10-13T21:36:09.513Z",
+      "user_authorization_received": true,
+      "generated_input_disabled": true,
+      "audio_unlock": "running",
+      "getUserMedia": "unsettled_after_20_seconds",
+      "physical_microphone_acquired": false,
+      "spoken_roundtrip_observed": false,
+      "care_record_writes": false,
+      "tab_retained_for_user": false,
+      "fixture": "fresh_disposable_postgresql_portal",
+      "user_resolution": "Cannot do the spoken check now",
+      "resolved_at": "2026-10-13T21:40:45.971Z",
+      "fixture_stopped": true,
+      "disposable_database_removed": true
+    }
+  },
+  "deployment": {
+    "supervised_app_restarted": true,
+    "existing_https_origin_preserved": true,
+    "unrelated_tailscale_443_preserved": true,
+    "additive_migration": "013_activity_recovery.sql",
+    "encrypted_preupgrade_backup": true,
+    "isolated_restore_rehearsal": true,
+    "existing_rows_unchanged": true,
+    "active_database_seeded_or_reset": false,
+    "selected_model": "gpt-6-sol",
+    "reasoning_effort": "high",
+    "selected_voice": "af_heart",
+    "microsoft_connector_enabled": false
+  },
+  "acceptance_limits": [
+    "Browser voice engineering checks used generated test input and typed turns against actual speech/services; no physical microphone or iPhone acceptance is claimed.",
+    "Intended-client/account entitlement, consent, data-use/retention, genuine days and clinical/human-approved protocol gates remain open.",
+    "Broader slice matrices outside this nine-defect repair list remain open. No slice is complete."
+  ],
+  "private_evidence_references": [
+    ".local/probes/fix-portal-http.json",
+    ".local/probes/fix-voice-http.json",
+    ".local/probes/fix-portal-final-recovery.json",
+    ".local/probes/fix-portal-browser.json",
+    ".local/probes/fix-portal-browser-db.json",
+    ".local/probes/audit-repairs-public-readiness.json",
+    ".local/probes/activity-recovery-upgrade.json",
+    ".local/probes/audit-repairs-authority-concurrency.jsonl",
+    ".local/probes/audit-repairs-final-check.log",
+    ".local/probes/fix-portal-programs.png",
+    ".local/probes/fix-portal-correction.png",
+    ".local/probes/audit-repairs-public-https.json",
+    ".local/probes/microphone-followup.json",
+    ".local/probes/microphone-permission-pending.png"
+  ],
+  "documentation_checks": {
+    "roadmap": "passed",
+    "generated_human_actions": "passed",
+    "git_diff_check": "passed",
+    "slices": 12,
+    "human_actions": 36,
+    "automated_contracts": 42,
+    "live_scenarios": 23,
+    "completed_features": 0
+  },
+  "fixture_cleanup": {
+    "isolated_portal_stopped": true,
+    "disposable_portal_database_removed": true,
+    "concurrency_database_removed": true,
+    "upgrade_restore_database_removed": true,
+    "microphone_followup": {
+      "status": "removed",
+      "server_stopped": true,
+      "disposable_database_removed": true,
+      "tab_closed": true,
+      "spoken_test": "deferred_by_user; no pass claimed"
+    }
+  }
+}

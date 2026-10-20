@@ -14,7 +14,9 @@ if (!(Test-Path -LiteralPath $configPath)) { throw 'Create the private demo-host
 $pwshPath = (Get-Command pwsh -ErrorAction Stop).Source
 $nancyUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 $runner = Join-Path $PSScriptRoot 'start-local-demo.ps1'
-$action = New-ScheduledTaskAction -Execute $pwshPath -Argument "-NoProfile -WindowStyle Hidden -File `"$runner`"" -WorkingDirectory $repoRoot
+$windowless = Join-Path $PSScriptRoot 'start-local-demo.vbs'
+$wscriptPath = Join-Path ([Environment]::GetFolderPath('System')) 'wscript.exe'
+$action = New-ScheduledTaskAction -Execute $wscriptPath -Argument "//B //Nologo `"$windowless`" `"$pwshPath`" `"$runner`"" -WorkingDirectory $repoRoot
 $principal = New-ScheduledTaskPrincipal -UserId $nancyUser -LogonType Interactive -RunLevel Limited
 $logon = New-ScheduledTaskTrigger -AtLogOn -User $nancyUser
 # A periodic trigger also recovers a stopped supervisor without a new sign-in.

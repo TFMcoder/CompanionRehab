@@ -75,18 +75,18 @@ describe('role-bound request app integration', () => {
     expect(fetch.mock.calls.some(([path]) => path === '/api/today' || path === '/api/task-requests')).toBe(false);
   });
 
-  it('uses one ongoing client conversation across Requests and My Day, preserving request review state', async () => {
+  it('uses one ongoing client conversation across the simplified client views without exposing the request forms', async () => {
     const mocked = voiceMock(); const fetch = backend({ ...session, role: 'client', scope_key: 'client-1', voice_eligible: true }, { ...workspace, role: 'client' }); render(<App />);
     fireEvent.click(await screen.findByRole('button', { name: 'Talk to Nancy' }));
     await screen.findByRole('button', { name: 'Stop voice' });
-    fireEvent.click(screen.getByRole('button', { name: 'Requests' })); await screen.findByText('No requests here.');
+    fireEvent.click(screen.getByRole('button', { name: 'Ask for Help' })); await screen.findByRole('heading',{name:'Ask for Help'});
     expect(screen.queryByRole('button', { name: 'Talk to Nancy' })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'My Day' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Requests' })); await screen.findByText('No requests here.');
-    expect(fetch.mock.calls.filter(([path]) => path === '/api/task-requests')).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Tasks' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ask for Help' })); await screen.findByRole('heading',{name:'Ask for Help'});
+    expect(fetch.mock.calls.filter(([path]) => path === '/api/task-requests')).toHaveLength(0);
     expect(startLocalVoice).toHaveBeenCalledTimes(1); expect(mocked.handle.stop).not.toHaveBeenCalled();
-    await act(async () => mocked.options().onNavigate('requests'));
-    expect(screen.getByRole('button', { name: 'Requests' })).toHaveAttribute('aria-current', 'page');
+    await act(async () => mocked.options().onNavigate('ask_for_help'));
+    expect(screen.getByRole('button', { name: 'Ask for Help' })).toHaveAttribute('aria-current', 'page');
   });
 
   it('uses local voice and typed turns only on an eligible support route and closes them on sign-out', async () => {

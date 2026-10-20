@@ -3,7 +3,7 @@ import { progressArchetypes, progressFields, progressKinds, type ProgressCommand
   type ProgressKind, type ProgressReceipt, type ProgressWorkspace } from '../shared/progress-contracts';
 
 export interface ProgressProps { scopeKey: string; localDate: string; visible: boolean;
-  commandAction?: (input: ProgressCommand) => Promise<ProgressReceipt> }
+  commandAction?: (input: ProgressCommand) => Promise<ProgressReceipt>;readOnly?:boolean }
 type Save = { kind: 'idle' | 'saving' | 'saved' | 'error' | 'unconfirmed'; message: string; key?: string };
 const newKey = () => crypto.randomUUID();
 const earlier = (day: string, count: number) => {
@@ -22,7 +22,7 @@ async function request<T>(url:string, options:RequestInit={}, signal?:AbortSigna
 const label=(field:string)=>field.replaceAll('_',' ');
 
 /** Compact, typed UI for client progress and explicitly scoped clinical views. */
-export function Progress({scopeKey,localDate,visible,commandAction}:ProgressProps){
+export function Progress({scopeKey,localDate,visible,commandAction,readOnly=false}:ProgressProps){
   const [from,setFrom]=useState(earlier(localDate,6)),[to,setTo]=useState(localDate);
   const [archetype,setArchetype]=useState<typeof progressArchetypes[number]['id']|''>('');
   const [data,setData]=useState<ProgressWorkspace|null>(null);
@@ -116,11 +116,11 @@ export function Progress({scopeKey,localDate,visible,commandAction}:ProgressProp
   if(!visible)return null;
   return <section className="request-panel" aria-label="Progress">
     <h2>Progress</h2><p>These numbers describe reported activity under approved household rules. They are not a clinical outcome.</p>
-    <div className="inline-fields"><label>From <input type="date" value={from} max={to} onChange={event=>setFrom(event.target.value)}/></label>
+    {readOnly?<p>Last seven days</p>:<div className="inline-fields"><label>From <input type="date" value={from} max={to} onChange={event=>setFrom(event.target.value)}/></label>
       <label>To <input type="date" value={to} min={from} onChange={event=>setTo(event.target.value)}/></label>
       <label>View <select value={archetype} onChange={event=>setArchetype(event.target.value as typeof archetype)}><option value="">Daily progress</option>
         {progressArchetypes.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
-      <button type="button" className="secondary-button" onClick={()=>void refresh()} disabled={loading}>Refresh</button></div>
+      <button type="button" className="secondary-button" onClick={()=>void refresh()} disabled={loading}>Refresh</button></div>}
     {loading&&<p role="status">Loading progress…</p>}{issue&&<p role="alert">{issue}</p>}
     {data&&<p>{data.trend.days_with_accepted_plan} of {data.trend.days_in_range} days have an accepted plan.
       {data.trend.average_reported_percent!==null?` Average of days with reported eligible outcomes: ${data.trend.average_reported_percent}%.`:''}
@@ -139,11 +139,11 @@ export function Progress({scopeKey,localDate,visible,commandAction}:ProgressProp
           {day.achievements.filter(item=>item.active).map(item=><p key={item.key}>★ {item.label}</p>)}
           {day.sources.length>0&&<details><summary>How this was calculated</summary><ul>{day.sources.map(source=><li key={source.source_id}>
             {source.title}: {source.state}. {source.explanation}{source.corrected?' Corrected report.':''}</li>)}</ul></details>}
-          {data.role==='client'&&<button type="button" className="secondary-button" disabled={save.kind==='saving'}
+          {!readOnly&&data.role==='client'&&<button type="button" className="secondary-button" disabled={save.kind==='saving'}
             onClick={()=>void command({type:'recalculate_score',idempotency_key:newKey(),local_date:day.local_date})}>Recalculate this day</button>}
         </>}
     </article>)}
-    {data?.can_approve_rules&&<details><summary>Approve progress rules</summary><p>Choose only activities and wording reviewed by the scoring owner. No points are active until approval.</p>
+    {!readOnly&&data?.can_approve_rules&&<details><summary>Approve progress rules</summary><p>Choose only activities and wording reviewed by the scoring owner. No points are active until approval.</p>
       <div className="inline-fields">{progressKinds.map(kind=><label key={kind}>{label(kind)} weight <input type="number" min="1" max="100" value={weights[kind]??''}
         placeholder="Not eligible" onChange={event=>setWeights(current=>({...current,[kind]:event.target.value}))}/></label>)}</div>
       <label>Deferred activities <select value={deferral} onChange={event=>setDeferral(event.target.value as typeof deferral)}>
@@ -159,7 +159,7 @@ export function Progress({scopeKey,localDate,visible,commandAction}:ProgressProp
       <label>Approval reference <input value={approvalRef} onChange={event=>setApprovalRef(event.target.value)} maxLength={200}/></label>
       <button type="button" className="secondary-button" onClick={approveRules} disabled={save.kind==='saving'}>Approve rule version {1+(data.active_rules?.version??0)}</button>
     </details>}
-    {data?.role==='client'&&data.access_grants.length>0&&<details><summary>Share a scoped progress view</summary>
+    {!readOnly&&data?.role==='client'&&data.access_grants.length>0&&<details><summary>Share a scoped progress view</summary>
       <label>Person <select value={accessActor} onChange={event=>setAccessActor(event.target.value)}><option value="">Choose a current grant</option>
         {data.access_grants.map(grant=><option key={`${grant.role}:${grant.actor_id}`} value={`${grant.role}:${grant.actor_id}`}>
           {grant.role} · {grant.actor_id.slice(0,8)}</option>)}</select></label>
@@ -171,14 +171,14 @@ export function Progress({scopeKey,localDate,visible,commandAction}:ProgressProp
           onChange={()=>toggle(accessFields,field,setAccessFields)}/>{label(field)}</label>)}</fieldset>
         <button type="button" className="secondary-button" disabled={save.kind==='saving'} onClick={saveAccess}>Save sharing</button></>}
     </details>}
-    {data?.can_approve_rules&&archetype&&<details><summary>Approve {progressArchetypes.find(item=>item.id===archetype)?.label} view definition</summary>
+    {!readOnly&&data?.can_approve_rules&&archetype&&<details><summary>Approve {progressArchetypes.find(item=>item.id===archetype)?.label} view definition</summary>
       <p>This selects visible measures. It adds no clinical threshold or access.</p><label>Title <input value={configTitle} onChange={event=>setConfigTitle(event.target.value)}/></label>
       <fieldset><legend>Measures</legend>{progressFields.map(field=><label key={field}><input type="checkbox" checked={configFields.includes(field)}
         onChange={()=>toggle(configFields,field,setConfigFields)}/>{label(field)}</label>)}</fieldset>
       <label>Clinical review reference <input value={configRef} onChange={event=>setConfigRef(event.target.value)}/></label>
       <button type="button" className="secondary-button" disabled={save.kind==='saving'} onClick={saveConfig}>Approve view version {1+(data.clinical_config?.version??0)}</button>
     </details>}
-    {data?.can_export&&<details><summary>Export permitted progress</summary><p>The selected range, fields and version context are recorded in an audit receipt.</p>
+    {!readOnly&&data?.can_export&&<details><summary>Export permitted progress</summary><p>The selected range, fields and version context are recorded in an audit receipt.</p>
       <fieldset><legend>Fields</legend>{data.allowed_fields.map(field=><label key={field}><input type="checkbox" checked={exportFields.includes(field)}
         onChange={()=>toggle(exportFields,field,setExportFields)}/>{label(field)}</label>)}</fieldset>
       <label>Format <select value={exportFormat} onChange={event=>setExportFormat(event.target.value as 'json'|'csv')}><option value="csv">CSV</option><option value="json">JSON</option></select></label>

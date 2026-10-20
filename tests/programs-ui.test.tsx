@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import { Programs, type ProgramClientService } from '../src/client/Programs';
 import type { ProgramReceipt, ProgramWorkspace } from '../src/shared/program-contracts';
 
-afterEach(()=>{cleanup();vi.unstubAllGlobals();});
+afterEach(()=>{cleanup();vi.useRealTimers();vi.unstubAllGlobals();});
 
 const rehabSteps=[
   {id:'first',title:'First rehab step',instruction:'Do the first approved step.',optional:false,depends_on:[],estimated_minutes:5},
@@ -23,6 +23,26 @@ function rehabView(stepIndex=0):ProgramWorkspace {
       blocked_reason:null,pause_reason:null,results:stepIndex?[{step_id:'first',outcome:'completed',reason:'',difficulty:'',assistance:'',notes:'',revision:1,reported_at:'2026-10-13T12:00:00Z'}]:[]}]};
 }
 const receipt:ProgramReceipt={command_id:'saved-key',result:'report_program_step',definition_id:null,version_id:null,run_id:'rehab-run',step_id:'first',revision:2,replayed:false};
+it('refreshes rest eligibility from the server without a reload',async()=>{
+ const waiting=rehabView(1);waiting.runs[0].current_step=null;waiting.runs[0].blocked_reason='Rest briefly.';waiting.runs[0].rest_until=new Date(Date.now()+2000).toISOString();
+ const service:ProgramClientService={workspace:vi.fn().mockResolvedValueOnce(waiting).mockResolvedValue(rehabView(1)),command:vi.fn(),receipt:vi.fn()};
+ vi.useFakeTimers();render(<Programs service={service} scopeKey="scope" onTalk={vi.fn()}/>);await act(async()=>{await Promise.resolve();});
+ expect(screen.queryByText('Do the second approved step.')).not.toBeInTheDocument();await act(async()=>{await vi.advanceTimersByTimeAsync(2200);});
+ expect(screen.getByText('Do the second approved step.')).toBeInTheDocument();expect(service.workspace).toHaveBeenCalledTimes(2);
+});
+it.each([true,false])('formats protected-time conflicts in the client zone (active: %s)',async active=>{
+ const view=rehabView();view.time_zone='America/Los_Angeles';const conflict={id:'appointment',title:'Appointment fixture',starts_at:'2026-10-13T13:00:00Z'};
+ view.conflicts=[conflict];view.conflicts_by_version={'rehab-version':[conflict]};if(!active)view.runs=[];
+ const service:ProgramClientService={workspace:vi.fn(async()=>view),command:vi.fn(),receipt:vi.fn()};render(<Programs service={service} scopeKey="scope" onTalk={vi.fn()}/>);
+ expect(await screen.findByText(/Appointment fixture · 6:00/)).toBeInTheDocument();expect(screen.getByText('Times are in America/Los_Angeles.')).toBeInTheDocument();
+});
+it('shows saved results and submits an exact reviewed correction with a reason',async()=>{
+ const view=rehabView(1);const service:ProgramClientService={workspace:vi.fn(async()=>view),command:vi.fn(async()=>receipt),receipt:vi.fn()};
+ render(<Programs service={service} scopeKey="scope" onTalk={vi.fn()}/>);fireEvent.click(await screen.findByRole('button',{name:'Correct this step result'}));
+ expect(screen.getByRole('button',{name:'Save reviewed correction'})).toBeDisabled();fireEvent.change(screen.getByLabelText('Why correct this result?'),{target:{value:'Correct mistaken assistance detail'}});
+ fireEvent.change(screen.getByLabelText('Corrected assistance'),{target:{value:'A helper read the instruction'}});fireEvent.click(screen.getByRole('button',{name:'Save reviewed correction'}));
+ await waitFor(()=>expect(service.command).toHaveBeenCalledWith(expect.objectContaining({type:'correct_program_step',run_id:'rehab-run',step_id:'first',expected_revision:1,assistance:'A helper read the instruction',correction_reason:'Correct mistaken assistance detail',confirmed:true})));
+});
 
 it('presents one approved step, requires a reason to skip, and preserves the Talk entry',async()=>{
   vi.stubGlobal('crypto',{randomUUID:()=> '11111111-1111-4111-8111-111111111111'});

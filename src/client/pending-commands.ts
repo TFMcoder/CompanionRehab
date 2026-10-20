@@ -1,4 +1,4 @@
-import { api, ApiError } from './api';
+import { api, ApiError, scopedRequest } from './api';
 import type { CareCommand } from '../shared/contracts';
 import type { ActivityCommand } from '../shared/activity-contracts';
 import type { TaskRequestCommand } from '../shared/task-request-contracts';
@@ -30,28 +30,15 @@ export interface PendingStorage {
 }
 export interface PendingTransport {
   scopeKey(): Promise<string>;
-  receipt(family: PendingFamily, key: string): Promise<unknown>;
-  command(family: PendingFamily, command: RecoverableCommand): Promise<unknown>;
+  receipt(family: PendingFamily, key: string, scopeKey: string): Promise<unknown>;
+  command(family: PendingFamily, command: RecoverableCommand, scopeKey: string): Promise<unknown>;
 }
 
+const paths:Record<PendingFamily,string>={care:'/api',activity:'/api/activity',task_request:'/api/task-requests',meal_grocery:'/api/meals-groceries',local_day:'/api/local-day',program:'/api/programs',support:'/api/support-team',progress:'/api/progress',operations:'/api/operations'};
 export const pendingTransport: PendingTransport = {
   scopeKey: async () => (await api.session()).scope_key,
-  receipt: (family, key) => {
-    switch(family){
-      case 'care': return api.receipt(key); case 'activity': return api.activityReceipt(key); case 'task_request': return api.taskRequestReceipt(key);
-      case 'meal_grocery': return api.mealGroceryReceipt(key); case 'local_day': return api.localDayReceipt(key); case 'program': return api.programReceipt(key);
-      case 'support': return api.supportReceipt(key); case 'progress': return api.progressReceipt(key); case 'operations': return api.operationsReceipt(key);
-    }
-  },
-  command: (family, command) => {
-    switch(family){
-      case 'care': return api.command(command as CareCommand); case 'activity': return api.activityCommand(command as ActivityCommand);
-      case 'task_request': return api.taskRequestCommand(command as TaskRequestCommand); case 'meal_grocery': return api.mealGroceryCommand(command as MealGroceryCommand);
-      case 'local_day': return api.localDayCommand(command as LocalDayCommand); case 'program': return api.programCommand(command as ProgramCommand);
-      case 'support': return api.supportCommand(command as SupportCommand); case 'progress': return api.progressCommand(command as ProgressCommand);
-      case 'operations': return api.operationsCommand(command as OperationsCommand);
-    }
-  },
+  receipt: (family,key,scopeKey) => scopedRequest(`${paths[family]}/receipts/${encodeURIComponent(key)}`,scopeKey),
+  command: (family,command,scopeKey) => scopedRequest(`${paths[family]}/commands`,scopeKey,{method:'POST',body:JSON.stringify(command)}),
 };
 
 const DB_NAME = 'nancy-pending-commands';
@@ -108,9 +95,15 @@ export class PendingCommands {
   private scope: string | null = null;
   private epoch = 0;
   private items: PendingCommand[] = [];
+  private operations = new Map<string,Promise<unknown|null>>();
   private listeners = new Set<(items: PendingCommand[]) => void>();
   constructor(private storage: PendingStorage = new IndexedDbPendingStorage(), private transport: PendingTransport = pendingTransport, private now: () => number = Date.now) {}
-  get snapshot(): PendingCommand[] { return this.items.map(item => ({ ...item })); }
+  get snapshot(): PendingCommand[] { return structuredClone(this.items); }
+  private once(key:string,work:()=>Promise<unknown|null>):Promise<unknown|null> {
+    const operationKey=`${this.epoch}:${key}`,prior=this.operations.get(operationKey);if(prior)return prior;
+    const result=work().finally(()=>{if(this.operations.get(operationKey)===result)this.operations.delete(operationKey);});
+    this.operations.set(operationKey,result);return result;
+  }
   subscribe(listener: (items: PendingCommand[]) => void): () => void { this.listeners.add(listener); listener(this.snapshot); return () => this.listeners.delete(listener); }
   private emit() { const copy = this.snapshot; for (const listener of this.listeners) listener(copy); }
   private async save() { await this.storage.write(this.items); this.emit(); }
@@ -164,7 +157,7 @@ export class PendingCommands {
     const item: PendingCommand = { key: command.idempotency_key, family, scopeKey: scope, command: structuredClone(command), status: 'queued', createdAt: instant, updatedAt: instant };
     this.items.push(item);
     try { await this.save(); } catch (error) { this.items = this.items.filter(row => row !== item); this.emit(); throw error; }
-    return { ...item };
+    return structuredClone(item);
   }
 
   private async setStatus(key: string, status: PendingStatus, reason?: string, erasePayload = false) {
@@ -176,7 +169,8 @@ export class PendingCommands {
   }
 
   /** For freshly queued, never-dispatched work only. Unknown writes must go through reconcile(). */
-  async submit(key: string): Promise<unknown | null> {
+  submit(key: string): Promise<unknown | null> { return this.once(key,()=>this.submitOnce(key)); }
+  private async submitOnce(key: string): Promise<unknown | null> {
     const item = this.items.find(row => row.key === key);
     if (!item || item.status !== 'queued' || !item.command || !this.scope) throw new Error('This work cannot be sent without review.');
     const { scopeKey, command, family } = item;
@@ -184,8 +178,9 @@ export class PendingCommands {
     if (!await this.sameAuthority(scopeKey, epoch)) return null;
     // Mark unknown before dispatch: a crash after this point must read the receipt first.
     await this.setStatus(key, 'unknown');
+    if (!this.active(epoch, scopeKey)||!await this.sameAuthority(scopeKey,epoch)) return null;
     try {
-      const receipt = await this.transport.command(family, command);
+      const receipt = await this.transport.command(family, command, scopeKey);
       if (this.active(epoch, scopeKey)) await this.setStatus(key, 'saved', undefined, true);
       return this.active(epoch, scopeKey) ? receipt : null;
     } catch (error) {
@@ -198,14 +193,15 @@ export class PendingCommands {
   }
 
   /** Receipt lookup never dispatches a write, including after timeout or process restart. */
-  async reconcile(key: string): Promise<unknown | null> {
+  reconcile(key: string): Promise<unknown | null> { return this.once(key,()=>this.reconcileOnce(key)); }
+  private async reconcileOnce(key: string): Promise<unknown | null> {
     const item = this.items.find(row => row.key === key);
     if (!item || !['unknown', 'ready_retry'].includes(item.status) || !this.scope) return null;
     const { scopeKey, family } = item;
     const epoch = this.epoch;
     if (!await this.sameAuthority(scopeKey, epoch)) return null;
     try {
-      const receipt = await this.transport.receipt(family, key);
+      const receipt = await this.transport.receipt(family, key, scopeKey);
       if (this.active(epoch, scopeKey)) await this.setStatus(key, 'saved', undefined, true);
       return this.active(epoch, scopeKey) ? receipt : null;
     } catch (error) {
@@ -219,14 +215,15 @@ export class PendingCommands {
   }
 
   /** Explicit user action; read the receipt once more before resending the exact key and payload. */
-  async retry(key: string): Promise<unknown | null> {
+  retry(key: string): Promise<unknown | null> { return this.once(key,()=>this.retryOnce(key)); }
+  private async retryOnce(key: string): Promise<unknown | null> {
     const item = this.items.find(row => row.key === key);
     if (!item || item.status !== 'ready_retry' || !item.command) throw new Error('Review this work before retrying.');
     const scope = this.scope;
     const epoch = this.epoch;
     if (!scope || !await this.sameAuthority(scope, epoch)) return null;
     try {
-      const receipt = await this.transport.receipt(item.family, key);
+      const receipt = await this.transport.receipt(item.family, key, scope);
       if (this.active(epoch, scope)) await this.setStatus(key, 'saved', undefined, true);
       return this.active(epoch, scope) ? receipt : null;
     } catch (error) {
@@ -237,7 +234,7 @@ export class PendingCommands {
     }
     if (!this.active(epoch, scope)) return null;
     await this.setStatus(key, 'queued');
-    return this.submit(key);
+    return this.submitOnce(key);
   }
 
   async discard(key: string): Promise<void> {

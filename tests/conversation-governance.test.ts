@@ -130,7 +130,11 @@ describe('Nancy policy, scope and account governance', () => {
 
   it('refuses browser/spoken identity claims and mismatched server actor/session bindings', async () => {
     const f = fixture();
-    await expect(f.service.start({ ...f.session, user_id: randomUUID() })).rejects.toMatchObject({ code: 'reasoning_not_linked' });
+    // Server actor/session integrity is checked before route eligibility.
+    await expect(f.service.start({ ...f.session, user_id: randomUUID() })).rejects.toMatchObject({ code: 'scope_changed' });
+    const otherActor = randomUUID();f.authority.actor_id = otherActor;
+    await expect(f.service.start({ ...f.session, user_id: otherActor })).rejects.toMatchObject({ code: 'reasoning_not_linked' });
+    f.authority.actor_id = f.session.user_id;
     f.authority.login_session_id = randomUUID();
     await expect(f.service.start(f.session)).rejects.toMatchObject({ code: 'scope_changed' });
     expect(f.respond).not.toHaveBeenCalled();

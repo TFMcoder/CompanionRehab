@@ -1,3 +1,4 @@
+import {ClientHome,NancySuggestionsPanel,type CalendarState} from './ClientHome';
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { api, ApiError, type SessionInfo } from "./api";
 import { TaskRequests, type TaskRequestService } from './TaskRequests';
@@ -5,9 +6,9 @@ import { PendingCommandsPanel } from './PendingCommands';
 import { PendingCommands, type PendingFamily, type RecoverableCommand } from './pending-commands';
 import { MealGroceries, type MealGroceryClientService } from './MealGroceries';
 import { Programs, type ProgramClientService } from './Programs';
-import { WakeControl } from './WakeControl';
+import {WakeControl} from './WakeControl';
 import { SupportTeam, type SupportTeamClientService } from './SupportTeam';
-import { LocalDayPanel, type LocalDayClientService, type RoutinePlanSelection } from './LocalDayPanel';
+import type {LocalDayClientService} from './LocalDayPanel';
 import { ReminderDelivery, type ReminderClientService } from './ReminderDelivery';
 import { Operations, type OperationsClientService } from './Operations';
 import { Progress } from './Progress';
@@ -15,7 +16,7 @@ import { startVoice } from "./voice";
 import { startLocalVoice, type LocalVoiceState } from "./local-voice";
 import { localDateTimeWithOffset } from "../shared/local-time";
 import { mealSlots, type AcceptedPlan, type AppConfig, type CareCommand, type ClientView, type GroceryItem, type MealSlot, type Plan, type Receipt, type SetupInput, type Today } from "../shared/contracts";
-import type { ActivityCommand, ActivityEntry, ActivityKind, ActivityLedger, ActivityOption } from "../shared/activity-contracts";
+import type { ActivityCommand, ActivityEntry, ActivityKind, ActivityLedger, ActivityOption, IntakeKind } from "../shared/activity-contracts";
 import type { TaskRequestCommand, TaskRequestReceipt } from '../shared/task-request-contracts';
 import type { MealGroceryCommand, MealGroceryReceipt } from '../shared/meal-grocery-contracts';
 import type { LocalDayCommand, LocalDayReceipt } from '../shared/local-day-contracts';
@@ -29,10 +30,10 @@ type SaveState = { kind: "idle" | "saving" | "saved" | "unconfirmed" | "conflict
 type VoiceState = LocalVoiceState;
 type Transcript = { speaker: "you" | "nancy"; text: string };
 type ActivityDraft =
-  | { mode: "record"; activity: ActivityOption; status: "completed" | "deferred"; occurredLocal: string; notes: string; portion: string }
-  | { mode: "correct"; activity: ActivityEntry; status: "completed" | "deferred" | "voided"; occurredLocal: string; notes: string; portion: string; reason: string }
+  | { mode: "record"; activity: ActivityOption; status: "completed" | "deferred"; occurredLocal: string; notes: string; portion: string; intakeKind: IntakeKind }
+  | { mode: "correct"; activity: ActivityEntry; status: "completed" | "deferred" | "voided"; occurredLocal: string; notes: string; portion: string; intakeKind: IntakeKind; reason: string }
   | { mode: "reschedule"; activity: ActivityOption; scheduledLocal: string; reason: string }
-  | { mode: "unplanned"; kind: ActivityKind; title: string; mealSlot: MealSlot; occurredLocal: string; notes: string; portion: string };
+  | { mode: "unplanned"; kind: ActivityKind; title: string; mealSlot: MealSlot; occurredLocal: string; notes: string; portion: string; intakeKind: IntakeKind };
 
 const labelForSlot: Record<MealSlot, string> = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner" };
 const keyFor = () => crypto.randomUUID();
@@ -95,15 +96,10 @@ const supportTeamService: SupportTeamClientService = {workspace:api.supportWorks
   command:(command:SupportCommand)=>recoverableCommand<SupportReceipt>('support',command,()=>api.supportCommand(command)),receipt:key=>recoverableReceipt('support',key,()=>api.supportReceipt(key))};
 const localDayService:LocalDayClientService={workspace:api.localDayWorkspace,
   command:(command:LocalDayCommand)=>recoverableCommand<LocalDayReceipt>('local_day',command,()=>api.localDayCommand(command)),receipt:key=>recoverableReceipt('local_day',key,()=>api.localDayReceipt(key))};
-const reminderService:ReminderClientService={claim:api.claimPrompt,ack:api.promptAck};
+const reminderService:ReminderClientService={claim:api.claimPrompt,ack:api.promptAck,resume:api.resumePrompt,
+  respond:command=>localDayService.command(command),current:async id=>(await api.currentPrompt(id)).current};
 const operationsService:OperationsClientService={workspace:api.operationsWorkspace,
   command:(command:OperationsCommand)=>recoverableCommand<OperationsReceipt>('operations',command,()=>api.operationsCommand(command)),receipt:key=>recoverableReceipt('operations',key,()=>api.operationsReceipt(key))};
-
-function selectedPlan(today: Today): { taskIds: string[]; meals: Record<MealSlot, string> } {
-  const source = today.checkin?.proposal ?? today.checkin?.accepted;
-  const meals = Object.fromEntries(mealSlots.map(slot => [slot, source?.meals.find(meal => meal.slot === slot)?.option_id ?? ""])) as Record<MealSlot, string>;
-  return { taskIds: source?.task_ids ?? today.tasks.map(task => task.id), meals };
-}
 
 function planIsPending(today: Today): boolean {
   return Boolean(today.checkin?.proposal && (!today.checkin.accepted || today.checkin.proposal.id !== today.checkin.accepted.id));
@@ -146,18 +142,6 @@ function dateForInstant(value: string, zone: string) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
 }
 
-function shiftedDate(date: string, days: number) {
-  const value = new Date(`${date}T12:00:00Z`);
-  value.setUTCDate(value.getUTCDate() + days);
-  return value.toISOString().slice(0, 10);
-}
-
-function validActivityDate(value: string, latest: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || value > latest) return false;
-  const date = new Date(`${value}T12:00:00Z`);
-  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
-}
-
 function effectiveActivity(today: Today, kind: ActivityKind, sourceId?: string | null, mealSlot?: MealSlot) {
   return today.activity_ledger?.options.find(item => item.kind === kind && (sourceId ? item.source_id === sourceId && (!mealSlot || item.meal_slot === mealSlot) : mealSlot ? item.unplanned && item.meal_slot === mealSlot : false));
 }
@@ -170,19 +154,19 @@ function effectiveEntry(today: Today, activity?: ActivityOption) {
   return activity ? today.activity_ledger?.entries.find(item => item.id === activity.id) : undefined;
 }
 
+function intakeLabel(entry?: ActivityEntry) {
+  return entry?.kind === 'meal' && entry.status === 'completed'
+    ? entry.intake_kind === 'full_meal' ? ' · Full meal' : entry.intake_kind === 'snack' ? ' · Snack' : '' : '';
+}
+
 function activityDetail(today: Today, activity: ActivityOption | undefined, zone: string) {
   if (!activity) return null;
   const entry = effectiveEntry(today, activity);
-  if (activity.status === "completed") return `${activityKindLabel(activity.kind)} ${activityVerb(activity.kind)} · ${entry?.occurred_at ? displayInstant(entry.occurred_at, zone) : "time not recorded"}`;
+  if (activity.status === "completed") return `${activityKindLabel(activity.kind)} ${activityVerb(activity.kind)} · ${entry?.occurred_at ? displayInstant(entry.occurred_at, zone) : "time not recorded"}${intakeLabel(entry)}`;
   if (activity.status === "deferred") return "Deferred";
   if (activity.status === "voided") return "Mistaken report removed · ready to report again";
   if (entry?.last_action === "rescheduled" && activity.scheduled_at) return `Rescheduled for ${displayInstant(activity.scheduled_at, zone)}`;
   return null;
-}
-
-function activityDefaultTime(date: string, zone: string) {
-  const now = localInputValue(new Date(), zone);
-  return now.slice(0, 10) === date ? now : `${date}T12:00`;
 }
 
 function displayedTasks(today: Today) {
@@ -198,20 +182,6 @@ function taskTiming(task: Today['tasks'][number], today: Today) {
 
 function mealTiming(activity: ActivityOption | undefined, zone: string) {
   return activity?.scheduled_at ? displayInstant(activity.scheduled_at, zone) : 'No time set';
-}
-
-function carriedTaskOverride(today: Today, source: Plan | AcceptedPlan | null | undefined, task: Plan['tasks'][number]) {
-  const accepted = today.checkin?.accepted;
-  const activity = effectiveActivity(today, 'task', task.id);
-  const entry = effectiveEntry(today, activity);
-  const localSchedule = activity?.scheduled_at ? localInputValue(activity.scheduled_at, today.profile!.time_zone) : null;
-  // A distinct pending proposal may contain an intentional new time. Only
-  // inherit a ledger reschedule when carrying the current accepted plan.
-  const inheritReschedule = Boolean(accepted && source?.id === accepted.id && entry?.last_action === 'rescheduled'
-    && localSchedule?.slice(0, 10) === today.local_date);
-  return { id: task.id, urgency: task.urgency,
-    scheduled_time: inheritReschedule ? localSchedule!.slice(11) : task.scheduled_time,
-    duration_minutes: task.duration_minutes };
 }
 
 export function App() {
@@ -361,8 +331,8 @@ export function App() {
   }} />;
   if (screen === "setup") return <Setup initialToday={today} onSaved={next => { setToday(next); setScreen("today"); }} />;
   if (screen === 'support' && sessionInfo) return <SupportHome key={sessionInfo.scope_key} session={sessionInfo} voiceAvailable={config?.voice_available ?? false} voiceTransport={config?.voice_transport} onCheckVoice={checkVoice} onLogout={signOut} />;
-  return <TodayView key={sessionInfo!.scope_key} scopeKey={sessionInfo!.scope_key} localFeaturesAvailable={sessionInfo!.local_features_available===true}
-    voiceEligible={sessionInfo!.voice_eligible} requestsAvailable={sessionInfo!.task_requests_available === true} today={today!} voiceAvailable={config?.voice_available ?? false} voiceTransport={config?.voice_transport} onCheckVoice={checkVoice} onRefresh={refreshToday} onReceipt={applyReceipt} onEditChoices={() => { todayRequest.current += 1; setScreen("setup"); }} onLogout={signOut} />;
+  return <TodayView key={sessionInfo!.scope_key} scopeKey={sessionInfo!.scope_key} localFeaturesAvailable={sessionInfo!.local_features_available===true} microsoftAvailable={sessionInfo!.microsoft_available===true}
+    voiceEligible={sessionInfo!.voice_eligible} voiceConnection={sessionInfo!.voice_connection} requestsAvailable={sessionInfo!.task_requests_available === true} today={today!} voiceAvailable={config?.voice_available ?? false} voiceTransport={config?.voice_transport} onCheckVoice={checkVoice} onRefresh={refreshToday} onReceipt={applyReceipt} onEditChoices={() => { todayRequest.current += 1; setScreen("setup"); }} onLogout={signOut} />;
 }
 
 function Loading() {
@@ -555,329 +525,52 @@ function SupportHome({ session, voiceAvailable, voiceTransport, onCheckVoice, on
         {(session.role==='clinician'||session.role==='administrator')&&<Programs service={programService} scopeKey={session.scope_key} onTalk={()=>void start()}/>}
         {participantDate&&<Progress scopeKey={session.scope_key} localDate={participantDate} visible={true}
           commandAction={(command:ProgressCommand)=>recoverableCommand<ProgressReceipt>('progress',command,()=>api.progressCommand(command))}/>}
-        {session.role==='administrator'&&<Operations service={operationsService} scopeKey={session.scope_key} onTalk={()=>void start()} refreshVersion={refreshVersion}/>}
+        {session.role==='administrator'&&<><Operations service={operationsService} scopeKey={session.scope_key} onTalk={()=>void start()} refreshVersion={refreshVersion}/><NancySuggestionsPanel scopeKey={session.scope_key} refreshVersion={refreshVersion} administrator/></>}
       </>}</details><PendingCommandsPanel controller={deviceCommands} onReview={reviewPending}/></>}
     {session.role === 'clinician' ? !session.local_features_available&&<section className="request-panel"><h2>Your shared views</h2><p>Clinical dashboards and exports are not available yet.</p></section> : session.task_requests_available === false ? <p>Task requests are not available for this account yet.</p> : <TaskRequests service={requestService} scopeKey={session.scope_key} onTalk={() => void start()} voiceAvailable={eligible && voiceAvailable} showTalk={false} refreshVersion={refreshVersion} onPendingChange={setRequestUnconfirmed} />}
   </main>;
 }
 
-function TodayView({ today, scopeKey, localFeaturesAvailable, voiceEligible, requestsAvailable, voiceAvailable, voiceTransport, onCheckVoice, onRefresh, onEditChoices, onLogout, onReceipt }: { today: Today; scopeKey: string; localFeaturesAvailable:boolean; voiceEligible: boolean; requestsAvailable: boolean; voiceAvailable: boolean; voiceTransport?: AppConfig['voice_transport']; onCheckVoice: () => Promise<AppConfig>; onRefresh: () => Promise<Today>; onEditChoices: () => void; onLogout: () => Promise<void>; onReceipt: (receipt: Receipt, date: string) => void }) {
-  const [editing, setEditing] = useState(false);
-  const [save, setSave] = useState<SaveState>({ kind: "idle" });
-  const [refreshing, setRefreshing] = useState(false);
-  const [refreshIssue, setRefreshIssue] = useState<string | null>(null);
-  const [voice, setVoice] = useState<VoiceState>("stopped");
-  const [voiceSessionActive, setVoiceSessionActive] = useState(false);
-  const [reminderActive,setReminderActive]=useState(false);
-  const [voiceMessage, setVoiceMessage] = useState<string | undefined>();
-  const [transcript, setTranscript] = useState<Transcript[]>([]);
-  const [view, setView] = useState<ClientView>('my_day');
-  const [requestsVisited, setRequestsVisited] = useState(false);
-  const [requestRefresh, setRequestRefresh] = useState(0);
-  const [requestUnconfirmed, setRequestUnconfirmed] = useState(false);
-  const [typedTurn, setTypedTurn] = useState('');
-  const voiceHandle = useRef<{ stop: () => Promise<void>; sendText?: (text: string) => Promise<void>; interrupt?: () => void } | null>(null);
-  const voiceAbort = useRef<AbortController | null>(null);
-  const active = useRef(true);
-  const currentCheckin = useRef(today.checkin?.id ?? null);
-  const voiceAttempt = useRef(0);
-  const moreViews=useRef<HTMLDetailsElement|null>(null);
-  const pending = planIsPending(today);
-  const date = formatDay(today.local_date, today.profile!.time_zone);
-  useEffect(() => { if (view === 'requests') setRequestsVisited(true); }, [view]);
-  useEffect(()=>{if(localFeaturesAvailable&&['activity','day_review','routines','support_team','operations','requests'].includes(view)&&moreViews.current)moreViews.current.open=true;},[view,localFeaturesAvailable]);
-  useEffect(() => { if (requestUnconfirmed) { voiceAttempt.current += 1; voiceAbort.current?.abort(); void voiceHandle.current?.stop(); voiceHandle.current = null; setVoiceSessionActive(false); setVoice('stopped'); setVoiceMessage('Check the saved request before continuing with Nancy.'); } }, [requestUnconfirmed]);
-
-  useEffect(() => { currentCheckin.current = today.checkin?.id ?? null; }, [today.checkin?.id]);
-  useEffect(() => {
-    active.current = true;
-    return () => {
-      active.current = false;
-      voiceAttempt.current += 1;
-      voiceAbort.current?.abort();
-      voiceAbort.current = null;
-      void voiceHandle.current?.stop();
-      voiceHandle.current = null;
-    };
-  }, []);
-
-  const stillCurrent = (checkinId: string | null) => active.current && currentCheckin.current === checkinId;
-
-  const refresh = async () => {
-    const checkinId = currentCheckin.current;
-    setRefreshing(true);
-    try {
-      await onRefresh();
-      if (stillCurrent(checkinId)) {
-        setRefreshIssue(null);
-        setSave(current => current.kind === "conflict" ? { kind: "idle" } : current);
-      }
-    } catch (error) {
-      if (stillCurrent(checkinId)) setRefreshIssue(friendlyError(error));
-    } finally { if (stillCurrent(checkinId)) setRefreshing(false); }
-  };
-  const begin = async () => {
-    if (today.checkin) return;
-    await issue({ type: "start_or_resume_checkin", idempotency_key: keyFor(), local_date: today.local_date, expected_revision: 0, payload: {} });
-  };
-  const issue = async (command: CareCommand, after?: (receipt: Receipt) => void, rethrow = false) => {
-    const checkinId = today.checkin?.id ?? null;
-    setSave({ kind: "saving" });
-    try {
-      const receipt = await recoverableCommand<Receipt>('care',command,()=>api.command(command));
-      if (!stillCurrent(checkinId)) return;
-      onReceipt(receipt, command.local_date);
-      setSave({ kind: "saved", message: receipt.result === "accepted" ? "Your plan is saved." : receipt.result === "resumed" ? "Today’s check-in is ready." : "Your plan is ready for review." });
-      try { await onRefresh(); if (stillCurrent(checkinId)) setRefreshIssue(null); }
-      catch (error) { if (stillCurrent(checkinId)) setRefreshIssue(friendlyError(error)); }
-      if (!stillCurrent(checkinId)) return;
-      after?.(receipt);
-    } catch (error) {
-      if (!stillCurrent(checkinId)) return;
-      if (error instanceof ApiError && error.code === "connection_unconfirmed") {
-        setSave({ kind: "unconfirmed", key: command.idempotency_key, message: "Save unconfirmed. Check saved plan." });
-      } else if (error instanceof ApiError && error.status === 409) {
-        setSave({ kind: "conflict", message: "Today’s plan changed elsewhere. Refresh it before making another change." });
-      } else setSave({ kind: "error", message: friendlyError(error) });
-      if(rethrow)throw error;
-    }
-  };
-  const proposeRoutine = async (selection:RoutinePlanSelection) => {
-    const checkin=today.checkin;
-    if(!checkin)throw new ApiError(409,'not_ready','Start today’s check-in before preparing a plan.');
-    if(save.kind==='saving'||save.kind==='unconfirmed'||save.kind==='conflict')throw new ApiError(409,'conflict','Review the pending plan change before preparing another.');
-    const source=checkin.proposal??checkin.accepted;
-    const task_overrides=selection.task_ids.flatMap(id=>{
-      const task=source?.tasks.find(item=>item.id===id);
-      return task?[carriedTaskOverride(today,source,task)]:[];
-    });
-    await issue({type:checkin.accepted?'revise_day_plan':'propose_day_plan',idempotency_key:keyFor(),local_date:today.local_date,
-      expected_revision:checkin.revision,payload:{task_ids:selection.task_ids,meals:selection.meals,task_overrides}},undefined,true);
-    if(!active.current)throw new ApiError(403,'scope_changed','Your account view changed. Review the current day.');
-  };
-  const reviewPending=async(family:PendingFamily)=>{
-    let destination:ClientView='my_day';
-    switch(family){
-      case 'care': await onRefresh(); break;
-      case 'activity': await api.activity(today.local_date);destination='activity';break;
-      case 'task_request': await api.taskRequests();destination='requests';break;
-      case 'meal_grocery': await api.mealGroceryWorkspace();destination='groceries';break;
-      case 'local_day': await api.localDayWorkspace();destination='day_review';break;
-      case 'program': await api.programWorkspace();destination='routines';break;
-      case 'support': await api.supportWorkspace();destination='support_team';break;
-      case 'progress': await api.progressWorkspace({from:today.local_date,to:today.local_date});destination='progress';break;
-      case 'operations': await api.operationsWorkspace();destination='operations';break;
-    }
-    setView(destination);
-  };
-  const reconcile = async () => {
-    if (!save.key) return;
-    const pendingKey = save.key;
-    const checkinId = currentCheckin.current;
-    setSave({ kind: "unconfirmed", key: pendingKey, message: "Checking saved plan…" });
-    try {
-      const receipt = durableCommandsEnabled ? await deviceCommands.reconcile(pendingKey) as Receipt|null : await api.receipt(pendingKey);
-      if(!receipt) {setSave({kind:'unconfirmed',key:pendingKey,message:'No saved receipt was found. Review the current day before retrying the same change.'});return;}
-      if (!stillCurrent(checkinId)) return;
-      onReceipt(receipt, today.local_date);
-      setSave({ kind: "saved", message: receipt.result === "accepted" ? "Your plan is saved." : receipt.result === "resumed" ? "Today’s check-in is ready." : "Your plan is ready for review." });
-      try { await onRefresh(); if (stillCurrent(checkinId)) setRefreshIssue(null); }
-      catch (error) { if (stillCurrent(checkinId)) setRefreshIssue(friendlyError(error)); }
-    } catch (error) {
-      if (!stillCurrent(checkinId)) return;
-      if (error instanceof ApiError && error.status === 404) setSave({ kind: "unconfirmed", key: pendingKey, message: "Nancy has not confirmed this change yet. It was not sent again." });
-      else setSave({ kind: "unconfirmed", key: pendingKey, message: "Save is still unconfirmed. It was not sent again." });
-    }
-  };
-  const startSpeaking = async () => {
-    if (!voiceEligible || requestUnconfirmed || voiceHandle.current || save.kind === "unconfirmed" || save.kind === "conflict") return;
-    const attempt = ++voiceAttempt.current;
-    let reportedVoiceError: string | undefined;
-    const controller = new AbortController();
-    voiceAbort.current?.abort();
-    voiceAbort.current = controller;
-    setVoice("connecting"); setVoiceMessage("Connecting to Nancy…");
-    try {
-      const ready = voiceAvailable ? { voice_available: true, voice_transport: voiceTransport } : await onCheckVoice();
-      if (!ready.voice_available) { setVoice('stopped'); setVoiceMessage('Nancy’s voice is warming up. Try again in a moment.'); return; }
-      if (controller.signal.aborted || !active.current || attempt !== voiceAttempt.current) return;
-      const options = {
-        signal: controller.signal,
-        onState: (state: VoiceState, message?: string) => {
-          if (!active.current || attempt !== voiceAttempt.current) return;
-          if (state === "error" && message?.trim()) reportedVoiceError = message;
-          setVoice(state); setVoiceMessage(message);
-          if (state === "stopped" || state === "error") { voiceHandle.current = null; setVoiceSessionActive(false); }
-        },
-        onTranscript: (speaker: "you" | "nancy", text: string) => {
-          if (active.current && attempt === voiceAttempt.current) setTranscript(current => [...current.slice(-7), { speaker, text }]);
-        },
-        onChange: () => { if (active.current && attempt === voiceAttempt.current) { void refresh(); setRequestRefresh(value => value + 1); } },
-        onNavigate: (destination: string) => {
-          if (!active.current || attempt !== voiceAttempt.current) return;
-          if (destination === 'my_day' || destination === 'activity' || destination === 'tasks' || destination === 'meals' || destination === 'groceries' || destination === 'requests' && requestsAvailable
-            || localFeaturesAvailable&&['day_review','routines','support_team','progress','operations'].includes(destination)) setView(destination as ClientView);
-        },
-      };
-      const onReady = (handle: { stop: () => Promise<void>; sendText?: (text: string) => Promise<void>; interrupt?: () => void }) => {
-        if (!active.current || attempt !== voiceAttempt.current) { void handle.stop(); return; }
-        voiceHandle.current = handle;
-        setVoiceSessionActive(true);
-      };
-      const localOptions = { ...options, onReady };
-      const handle = await (ready.voice_transport === 'local' ? startLocalVoice(localOptions) : startVoice(options));
-      if (!active.current || attempt !== voiceAttempt.current) {
-        await handle.stop();
-        return;
-      }
-      voiceHandle.current = handle;
-      setVoiceSessionActive(true);
-      voiceAbort.current = null;
-    } catch (error) {
-      if (controller.signal.aborted || !active.current || attempt !== voiceAttempt.current) return;
-      if (active.current && attempt === voiceAttempt.current) { voiceHandle.current = null; setVoiceSessionActive(false); setVoice("error"); setVoiceMessage(reportedVoiceError ?? friendlyError(error)); }
-    }
-  };
-  const stopSpeaking = async () => {
-    voiceAttempt.current += 1;
-    voiceAbort.current?.abort();
-    voiceAbort.current = null;
-    const handle = voiceHandle.current;
-    voiceHandle.current = null;
-    setVoiceSessionActive(false);
-    setVoice("stopped"); setVoiceMessage("Conversation ended.");
-    await handle?.stop();
-  };
-  const signOut = async () => {
-    voiceAttempt.current += 1;
-    voiceAbort.current?.abort();
-    voiceAbort.current = null;
-    const handle = voiceHandle.current;
-    voiceHandle.current = null;
-    setVoiceSessionActive(false);
-    await handle?.stop();
-    await onLogout();
-  };
-  const editLocked = requestUnconfirmed || save.kind === "saving" || save.kind === "unconfirmed" || save.kind === "conflict";
-  const voiceHeading = !voiceEligible ? 'Use the buttons below' : voice === 'connecting' ? 'Starting Nancy' : voice === 'thinking' ? 'Nancy is thinking' : voice === 'listening' ? 'Nancy is listening' : voice === 'speaking' ? 'Nancy is speaking' : voice === 'closing' ? 'Nancy is waiting' : voice === 'error' ? 'Nancy needs a moment' : voiceAvailable ? 'Ready when you are' : 'Nancy is warming up';
-  const submitTypedTurn = (event: FormEvent) => {
-    event.preventDefault();
-    if (!voiceHandle.current?.sendText || !typedTurn.trim() || voice === 'thinking' || voice === 'speaking') return;
-    const text = typedTurn.trim(); setTypedTurn('');
-    void voiceHandle.current.sendText(text);
-  };
-  const earlierTranscript = transcript.slice(0, -3);
-  const recentTranscript = transcript.slice(-3);
-  const transcriptLine = (line: Transcript, index: number) => <p key={`${line.speaker}-${index}`} className={line.speaker}><strong>{line.speaker === "nancy" ? "Nancy" : "You"}</strong>{line.text}</p>;
-
-  return <main className="today-shell"><header className="today-header"><div><p className="eyebrow">Nancy · your day</p><h1>{today.priority_context?.greeting || `Hello, ${today.profile!.display_name}.`}</h1><p className="date-line">{date}</p></div><div className="header-actions"><button className="text-button" onClick={onEditChoices} disabled={editLocked}>Edit choices</button><button className="text-button" onClick={() => void refresh()} disabled={refreshing}>{refreshing ? "Refreshing…" : "Refresh"}</button><button className="text-button" onClick={() => void signOut()}>Sign out</button></div></header>
-    <nav className={`day-tabs${localFeaturesAvailable?' local':''}`} aria-label="My Day views">{localFeaturesAvailable?<>
-      {([['my_day','My Day'],['tasks','Tasks'],['meals','Meals'],['groceries','Groceries'],['progress','Progress']] as Array<readonly [ClientView,string]>).map(([id,label])=><button key={id} type="button" aria-current={view===id?'page':undefined} onClick={()=>setView(id)}>{label}</button>)}
-      <details ref={moreViews}><summary>More</summary>{([['activity','Activity'],['day_review','Day review'],['routines','Routines'],['support_team','Sharing'],['operations','Access settings'],...(requestsAvailable?[['requests','Requests'] as const]:[])] as Array<readonly [ClientView,string]>).map(([id,label])=><button key={id} type="button" aria-current={view===id?'page':undefined} onClick={()=>setView(id)}>{label}</button>)}</details>
-    </>:([['my_day','My Day'],['activity','Activity'],['tasks','Tasks'],['meals','Meals'],['groceries','Groceries'],['requests','Requests']] as Array<readonly [ClientView,string]>).filter(([id])=>id!=='requests'||requestsAvailable).map(([id,label])=><button key={id} type="button" aria-current={view===id?'page':undefined} onClick={()=>setView(id)}>{label}</button>)}</nav>
-    <section className="voice-panel" aria-label="Talk to Nancy"><div><p className="eyebrow">Talk to Nancy</p><h2 aria-live="polite">{voiceHeading}</h2><p>{voiceMessage ?? (!voiceEligible ? "Nancy voice is not connected for this account yet. You can use all the buttons below." : voiceAvailable ? "Ask Nancy about your day, meals, or anything you need help with." : "Nancy’s voice is warming up. You can review your day while you wait.")}</p></div>
-      <div className="voice-actions">{voiceSessionActive || voice === "connecting" ? <>{voiceTransport === 'local' && voiceSessionActive && (voice === 'speaking' || voice === 'thinking') && voiceHandle.current?.interrupt && <button className="interrupt-button" onClick={() => voiceHandle.current?.interrupt?.()}>Interrupt Nancy</button>}<button className="stop-button" onClick={() => void stopSpeaking()}>Stop voice</button></> : <button className="talk-button" onClick={() => void startSpeaking()} disabled={editLocked || !voiceEligible}>Talk to Nancy</button>}</div>
-    </section>
-    {localFeaturesAvailable&&<><WakeControl scopeKey={scopeKey} enabled={voiceEligible&&voiceAvailable&&voiceTransport==='local'&&!editLocked}
-      conversationActive={voiceSessionActive||voice==='connecting'||reminderActive} onWake={startSpeaking}/>
-      <ReminderDelivery service={reminderService} scopeKey={scopeKey} conversationActive={voiceSessionActive||voice==='connecting'}
-        onTalk={()=>void startSpeaking()} onActivity={setReminderActive} voiceEligible={voiceEligible&&voiceAvailable&&voiceTransport==='local'}/></>}
-    {voiceTransport === 'local' && voiceSessionActive && <form className="typed-turn" onSubmit={submitTypedTurn}><label>Type to Nancy<input value={typedTurn} onChange={event => setTypedTurn(event.target.value)} maxLength={2000} disabled={voice === 'thinking' || voice === 'speaking'} placeholder="Ask Nancy about your day" /></label><button className="secondary-button" disabled={!typedTurn.trim() || voice === 'thinking' || voice === 'speaking'}>Send</button></form>}
-    {transcript.length > 0 && <section className="transcript" aria-live="polite" aria-label="Recent conversation">{earlierTranscript.length > 0 && <details className="transcript-history"><summary>Earlier conversation ({earlierTranscript.length})</summary>{earlierTranscript.map(transcriptLine)}</details>}{recentTranscript.map((line, index) => transcriptLine(line, earlierTranscript.length + index))}</section>}
-    <DayOverview today={today} onView={setView} onRefresh={onRefresh} visible={view === 'my_day'} />
-    {view === 'my_day' && (!today.checkin?.accepted && !today.checkin?.proposal && !mealSlots.every(slot => today.meal_options.some(option => option.slots.includes(slot))) ? <section className="empty-plan"><h2>Add meal choices to plan today</h2><p>You can review saved tasks now. Add a choice for breakfast, lunch, and dinner when you are ready to make a day plan.</p><button className="primary-button" onClick={onEditChoices}>Add choices</button></section> : !today.checkin ? <section className="empty-plan"><h2>Start today’s check-in</h2><p>Review your task and meal choices, then decide on the plan that suits today.</p><button className="primary-button" onClick={() => void begin()} disabled={save.kind === "saving" || save.kind === "unconfirmed" || save.kind === "conflict"}>Begin today’s check-in</button></section> : <PlanWorkspace key={[today.local_date, today.checkin.id, today.checkin.revision, today.checkin.proposal?.id, today.checkin.accepted?.id].join(':')} today={today} editing={editing} setEditing={setEditing} save={save} onIssue={issue} />)}
-    {view === 'tasks' && <TasksView today={today} onReview={() => setView('my_day')} />}
-    {view === 'meals' && <><MealsView today={today} onReview={() => setView('my_day')} />
-      {localFeaturesAvailable&&<details><summary>Meal choices</summary><MealGroceries service={mealGroceryService} scopeKey={scopeKey} onTalk={()=>void startSpeaking()} onChanged={()=>void refresh()} mode="meals"/></details>}</>}
-    {view === 'activity' && <ActivityView initial={today.activity_ledger} localDate={today.local_date} timeZone={today.profile!.time_zone} onTodayRefresh={onRefresh} />}
-    {localFeaturesAvailable ? view === 'groceries'&&<MealGroceries service={mealGroceryService} scopeKey={scopeKey} onTalk={()=>void startSpeaking()} onChanged={()=>void refresh()} mode="groceries"/>
-      : <GroceriesView initial={today.groceries} visible={view === 'groceries'} />}
-    {localFeaturesAvailable&&view==='day_review'&&<LocalDayPanel service={localDayService} scopeKey={scopeKey} today={today} onTalk={()=>void startSpeaking()} onChanged={async()=>{await onRefresh();}} onProposeRoutine={proposeRoutine}/>}
-    {localFeaturesAvailable&&view==='routines'&&<Programs service={programService} scopeKey={scopeKey} onTalk={()=>void startSpeaking()} onPlan={()=>setView('my_day')}/>}
-    {localFeaturesAvailable&&view==='support_team'&&<SupportTeam service={supportTeamService} scopeKey={scopeKey} onTalk={()=>void startSpeaking()} onChanged={()=>void refresh()}/>}
-    {localFeaturesAvailable&&view==='operations'&&<Operations service={operationsService} scopeKey={scopeKey} onTalk={()=>void startSpeaking()}/>}
-    {localFeaturesAvailable&&<Progress scopeKey={scopeKey} localDate={today.local_date} visible={view==='progress'}
-      commandAction={(command:ProgressCommand)=>recoverableCommand<ProgressReceipt>('progress',command,()=>api.progressCommand(command))}/>}
-    {requestsVisited && <div hidden={view !== 'requests'}><TaskRequests service={requestService} scopeKey={scopeKey} onTalk={() => void startSpeaking()} voiceAvailable={voiceEligible && voiceAvailable} showTalk={false} refreshVersion={requestRefresh} onPendingChange={setRequestUnconfirmed} onChanged={() => void refresh()} /></div>}
-    <SaveNotice state={save} onReconcile={() => void reconcile()} onRefresh={() => void refresh()} />
-    {localFeaturesAvailable&&<PendingCommandsPanel controller={deviceCommands} onReview={reviewPending} onSaved={async()=>{await onRefresh();}}/>}
-    {refreshIssue && <p className="refresh-issue" role="status">{refreshIssue} Your last confirmed plan is still shown.</p>}
-  </main>;
+function TodayView({today,scopeKey,localFeaturesAvailable,microsoftAvailable,voiceEligible,voiceAvailable,voiceTransport,onCheckVoice,onRefresh,onLogout}: {today:Today;scopeKey:string;localFeaturesAvailable:boolean;microsoftAvailable:boolean;voiceEligible:boolean;voiceConnection?:SessionInfo['voice_connection'];requestsAvailable:boolean;voiceAvailable:boolean;voiceTransport?:AppConfig['voice_transport'];onCheckVoice:()=>Promise<AppConfig>;onRefresh:()=>Promise<Today>;onEditChoices:()=>void;onLogout:()=>Promise<void>;onReceipt:(receipt:Receipt,date:string)=>void}) {
+ return <ClientHome today={today} scopeKey={scopeKey} localFeaturesAvailable={localFeaturesAvailable} microsoftAvailable={microsoftAvailable} voiceEligible={voiceEligible} voiceAvailable={voiceAvailable} voiceTransport={voiceTransport} onCheckVoice={onCheckVoice} onRefresh={onRefresh} onLogout={onLogout}
+  renderTasks={onTalk=><TasksView today={today} onReview={onTalk}/>}
+  renderMeals={onTalk=><MealsView today={today} onReview={onTalk}/>}
+  renderDay={calendar=><DayTimeline today={today} calendar={calendar}/>}
+  reminders={(active,onTalk,onActivity)=>localFeaturesAvailable?<ReminderDelivery service={reminderService} scopeKey={scopeKey} conversationActive={active} onTalk={onTalk} onActivity={onActivity} voiceEligible={voiceEligible&&voiceAvailable&&voiceTransport==='local'} voiceOnly/>:null}
+  pending={localFeaturesAvailable?<PendingCommandsPanel controller={deviceCommands} readOnly onSaved={async()=>{await onRefresh();}}/>:undefined}/>
 }
 
-function DayOverview({ today, onView, onRefresh, visible }: { today: Today; onView: (view: ClientView) => void; onRefresh: () => Promise<Today>; visible: boolean }) {
-  const [appointmentTitle, setAppointmentTitle] = useState('');
-  const [appointmentStart, setAppointmentStart] = useState('');
-  const [appointmentBusy, setAppointmentBusy] = useState(false);
-  const [appointmentPending, setAppointmentPending] = useState<{ title: string; starts_at: string; idempotency_key: string } | null>(null);
-  const [appointmentNotice, setAppointmentNotice] = useState<string | null>(null);
-  const afterAppointmentSaved = async (message: string) => {
-    setAppointmentPending(null); setAppointmentTitle(''); setAppointmentStart('');
-    setAppointmentNotice(message);
-    try { await onRefresh(); }
-    catch { setAppointmentNotice(`${message} Refresh your day to see the latest appointments.`); }
-  };
-  const refreshAppointments = async () => {
-    setAppointmentBusy(true);
-    try {
-      const current = await onRefresh();
-      if (appointmentPending) {
-        const found = current.appointments?.some(item => item.title === appointmentPending.title && new Date(item.starts_at).getTime() === new Date(appointmentPending.starts_at).getTime());
-        if (found) setAppointmentNotice('A matching appointment is on your list. If you need to retry this add, use the same request below.');
-        else setAppointmentNotice('This appointment is still unconfirmed. It was not sent again.');
-      }
-    } catch (error) { setAppointmentNotice(friendlyError(error)); }
-    finally { setAppointmentBusy(false); }
-  };
-  const addAppointment = async (event: FormEvent) => {
-    event.preventDefault(); if (!appointmentTitle.trim() || !appointmentStart.trim() || appointmentBusy || appointmentPending) return;
-    const converted = localDateTimeWithOffset(appointmentStart, today.profile!.time_zone);
-    if (!converted.ok) {
-      setAppointmentNotice(converted.reason === 'nonexistent' ? 'That time does not occur on this date because the clocks change. Choose another time.'
-        : converted.reason === 'ambiguous' ? 'That time occurs twice because the clocks change. Choose another time.'
-        : converted.reason === 'zone' ? 'Your time zone could not be read. Check your profile before adding an appointment.'
-        : 'Choose a valid appointment date and time.');
-      return;
-    }
-    const startsAt = converted.value;
-    setAppointmentBusy(true); setAppointmentNotice(null);
-    const input = { title: appointmentTitle.trim(), starts_at: startsAt, idempotency_key: keyFor() };
-    try { await api.addAppointment(input); await afterAppointmentSaved('Appointment added.'); }
-    catch (error) {
-      if (error instanceof ApiError && error.code === 'connection_unconfirmed') { setAppointmentPending(input); setAppointmentNotice('Save unconfirmed. Check appointments before trying again.'); }
-      else setAppointmentNotice(friendlyError(error));
-    } finally { setAppointmentBusy(false); }
-  };
-  const retryAppointment = async () => {
-    if (!appointmentPending || appointmentBusy) return;
-    setAppointmentBusy(true);
-    try { await api.addAppointment(appointmentPending); await afterAppointmentSaved('Appointment confirmed.'); }
-    catch (error) { setAppointmentNotice(error instanceof ApiError && error.code === 'connection_unconfirmed' ? 'Save remains unconfirmed. The same request was used; check appointments again.' : friendlyError(error)); }
-    finally { setAppointmentBusy(false); }
-  };
-  const visibleTasks = displayedTasks(today).flatMap(task => {
-    const activity = effectiveActivity(today, 'task', task.id);
-    if (activity?.status === 'completed') return [];
-    const detail = activityDetail(today, activity, today.profile!.time_zone);
-    return [{ task, detail: detail ?? [taskTiming(task, today), task.urgency ? `${task.urgency} urgency` : null].filter(Boolean).join(' · ') }];
-  });
-  const plan = today.checkin?.accepted ?? today.checkin?.proposal;
-  const appointmentThrough = shiftedDate(today.local_date, 7);
-  const visibleAppointments = (today.appointments ?? []).flatMap(item => {
-    const activity = effectiveActivity(today, 'appointment', item.id);
-    const effectiveTime = activity?.scheduled_at ?? item.starts_at;
-    const effectiveDate = dateForInstant(effectiveTime, today.profile!.time_zone);
-    if (effectiveDate < today.local_date || effectiveDate > appointmentThrough || activity?.status === 'completed' && effectiveDate !== today.local_date) return [];
-    return [{ item, activity, effectiveTime }];
-  }).sort((a, b) => a.effectiveTime.localeCompare(b.effectiveTime));
-  return <section className="day-overview" aria-labelledby="day-overview-title" hidden={!visible}><h2 id="day-overview-title">Your day</h2>
-    <div className="day-task-glance"><div className="glance-heading"><h3>Tasks</h3><button className="text-button" onClick={() => onView('tasks')}>See tasks</button></div>{visibleTasks.length ? <ul>{visibleTasks.map(({ task, detail }) => <li key={task.id}><span>{task.title}</span><small>{detail}</small></li>)}</ul> : <p>{today.tasks.length ? 'No tasks are waiting for you.' : 'No tasks have been added.'}</p>}</div>
-    <div className="day-task-glance"><div className="glance-heading"><h3>Meals</h3><button className="text-button" onClick={() => onView('meals')}>See meals</button></div><ul>{mealSlots.map(slot => { const meal = plan?.meals.find(item => item.slot === slot); const activity = meal ? effectiveActivity(today, 'meal', meal.option_id, slot) : unplannedMeal(today, slot); return <li key={slot}><span><strong>{labelForSlot[slot]}</strong> · {meal?.name ?? activity?.title ?? 'No meal chosen'}</span><small>{activityDetail(today, activity, today.profile!.time_zone) ?? mealTiming(activity, today.profile!.time_zone)}</small></li>; })}</ul></div>
-    <div className="appointment-list"><h3>Appointments</h3>{visibleAppointments.length ? <ul>{visibleAppointments.map(({ item, activity, effectiveTime }) => <li key={item.id}>{item.title} · {displayInstant(effectiveTime, today.profile!.time_zone)}{activityDetail(today, activity, today.profile!.time_zone) ? ` · ${activityDetail(today, activity, today.profile!.time_zone)}` : ''}</li>)}</ul> : <p>No appointments saved for the next seven days.</p>}
-      {appointmentNotice && <p className="notice" role="status">{appointmentNotice}</p>}
-      {appointmentPending ? <div className="pending-actions"><button className="secondary-button" disabled={appointmentBusy} onClick={() => void refreshAppointments()}>Check appointments</button><button className="secondary-button" disabled={appointmentBusy} onClick={() => void retryAppointment()}>Retry same appointment add</button></div> : <details className="appointment-entry"><summary>Add an appointment</summary><form className="appointment-form" onSubmit={addAppointment}><label>Appointment title<input value={appointmentTitle} onChange={event => setAppointmentTitle(event.target.value)} maxLength={160} required placeholder="For example, clinic visit" /></label><label>Date and time in {today.profile!.time_zone}<input type="datetime-local" value={appointmentStart} onChange={event => setAppointmentStart(event.target.value)} required aria-describedby="appointment-time-help" /></label><p id="appointment-time-help" className="field-help">Use the date and time where you live. If the clocks change at that time, Nancy will ask you to choose another.</p><button className="secondary-button" disabled={appointmentBusy}>Add appointment</button></form></details>}
-    </div>
-  </section>;
+function DayTimeline({today,calendar}:{today:Today;calendar:CalendarState}) {
+ const zone=today.profile!.time_zone,plan=today.checkin?.accepted??today.checkin?.proposal;
+ type Row={id:string;title:string;instant:string|null;time:string;detail:string;source?:string;outlook?:boolean};
+ const rows:Row[]=[];
+ for(const task of displayedTasks(today)){
+  const activity=effectiveActivity(today,'task',task.id),entry=effectiveEntry(today,activity);
+  const date=task.scheduled_date??today.local_date;
+  const fromLedger=activity?.scheduled_at&&entry?.last_action==='rescheduled'?activity.scheduled_at:null;
+  const local=task.scheduled_time?localDateTimeWithOffset(date+'T'+task.scheduled_time,zone):null;
+  const instant=fromLedger??(local?.ok?local.value:null);
+  if(instant&&dateForInstant(instant,zone)!==today.local_date||!instant&&date!==today.local_date)continue;
+  rows.push({id:'task:'+task.id,title:task.title,instant,time:instant?displayInstant(instant,zone,false):'No time set',detail:activityDetail(today,activity,zone)??[task.urgency?task.urgency+' urgency':'Task',task.duration_minutes?task.duration_minutes+' min':null].filter(Boolean).join(' · ')});
+ }
+ for(const slot of mealSlots){
+  const meal=plan?.meals.find(m=>m.slot===slot),activity=meal?effectiveActivity(today,'meal',meal.option_id,slot):unplannedMeal(today,slot);
+  const instant=activity?.scheduled_at??null;
+  if(instant&&dateForInstant(instant,zone)!==today.local_date)continue;
+  rows.push({id:'meal:'+slot,title:labelForSlot[slot]+' · '+(meal?.name??activity?.title??'No meal chosen'),instant,time:instant?displayInstant(instant,zone,false):'No time set',detail:activityDetail(today,activity,zone)??(meal?(today.checkin?.accepted?'In accepted plan':'In proposed plan'):'Meal')});
+ }
+ for(const appointment of today.appointments??[]){const activity=effectiveActivity(today,'appointment',appointment.id),instant=activity?.scheduled_at??appointment.starts_at;if(dateForInstant(instant,zone)!==today.local_date)continue;rows.push({id:'local:'+appointment.id,title:appointment.title,instant,time:displayInstant(instant,zone,false),detail:activityDetail(today,activity,zone)??'Appointment'});}
+ for(const event of calendar.events)rows.push({id:'outlook:'+event.id,title:event.subject||'Untitled appointment',instant:event.isAllDay?null:event.start,time:event.isAllDay?'All day':displayInstant(event.start,zone,false),detail:event.isCancelled?'Cancelled':event.isAllDay?'All-day appointment':'Until '+displayInstant(event.end,zone,false),source:'Outlook',outlook:true});
+ const scheduled=rows.filter(r=>r.instant||r.time==='All day').sort((a,b)=>(a.time==='All day'?-1:b.time==='All day'?1:Date.parse(a.instant!)-Date.parse(b.instant!))||a.id.localeCompare(b.id)),unscheduled=rows.filter(r=>!r.instant&&r.time!=='All day');
+ const list=(items:Row[])=> <ol>{items.map(row=><li key={row.id} className={row.outlook?'outlook':undefined}><time>{row.time}</time><div><h3>{row.title}</h3><p>{row.detail}{row.source?' · '+row.source:''}</p></div></li>)}</ol>;
+ return <section className="client-timeline" aria-label="Your day"><header><h2>Your day</h2><p>{formatDay(today.local_date,zone)}</p></header>
+  {calendar.state==='loading'&&<p role="status">Checking your calendar…</p>}
+  {calendar.state==='unavailable'&&<p role="status">Outlook could not refresh. Your calendar may have other appointments.</p>}
+  {calendar.state==='partial'&&<p role="status">Only part of your Outlook calendar was returned.</p>}
+  {calendar.fetchedAt&&<p className="calendar-freshness">Outlook checked at {displayInstant(calendar.fetchedAt,zone,false)}</p>}
+  {scheduled.length?list(scheduled):<p>No times planned yet.</p>}
+  {unscheduled.length>0&&<div className="timeline-unscheduled"><h3>Not timed yet</h3>{list(unscheduled)}</div>}
+ </section>;
 }
 
 function PendingPlanNotice({ today, onReview }: { today: Today; onReview: () => void }) {
@@ -911,285 +604,6 @@ function MealsView({ today, onReview }: { today: Today; onReview: () => void }) 
     const activity = meal ? effectiveActivity(today, 'meal', meal.option_id, slot) : unplannedMeal(today, slot);
     const result = activityDetail(today, activity, today.profile!.time_zone);
     const portion = effectiveEntry(today, activity)?.portion;
-    return <section key={slot} className={activity?.status === 'completed' ? 'activity-complete' : undefined}><h3>{labelForSlot[slot]}</h3><p className="meal-name">{meal?.name ?? activity?.title ?? 'No meal chosen'}</p><p>{result ? `${result}${portion ? ` · ${portion}` : ''}` : meal ? `${today.checkin?.accepted ? 'In accepted plan' : 'In proposed plan'} · ${mealTiming(activity, today.profile!.time_zone)}` : 'Choose a meal with Nancy or in My Day.'}</p></section>;
+    return <section key={slot} className={activity?.status === 'completed' ? 'activity-complete' : undefined}><h3>{labelForSlot[slot]}</h3><p className="meal-name">{meal?.name ?? activity?.title ?? 'No meal chosen'}</p><p>{result ? `${result}${portion ? ` · ${portion}` : ''}` : meal ? `${today.checkin?.accepted ? 'In accepted plan' : 'In proposed plan'} · ${mealTiming(activity, today.profile!.time_zone)}` : 'Choose a meal with Nancy.'}</p></section>;
   })}</div>{(today.activity_ledger?.entries ?? []).filter(item => item.kind === 'meal' && item.unplanned && item.status !== 'voided' && !unplannedInCards.has(item.id)).map(item => <div className="reported-meal" key={item.id}><h3>{item.title}</h3><p>{activityDetail(today, item, today.profile!.time_zone)}{item.portion ? ` · ${item.portion}` : ''}</p></div>)}</section>;
-}
-
-function ActivityView({ initial, localDate, timeZone, onTodayRefresh }: { initial?: ActivityLedger; localDate: string; timeZone: string; onTodayRefresh: () => Promise<Today> }) {
-  const [selectedDate, setSelectedDate] = useState(localDate);
-  const selectedDateRef = useRef(selectedDate);
-  const ledgerRequest = useRef(0);
-  const [ledger, setLedger] = useState<ActivityLedger | null>(initial ?? null);
-  const [loading, setLoading] = useState(!initial);
-  const [busy, setBusy] = useState(false);
-  const [draft, setDraft] = useState<ActivityDraft | null>(null);
-  const [notice, setNotice] = useState<{ kind: "status" | "error"; text: string } | null>(null);
-  const [pending, setPending] = useState<{ command: ActivityCommand; canRetry: boolean } | null>(null);
-
-  useEffect(() => { if (selectedDate === localDate && initial?.local_date === localDate) setLedger(initial); }, [initial, localDate, selectedDate]);
-
-  const refreshLedger = async () => {
-    const date = selectedDate;
-    const request = ++ledgerRequest.current;
-    const current = () => selectedDateRef.current === date && ledgerRequest.current === request;
-    try {
-      const next = await api.activity(date);
-      if (!current()) return null;
-      if (next.local_date !== date) throw new Error('Activity date did not match the requested day.');
-      setLedger(next);
-      return next;
-    } catch (error) {
-      if (!current()) return null;
-      throw error;
-    }
-  };
-
-  useEffect(() => {
-    let current = true;
-    if (ledger?.local_date === selectedDate) { setLoading(false); return; }
-    setLoading(true);
-    void refreshLedger().then(next => { if (current && next) setNotice(null); })
-      .catch(error => { if (current) setNotice({ kind: "error", text: friendlyError(error) }); })
-      .finally(() => { if (current) setLoading(false); });
-    return () => { current = false; ledgerRequest.current += 1; };
-  }, [selectedDate]);
-
-  const afterCommitted = async (message: string) => {
-    setPending(null); setDraft(null);
-    try { await refreshLedger(); setNotice({ kind: "status", text: message }); }
-    catch { setNotice({ kind: "status", text: `${message} Refresh the activity list to see the latest details.` }); }
-    try { await onTodayRefresh(); } catch { /* The activity commit remains valid when the broader day refresh fails. */ }
-  };
-
-  const commit = async (command: ActivityCommand, message: string) => {
-    setBusy(true); setNotice(null);
-    try {
-      await recoverableCommand('activity',command,()=>api.activityCommand(command));
-      await afterCommitted(message);
-    } catch (error) {
-      if (error instanceof ApiError && error.code === "connection_unconfirmed") {
-        setPending({ command, canRetry: false });
-        setNotice({ kind: "status", text: "Save unconfirmed. Check saved activity before trying again." });
-      } else if (error instanceof ApiError && error.status === 409) {
-        setNotice({ kind: "error", text: "This activity changed elsewhere. Refresh the activity list before making another change." });
-      } else setNotice({ kind: "error", text: friendlyError(error) });
-    } finally { setBusy(false); }
-  };
-
-  const checkPending = async () => {
-    if (!pending || busy) return;
-    setBusy(true); setNotice({ kind: "status", text: "Checking saved activity…" });
-    try {
-      if(durableCommandsEnabled){
-        const receipt=await deviceCommands.reconcile(pending.command.idempotency_key);
-        if(!receipt){
-          const canRetry=deviceCommands.snapshot.find(item=>item.key===pending.command.idempotency_key)?.status==='ready_retry';
-          setPending({...pending,canRetry});
-          setNotice({kind:'status',text:canRetry?'No receipt was found. Review the latest activity before retrying the same save.':'Save is still unconfirmed. It was not sent again.'});
-          return;
-        }
-      }else await api.activityReceipt(pending.command.idempotency_key);
-      await afterCommitted("Activity saved.");
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 404) {
-        setPending({ ...pending, canRetry: true });
-        setNotice({ kind: "status", text: "This activity was not found. You can retry the same save." });
-      } else setNotice({ kind: "error", text: `${friendlyError(error)} The activity was not sent again.` });
-    } finally { setBusy(false); }
-  };
-
-  const retryPending = async () => {
-    if (!pending?.canRetry || busy) return;
-    if(!durableCommandsEnabled){await commit(pending.command, "Activity saved.");return;}
-    setBusy(true);
-    try{await refreshLedger();const receipt=await deviceCommands.retry(pending.command.idempotency_key);if(receipt)await afterCommitted('Activity saved.');
-      else setNotice({kind:'status',text:'Save remains unconfirmed. It was not sent again.'});}
-    catch(error){setNotice({kind:'error',text:friendlyError(error)});}finally{setBusy(false);}
-  };
-
-  const convertLocalTime = (value: string) => {
-    const converted = localDateTimeWithOffset(value, timeZone);
-    if (converted.ok) return converted.value;
-    setNotice({ kind: "error", text: converted.reason === "nonexistent" ? "That time does not occur because the clocks change. Choose another time."
-      : converted.reason === "ambiguous" ? "That time occurs twice because the clocks change. Choose another time."
-      : converted.reason === "zone" ? "Your time zone could not be read. Check your profile before saving."
-      : "Choose a valid date and time." });
-    return null;
-  };
-
-  const submitDraft = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!draft || busy || pending) return;
-    if (draft.mode === "record") {
-      const occurredAt = draft.status === "completed" ? convertLocalTime(draft.occurredLocal) : null;
-      if (draft.status === "completed" && !occurredAt) return;
-      const command: ActivityCommand = { type: "record_activity", idempotency_key: keyFor(), local_date: occurredAt ? draft.occurredLocal.slice(0, 10) : ledger!.local_date,
-        expected_revision: draft.activity.revision, payload: { activity_id: draft.activity.id, status: draft.status, occurred_at: occurredAt, notes: draft.notes.trim(), ...(draft.activity.kind === "meal" ? { portion: draft.portion.trim() || null } : {}) } };
-      await commit(command, draft.status === "completed" ? `${activityKindLabel(draft.activity.kind)} saved as ${activityVerb(draft.activity.kind)}.` : "Activity deferred.");
-      return;
-    }
-    if (draft.mode === "correct") {
-      const occurredAt = draft.status === "completed" ? convertLocalTime(draft.occurredLocal) : null;
-      if (draft.status === "completed" && !occurredAt) return;
-      const command: ActivityCommand = { type: "correct_activity", idempotency_key: keyFor(), local_date: occurredAt ? draft.occurredLocal.slice(0, 10) : draft.activity.local_date,
-        expected_revision: draft.activity.revision, payload: { activity_id: draft.activity.id, status: draft.status, occurred_at: occurredAt, notes: draft.notes.trim(),
-          ...(draft.activity.kind === "meal" ? { portion: draft.portion.trim() || null } : {}), reason: draft.reason.trim() } };
-      await commit(command, "Activity correction saved.");
-      return;
-    }
-    if (draft.mode === "reschedule") {
-      const scheduledAt = convertLocalTime(draft.scheduledLocal);
-      if (!scheduledAt) return;
-      const command: ActivityCommand = { type: "reschedule_activity", idempotency_key: keyFor(), local_date: draft.activity.local_date,
-        expected_revision: draft.activity.revision, payload: { activity_id: draft.activity.id, scheduled_at: scheduledAt, reason: draft.reason.trim() } };
-      await commit(command, "New time saved.");
-      return;
-    }
-    const occurredAt = convertLocalTime(draft.occurredLocal);
-    if (!occurredAt) return;
-    const command: ActivityCommand = { type: "record_activity", idempotency_key: keyFor(), local_date: draft.occurredLocal.slice(0, 10), expected_revision: 0,
-      payload: { unplanned: { kind: draft.kind, title: draft.title.trim(), ...(draft.kind === "meal" ? { meal_slot: draft.mealSlot } : {}) }, status: "completed", occurred_at: occurredAt,
-        notes: draft.notes.trim(), ...(draft.kind === "meal" ? { portion: draft.portion.trim() || null } : {}) } };
-    await commit(command, `${activityKindLabel(draft.kind)} added to today’s activity.`);
-  };
-
-  const formatWhen = (value: string | null) => value ? new Intl.DateTimeFormat("en-CA", { timeZone, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(value)) : "No actual time recorded";
-  const openRecord = (activity: ActivityOption, status: "completed" | "deferred") => setDraft({ mode: "record", activity, status, occurredLocal: activityDefaultTime(selectedDate, timeZone), notes: "", portion: "" });
-  const openCorrection = (activity: ActivityEntry) => setDraft({ mode: "correct", activity, status: activity.status === "pending" ? "deferred" : activity.status,
-    occurredLocal: activity.occurred_at ? localInputValue(activity.occurred_at, timeZone) : activityDefaultTime(activity.local_date, timeZone), notes: activity.notes, portion: activity.portion ?? "", reason: "" });
-  const openReschedule = (activity: ActivityOption) => setDraft({ mode: "reschedule", activity, scheduledLocal: activity.scheduled_at ? localInputValue(activity.scheduled_at, timeZone) : activityDefaultTime(selectedDate, timeZone), reason: "" });
-
-  const viewingToday = selectedDate === localDate;
-  const selectedDayLabel = formatDay(selectedDate, timeZone);
-  const dateControl = <div className="activity-date"><label>Activity date<input type="date" value={selectedDate} max={localDate} disabled={busy || Boolean(pending)} onChange={event => {
-    const value = event.target.value;
-    if (!validActivityDate(value, localDate) || value === selectedDate) return;
-    selectedDateRef.current = value; ledgerRequest.current += 1;
-    setSelectedDate(value); setDraft(null); setNotice(null);
-  }} /></label><span>{viewingToday ? "Today" : selectedDayLabel}</span></div>;
-  if (loading || !ledger || ledger.local_date !== selectedDate) return <section className="data-view" aria-labelledby="activity-title"><p className="eyebrow">What actually happened</p><h2 id="activity-title">Activity</h2>{dateControl}{loading ? <p aria-live="polite">Loading activity…</p> : <>{notice && <p className="notice error" role="alert">{notice.text}</p>}<button className="secondary-button" disabled={busy} onClick={() => {
-    setLoading(true); setBusy(true);
-    void refreshLedger().then(next => { if (next) setNotice(null); }).catch(error => setNotice({ kind: "error", text: friendlyError(error) })).finally(() => { setLoading(false); setBusy(false); });
-  }}>Try again</button></>}</section>;
-
-  const openActivities = ledger.options.filter(item => item.status === "pending" || item.status === "deferred" || item.status === "voided" && !item.unplanned);
-  const savedEntries = new Map(ledger.entries.map(item => [item.id,item]));
-  const actualReports = ledger.entries.filter(item => item.status === 'completed' || item.status === 'deferred' || item.status === 'voided');
-  return <section className="data-view activity-view" aria-labelledby="activity-title">
-    <div className="section-heading"><div><p className="eyebrow">What actually happened</p><h2 id="activity-title">Activity</h2><p>Plans are choices for the day. This list changes only when you report what happened.</p></div><button className="text-button" disabled={busy} onClick={() => { setBusy(true); void refreshLedger().then(() => setNotice(null)).catch(error => setNotice({ kind: "error", text: friendlyError(error) })).finally(() => setBusy(false)); }}>Refresh activity</button></div>
-    {dateControl}
-    <dl className="activity-summary" aria-label={`${viewingToday ? "Today’s" : selectedDayLabel} activity summary`}><div><dt>Tasks done</dt><dd>{ledger.summary.tasks_completed}</dd></div><div><dt>Meals eaten</dt><dd>{ledger.summary.meals_eaten}</dd></div><div><dt>Appointments attended</dt><dd>{ledger.summary.appointments_attended}</dd></div><div><dt>Deferred</dt><dd>{ledger.summary.deferred}</dd></div></dl>
-    {notice && <p className={`notice ${notice.kind === "error" ? "error" : "saved"}`} role={notice.kind === "error" ? "alert" : "status"}>{notice.text}</p>}
-    {pending && <div className="pending-actions"><button className="secondary-button" disabled={busy} onClick={() => void checkPending()}>Check saved activity</button>{pending.canRetry && <button className="secondary-button" disabled={busy} onClick={() => void retryPending()}>Retry same save</button>}</div>}
-
-    {draft && <form className="activity-editor" onSubmit={submitDraft} aria-label="Activity details">
-      <div className="section-heading"><div><p className="eyebrow">{draft.mode === "correct" ? "Correct the record" : draft.mode === "reschedule" ? "Choose a new time" : draft.mode === "unplanned" ? "Add actual activity" : "Confirm what happened"}</p><h3>{draft.mode === "unplanned" ? "Unplanned activity" : draft.activity.title}</h3></div><button type="button" className="text-button" onClick={() => setDraft(null)} disabled={busy}>Cancel</button></div>
-      {draft.mode === "unplanned" && <><label>Type<select value={draft.kind} onChange={event => setDraft({ ...draft, kind: event.target.value as ActivityKind })}><option value="task">Task</option><option value="meal">Meal</option><option value="appointment">Appointment</option></select></label><label>What happened?<input value={draft.title} onChange={event => setDraft({ ...draft, title: event.target.value })} maxLength={160} required /></label>{draft.kind === "meal" && <label>Meal<select value={draft.mealSlot} onChange={event => setDraft({ ...draft, mealSlot: event.target.value as MealSlot })}>{mealSlots.map(slot => <option key={slot} value={slot}>{labelForSlot[slot]}</option>)}</select></label>}</>}
-      {draft.mode === "record" && <label>Result<select value={draft.status} onChange={event => setDraft({ ...draft, status: event.target.value as "completed" | "deferred" })}><option value="completed">{activityKindLabel(draft.activity.kind)} {activityVerb(draft.activity.kind)}</option><option value="deferred">Deferred</option></select></label>}
-      {draft.mode === "correct" && <label>Correct result<select value={draft.status} onChange={event => setDraft({ ...draft, status: event.target.value as "completed" | "deferred" | "voided" })}><option value="completed">{activityKindLabel(draft.activity.kind)} {activityVerb(draft.activity.kind)}</option><option value="deferred">Deferred</option><option value="voided">Remove mistaken report</option></select></label>}
-      {(draft.mode === "record" && draft.status === "completed" || draft.mode === "correct" && draft.status === "completed" || draft.mode === "unplanned") && <label>Actual date and time<input type="datetime-local" value={draft.occurredLocal} max={localInputValue(new Date(), timeZone)} onChange={event => setDraft({ ...draft, occurredLocal: event.target.value })} required /></label>}
-      {draft.mode === "reschedule" && <label>New date and time<input type="datetime-local" value={draft.scheduledLocal} onChange={event => setDraft({ ...draft, scheduledLocal: event.target.value })} required /></label>}
-      {((draft.mode === "record" || draft.mode === "correct") && draft.activity.kind === "meal" || draft.mode === "unplanned" && draft.kind === "meal") && <label>Portion or amount <span className="optional">Optional</span><input value={draft.portion} onChange={event => setDraft({ ...draft, portion: event.target.value })} maxLength={160} placeholder="For example, one bowl" /></label>}
-      {(draft.mode === "record" || draft.mode === "correct" || draft.mode === "unplanned") && <label>Notes <span className="optional">Optional</span><textarea value={draft.notes} onChange={event => setDraft({ ...draft, notes: event.target.value })} maxLength={500} rows={2} /></label>}
-      {(draft.mode === "correct" || draft.mode === "reschedule") && <label>Why are you changing this?<input value={draft.reason} onChange={event => setDraft({ ...draft, reason: event.target.value })} maxLength={500} required /></label>}
-      <button className="primary-button" disabled={busy || Boolean(pending)}>{busy ? "Saving…" : draft.mode === "reschedule" ? "Save new time" : draft.mode === "correct" ? "Save correction" : "Save actual activity"}</button>
-    </form>}
-
-    <div className="activity-section-heading"><div><h3>Still to do or update</h3><p>These items have not been recorded as completed.</p></div><button className="secondary-button" disabled={busy || Boolean(pending)} onClick={() => setDraft({ mode: "unplanned", kind: "task", title: "", mealSlot: "breakfast", occurredLocal: activityDefaultTime(selectedDate, timeZone), notes: "", portion: "" })}>Add unplanned activity</button></div>
-    {openActivities.length ? <ul className="activity-list">{openActivities.map(item => <li key={item.id}><div><span className="activity-kind">{activityKindLabel(item.kind)}</span><h3>{item.title}</h3><p>{item.status === "deferred" ? "Deferred" : item.status === "voided" ? "Mistaken report removed · ready to report again" : item.scheduled_at ? `${savedEntries.get(item.id)?.last_action==='rescheduled'?'Rescheduled':'Planned'} for ${formatWhen(item.scheduled_at)}` : "No planned time"}</p></div><div className="activity-actions"><button className="primary-button" aria-label={`Mark ${item.title} ${activityVerb(item.kind)}`} disabled={busy || Boolean(pending)} onClick={() => openRecord(item, "completed")}>Mark {activityVerb(item.kind)}</button>{item.status !== "deferred" && <button className="secondary-button" aria-label={`Defer ${item.title}`} disabled={busy || Boolean(pending)} onClick={() => openRecord(item, "deferred")}>Defer</button>}<button className="text-button" aria-label={`Reschedule ${item.title}`} disabled={busy || Boolean(pending)} onClick={() => openReschedule(item)}>Reschedule</button></div></li>)}</ul> : <p className="activity-empty">Nothing is waiting for an update.</p>}
-
-    <div className="activity-section-heading"><div><h3>{viewingToday ? "Recorded today" : `Recorded on ${selectedDayLabel}`}</h3><p>Only saved reports appear here. You can correct a mistake without changing the accepted plan.</p></div></div>
-    {actualReports.length ? <ul className="activity-list recorded-list">{actualReports.map(item => <li key={item.id}><div><span className="activity-kind">{item.unplanned ? `Unplanned ${activityKindLabel(item.kind).toLowerCase()}` : activityKindLabel(item.kind)}</span><h3>{item.title}</h3><p>{item.status === "completed" ? `${activityKindLabel(item.kind)} ${activityVerb(item.kind)} · ${formatWhen(item.occurred_at)}` : item.status === "deferred" ? "Deferred" : "Mistaken report removed"}{item.portion ? ` · ${item.portion}` : ""}</p>{item.notes && <p>{item.notes}</p>}</div><button className="secondary-button" aria-label={`Correct ${item.title}`} disabled={busy || Boolean(pending)} onClick={() => openCorrection(item)}>Correct</button></li>)}</ul> : <p className="activity-empty">No actual activity was recorded on this date.</p>}
-  </section>;
-}
-
-function GroceriesView({ initial, visible }: { initial?: GroceryItem[]; visible: boolean }) {
-  const [items, setItems] = useState(initial ?? []);
-  const [name, setName] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [uncertain, setUncertain] = useState(false);
-  const [pendingItem, setPendingItem] = useState<{ name: string; quantity?: string; idempotency_key: string } | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [loaded, setLoaded] = useState(false);
-  const refresh = async () => {
-    setBusy(true); setNotice(null);
-    try {
-      const result = await api.groceries(); const latest = Array.isArray(result) ? result : result.items;
-      setItems(latest); setLoaded(true);
-      if (pendingItem) setNotice(latest.some(item => item.name === pendingItem.name && (item.quantity ?? '') === (pendingItem.quantity ?? '')) ? 'A matching item is on your list. If you retry this add, use the same request below.' : 'This item is still unconfirmed. It was not sent again.');
-    }
-    catch (error) { setNotice(friendlyError(error)); }
-    finally { setBusy(false); }
-  };
-  useEffect(() => { if (initial) setItems(initial); }, [initial]);
-  useEffect(() => { if (visible && !loaded) void refresh(); }, [visible]);
-  const add = async (event: FormEvent) => {
-    event.preventDefault(); if (!name.trim() || busy || uncertain) return;
-    setBusy(true); setNotice(null);
-    const input = { name: name.trim(), ...(quantity.trim() ? { quantity: quantity.trim() } : {}), idempotency_key: keyFor() };
-    try {
-      await api.addGrocery(input);
-      setName(''); setQuantity(''); await refresh();
-    } catch (error) {
-      if (error instanceof ApiError && error.code === 'connection_unconfirmed') { setUncertain(true); setPendingItem(input); setNotice('Add unconfirmed. Refresh the list before trying again.'); }
-      else setNotice(friendlyError(error));
-    } finally { setBusy(false); }
-  };
-  const retry = async () => {
-    if (!pendingItem || busy) return;
-    setBusy(true);
-    try { await api.addGrocery(pendingItem); setUncertain(false); setPendingItem(null); setName(''); setQuantity(''); await refresh(); setNotice('Grocery item confirmed.'); }
-    catch (error) { setNotice(error instanceof ApiError && error.code === 'connection_unconfirmed' ? 'Add remains unconfirmed. The same request was used; check the list again.' : friendlyError(error)); }
-    finally { setBusy(false); }
-  };
-  return <section className="data-view" aria-labelledby="groceries-title" hidden={!visible}><div className="section-heading"><div><p className="eyebrow">Household</p><h2 id="groceries-title">Groceries</h2></div><button className="text-button" onClick={() => void refresh()} disabled={busy}>Refresh list</button></div><p>Add something when you want it on the list. Nancy will ask before adding a spoken item.</p>
-    {notice && <p className="notice error" role="status">{notice}</p>}
-    <form className="grocery-form" onSubmit={add}><label>Item<input value={name} onChange={event => setName(event.target.value)} maxLength={160} required placeholder="For example, milk" /></label><label>Quantity <span className="optional">Optional</span><input value={quantity} onChange={event => setQuantity(event.target.value)} maxLength={80} placeholder="For example, 1 carton" /></label><button className="primary-button" disabled={busy || uncertain || !name.trim()}>Add to groceries</button></form>
-    {pendingItem && <button className="secondary-button" disabled={busy} onClick={() => void retry()}>Retry same grocery add</button>}
-    <h3>On the list</h3>{loaded && !items.length ? <p>Nothing on your grocery list yet.</p> : <ul className="item-list">{items.map(item => <li key={item.id}><span>{item.name}</span>{item.quantity && <span>{item.quantity}</span>}</li>)}</ul>}
-  </section>;
-}
-
-function SaveNotice({ state, onReconcile, onRefresh }: { state: SaveState; onReconcile: () => void; onRefresh: () => void }) {
-  if (state.kind === "idle" || state.kind === "saving") return state.kind === "saving" ? <p className="save-status" aria-live="polite">Saving your choice…</p> : null;
-  return <section className={`notice ${state.kind}`} role={state.kind === "error" || state.kind === "conflict" ? "alert" : "status"}><p>{state.message}</p>{state.kind === "unconfirmed" && <button className="secondary-button" onClick={onReconcile}>Check saved plan</button>}{state.kind === "conflict" && <button className="secondary-button" onClick={onRefresh}>Refresh today</button>}</section>;
-}
-
-function PlanWorkspace({ today, editing, setEditing, save, onIssue }: { today: Today; editing: boolean; setEditing: (value: boolean) => void; save: SaveState; onIssue: (command: CareCommand) => Promise<void> }) {
-  const pending = planIsPending(today);
-  const accepted = today.checkin?.accepted;
-  const proposal = today.checkin?.proposal;
-  // The parent's plan-version key resets drafts before display, never in a
-  // delayed mount effect that could overwrite the participant's first choice.
-  const [choice, setChoice] = useState(() => selectedPlan(today));
-  const canSave = mealSlots.every(slot => Boolean(choice.meals[slot]));
-  const locked = save.kind === "saving" || save.kind === "unconfirmed" || save.kind === "conflict";
-  const saveForReview = async () => {
-    const type = accepted ? "revise_day_plan" : "propose_day_plan";
-    const source = proposal ?? accepted;
-    const task_overrides = choice.taskIds.flatMap(id => {
-      const task = source?.tasks.find(item => item.id === id);
-      return task ? [carriedTaskOverride(today, source, task)] : [];
-    });
-    await onIssue({ type, idempotency_key: keyFor(), local_date: today.local_date, expected_revision: today.checkin!.revision, payload: { task_ids: choice.taskIds, meals: mealSlots.map(slot => ({ slot, option_id: choice.meals[slot] })), task_overrides } });
-    setEditing(false);
-  };
-  const accept = async () => { if (proposal) await onIssue({ type: "accept_day_plan", idempotency_key: keyFor(), local_date: today.local_date, expected_revision: today.checkin!.revision, payload: { proposal_id: proposal.id } }); };
-  if (pending && !editing) return <ReviewPlan today={today} plan={proposal!} heading="Review this plan" explanation={accepted?'Your accepted plan remains in place. Review these proposed changes before choosing whether to accept them.':'Nothing has been accepted yet. Look it over, then choose what happens next.'} primaryLabel="Accept this plan" primary={accept} secondaryLabel="Make changes" secondary={() => setEditing(true)} busy={locked} />;
-  if (accepted && !editing) return <><ReviewPlan today={today} plan={accepted} heading="Today’s accepted plan" explanation="This is the plan you chose for today." primaryLabel="Revise today’s plan" primary={() => setEditing(true)} busy={locked} /><p className="plan-note">Changing it creates a new plan for you to review. It does not replace today’s accepted plan until you choose to accept the new one.</p></>;
-  return <section className="planner" aria-labelledby="planner-title"><div className="section-heading"><div><p className="eyebrow">{accepted ? "Make a change" : "Plan together"}</p><h2 id="planner-title">Choose what feels right today.</h2></div><span className="review-chip">Review before saving</span></div><fieldset disabled={locked}><legend>Tasks</legend>{today.tasks.map(task => <label className="choice-row" key={task.id}><input type="checkbox" checked={choice.taskIds.includes(task.id)} onChange={event => { const checked = event.target.checked; setChoice(current => ({ ...current, taskIds: checked ? [...current.taskIds, task.id] : current.taskIds.filter(id => id !== task.id) })); }} /><span>{task.title}{task.time_hint && <small>{task.time_hint}</small>}</span></label>)}</fieldset><fieldset disabled={locked}><legend>Meals</legend>{mealSlots.map(slot => <label className="meal-select" key={slot}>{labelForSlot[slot]}<select value={choice.meals[slot]} onChange={event => { const value = event.target.value; setChoice(current => ({ ...current, meals: { ...current.meals, [slot]: value } })); }}><option value="">Choose a meal</option>{today.meal_options.filter(option => option.slots.includes(slot)).map(option => <option value={option.id} key={option.id}>{option.name}</option>)}</select></label>)}</fieldset><div className="planner-actions"><button className="primary-button" disabled={!canSave || locked} onClick={() => void saveForReview()}>{save.kind === "saving" ? "Saving…" : "Save plan for review"}</button>{accepted && <button className="text-button" disabled={locked} onClick={() => setEditing(false)}>Keep accepted plan</button>}</div></section>;
-}
-
-function ReviewPlan({ today, plan, heading, explanation, primaryLabel, primary, secondaryLabel, secondary, busy }: { today: Today; plan: Plan; heading: string; explanation: string; primaryLabel: string; primary: () => void | Promise<void>; secondaryLabel?: string; secondary?: () => void; busy: boolean }) {
-  return <section className="review-card" aria-labelledby="review-title"><p className="eyebrow">Your day</p><h2 id="review-title">{heading}</h2><p>{explanation}</p><div className="review-grid"><div><h3>Tasks</h3><ul>{plan.tasks.map(task => {
-    const activity=effectiveActivity(today,'task',task.id),entry=effectiveEntry(today,activity);
-    const rescheduled=entry?.last_action==='rescheduled'&&activity?.scheduled_at ? displayInstant(activity.scheduled_at,today.profile!.time_zone) : null;
-    const planSchedule=task.scheduled_time ? `${task.scheduled_date&&task.scheduled_date!==today.local_date?`${task.scheduled_date} `:''}${task.scheduled_time}` : null;
-    const effectiveLocal=activity?.scheduled_at?localInputValue(activity.scheduled_at,today.profile!.time_zone):null;
-    const differs=Boolean(rescheduled&&(!planSchedule||effectiveLocal?.slice(0,10)!==(task.scheduled_date??today.local_date)||effectiveLocal?.slice(11)!==task.scheduled_time));
-    const timing=differs?`${planSchedule?`Plan time ${planSchedule} · `:''}Current activity schedule ${rescheduled}`:planSchedule;
-    const details=[timing,task.urgency?`${task.urgency} urgency`:null,task.duration_minutes?`${task.duration_minutes} min`:null,task.category&&task.category!=='task'?task.category:null].filter(Boolean).join(' · ');
-    return <li key={task.id}>{task.title}{details&&<small>{details}</small>}</li>;
-  })}</ul></div><div><h3>Meals</h3><dl>{mealSlots.map(slot => <div key={slot}><dt>{labelForSlot[slot]}</dt><dd>{plan.meals.find(meal => meal.slot === slot)?.name ?? "Not chosen"}</dd></div>)}</dl></div></div><div className="review-actions"><button className="primary-button" onClick={() => void primary()} disabled={busy}>{primaryLabel}</button>{secondary && <button className="secondary-button" disabled={busy} onClick={secondary}>{secondaryLabel}</button>}</div></section>;
 }

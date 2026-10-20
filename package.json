@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --configLoader runner",
     "check": "npm run typecheck && npm test && npm run build",
+    "scan:public": "tsx scripts/check-public-boundary.ts",
     "readiness": "tsx scripts/readiness.ts",
     "readiness:openai": "tsx scripts/check-openai.ts",
     "connect:chatgpt": "tsx scripts/chatgpt-plan.ts",
@@ -22,6 +23,7 @@
   "dependencies": {
     "@fastify/cookie": "11.0.2",
     "fastify": "5.12.5",
+    "jose": "6.2.12",
     "pg": "8.16.3",
     "react": "19.2.0",
     "react-dom": "19.2.0",

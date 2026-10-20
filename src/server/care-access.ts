@@ -1,6 +1,7 @@
 import type { Session } from './session.js';
 import type { CareCommand, SetupInput, Today, Receipt } from '../shared/contracts.js';
 import type { ActivityCommand, ActivityLedger, ActivityReceipt } from '../shared/activity-contracts.js';
+import type {PreferenceCommand,PreferenceReceipt,PreferenceWorkspace} from '../shared/preference-contracts.js';
 
 export type LocalRole = 'administrator' | 'client' | 'family_friend' | 'clinician';
 export interface CareAuthority {
@@ -20,7 +21,19 @@ export interface CareAccess {
   receipt(session: Session, key: string): Promise<Receipt | null>;
   ledger?(session: Session, date?: string): Promise<ActivityLedger>;
   activityCommand?(session: Session, command: ActivityCommand): Promise<ActivityReceipt>;
+  commitPendingActivityCommand?(session: Session, command: ActivityCommand): Promise<ActivityReceipt>;
   activityReceipt?(session: Session, key: string): Promise<ActivityReceipt | null>;
+  holdActivityCommand?(session: Session, command: ActivityCommand): Promise<void>;
+  pendingActivityCommand?(session: Session): Promise<{command:ActivityCommand;scope_matches:boolean}|null>;
+  clearPendingActivityCommand?(session: Session, key: string): Promise<void>;
+  acknowledgeActivityCommand?(session: Session, key: string): Promise<void>;
+  discardPendingActivityCommand?(session: Session, key: string): Promise<boolean>;
+  preferences?(session:Session):Promise<PreferenceWorkspace>;
+  preferenceCommand?(session:Session,command:PreferenceCommand):Promise<PreferenceReceipt>;
+  preferenceReceipt?(session:Session,key:string):Promise<PreferenceReceipt|null>;
+  retryPreferenceCommand?(session:Session,key:string):Promise<PreferenceReceipt>;
+  acknowledgePreferenceCommand?(session:Session,key:string):Promise<void>;
+  discardPreferenceCommand?(session:Session,key:string):Promise<boolean>;
   role?(session: Session): Promise<LocalRole>;
   authority?(session: Session): Promise<CareAuthority>;
   groceries?(session: Session): Promise<{ items: GroceryItem[] }>;

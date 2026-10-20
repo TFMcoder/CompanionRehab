@@ -1,0 +1,127 @@
+{
+  "evidence_id": "OUTLOOK-CONVERSATIONS-2026-10-19",
+  "observed_at": "2026-10-19T21:30:08.569Z",
+  "status": "selected_context_and_reviewed_new_actions_deployed_two_disposable_live_actions_verified",
+  "implementation_revision": "sha256:7baa4a4b2c444db72e1c9f4b95ef5d9579303449aa7a76f1e81bfbb39a0e438e",
+  "source_manifest": {
+    "runtime_revision": "sha256:7baa4a4b2c444db72e1c9f4b95ef5d9579303449aa7a76f1e81bfbb39a0e438e",
+    "runtime_files": 138,
+    "all_source_revision": "sha256:cad5a82e8090f9d9ed14b55ab8e0fcedaba0168f7e6fdc6f8b8091d872192c7b",
+    "all_source_files": 300,
+    "private_reference": ".local/probes/outlook-source-manifest.json",
+    "method": "SHA-256 of sorted repository path, NUL, file bytes, NUL; runtime includes all src/db and package/build/test config; all_source also includes all scripts/tests. Private files and documentation are excluded."
+  },
+  "authorization": {
+    "caregiver_explicitly_approved_selected_calendar_inbox_conversation_use": true,
+    "exact_test_email_and_recipient_requested": true,
+    "exact_test_invitation_recipient_and_title_requested": true,
+    "start_hour_local": 18,
+    "duration_minutes_user_confirmed": 15,
+    "existing_microsoft_consent_and_sign_in_reused": true,
+    "additional_account_or_scope_granted": false,
+    "api_billing_enabled": false,
+    "caregiver_inference_binding_preserved": true
+  },
+  "implemented": {
+    "conversation_context": "Fresh selected-calendar and Inbox facts, at most 20 events and 12 message previews across selected sources; bounded selected-message text on demand, lower trust than fixed policy. Source freshness, omissions, partial and failed reads remain explicit.",
+    "reviewed_actions": [
+      "new_plain_text_email",
+      "new_selected_calendar_invitation"
+    ],
+    "confirmation": "Exact account/recipients/content/title/time review. Voice requires completed playback and exact immediately subsequent confirmation; touch shares the same server commands.",
+    "durability": "Encrypted payload/provider identifiers in existing append-only tables; a unique committed claim precedes provider mutations. Known immutable draft/event IDs support read-only reconciliation. No blind resend/reinvite after uncertainty.",
+    "scope_changes": "Microsoft selection/state/consent participate in inference binding. Changed authority ends incompatible conversation and pending voice review.",
+    "no_model_confirm_tool": true,
+    "no_generic_graph_tool": true,
+    "new_database_migration": false
+  },
+  "automated_checks": {
+    "typecheck": "passed",
+    "isolated_production_build": "passed",
+    "client_bundle": "app-CDZ5ex6M.js",
+    "full_suite": {
+      "passed": 940,
+      "failed": 0,
+      "optional_skips": 1,
+      "files": 101,
+      "scope_note": "Full runtime regression completed before two additional final concurrency/HTTP test cases were added. Those two cases subsequently pass in the focused suite and actual PostgreSQL run; do not present this as 942 tests in one full-suite invocation.",
+      "private_reference": ".local/probes/outlook-conversation-full-suite.json"
+    },
+    "final_focused": {
+      "passed": 182,
+      "failed": 0,
+      "files": 9,
+      "private_reference": ".local/probes/outlook-final-targeted-tests.json"
+    },
+    "actual_postgresql": {
+      "passed": 49,
+      "failed": 0,
+      "disposable_database_removed": true,
+      "provider_calls": 0,
+      "private_reference": ".local/probes/outlook-postgres.json"
+    }
+  },
+  "deployment": {
+    "checks": {
+      "configured": true,
+      "local_voice_transport": true,
+      "voice_ready": true,
+      "new_client_bundle": true,
+      "anonymous_actions_denied": true,
+      "supervisor_ready": true,
+      "microsoft_identity_and_credential_paths_preserved": true,
+      "selected_conversation_use_enabled": true,
+      "reviewed_actions_enabled": true
+    },
+    "passed": true,
+    "private_reference": ".local/probes/outlook-deployment.json"
+  },
+  "disposable_live_checks": {
+    "verified_action_count": 2,
+    "email": {
+      "from_exact_bound_account": true,
+      "exact_reviewed_test_recipient_subject_body": true,
+      "created_draft_and_sent_once": true,
+      "initial_accepted_state_reported_truthfully": true,
+      "subsequent_immutable_sent_item_verified": true,
+      "recipient_delivery_confirmed": false
+    },
+    "invitation": {
+      "selected_calendar": true,
+      "exact_reviewed_test_title_and_attendee": true,
+      "participant_local_start_hour": 18,
+      "participant_local_end_hour": 18,
+      "participant_local_end_minute": 15,
+      "duration_minutes": 15,
+      "time_zone": "America/Toronto",
+      "provider_event_title_instants_attendees_transaction_verified": true,
+      "attendee_acceptance_confirmed": false
+    },
+    "both_durable_receipts_verified_after_browser_reopen": true,
+    "live_nancy_calendar_answer_correct": true,
+    "conversation_test_method": "Typed question through the existing authenticated Talk to Nancy client, actual configured reasoning and local speech route. Browser text showed the correct test event time. This is not physical-device/person acceptance.",
+    "microphone_stopped_after_test": true,
+    "care_tables_preserved": 9,
+    "care_table_hashes_unchanged": true,
+    "private_references": [
+      ".local/probes/outlook-live-results-2026-10-19.json",
+      ".local/probes/outlook-care-before.json",
+      ".local/probes/outlook-care-after.json",
+      ".local/probes/outlook-tests-verified-2026-10-19.png"
+    ]
+  },
+  "privacy": {
+    "public_evidence_contains_real_identifiers_mail_content_tokens_or_transcripts": false,
+    "prepared_payloads_and_provider_ids_encrypted": true,
+    "operational_logs_exclude_mail_bodies_transcripts_audio_credentials": true
+  },
+  "remaining": [
+    "Full S06 and S02 dependency acceptance",
+    "Asana integration",
+    "Mail draft editing and calendar update/cancel",
+    "Real authorization-loss/disconnect recovery and complete expiry-refresh trial",
+    "Uncertain writes whose response loses the provider identifier require manual Outlook inspection; no automatic retry",
+    "Genuine intended-person/device and real household workflows",
+    "Recipient delivery and attendee acceptance are not established by provider verification"
+  ]
+}

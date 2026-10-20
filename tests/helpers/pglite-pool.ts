@@ -11,11 +11,14 @@ export function pglitePool(db: PGlite) {
       return {
         query: async (text: string, values?: unknown[]) => {
           const statement = text.trim().toLowerCase();
-          if (statement === 'begin') {
+          if (/^begin(?:\s|$)/.test(statement)) {
             let ready!: () => void;
             const started = new Promise<void>(resolve => { ready = resolve; });
             const held = new Promise<void>((resolve, reject) => { commit = resolve; rollback = reject; });
-            work = db.transaction(async tx => { transaction = tx; ready(); await held; });
+            work = db.transaction(async tx => {
+              if(statement!=='begin')await tx.query('set transaction '+text.trim().slice(5).trim());
+              transaction = tx; ready(); await held;
+            });
             await started;
             return { rows: [], rowCount: 0 };
           }

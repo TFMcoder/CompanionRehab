@@ -1,0 +1,34 @@
+.client-home { max-width: 1040px; }
+.client-header { align-items: center; display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 1.2rem; }
+.client-brand { background: none; border: 0; color: #194b42; font-size: 1.55rem; font-weight: 850; padding: .25rem 0; }
+.client-suggestions-button { background: #edf3e8; border: 1px solid #ccdccc; border-radius: 999px; color: #224f45; font-size: .9rem; font-weight: 700; min-height: 44px; padding: .6rem 1rem; }
+.client-home .voice-panel { margin: 0 0 1.2rem; }
+.client-home .voice-panel h1 { font-size: clamp(1.6rem,4vw,2.25rem); line-height: 1.2; margin: 0 0 .6rem; }
+.client-tabs { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: .45rem; margin: 0 0 1.2rem; }
+.client-tabs button { background: #f6f8f1; border: 1px solid #d8e3d4; border-radius: 999px; color: #254d44; min-height: 48px; padding: .6rem .5rem; font-weight: 750; }
+.client-tabs button[aria-current=page] { background: #1b655b; border-color: #1b655b; color: white; }
+.client-card,.client-timeline { background: #fffdf8; border: 1px solid #e0e7d9; border-radius: 1.4rem; padding: clamp(1rem,4vw,1.8rem); margin-bottom: 1.2rem; }
+.client-timeline header { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.client-timeline header h2 { margin: 0; }.client-timeline header p { color: #60736c; font-size: .9rem; margin: 0; }
+.client-timeline ol { list-style: none; margin: 0; padding: 0; }
+.client-timeline li { display: grid; grid-template-columns: 5.8rem minmax(0,1fr); gap: 1rem; padding: .7rem 0; }
+.client-timeline li > time { color: #49675b; font-size: .9rem; font-weight: 700; padding-top: .75rem; }
+.client-timeline li > div { border-left: 3px solid #a0c6b3; border-radius: .2rem .85rem .85rem .2rem; background: #f0f5e9; padding: .75rem 1rem; }
+.client-timeline li.outlook > div { background: #eef3f8; border-color: #8cb1cb; }
+.client-timeline h3 { font-size: 1.05rem; margin: 0 0 .2rem; }.client-timeline li p { color: #587066; font-size: .9rem; margin: .15rem 0 0; }
+.client-timeline .timeline-unscheduled { border-top: 1px solid #e1e8dc; margin-top: .75rem; padding-top: 1rem; }
+.client-groceries { list-style: none; margin: 0; padding: 0; }.client-groceries li { display: flex; justify-content: space-between; gap: 1rem; padding: .9rem 0; border-bottom: 1px solid #e0e7d9; }
+.client-footer { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 1.2rem; }.client-footer > button:first-child { background: #e7eee1; border: 1px solid #cbd9c6; border-radius: .9rem; color: #234e42; font-weight: 750; min-height: 48px; padding: .7rem 1.1rem; }
+.client-faq { border-bottom: 1px solid #e1e8dc; padding: .8rem 0; }.client-faq summary { cursor: pointer; color: #245749; font-weight: 700; padding: .2rem 0; }.client-faq p { line-height: 1.6; color: #4b655a; margin-bottom: .3rem; }
+/* Focus is opt-in; these rules do not alter the default Current layout. */
+html[data-nancy-focus=true] { overflow: hidden; }
+.client-home.client-focus { height: calc(100dvh - var(--nancy-focus-dock-height, 17rem) - 1.5rem - env(safe-area-inset-bottom, 0px)); overflow-y: auto; scroll-padding: 1rem; padding-bottom: 2rem; }
+.client-focus .focus-voice-dock { position: fixed; z-index: 30; left: 50%; bottom: calc(.75rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: min(36rem, calc(100% - 1.5rem)); max-height: calc(100dvh - 1.5rem - env(safe-area-inset-bottom, 0px)); overflow-y: auto; display: flex; flex-direction: column; gap: .6rem; margin: 0; padding: .85rem 1rem; border: 1px solid #c3d3c8; border-radius: 1.2rem; background: #fffdf8; color: #183f36; box-shadow: 0 4px 20px #183f3620; text-align: center; }
+.client-focus .focus-voice-dock h1 { margin: 0; font-size: 1rem; line-height: 1.4; letter-spacing: normal; }
+.client-focus .focus-voice-dock p { margin: .3rem 0 0; color: #3e5c50; font-size: .95rem; line-height: 1.4; }
+.client-focus .focus-voice-dock .voice-actions { display: flex; width: min(100%, 22rem); margin-inline: auto; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+.client-focus .focus-voice-dock .talk-button { flex: 0 0 100%; min-height: 3.5rem; background: #17675e; color: white; box-shadow: none; font-size: 1.15rem; }
+.client-focus .focus-voice-dock .talk-button:hover { background: #0f514a; }
+.client-focus .focus-voice-dock .talk-button:disabled { background: #dce7de; color: #39594f; }
+.client-focus .focus-voice-dock .stop-button,.client-focus .focus-voice-dock .interrupt-button { min-height: 2.75rem; }
+@media(max-width:480px){.client-tabs { grid-template-columns: repeat(3,minmax(0,1fr)); }.client-tabs button { font-size: .9rem; }.client-header { gap: .6rem; }.client-suggestions-button { font-size: .8rem; padding: .5rem .75rem; }.client-timeline header { align-items: start; flex-direction: column; gap: .3rem; }.client-timeline li { grid-template-columns: 4.8rem minmax(0,1fr); gap: .55rem; }}

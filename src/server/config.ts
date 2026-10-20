@@ -11,6 +11,7 @@ export interface Config {
   voiceMinutes: number; voiceDailyMinutes: number;
   databaseUrl?: string; voiceTransport?: 'local' | 'legacy'; planUserId?: string; synthetic?: boolean;
   trustedProxy?: 'cloudflare-loopback';
+  caregiverVoiceConfig?: string;
 }
 export function configFromEnv(env: NodeJS.ProcessEnv = process.env): Config {
   const origin = new URL(env.PUBLIC_ORIGIN || 'http://localhost:8787');
@@ -43,6 +44,7 @@ export function configFromEnv(env: NodeJS.ProcessEnv = process.env): Config {
     planUserId: env.NANCY_PLAN_USER_ID ? z.string().uuid().parse(env.NANCY_PLAN_USER_ID) : undefined,
     synthetic: env.NANCY_SYNTHETIC === '1',
     trustedProxy: z.enum(['cloudflare-loopback']).optional().parse(env.NANCY_TRUSTED_PROXY || undefined),
+    caregiverVoiceConfig: env.NANCY_CAREGIVER_VOICE_CONFIG || undefined,
   };
 }
 export function missingConfig(c: Config) {

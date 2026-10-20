@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export const activityKinds = ['task', 'meal', 'appointment'] as const;
 export type ActivityKind = typeof activityKinds[number];
+export const intakeKinds = ['full_meal', 'snack', 'unknown'] as const;
+export type IntakeKind = typeof intakeKinds[number];
 export type ActivityStatus = 'pending' | 'completed' | 'deferred' | 'voided';
 export interface ActivityOption {
   id: string; kind: ActivityKind; title: string; local_date: string; source_id: string | null;
@@ -11,6 +13,7 @@ export interface ActivityOption {
 export interface ActivityEntry extends ActivityOption {
   occurred_at: string | null; recorded_at: string; updated_at: string;
   notes: string; portion: string | null; last_action: 'reported' | 'corrected' | 'rescheduled' | 'accepted';
+  intake_kind?: IntakeKind;
 }
 export interface ActivityLedger {
   local_date: string; options: ActivityOption[]; entries: ActivityEntry[]; recent_entries: ActivityEntry[];
@@ -26,13 +29,15 @@ const report = z.object({
   unplanned: z.object({ kind: z.enum(activityKinds), title: z.string().trim().min(1).max(160), meal_slot: z.enum(['breakfast', 'lunch', 'dinner']).optional() }).strict().optional(),
   status: z.enum(['completed', 'deferred']), occurred_at: instant.nullable(), notes: z.string().trim().max(500),
   portion: z.string().trim().min(1).max(160).nullable().optional(),
+  intake_kind: z.enum(intakeKinds).optional(),
 }).strict().superRefine((p, ctx) => {
   if (!!p.activity_id === !!p.unplanned) ctx.addIssue({ code: 'custom', message: 'Choose one exact activity or an unplanned activity' });
   if ((p.status === 'completed') !== (p.occurred_at !== null)) ctx.addIssue({ code: 'custom', message: 'Completed activities need an actual time; deferred activities are not completed' });
   if (p.unplanned?.meal_slot && p.unplanned.kind !== 'meal') ctx.addIssue({ code: 'custom', message: 'Only meals have a meal slot' });
+  if (p.unplanned && p.unplanned.kind !== 'meal' && p.intake_kind !== undefined) ctx.addIssue({ code: 'custom', message: 'Only food reports have an intake kind' });
 });
 const correction = z.object({ activity_id: z.string().uuid(), status: z.enum(['completed', 'deferred', 'voided']), occurred_at: instant.nullable(),
-  notes: z.string().trim().max(500), portion: z.string().trim().min(1).max(160).nullable().optional(), reason: z.string().trim().min(1).max(500),
+  notes: z.string().trim().max(500), portion: z.string().trim().min(1).max(160).nullable().optional(), intake_kind: z.enum(intakeKinds).optional(), reason: z.string().trim().min(1).max(500),
 }).strict().superRefine((p, ctx) => {
   if ((p.status === 'completed') !== (p.occurred_at !== null)) ctx.addIssue({ code: 'custom', message: 'Only completed activities have an actual occurrence time' });
 });

@@ -1,0 +1,300 @@
+{
+  "evidence_id": "DAILY-COMPANION-2026-10-14",
+  "status": "engineering_implemented_and_deployed",
+  "observed_at": "2026-10-14T07:07:24.5961363Z",
+  "implementation_revision": "sha256:d40236d62bd4fd2c3bfb2fa4616d859f736db57b4cbdc7096b6bb53e00ae0c0e",
+  "authorization": "Owner requested repository findings and roadmap, then ordered repairs and development with subagents; subsequently directed retaining the existing Pro connection. Microsoft connectors remain deferred.",
+  "source_manifest": {
+    "private_reference": ".local/probes/daily-companion-source-manifest.json",
+    "files": 266,
+    "scope": "src, tests, scripts, db, package/lock, TypeScript and Vite configuration; excludes docs and ignored runtime data"
+  },
+  "audit_findings": {
+    "FIN-01": "repaired; exact committed activity retained until received acknowledgement, lost-response/restart receipt recovery",
+    "FIN-02": "repaired; reminder follows stable occurrence and effective reschedule/deferral across plan reacceptance",
+    "FIN-03": "repaired; obsolete uncommitted grant intent can be discarded while committed receipt remains",
+    "FIN-04": "repaired and deployed; rejected worker start can relaunch, bounded health/retry and public Heart readiness verified",
+    "FIN-05": "transition tooling and tests implemented; permanent intended-client actor activation and direct reasoning eligibility remain open",
+    "FIN-06": "current entry documentation aligned with canonical daily rhythm and slice states"
+  },
+  "implemented": [
+    "Fresh bounded participant-local time and factual activity context; 06:00–09:00 preferred morning, optional catch-up until 11:00, daytime until 16:00, evening preparation and soft 20:00 discretionary-task finish.",
+    "Actual intake distinguishes full meal, snack and unknown; original occurrence and recording times, corrections and explicit confirmation remain durable.",
+    "Reviewed lasting/today-only ordinary preferences with correction, removal, actor provenance and acknowledged recovery.",
+    "Small active significant-event handoffs with explicit occurrence, versioned correction/resolution and next-day readback; deterministic quiet preparation using existing jobs without inference or microphone.",
+    "One bounded Nancy policy composed from a short fixed core and five named trusted Markdown skills; guidance routing only, no new agent graph and all authorized tools retained.",
+    "Opted-in food-report checks and explicitly started focus sessions with individually chosen intervals; durable snooze/decline and text-only delivered-reminder recovery.",
+    "Numeric client endpointing/request/playback scheduling measurements, ASR and inference usage; unknown acoustic/audibility values remain null and no transcript/audio payload is logged."
+  ],
+  "verification": {
+    "typecheck": "passed",
+    "automated": {
+      "passed": 710,
+      "optional_skipped": 1,
+      "files_passed": 88,
+      "command": "npm run check",
+      "private_log": ".local/probes/final-daily-check.log"
+    },
+    "production_build": {
+      "status": "passed",
+      "bundle": "app-Cs1S6W1F.js"
+    },
+    "dependency_audit": {
+      "known_vulnerabilities": 0
+    },
+    "repair_pg_http": {
+      "status": "passed",
+      "checks": 67,
+      "actual_postgresql": true,
+      "actual_http": true,
+      "dropped_success_and_service_restart": true,
+      "inference": "stub only",
+      "private_reference": ".local/probes/final-audit-http.json",
+      "observed_at": "2026-10-14T07:06:24.948Z",
+      "tested_migration_017_sha256": "ba4cbbe2be07a9611e854038638fd311246160af94f82db11ceb3045a0583472",
+      "disposable_databases_removed": 7
+    },
+    "food_focus_pg_http": {
+      "status": "passed",
+      "checks": 26,
+      "actual_postgresql": true,
+      "actual_http": true,
+      "controlled_clock": true,
+      "no_inference_or_audio": true,
+      "private_reference": ".local/probes/food-prompts-http.json"
+    },
+    "browser": {
+      "status": "passed",
+      "surface": "IAB with actual disposable PostgreSQL/listening HTTP",
+      "preference_intake_handoff_checks": {
+        "preference_explicit_review": true,
+        "preference_saved": true,
+        "preference_after_reload": true,
+        "preference_corrected_version_2": true,
+        "preference_removed": true,
+        "handoff_review": true,
+        "handoff_saved": true,
+        "handoff_reviewed_resolution": true,
+        "intake_kind_correction_persisted": true,
+        "meal_count_remained_one": true
+      },
+      "initial_focus_checks": {
+        "focus_start_review_save": true,
+        "focus_survives_reload": true,
+        "pause_review_save": true,
+        "resume_review_save": true,
+        "due_check_visible": true,
+        "snooze_saved": true,
+        "stop_review_save": true,
+        "stop_does_not_complete_task": true,
+        "logout": true
+      },
+      "final_focus_reminder_checks": {
+        "reviewed_focus_start": true,
+        "due_prompt_visible": true,
+        "delivered_prompt_text_survives_reload": true,
+        "snooze_saved": true,
+        "snoozed_prompt_returns": true,
+        "snoozed_delivered_text_survives_reload": true,
+        "decline_saved": true,
+        "decline_survives_reload": true,
+        "task_not_completed": true,
+        "logout": true
+      },
+      "final_bundle": "app-Cs1S6W1F.js",
+      "found_and_repaired": "Delivered reminder text disappeared on reload; final text-only restore verified without another audio/notification dispatch.",
+      "private_references": [
+        ".local/probes/daily-companion-browser.json",
+        ".local/probes/daily-companion-focus-browser.json",
+        ".local/probes/daily-companion-final-browser.json"
+      ],
+      "screenshot": ".local/probes/daily-companion-final-focus-ui.jpg"
+    },
+    "selected_provider": {
+      "status": "passed",
+      "checks": 26,
+      "tested_sources_unchanged": true,
+      "route": "chatgpt_plan_owner_practice",
+      "model": "gpt-6-sol",
+      "reasoning_effort": "high",
+      "completed_model_calls": 6,
+      "reported_usage": {
+        "inputTokens": 35884,
+        "outputTokens": 416,
+        "totalTokens": 36300,
+        "cachedInputTokens": 8192,
+        "reasoningOutputTokens": 111
+      },
+      "model_stages": [
+        {
+          "stage": "meal_review",
+          "duration_ms": 6336,
+          "first_text_delta_ms": null,
+          "outcome": "completed"
+        },
+        {
+          "stage": "preference_review",
+          "duration_ms": 4466,
+          "first_text_delta_ms": null,
+          "outcome": "completed"
+        },
+        {
+          "stage": "preference_readback",
+          "duration_ms": 3007,
+          "first_text_delta_ms": 2572,
+          "outcome": "completed"
+        },
+        {
+          "stage": "temporal_response",
+          "duration_ms": 2950,
+          "first_text_delta_ms": 2116,
+          "outcome": "completed"
+        },
+        {
+          "stage": "handoff_review",
+          "duration_ms": 4822,
+          "first_text_delta_ms": null,
+          "outcome": "completed"
+        },
+        {
+          "stage": "handoff_readback",
+          "duration_ms": 2705,
+          "first_text_delta_ms": 2501,
+          "outcome": "completed"
+        }
+      ],
+      "speech_stages": [
+        {
+          "stage": "speech_warmup",
+          "duration_ms": 7567
+        },
+        {
+          "stage": "meal_review_heart",
+          "duration_ms": 3287,
+          "audio_bytes": 669644
+        },
+        {
+          "stage": "meal_asr",
+          "duration_ms": 410
+        },
+        {
+          "stage": "preference_review_heart",
+          "duration_ms": 2147,
+          "audio_bytes": 438044
+        },
+        {
+          "stage": "preference_asr",
+          "duration_ms": 437
+        },
+        {
+          "stage": "handoff_review_heart",
+          "duration_ms": 5338,
+          "audio_bytes": 1064444
+        },
+        {
+          "stage": "handoff_asr",
+          "duration_ms": 522
+        }
+      ],
+      "physical_microphone": false,
+      "audible_playback": false,
+      "private_reference": ".local/probes/daily-companion-2026-10-14T06-56-50-088Z.json"
+    },
+    "public_https": {
+      "status": "passed",
+      "checks": 13,
+      "care_record_writes": false,
+      "model_inference": false,
+      "scope": "Previously approved current-account day read, greeting, Show my meals navigation, actual Heart audio, logout and revoked session check.",
+      "private_reference": ".local/probes/daily-companion-public-https.json"
+    },
+    "earlier_failed_provider_runs": [
+      {
+        "private_reference": ".local/probes/daily-companion-2026-10-14-pre-skill-source-drift.json",
+        "status": "failed",
+        "failed_stage": "handoff_readback",
+        "failure_code": "qualification_check_failed",
+        "passed_checks": 25,
+        "database_removed": true
+      },
+      {
+        "private_reference": ".local/probes/daily-companion-2026-10-14T06-49-02-442Z.json",
+        "status": "failed",
+        "failed_stage": "handoff_review",
+        "failure_code": "reasoning_unavailable",
+        "passed_checks": 16,
+        "database_removed": true
+      }
+    ],
+    "interpretation": "Current engineering checks pass. Earlier failures remain recorded: source drift in one run, and a later provider failure whose root cause was not retained. Final frozen run passed on the same provider with no fallback. Broad canonical matrices and participant/device gates are evaluated separately; suite totals do not certify every full AUTO/LIVE group.",
+    "public_browser": {
+      "status": "passed",
+      "read_only": true,
+      "private_screenshot": ".local/probes/daily-companion-live-ready.jpg",
+      "observed": "Ready when you are; Talk to Nancy enabled; new preference entry visible; microphone remains off"
+    }
+  },
+  "latency": {
+    "interpretation": "Single-run observations, not a percentile benchmark. Physical speech-end-to-audible latency remains unqualified.",
+    "handoff_model_calls": {
+      "earlier": 3,
+      "final": 1
+    },
+    "handoff_model_ms": {
+      "earlier": 9858,
+      "final": 4822
+    },
+    "whole_workflow_model_calls": {
+      "earlier": 8,
+      "final": 6
+    },
+    "trusted_instruction_chars": {
+      "previous_always_on": 9605,
+      "clear_meal": 3251,
+      "preference_continuity": 3844,
+      "meal_with_nutrition": 5233,
+      "direct_handoff": 3127,
+      "task_focus": 3909,
+      "ambiguous_full_guidance": 9886
+    }
+  },
+  "deployment": {
+    "supervised_app_restarted": true,
+    "public_voice_ready": true,
+    "existing_https_origin_preserved": true,
+    "selected_reasoner": "gpt-6-sol/high",
+    "selected_voice": "af_heart",
+    "api_funding_or_model_switch": false,
+    "microsoft_connector_enabled": false,
+    "additive_schema": {
+      "from": "013_activity_recovery.sql",
+      "to": "017_food_focus.sql",
+      "encrypted_backup": true,
+      "isolated_restore_rehearsal": true,
+      "all_existing_row_columns_preserved": true,
+      "seed_or_reset": false,
+      "private_reference": ".local/probes/local-schema-upgrade.json"
+    },
+    "permanent_client_credentials_activated": false,
+    "owner_inference_binding_bypassed": false
+  },
+  "acceptance_limits": [
+    "Existing Pro route remains owner-bound practice. A separate local client login does not qualify another person to use that reasoning account; intended-client activation and inference qualification remain open.",
+    "Physical microphone, audible playback, iPhone behavior and a genuine meal/task save by the intended client have not been accepted in this run.",
+    "Controlled clocks prove scheduling behavior; they do not prove real elapsed waiting, three genuine days or closed-browser/locked-device delivery.",
+    "Remaining canonical test matrices, human consent/data-use and clinical/daily-reliance gates remain open. No full slice is marked complete.",
+    "Future supported GPT funding/provider/local-model migration retains independent participant identity and local care data; adapters beyond the selected route remain deferred."
+  ],
+  "cleanup": {
+    "provider_disposable_database_removed": true,
+    "repair_disposable_databases_removed": true,
+    "food_focus_disposable_database_removed": true,
+    "food_fixture_inventory_zero": true,
+    "synthetic_browser_tabs_closed": true
+  },
+  "documentation_checks": {
+    "generated_human_actions": "passed",
+    "diff_check": "passed",
+    "roadmap": "passed"
+  }
+}

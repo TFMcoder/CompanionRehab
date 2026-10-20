@@ -1,0 +1,69 @@
+{
+  "evidence_id": "MICROSOFT-CONSENT-REVIEW-2026-10-19",
+  "observed_at": "2026-10-19T18:53:04Z",
+  "status": "awaiting_administrator_consent",
+  "implementation_revision": "sha256:5474ee7e91783b32ce95fa5ee2dd9de4a7b39d2c3bca588099010bca9479c63a",
+  "source_code_changed": false,
+  "authorization": {
+    "fresh_client_outlook_sign_in_requested": true,
+    "read_only_admin_request_inspection_explicitly_approved": true,
+    "administrator_sign_in_completed_by_user": true,
+    "consent_grant_or_access_change_authorized_in_this_step": false,
+    "initial_admin_portal_inspection_rejected_by_automatic_review": true,
+    "resubmitted_after_exact_read_only_approval": true
+  },
+  "observations": {
+    "fresh_outlook_flow_reached_microsoft_approval_request": true,
+    "request_found_in_correct_tenant": true,
+    "application_identity_matches_existing_registration": true,
+    "callback_matches_established_nancy_https_callback": true,
+    "requester_matches_intended_client": true,
+    "request_created_local_date": "2026-10-19",
+    "request_status": "Not reviewed",
+    "request_decision_details": "Not reviewed",
+    "my_pending_queue_count": 0,
+    "request_visible_in_all_queue": true,
+    "enterprise_application_admin_consented_permissions_found": false,
+    "configured_permissions_source": "Nancy app registration API permissions, corroborating the established Outlook authorization request; the request-specific consent window did not open",
+    "configured_permission_type": "Delegated",
+    "configured_permissions": [
+      "openid",
+      "profile",
+      "offline_access",
+      "User.Read",
+      "Calendars.ReadWrite",
+      "Mail.ReadWrite",
+      "Mail.Send"
+    ],
+    "configured_application_permissions_found": false,
+    "nancy_outlook_state": "Not connected",
+    "nancy_return_notice": "Microsoft sign-in was not completed. You can try again."
+  },
+  "boundaries": {
+    "password_or_code_retrieved_or_entered_by_agent": false,
+    "password_reset_performed": false,
+    "admin_consent_granted": false,
+    "request_denied_or_blocked": false,
+    "roles_or_assignments_changed": false,
+    "provider_content_read": false,
+    "provider_records_written": false,
+    "provider_content_sent_to_reasoning": false,
+    "caregiver_reasoning_route_changed": false,
+    "slice_or_live_acceptance_completed": false
+  },
+  "remaining": [
+    "Obtain administrator consent with the intended access scope reviewed first; standard portal admin consent can cover the tenant, and a the intended client-only Microsoft restriction has not been verified in this checkpoint.",
+    "My Pending is empty. The All queue observation alone does not identify the designated reviewer or establish a reviewer assignment.",
+    "After consent, start fresh Outlook authorization from the existing authenticated client session, then explicitly select approved calendars/folders and perform a bounded read.",
+    "S06-H03 remains in_progress and S06-LIVE6 remains blocked; full live acceptance has not passed."
+  ],
+  "private_evidence_refs": [
+    ".local/probes/microsoft-nancy-consent-request-2026-10-19.png",
+    ".local/probes/microsoft-nancy-api-permissions-2026-10-19.png"
+  ],
+  "provider_references": [
+    "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/review-admin-consent-requests",
+    "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/user-admin-consent-overview"
+  ],
+  "subsequent_evidence_ref": "docs/evidence/MICROSOFT-CONNECTED-2026-10-19.json"
+}

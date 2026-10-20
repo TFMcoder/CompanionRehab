@@ -1,0 +1,146 @@
+{
+  "evidence_id": "CAREGIVER-VOICE-2026-10-18",
+  "status": "caregiver_route_tested_activated_and_deployed_under_explicit_owner_authorization",
+  "authorization": "Owner states caregiver use for their purposes and explicitly requests proceeding with the existing Pro connection before migration; API billing remains unselected.",
+  "authorization_scope": "Application engineering authorization only; not a provider-issued exception or completed intended-user qualification.",
+  "verification": {
+    "focused_regressions": {
+      "passed": 86,
+      "failed": 0,
+      "files": 5,
+      "private_reference": ".local/probes/caregiver-targeted-tests.json"
+    },
+    "actual_disposable_postgresql": {
+      "passed": 12,
+      "failed": 0,
+      "provider_requests": 0,
+      "disposable_databases_remaining": 0,
+      "private_reference": ".local/probes/caregiver-postgres.json"
+    },
+    "actual_http_local_speech": {
+      "passed": 12,
+      "failed": 0,
+      "provider_responses": "synthetic",
+      "provider_requests": 0,
+      "real_plan_credentials_read": false,
+      "actual_heart": true,
+      "actual_asr_of_generated_audio": true,
+      "fixture_database_removed": true,
+      "private_reference": ".local/probes/caregiver-offline.json"
+    },
+    "actual_browser": {
+      "passed": true,
+      "scope": [
+        "synthetic client sign-in",
+        "enabled Talk to Nancy",
+        "caregiver plan attribution and usage link",
+        "Tasks and Meals navigation",
+        "eligibility retained after reload"
+      ],
+      "microphone_activated": false,
+      "private_screenshot": ".local/probes/caregiver-synthetic-browser.png"
+    },
+    "typecheck": "pass",
+    "isolated_client_build": "pass",
+    "client_bundle": "app-CeMFabsv.js",
+    "full_suite": {
+      "passed": 900,
+      "failed": 0,
+      "skipped": 1,
+      "files": 98,
+      "private_reference": ".local/probes/caregiver-full-suite.json"
+    },
+    "actual_provider": {
+      "passed": 16,
+      "total": 16,
+      "model": "gpt-6-sol",
+      "effort": "high",
+      "completed_model_requests": 1,
+      "input_tokens": 5171,
+      "output_tokens": 12,
+      "total_tokens": 5183,
+      "cached_input_tokens": 0,
+      "reasoning_output_tokens": 0,
+      "model_duration_ms": 4407,
+      "real_care_content_sent": false,
+      "actual_postgresql": true,
+      "actual_listening_http": true,
+      "actual_heart": true,
+      "actual_asr_generated_audio": true,
+      "fixture_database_removed": true,
+      "private_reference": ".local/probes/caregiver-live.json"
+    },
+    "deployment": {
+      "status": "passed",
+      "checks_passed": 7,
+      "checks_total": 7,
+      "existing_supervisor_retained": true,
+      "public_https": true,
+      "voice_workers_ready": true,
+      "client_bundle": "app-CeMFabsv.js",
+      "private_reference": ".local/probes/caregiver-deployment.json"
+    },
+    "authenticated_deployed_browser": {
+      "existing_client_session_reused": true,
+      "talk_enabled": true,
+      "caregiver_plan_label": true,
+      "agent_microphone_activation": false,
+      "private_screenshot": ".local/probes/caregiver-deployed-browser.png"
+    }
+  },
+  "live_approval": {
+    "outcome": "allowed_after_new_explicit_informed_owner_approval",
+    "bounded_request_limit": 2,
+    "provider_requests_made": 1,
+    "workaround_attempted": false,
+    "provider_exception_asserted": false
+  },
+  "activation": {
+    "private_exact_binding_review": "freshly_reviewed_and_applied",
+    "caregiver_authorization_applied": true,
+    "environment_changed": true,
+    "production_deployed": true,
+    "production_restarted": true,
+    "care_records_written": false,
+    "credentials_copied": false,
+    "api_billing_enabled": false,
+    "original_owner_account_binding_preserved": true,
+    "local_authorization_acl": "owner_and_SYSTEM",
+    "existing_care_identity_history_preserved": true
+  },
+  "intermediate_findings": [
+    "Initial focused run found a fixture Host-header omission and a legacy missing-route error-code regression; both were repaired and all 86 focused checks passed.",
+    "Initial full suite passed 899 tests and failed one governance error-code assertion with one optional skip. The regression now checks server identity first and also verifies a valid different actor cannot use the default owner route; the final complete run passes 900 tests with one optional skip.",
+    "The first offline HTTP probe reached conversation before its own speech workers were warm. That fixture was removed; priming its local workers produced the final 12/12 HTTP/Heart/ASR result. No real provider request occurred."
+  ],
+  "acceptance_limit": "A completed synthetic Sol/high request and actual HTTP/local speech/deployment checks qualify this operational route under explicit owner application/action authorization. They do not constitute a provider-issued SIWC exception, physical microphone/audible participant acceptance, genuine-day use or full-slice completion. All applicable human gates remain open.",
+  "continuation_ref": "docs/CAREGIVER_REASONING_CONNECTION.md",
+  "observed_at": "2026-10-19T02:05:30.378Z",
+  "implementation_revision": "sha256:5474ee7e91783b32ce95fa5ee2dd9de4a7b39d2c3bca588099010bca9479c63a",
+  "source_manifest": {
+    "runtime_revision": "sha256:5474ee7e91783b32ce95fa5ee2dd9de4a7b39d2c3bca588099010bca9479c63a",
+    "runtime_files": 136,
+    "all_source_revision": "sha256:0c7737e7329d193942ff2eb843df508958ce36710f4a9260e92e3d101d00c15d",
+    "all_source_files": 295,
+    "private_reference": ".local/probes/caregiver-source-manifest.json",
+    "method": "SHA-256 of sorted repository path, NUL, file bytes, NUL; runtime covers src/db plus package and TypeScript/Vite/Vitest configuration, all-source also includes scripts/tests. Docs/private files excluded."
+  },
+  "approval_history": [
+    {
+      "outcome": "rejected_by_automatic_approval_review_before_process_start",
+      "action": "At most two fixed synthetic Sol-high requests using the existing owner Pro connection through the new caregiver route, isolated PostgreSQL and local speech.",
+      "reason": "The reviewer considers owner-to-client Pro use to cross the recorded owner-only/no-pooled-subscription boundary; synthetic payloads and a two-request limit do not resolve its account-use authorization concern.",
+      "provider_requests_made": 0,
+      "workaround_attempted": false,
+      "new_explicit_approval_required_for_review": true
+    },
+    {
+      "outcome": "new_explicit_informed_owner_approval_received",
+      "scope": "Resubmit at most two synthetic Sol-high Pro requests and enable only the exact caregiver/client route if test and review pass; no API billing."
+    },
+    {
+      "outcome": "resubmitted_review_allowed_test_and_exact_activation",
+      "provider_requests": 1
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 import { z } from "zod";
 import type { ActivityLedger } from './activity-contracts.js';
+import type { DailyContext } from './daily-context.js';
+import type { IntakeTiming } from './intake-timing.js';
 
 export const mealSlots = ["breakfast", "lunch", "dinner"] as const;
 export type MealSlot = typeof mealSlots[number];
@@ -43,13 +45,13 @@ export const setupSchema = z.object({
 }).strict();
 export type SetupInput = z.infer<typeof setupSchema>;
 export interface Task { id: string; title: string; time_hint: string | null; urgency?: 'high' | 'medium' | 'low'; scheduled_date?: string | null; scheduled_time?: string | null; category?: 'task' | 'exercise' | 'rehab'; duration_minutes?: number | null }
-export type ClientView = 'my_day' | 'tasks' | 'meals' | 'groceries' | 'activity' | 'requests' | 'day_review' | 'routines' | 'support_team' | 'progress' | 'operations';
+export type ClientView = 'my_day' | 'tasks' | 'meals' | 'groceries' | 'activity' | 'requests' | 'day_review' | 'routines' | 'support_team' | 'progress' | 'operations' | 'outlook' | 'ask_for_help' | 'ways_to_use' | 'suggestions';
 export type AppRole = 'administrator' | 'client' | 'family_friend' | 'clinician';
 export interface GroceryItem { id: string; name: string; quantity?: string }
 export const groceryInput = z.object({ name: z.string().trim().min(1).max(160), quantity: z.string().trim().max(80).optional(), idempotency_key: uuid }).strict();
 export interface CalendarAppointment { id: string; title: string; starts_at: string; duration_minutes?: number | null }
 export interface ActivityReport { target_id: string; local_date: string; status: 'completed' | 'deferred'; occurred_at: string; meal_slot?: MealSlot }
-export interface PriorityContext { greeting: string; period: string; local_time: string; local_date: string; suggestions: { kind: string; label: string; reason: string }[] }
+export interface PriorityContext { greeting: string; period: string; local_time: string; local_date: string; temporal?: DailyContext; suggestions: { kind: string; label: string; reason: string }[] }
 export interface MealOption { id: string; name: string; slots: MealSlot[] }
 export interface Plan {
   id: string;
@@ -67,8 +69,10 @@ export interface Today {
   local_date: string;
   tasks: Task[]; meal_options: MealOption[]; checkin: CheckIn | null;
   role?: AppRole; groceries?: GroceryItem[]; appointments?: CalendarAppointment[];
+  appointment_context?: {total_count:number;omitted_count:number};
   activity_reports?: ActivityReport[]; priority_context?: PriorityContext;
   activity_ledger?: ActivityLedger;
+  intake_timing?: IntakeTiming;
 }
 export interface Receipt {
   command_id: string; checkin_id: string; revision: number;

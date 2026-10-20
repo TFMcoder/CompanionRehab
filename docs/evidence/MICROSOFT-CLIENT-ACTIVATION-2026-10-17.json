@@ -1,0 +1,78 @@
+{
+  "evidence_id": "MICROSOFT-CLIENT-ACTIVATION-2026-10-17",
+  "observed_at": "2026-10-18T00:10:40.179Z",
+  "status": "client_login_verified_awaiting_microsoft_password_mfa_and_consent",
+  "implementation_revision": "sha256:2cd0977fc4bea406226b10f4b72471d8579ba1664394140503c82078d61bdfe6",
+  "source_code_changed": false,
+  "owner_explicitly_authorized_activation": true,
+  "verification": {
+    "checks_passed": 27,
+    "checks_total": 27,
+    "fresh_encrypted_backup_roundtrip": true,
+    "prior_isolated_restore_verified": true,
+    "fresh_transition_review": true,
+    "distinct_client_account_created": true,
+    "existing_participant_retained": true,
+    "original_care_history_preserved": true,
+    "owner_credentials_unchanged": true,
+    "owner_role_now_administrator": true,
+    "owner_client_grant_retired": true,
+    "prior_owner_participant_sessions_revoked": true,
+    "one_provisioning_event": true,
+    "verified_microsoft_account_bound": true,
+    "local_calendar_and_mail_previews_approved": true,
+    "active_private_configuration_validated": true,
+    "backend_restarted": true,
+    "public_https_ready": true,
+    "client_manual_login_observed": true,
+    "bound_client_outlook_ui_available": true,
+    "connect_outlook_reached_microsoft": true
+  },
+  "credentials": {
+    "new_client_login_encrypted_at_rest": true,
+    "private_files_access_restricted": true,
+    "interactive_owner_only_viewer_prepared": true,
+    "viewer_executed_by_agent": false,
+    "password_logged": false,
+    "browser_password_entry_rejected_by_automatic_review": true,
+    "manual_login_pending": false
+  },
+  "boundaries": {
+    "client_reasoning_qualified": false,
+    "owner_inference_binding_transferred": false,
+    "live_microsoft_oauth": false,
+    "graph_content_read": false,
+    "provider_write": false,
+    "provider_content_to_gpt": false,
+    "care_history_copied_or_relabelled": false,
+    "model_called": false,
+    "slice_completed": false,
+    "microsoft_authorization_started": true,
+    "microsoft_authorization_completed": false
+  },
+  "remaining": [
+    "Intended-client Microsoft sign-in/MFA and consent",
+    "Explicit resource selection and bounded read/refresh/authorization-loss/disconnect acceptance",
+    "Intended-client inference qualification and genuine device/care acceptance remain separate"
+  ],
+  "private_evidence_refs": [
+    ".local/probes/microsoft-client-activation.json",
+    ".local/provisioning/microsoft-client-request.json",
+    ".local/integrations/microsoft/connection.json",
+    ".local/probes/rob-nancy-signin-handoff.jpg",
+    ".local/probes/rob-microsoft-signin-handoff.jpg"
+  ],
+  "browser_observed_at": "2026-10-18T00:19:09.828Z",
+  "handoff": {
+    "date_local": "2026-10-18",
+    "time_zone": "America/Toronto",
+    "document": "docs/HANDOFF_2026-10-18.md",
+    "browser_location_source": "User-supplied ambient browser context",
+    "browser_location": "Microsoft password-recovery origin",
+    "recovery_page_contents_inspected": false,
+    "recovery_completion_verified": false,
+    "recovery_origin_observation_rejected_by_automatic_review": true,
+    "next_step": "After the user confirms Microsoft account access, start a fresh authorization attempt from the existing Nancy client session; previous attempt is expired.",
+    "current_changes_committed": false
+  }
+}

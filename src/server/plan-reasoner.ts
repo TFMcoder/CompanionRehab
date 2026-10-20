@@ -3,6 +3,7 @@ import { ApiError } from './errors.js';
 import { PlanStore, accountKey, type PlanState, type PlanCredential } from './chatgpt-plan/storage.js';
 import { requestSolHigh, refreshCredential, PlanRequestError, attachInferenceUsage, inferenceUsageFromError, type OutputItem, type CompletedTurn } from './chatgpt-plan/inference.js';
 import type { InferenceBinding, InferenceScope } from './inference-binding.js';
+import type { ResolveCaregiverInference } from './caregiver-inference.js';
 
 export interface Reasoner {
   bind(scope: InferenceScope): Promise<InferenceBinding>;
@@ -10,11 +11,11 @@ export interface Reasoner {
     onTextDelta?: (delta: string) => void, binding?: InferenceBinding): Promise<CompletedTurn>;
 }
 
-/** One explicitly bound application user, one app-specific OAuth account; no shared fallback. */
+/** Immutable account selection, with an optional exact caregiver-authorized client route. */
 export class PlanReasoner implements Reasoner {
   private busy = false;
   constructor(private store: PlanStore, private ownerId: string,
-    private request = requestSolHigh, private refresh = refreshCredential) {}
+    private request = requestSolHigh, private refresh = refreshCredential, private caregiver?: ResolveCaregiverInference) {}
   async available() {
     try { await this.ownerBinding(); return true; } catch { return false; }
   }
@@ -47,15 +48,35 @@ export class PlanReasoner implements Reasoner {
     return state.nancyBinding!;
   }
   async bind(scope: InferenceScope): Promise<InferenceBinding> {
-    if (scope.actor_id !== this.ownerId)
+    const authorization = scope.actor_id !== this.ownerId ? await this.caregiver?.(scope) : undefined;
+    if (scope.actor_id !== this.ownerId && !authorization)
       throw new ApiError(403, 'reasoning_not_linked', 'Nancy’s reasoning connection is not qualified for this sign-in. You can use the buttons.');
     const bound = await this.ownerBinding();
+    if (authorization) {
+      if (authorization.ownerActorId !== this.ownerId || authorization.accountBindingId !== bound.bindingId || authorization.hostId !== bound.hostId)
+        throw new ApiError(503, 'caregiver_binding_changed', 'The caregiver account connection changed and needs review. You can use the buttons.');
+      return Object.freeze({ ...scope, route_id: 'chatgpt_plan_caregiver', account_binding_id: bound.bindingId,
+        qualification: 'caregiver_authorized', account_owner_actor_id: this.ownerId, authorization_ref: authorization.authorizationRef });
+    }
     return Object.freeze({ ...scope, route_id: 'chatgpt_plan_owner_practice', account_binding_id: bound.bindingId, qualification: 'owner_practice' });
   }
-  private assertBinding(state: PlanState, binding: InferenceBinding | undefined) {
-    if (!binding || binding.actor_id !== this.ownerId || binding.route_id !== 'chatgpt_plan_owner_practice'
-      || binding.qualification !== 'owner_practice' || binding.account_binding_id !== state.nancyBinding?.bindingId)
+  private async assertBinding(state: PlanState, binding: InferenceBinding | undefined) {
+    if (!binding || binding.account_binding_id !== state.nancyBinding?.bindingId)
       throw new ApiError(403, 'reasoning_binding_changed', 'This conversation’s account connection changed. Start a new conversation.');
+    if (binding.actor_id === this.ownerId) {
+      if (binding.route_id !== 'chatgpt_plan_owner_practice' || binding.qualification !== 'owner_practice'
+        || binding.account_owner_actor_id || binding.authorization_ref)
+        throw new ApiError(403, 'reasoning_binding_changed', 'This conversation’s account connection changed. Start a new conversation.');
+    } else {
+      if (!this.caregiver)
+        throw new ApiError(403, 'reasoning_binding_changed', 'This conversation’s account connection changed. Start a new conversation.');
+      const authorization = await this.caregiver?.(binding);
+      if (!authorization || binding.route_id !== 'chatgpt_plan_caregiver' || binding.qualification !== 'caregiver_authorized'
+        || binding.account_owner_actor_id !== this.ownerId || authorization.ownerActorId !== this.ownerId
+        || authorization.accountBindingId !== binding.account_binding_id || authorization.hostId !== state.hostId
+        || authorization.authorizationRef !== binding.authorization_ref)
+        throw new ApiError(403, 'caregiver_authorization_changed', 'The caregiver connection or access changed. Start a new conversation.');
+    }
     return this.account(state);
   }
   async respond(input: OutputItem[], instructions: string, tools: OutputItem[], signal?: AbortSignal,
@@ -66,12 +87,12 @@ export class PlanReasoner implements Reasoner {
     let completed: CompletedTurn | undefined;
     try {
       let state = await this.store.load();
-      let account = this.assertBinding(state, binding);
+      let account = await this.assertBinding(state, binding);
       if (account.expiresAt - Date.now() < 60000) {
         // The setup helper and runtime may read concurrently, but only one can rotate credentials.
         const unlock = await this.store.lock().catch(() => { throw new ApiError(503, 'connection_setup_open', 'Close the local ChatGPT setup helper so Nancy can renew this connection.'); });
         try {
-          state = await this.store.load(); account = this.assertBinding(state, binding);
+          state = await this.store.load(); account = await this.assertBinding(state, binding);
           if (account.expiresAt - Date.now() < 60000) {
             const refreshed = await this.refresh(account);
             if (accountKey(refreshed) !== state.nancyBinding!.accountKey)
@@ -82,11 +103,11 @@ export class PlanReasoner implements Reasoner {
         } finally { await unlock(); }
       }
       signal?.throwIfAborted();
-      this.assertBinding(await this.store.load(), binding);
+      await this.assertBinding(await this.store.load(), binding);
       const result = await this.request(account, input, { instructions, tools, tool_choice: 'auto' }, fetch, { textDelta: onTextDelta }, signal);
       completed = result;
       signal?.throwIfAborted();
-      this.assertBinding(await this.store.load(), binding);
+      await this.assertBinding(await this.store.load(), binding);
       return result;
     } catch (error) {
       // Consumption remains factual even when access changes before delivery.

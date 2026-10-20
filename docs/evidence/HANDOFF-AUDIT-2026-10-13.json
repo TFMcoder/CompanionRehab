@@ -1,6 +1,6 @@
 {
   "evidence_id": "HANDOFF-AUDIT-2026-10-13",
-  "status": "open_defects_reconciled_for_handoff",
+  "status": "historical_audit_findings_repaired",
   "code_commit": "ee3fa6e667a52f75a1272e09cd69e88c24f99510",
   "implementation_revision": "sha256:f622adc21aa672cedad479d738d22830026328dfc17d9d010e1eb0f672977036",
   "destination": "CompanionRehabDev",
@@ -45,7 +45,7 @@
     {
       "id": "AUD-01",
       "priority": "P1",
-      "status": "reproduced_open",
+      "status": "fixed_engineering_verified",
       "slices": [
         "S01",
         "S02",
@@ -58,12 +58,18 @@
         "src/server/local-care.ts:362"
       ],
       "reproduction": "Hold profile FOR UPDATE; start an authenticated check-in command; revoke its session while it waits; release lock. Actual PostgreSQL committed the command and one receipt after revocation.",
-      "next": "Unify mutation authority locking/revalidation across legacy care methods; test session, account and grant revocation and lock ordering before enabling connector writes."
+      "next": "Unify mutation authority locking/revalidation across legacy care methods; test session, account and grant revocation and lock ordering before enabling connector writes.",
+      "repair": {
+        "implementation_revision": "sha256:a06b57af8a5467fee62d04aa0309f6674a9048ae9075bb470e32f65f8521d59e",
+        "evidence_ref": "docs/evidence/AUDIT-REPAIRS-2026-10-13.json",
+        "change": "Recheck session, account and role-grant authority after the participant lock, holding shared authority locks through legacy mutations.",
+        "verification": "Actual PostgreSQL and running portal HTTP lock-wait/revocation probes denied the command with no receipt."
+      }
     },
     {
       "id": "AUD-02",
       "priority": "P1",
-      "status": "reproduced_open",
+      "status": "fixed_engineering_verified",
       "slices": [
         "S05",
         "S10",
@@ -74,12 +80,18 @@
         "src/server/meal-grocery.ts:110"
       ],
       "reproduction": "Family grocery command reads allowed sharing, waits for profile lock; client revokes sharing; releasing lock still commits addition. Subsequent read is denied. Reproduced on actual isolated PostgreSQL.",
-      "next": "Serialize sharing changes with mutation authorization, then recheck the actual sharing rows under the correct lock order."
+      "next": "Serialize sharing changes with mutation authorization, then recheck the actual sharing rows under the correct lock order.",
+      "repair": {
+        "implementation_revision": "sha256:a06b57af8a5467fee62d04aa0309f6674a9048ae9075bb470e32f65f8521d59e",
+        "evidence_ref": "docs/evidence/AUDIT-REPAIRS-2026-10-13.json",
+        "change": "Re-read family grocery sharing after the participant lock before permitting a mutation.",
+        "verification": "Actual PostgreSQL and running portal HTTP sharing-revocation race denied the edit with no receipt."
+      }
     },
     {
       "id": "AUD-03",
       "priority": "P2",
-      "status": "reproduced_open",
+      "status": "fixed_engineering_verified",
       "slices": [
         "S03"
       ],
@@ -88,12 +100,18 @@
         "src/client/pending-commands.ts:186"
       ],
       "reproduction": "Pause storage write for unknown status, deactivate queue, release storage. One transport dispatch occurs despite deactivation.",
-      "next": "Recheck epoch/scope after every awaited preparation and immediately before dispatch; cover submit and retry paths."
+      "next": "Recheck epoch/scope after every awaited preparation and immediately before dispatch; cover submit and retry paths.",
+      "repair": {
+        "implementation_revision": "sha256:a06b57af8a5467fee62d04aa0309f6674a9048ae9075bb470e32f65f8521d59e",
+        "evidence_ref": "docs/evidence/AUDIT-REPAIRS-2026-10-13.json",
+        "change": "Recheck active scope/epoch after awaited device-storage preparation and before dispatch.",
+        "verification": "Browser touch save and receipt failed before commit; pending status stayed honest. Logout cleared the device queue; relogin did not replay and actual PostgreSQL confirmed no activity. The exact paused-storage interleaving is automated, not claimed as a physical-device reproduction."
+      }
     },
     {
       "id": "AUD-04",
       "priority": "P2",
-      "status": "reproduced_open",
+      "status": "fixed_engineering_verified",
       "slices": [
         "S01",
         "S06"
@@ -103,12 +121,18 @@
         "src/server/local-care.ts:216"
       ],
       "reproduction": "Seed 200 historical appointments plus one appointment in an hour. The oldest-first 200-row cap excludes the imminent record from today and priority suggestions; reproduced in PGlite.",
-      "next": "Bound current/upcoming appointments separately from history and expose truncation honestly; preserve historical reporting identities."
+      "next": "Bound current/upcoming appointments separately from history and expose truncation honestly; preserve historical reporting identities.",
+      "repair": {
+        "implementation_revision": "sha256:a06b57af8a5467fee62d04aa0309f6674a9048ae9075bb470e32f65f8521d59e",
+        "evidence_ref": "docs/evidence/AUDIT-REPAIRS-2026-10-13.json",
+        "change": "Prefer current/upcoming appointments over history in bounded context; expose total/omitted counts.",
+        "verification": "Running portal HTTP plus browser My Day retained the imminent record with 200 older synthetic appointments; truncation was explicit."
+      }
     },
     {
       "id": "AUD-05",
       "priority": "P1",
-      "status": "reproduced_open",
+      "status": "fixed_engineering_verified",
       "slices": [
         "S02",
         "S03"
@@ -120,12 +144,18 @@
         "src/client/local-voice.ts:191"
       ],
       "reproduction": "Prepare and play a meal review, confirm, fail command and immediate receipt lookup with 503. Original turn retry gives turn_unconfirmed; a new turn invokes the model without the original receipt key. One receipt lookup total; no pending activity remains. Pure-memory reproduction.",
-      "next": "Retain unresolved activity identity and reconcile before another write, including reload/server restart. Duplicate care entries are a risk, not a reproduced database outcome."
+      "next": "Retain unresolved activity identity and reconcile before another write, including reload/server restart. Duplicate care entries are a risk, not a reproduced database outcome.",
+      "repair": {
+        "implementation_revision": "sha256:a06b57af8a5467fee62d04aa0309f6674a9048ae9075bb470e32f65f8521d59e",
+        "evidence_ref": "docs/evidence/AUDIT-REPAIRS-2026-10-13.json",
+        "change": "Durably retain the confirmed command and scope before dispatch; reconcile its receipt before model use or another report. Explicit retries reuse that exact command. Changed turn payloads remain rejected; definite retry rejection clears the intent.",
+        "verification": "Real owner-bound Sol/high prepared a synthetic meal; actual Heart audio was acknowledged. Lost response and receipt lookup were recovered after actual API restart. Missing receipt required explicit same-key retry. Browser reload reconciled one saved entry; final restarted HTTP probe verified changed-turn and definite-rejection boundaries."
+      }
     },
     {
       "id": "AUD-06",
       "priority": "P2",
-      "status": "reproduced_open",
+      "status": "fixed_engineering_verified",
       "slices": [
         "S01",
         "S03"
@@ -138,12 +168,18 @@
         "src/client/App.tsx:227"
       ],
       "reproduction": "Complete greeting and reply, then return 401 for speech fetch. jsdom/fake-audio probe ends listening with zero authorization events, zero microphone stops and zero conversation-end calls before cleanup.",
-      "next": "Route speech 401 and scope_changed 403 through shared authorization cleanup and stop recording immediately. No unauthorized server write was demonstrated."
+      "next": "Route speech 401 and scope_changed 403 through shared authorization cleanup and stop recording immediately. No unauthorized server write was demonstrated.",
+      "repair": {
+        "implementation_revision": "sha256:a06b57af8a5467fee62d04aa0309f6674a9048ae9075bb470e32f65f8521d59e",
+        "evidence_ref": "docs/evidence/AUDIT-REPAIRS-2026-10-13.json",
+        "change": "Speech GET 401 and scope_changed 403 use shared authorization cleanup; voice immediately stops microphone/audio and cannot resume listening.",
+        "verification": "Running browser received injected speech 401/403 from the real portal: sign-in or scope refresh appeared, generated native MediaStreamTrack ended and listening did not resume."
+      }
     },
     {
       "id": "AUD-07",
       "priority": "P2",
-      "status": "reproduced_open",
+      "status": "fixed_engineering_verified",
       "slices": [
         "S04",
         "S07",
@@ -156,12 +192,18 @@
         "src/server/programs.ts:64"
       ],
       "reproduction": "At 09:30 participant time, move a 10:00 appointment to 11:00 through the activity command. PGlite persisted the reschedule but claimed a 09:30 prompt announcing 10:00. Routine conflict queries also read original appointment times; that extension needs its own test.",
-      "next": "Use the same effective occurrence schedule as My Day for reminders and protected-time conflicts; test changed, deferred and completed records and stale prompt invalidation."
+      "next": "Use the same effective occurrence schedule as My Day for reminders and protected-time conflicts; test changed, deferred and completed records and stale prompt invalidation.",
+      "repair": {
+        "implementation_revision": "sha256:a06b57af8a5467fee62d04aa0309f6674a9048ae9075bb470e32f65f8521d59e",
+        "evidence_ref": "docs/evidence/AUDIT-REPAIRS-2026-10-13.json",
+        "change": "Use an effective occurrence projection for appointment reminders and protected program conflicts. Meal prompt versions include effective due times and respect deferral/completion.",
+        "verification": "Running portal HTTP invalidated the old appointment claim and used the changed due time. Browser showed the effective appointment schedule. Meal, deferral/completion and protected conflict regressions passed in PGlite; full DST/three-genuine-date prompt matrix remains open."
+      }
     },
     {
       "id": "AUD-08",
       "priority": "P2",
-      "status": "source_verified_pending_reproduction",
+      "status": "fixed_engineering_verified",
       "slices": [
         "S07",
         "S08"
@@ -174,12 +216,18 @@
         "src/client/Programs.tsx:94"
       ],
       "observation": "Eligibility is fetched on mount/scope change or mutation only. A rest-blocked run hides reporting controls, with no timer/poll/manual refresh to observe rest completion.",
-      "next": "Add fake-clock UI reproduction; refresh from server at the rest boundary without requiring reload and without retaining stale scope."
+      "next": "Add fake-clock UI reproduction; refresh from server at the rest boundary without requiring reload and without retaining stale scope.",
+      "repair": {
+        "implementation_revision": "sha256:a06b57af8a5467fee62d04aa0309f6674a9048ae9075bb470e32f65f8521d59e",
+        "evidence_ref": "docs/evidence/AUDIT-REPAIRS-2026-10-13.json",
+        "change": "Expose rest_until and refresh server guidance automatically at its boundary, with scoped cleanup and bounded retry; add manual refresh.",
+        "verification": "Actual browser/portal/PostgreSQL one-minute rest expired and next-step controls appeared without reload or manual refresh."
+      }
     },
     {
       "id": "AUD-09",
       "priority": "P2",
-      "status": "source_verified_pending_reproduction",
+      "status": "fixed_engineering_verified",
       "slices": [
         "S07",
         "S08"
@@ -190,7 +238,13 @@
         "src/client/Programs.tsx:111"
       ],
       "observation": "Both conflict lists call toLocaleTimeString without the participant time_zone even though workspace supplies it.",
-      "next": "Add different-browser-zone UI test and format using workspace.time_zone."
+      "next": "Add different-browser-zone UI test and format using workspace.time_zone.",
+      "repair": {
+        "implementation_revision": "sha256:a06b57af8a5467fee62d04aa0309f6674a9048ae9075bb470e32f65f8521d59e",
+        "evidence_ref": "docs/evidence/AUDIT-REPAIRS-2026-10-13.json",
+        "change": "Format both program conflict lists in workspace.time_zone and label the zone.",
+        "verification": "Browser displayed America/Vancouver 1:32 p.m. before and after routine start while the host/browser used America/Toronto."
+      }
     }
   ],
   "recommended_order": [
@@ -205,13 +259,13 @@
     "AUD-09"
   ],
   "slice_state": {
-    "S01": "in_progress: implemented My Day, auth, voice, nutrition/planning and foreground wake; resolve audit defects, intended-account eligibility and physical-device acceptance",
-    "S02": "in_progress: returned from awaiting_live_test because spoken-save recovery needs engineering repair; actual meal fix itself verified; genuine-day acceptance still open",
-    "S03": "in_progress: durable UI queue and restore plumbing exist; receipt-loss/deactivation/authorization defects plus physical-device recovery remain",
-    "S04": "in_progress: carryover and durable foreground prompt scheduler exist; repair effective schedule mismatch, complete DST/missed-day matrix and three genuine dates",
-    "S05": "in_progress: meal alternatives/pantry/shared groceries exist; repair sharing race, concurrent/unit tests and household trial remain",
+    "S01": "in_progress: audit repairs verified; broader engineering, intended-account and physical-device acceptance remain",
+    "S02": "awaiting_live_test: uncertain-save recovery repaired; genuine participant day and S01 dependency remain",
+    "S03": "in_progress: receipt identity/deactivation/authorization audit repairs verified; full restore and physical-device matrix remains",
+    "S04": "in_progress: effective schedule audit repair verified; full DST/missed-day and three genuine dates remain",
+    "S05": "in_progress: sharing-revocation audit repair verified; concurrent/unit and actual household trial remain",
     "S06": "planned: mappings/held intents only, no Microsoft/Asana adapters or dispatcher; owner reports Microsoft access available, exact consent/resources still require verification",
-    "S07_S08": "in_progress: versioned approved routine/rehab plumbing exists; rest/time/conflict bugs, recovery matrix and human-approved actual protocols remain",
+    "S07_S08": "in_progress: rest/time/conflict and Programs history/correction repairs verified; wider recovery and actual approved-protocol gates remain",
     "S09": "in_progress: scoring/progress plumbing exists; approved rules, revision/backlog tests and genuine outcomes remain",
     "S10": "in_progress: client-approved requests/help/flags, sharing and in-app notifications exist; complete revocation/disclosure/retry tests and qualified household voice routes",
     "S11": "in_progress: local operations dashboard exists, connectors truthfully not_connected; projection rebuild, connector timeline and operator acceptance remain",
@@ -222,7 +276,7 @@
     "Selected gpt-6-sol/high and Kokoro Heart are settled. Retain owner-bound practice; never pool credentials or remove ownerId restrictions to enable other users.",
     "Use existing supervised HTTPS origin from ignored demo-host.json. Do not launch a second app or reset all Tailscale routes. Preserve unrelated port 443.",
     "Local care database is no longer a disposable empty fixture. Never seed/reset it or rerun the empty-client readiness assumption. Use uniquely created disposable databases.",
-    "Microsoft remains Rob's existing delegated mailbox/calendar read/write scope. Reuse received registration; verify newly reported access rather than repeating account requests. No Outlook plugin connection substitutes for the app's Graph OAuth.",
+    "Microsoft remains the intended client's existing delegated mailbox/calendar read/write scope. Reuse received registration; verify newly reported access rather than repeating account requests. No Outlook plugin connection substitutes for the app's Graph OAuth.",
     "Keep secrets, care/transcripts and full private evidence out of this public repository. $50 CAD/month service planning cap excluding GPT remains."
   ],
   "private_reproduction_references": [
@@ -234,5 +288,14 @@
   "additional_scope_gaps": [
     "S07/S08 Programs UI displays saved-result count and current-step report controls, but no results-history/correction action. API/voice correction support is implemented; a complete UI fallback remains to build.",
     "Effective appointment times also need focused protected-program conflict tests; meal reminders read preference times and need effective-reschedule coverage. Only the appointment reminder mismatch was reproduced in this audit."
-  ]
+  ],
+  "repair_evidence_ref": "docs/evidence/AUDIT-REPAIRS-2026-10-13.json",
+  "repaired_at": "2026-10-13T20:53:31.864Z",
+  "additional_scope_gap_resolution": {
+    "evidence_ref": "docs/evidence/AUDIT-REPAIRS-2026-10-13.json",
+    "programs_history_correction": "implemented_and_browser_verified",
+    "effective_appointment_conflicts": "regression_verified",
+    "effective_meal_prompts": "regression_verified",
+    "remaining": "Broader DST/three-date and genuine household/protocol acceptance remain open."
+  }
 }

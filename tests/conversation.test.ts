@@ -14,11 +14,11 @@ const textResponse = (text: string) => ({ completed: true as const, model: 'gpt-
 const callResponse = (name: string, args = {}) => ({ ...textResponse(''), output: [{ type: 'function_call', name, call_id: randomUUID(), arguments: JSON.stringify(args) }] });
 let service: ConversationService | undefined;
 afterEach(() => service?.close());
-function make(responses: CompletedTurn[] = [textResponse('What would you like for breakfast?')], observeTurn?: (metric: ConversationTurnMetric) => void) {
+function make(responses: CompletedTurn[] = [textResponse('What would you like for breakfast?')], observeTurn?: (metric: ConversationTurnMetric) => void, microsoftEligible?: (session:Session)=>Promise<boolean>) {
   const care = { authorize: vi.fn(async s => s), authority: () => testAuthority(session), today: vi.fn(async () => structuredClone(today)), command: vi.fn(async () => ({ result: 'accepted' })),
     groceries: vi.fn(async () => ({ items: [] })), addGrocery: vi.fn(async () => ({ item: { id: randomUUID(), name: 'Milk' } })) } as unknown as CareService;
   const respond = vi.fn(); for (const response of responses) respond.mockResolvedValueOnce(response);
-  service = new ConversationService(care, { bind: bindTestInference, respond } as Reasoner, session.user_id, () => new Date('2026-10-05T14:00:00Z'), undefined, observeTurn);
+  service = new ConversationService(care, { bind: bindTestInference, respond } as Reasoner, session.user_id, () => new Date('2026-10-05T14:00:00Z'), undefined, observeTurn,undefined,undefined,undefined,microsoftEligible);
   return { care, respond, service };
 }
 describe('Nancy conversation orchestration', () => {
@@ -35,6 +35,7 @@ describe('Nancy conversation orchestration', () => {
     ['Open shared routines.', 'routines'],
     ['Show access settings.', 'operations'],
     ['Open administrator operations.', 'operations'],
+    ['Open Outlook.', 'outlook'],
   ] as const)('routes a complete navigation request: %s', (utterance, view) => {
     expect(navigationIntent(utterance)).toBe(view);
   });
@@ -62,6 +63,15 @@ describe('Nancy conversation orchestration', () => {
     expect(care.command).not.toHaveBeenCalled(); expect(respond).not.toHaveBeenCalled();
     await expect(service.start({ ...session, user_id: randomUUID() })).rejects.toMatchObject({ status: 403 });
     await expect(service.speech(start.session_id, { ...session, session_id: randomUUID() }, start.reply_id)).rejects.toMatchObject({ status: 404 });
+  });
+  it('does not reopen the removed Outlook settings view even when the connection is eligible',async()=>{
+    const eligible=vi.fn(async()=>true),{service,respond}=make([textResponse('You can ask me about your selected calendar.'),textResponse('Outlook is not enabled for this account.')],undefined,eligible);
+    const start=await service.start(session);
+    expect((await service.turn(start.session_id,session,randomUUID(),'Open Outlook')).navigate).toBeUndefined();
+    expect(respond).toHaveBeenCalledTimes(1);expect(eligible).toHaveBeenCalledWith(session);
+    const navigation=respond.mock.calls[0][2].find((item:{name?:string})=>item.name==='navigate');expect(navigation.parameters.properties.view.enum).not.toContain('outlook');
+    eligible.mockResolvedValue(false);
+    expect((await service.turn(start.session_id,session,randomUUID(),'Open Outlook')).navigate).toBeUndefined();
   });
   it('reads fresh context on each turn and preserves conversation while navigating', async () => {
     const { service, respond, care } = make([callResponse('navigate', { view: 'meals' }), textResponse('Let’s discuss tasks instead.')]);
@@ -147,7 +157,9 @@ describe('Nancy conversation orchestration', () => {
     expect(respond).not.toHaveBeenCalled();
   });
   it('starts a requested planning conversation from saved options without a model round trip or write', async () => {
-    const { service, respond, care } = make(); const start = await service.start(session);
+    const { service, respond, care } = make();
+    vi.mocked(care.today).mockResolvedValue({...today,meal_options:[{id:randomUUID(),name:'Synthetic oats',slots:['breakfast']}]});
+    const start = await service.start(session);
     expect((await service.turn(start.session_id, session, randomUUID(), "Let's plan the day")).text).toContain('breakfast');
     expect(respond).not.toHaveBeenCalled(); expect(care.command).not.toHaveBeenCalled();
   });

@@ -11,7 +11,7 @@ const ledger = (options: ActivityOption[]): ActivityLedger => ({
   local_date: today.local_date, options, entries: [], recent_entries: [], summary: { tasks_completed: 0, meals_eaten: 0, appointments_attended: 0, deferred: 0 },
 });
 describe('fresh participant-local priorities', () => {
-  it.each([['11:59', 'morning'], ['12:00', 'morning_routine'], ['14:59', 'morning_routine'], ['15:00', 'morning']])('handles 08–11 bounds at UTC %s', (utc, period) => {
+  it.each([['09:59', 'before_morning'], ['10:00', 'morning_routine'], ['12:59', 'morning_routine'], ['13:00', 'morning_catchup'], ['14:59', 'morning_catchup'], ['15:00', 'daytime']])('handles morning and optional catch-up bounds at UTC %s', (utc, period) => {
     expect(priorityContext(today, new Date(`2026-10-05T${utc}:00Z`)).period).toBe(period);
   });
   it('asks about unknown breakfast and does not infer completion from an accepted menu', () => {
@@ -75,6 +75,7 @@ describe('fresh participant-local priorities', () => {
       activity_reports: [
         { target_id: 'done-task', status: 'completed', local_date: today.local_date, occurred_at: '2026-10-05T15:00:00Z' },
         { target_id: 'attended', status: 'completed', local_date: today.local_date, occurred_at: '2026-10-05T15:30:00Z' },
+        { target_id: 'old-lunch-option', status: 'completed', local_date: today.local_date, occurred_at: '2026-10-05T15:30:00Z', meal_slot: 'lunch' },
       ],
       activity_ledger: ledger([
         option({ id: 'task-done', kind: 'task', title: 'Completed task', source_id: 'done-task', status: 'completed', scheduled_at: '2026-10-05T16:00:00Z' }),

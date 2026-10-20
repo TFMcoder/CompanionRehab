@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { LocalDayPanel, makeRoutinePlan, type LocalDayClientService } from '../src/client/LocalDayPanel.js';
 import { ReminderDelivery, type ReminderClientService } from '../src/client/ReminderDelivery.js';
 import type { Today } from '../src/shared/contracts.js';
@@ -13,6 +13,42 @@ const workspace:LocalDayWorkspace={local_date:'2026-10-13',time_zone:'America/To
  routine:null,routine_suggestions:{task_ids:[],meals:[]},prompts:[]};
 
 describe('local day client',()=>{
+ it.each(['conversation','visibility'] as const)('does not deliver a late claim after a brief %s interruption has ended',async(kind)=>{
+  let release!:(value:any)=>void,state='visible';
+  Object.defineProperty(document,'visibilityState',{configurable:true,get:()=>state});
+  try{
+   const claim=vi.fn(()=>new Promise<any>(resolve=>{release=resolve;})),ack=vi.fn(async()=>({ok:true}));
+   const service:ReminderClientService={claim,ack};
+   const panel=(active:boolean)=><ReminderDelivery service={service} scopeKey="client" conversationActive={active} onTalk={()=>{}} onActivity={()=>{}} voiceEligible={false}/>;
+   const view=render(panel(false));await waitFor(()=>expect(claim).toHaveBeenCalledOnce());
+   if(kind==='conversation'){view.rerender(panel(true));view.rerender(panel(false));}
+   else {state='hidden';fireEvent(document,new Event('visibilitychange'));state='visible';fireEvent(document,new Event('visibilitychange'));}
+   await act(async()=>{release({id:'late',message:'Stale food reminder',state:'claimed',claim_token:'token',due_at:'2026-10-13T12:00:00Z',expires_at:'2026-10-13T12:10:00Z'});});
+   expect(screen.queryByText('Stale food reminder')).toBeNull();expect(ack).not.toHaveBeenCalled();
+  }finally{Reflect.deleteProperty(document,'visibilityState');}
+ });
+ it('reviews a context note before saving and retries an uncertain result with the same command',async()=>{
+  const command=vi.fn().mockRejectedValueOnce(new Error('Synthetic connection interruption')).mockResolvedValueOnce({proposal:null});
+  const service:LocalDayClientService={workspace:vi.fn(async()=>workspace),command,receipt:vi.fn()};
+  render(<LocalDayPanel service={service} scopeKey="client" today={today} onTalk={()=>{}} onChanged={()=>{}}/>);
+  fireEvent.click(await screen.findByText('Keep in mind for next time'));
+  fireEvent.change(screen.getByLabelText('Important context to remember'),{target:{value:'Synthetic context for tomorrow'}});
+  fireEvent.click(screen.getByRole('button',{name:'Review note'}));expect(command).not.toHaveBeenCalled();
+  expect(screen.getByRole('group',{name:'Review context change'}).textContent).toContain('Synthetic context for tomorrow');
+  fireEvent.click(screen.getByRole('button',{name:'Save note'}));await screen.findByText('Synthetic connection interruption');
+  fireEvent.click(screen.getByRole('button',{name:'Save note'}));await screen.findByText('Saved.');
+  expect(command).toHaveBeenCalledTimes(2);expect(command.mock.calls[1][0]).toEqual(command.mock.calls[0][0]);
+  expect(command.mock.calls[0][0]).toMatchObject({type:'record_significant_handoff',summary:'Synthetic context for tomorrow',confirmed:true});
+ });
+ it('requires a review before resolving a saved note',async()=>{
+  const view={...workspace,handoffs:[{id:'00000000-0000-4000-8000-000000000001',summary:'Synthetic active context',occurred_at:'2026-10-12T12:00:00Z',source:'client_report' as const,source_actor_id:'actor',recorded_at:'2026-10-12T12:00:00Z',revision:3,status:'active' as const,reviewed_at:null,reviewed_by:null,resolved_at:null,resolution_note:''}]};
+  const command=vi.fn(async(_input:unknown)=>({proposal:null} as any)),service:LocalDayClientService={workspace:vi.fn(async()=>view),command,receipt:vi.fn()};
+  render(<LocalDayPanel service={service} scopeKey="client" today={today} onTalk={()=>{}} onChanged={()=>{}}/>);
+  fireEvent.click(await screen.findByText('Keep in mind for next time'));fireEvent.click(screen.getByRole('button',{name:'Resolve note'}));
+  expect(command).not.toHaveBeenCalled();expect(screen.getByRole('group',{name:'Review context change'}).textContent).toContain('no longer includes it in active context');
+  fireEvent.click(screen.getByRole('button',{name:'Save note'}));await waitFor(()=>expect(command).toHaveBeenCalledOnce());
+  expect(command.mock.calls[0][0]).toMatchObject({type:'review_significant_handoff',expected_revision:3,decision:'resolved',confirmed:true});
+ });
  it('can page past an empty unresolved page and displays cancelled history',async()=>{
   const first={...workspace,history_truncated:true,next_carryover_before:'2026-09-12'};
   const second={...workspace,carryover_history:[{source_date:'2026-09-01',source_plan_id:'old-plan',activity_id:'old-activity',task_title:'Call the clinic',decision:'cancel' as const,note:'Already handled',target_date:'2026-10-13',created_at:'2026-10-13T12:00:00Z',proposal_id:null,accepted:false}]};

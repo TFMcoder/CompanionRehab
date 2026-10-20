@@ -4,6 +4,8 @@ import { localCareMigrations } from './local-migrations.js';
 export const backupTables = ['participant_profiles', 'role_grants', 'task_definitions', 'meal_options', 'daily_checkins', 'day_plan_proposals', 'accepted_day_plan_versions', 'command_receipts', 'domain_events'] as const;
 // Restore in dependency order. Request decisions must follow task/plan records;
 // help follows requests, and administrator flags follow both requests and help.
+// Microsoft OAuth attempts and connections are deliberately excluded with live sessions:
+// restoration must start disconnected, without resurrecting provider consent or credentials.
 export const localBackupTables = ['accounts', 'participant_profiles', 'role_grants', 'task_definitions', 'meal_options', 'daily_checkins', 'day_plan_proposals', 'accepted_day_plan_versions', 'command_receipts', 'domain_events', 'appointments', 'append_only_mutations', 'activity_records', 'actuation_targets', 'external_resource_links', 'actuation_intents', 'runtime_events',
   'request_access', 'request_day_capacity', 'request_constraints', 'task_requests', 'request_help', 'request_flags', 'request_receipts',
   'pantry_items', 'meal_proposals', 'meal_option_details', 'grocery_items', 'grocery_shares', 'meal_grocery_receipts',
@@ -11,7 +13,7 @@ export const localBackupTables = ['accounts', 'participant_profiles', 'role_gran
   'program_access', 'program_definitions', 'program_versions', 'program_runs', 'program_step_results', 'program_receipts',
   'support_shares', 'support_notification_preferences', 'support_notifications', 'support_notification_scanned', 'support_notification_scan_cursor',
   'progress_rule_sets', 'progress_access', 'progress_clinical_configs', 'progress_snapshots', 'progress_awards', 'progress_receipts', 'progress_exports',
-  'operations_access', 'operations_issue_reviews'] as const;
+  'operations_access', 'operations_issue_reviews', 'pending_activity_commands', 'client_preferences', 'pending_preference_commands', 'daily_preparations', 'significant_handoffs', 'pending_handoff_commands', 'task_focus_sessions'] as const;
 export type BackupSchema = 'private' | 'companion_local';
 export interface Database {
   query(sql: string, params?: any[]): Promise<{ rows: any[] }>;
@@ -22,20 +24,33 @@ export interface Snapshot {
   scope: 'care-records-only' | 'care-and-local-access'; tables: Record<string, Record<string, unknown>[]>;
 }
 const tableSets: Record<BackupSchema, readonly string[]> = { private: backupTables, companion_local: localBackupTables };
-export function schemaHash(schema: BackupSchema = 'private') {
+const addedTables:Record<string,string>={pending_activity_commands:'013_activity_recovery.sql',client_preferences:'015_preferences.sql',pending_preference_commands:'015_preferences.sql',daily_preparations:'016_daily_continuity.sql',significant_handoffs:'016_daily_continuity.sql',pending_handoff_commands:'016_daily_continuity.sql',task_focus_sessions:'017_food_focus.sql'};
+const tablesThrough=(schema:BackupSchema,through?:string)=>tableSets[schema].filter(table=>schema!=='companion_local'||!through||!addedTables[table]||addedTables[table]<=through);
+export function schemaHash(schema: BackupSchema = 'private', withoutActivityRecovery = false, throughMigration?: string) {
   const hash=createHash('sha256');
-  for(const file of schema==='companion_local'?localCareMigrations:['001_s01.sql'])hash.update(readFileSync(new URL('../../db/'+file, import.meta.url)));
+  const through=withoutActivityRecovery?'012_operations.sql':throughMigration;
+  if(through&&!localCareMigrations.some(file=>file===through))throw new Error('Unknown backup migration revision.');
+  const files=schema==='companion_local'?localCareMigrations.filter(file=>!through||file<=through):['001_s01.sql'];
+  for(const file of files)hash.update(readFileSync(new URL('../../db/'+file, import.meta.url)));
   return hash.digest('hex');
+}
+/** Only explicitly supported additive revisions may restore into the current schema. */
+function snapshotShape(snapshot:Snapshot) {
+  const schema=snapshot.schema||'private';
+  if(schema!=='private'&&schema!=='companion_local')throw new Error('Backup schema does not match this revision.');
+  const prior=schema==='companion_local'?['012_operations.sql','013_activity_recovery.sql','014_intake_kind.sql','015_preferences.sql','016_daily_continuity.sql','017_food_focus.sql'].find(file=>snapshot.schema_hash===schemaHash(schema,false,file)):undefined;
+  if(!prior&&snapshot.schema_hash!==schemaHash(schema))throw new Error('Backup schema does not match this revision.');
+  return {schema,prior,tables:tablesThrough(schema,prior)};
 }
 export function databaseIdentity(url: string) {
   const parsed = new URL(url);
   return createHash('sha256').update(`${parsed.hostname}:${parsed.port || '5432'}/${parsed.pathname}:${parsed.username}`).digest('hex');
 }
-export async function exportSnapshot(db: Database, sourceId: string, schema: BackupSchema = 'private'): Promise<Snapshot> {
+export async function exportSnapshot(db: Database, sourceId: string, schema: BackupSchema = 'private', withoutActivityRecovery = false, throughMigration?: string): Promise<Snapshot> {
   await db.query('begin isolation level repeatable read read only');
   try {
     const tables: Snapshot['tables'] = {};
-    for (const table of tableSets[schema]) {
+    for (const table of tablesThrough(schema,withoutActivityRecovery?'012_operations.sql':throughMigration)) {
       tables[table] = (await db.query(`select * from ${schema}.${table}`)).rows.map(row => Object.fromEntries(
         Object.entries(row).map(([key, value]) => [key, Buffer.isBuffer(value) || value instanceof Uint8Array
           ? `\\x${Buffer.from(value as Uint8Array).toString('hex')}` : value]),
@@ -43,7 +58,7 @@ export async function exportSnapshot(db: Database, sourceId: string, schema: Bac
     }
     await db.query('commit');
     const local = schema === 'companion_local';
-    return { format: local ? 2 : 1, schema_hash: schemaHash(schema), created_at: new Date().toISOString(), source_id: sourceId,
+    return { format: local ? 2 : 1, schema_hash: schemaHash(schema,withoutActivityRecovery,throughMigration), created_at: new Date().toISOString(), source_id: sourceId,
       ...(local ? { schema } : {}), scope: local ? 'care-and-local-access' : 'care-records-only', tables };
   } catch (error) { await db.query('rollback'); throw error; }
 }
@@ -59,32 +74,31 @@ export function decryptSnapshot(bytes: Buffer, key: Buffer): Snapshot {
   const decipher = createDecipheriv('aes-256-gcm', key, bytes.subarray(7, 19));
   decipher.setAAD(bytes.subarray(0, 7)); decipher.setAuthTag(bytes.subarray(19, 35));
   const snapshot = JSON.parse(Buffer.concat([decipher.update(bytes.subarray(35)), decipher.final()]).toString('utf8')) as Snapshot;
-  const schema = snapshot.schema || 'private';
-  if (schema !== 'private' && schema !== 'companion_local') throw new Error('Backup schema does not match this revision.');
-  const tables = tableSets[schema];
+  const {schema,tables}=snapshotShape(snapshot);
   if ((schema === 'private' && (snapshot.format !== 1 || snapshot.scope !== 'care-records-only'))
     || (schema === 'companion_local' && (snapshot.format !== 2 || snapshot.scope !== 'care-and-local-access'))
-    || snapshot.schema_hash !== schemaHash(schema) || !snapshot.tables
+    || !snapshot.tables
     || Object.keys(snapshot.tables).length !== tables.length || !tables.every(t => Array.isArray(snapshot.tables[t])))
     throw new Error('Backup schema does not match this revision.');
   return snapshot;
 }
 export async function restoreSnapshot(db: Database, snapshot: Snapshot, targetId: string): Promise<void> {
   if (snapshot.source_id === targetId) throw new Error('Restore refuses the source database. Use an isolated disposable target.');
-  const schema = snapshot.schema || 'private';
-  const tables = tableSets[schema];
-  if (snapshot.schema_hash !== schemaHash(schema)) throw new Error('Migration revision differs.');
+  const {schema,tables,prior}=snapshotShape(snapshot);
   await db.query('begin isolation level serializable');
   try {
     // Prevent a concurrent writer from turning an empty-target check into a destructive merge.
-    for (const table of tables) await db.query(`lock table ${schema}.${table} in access exclusive mode`);
-    for (const table of tables) {
+    for (const table of tableSets[schema]) await db.query(`lock table ${schema}.${table} in access exclusive mode`);
+    for (const table of tableSets[schema]) {
       if ((await db.query(`select 1 from ${schema}.${table} limit 1`)).rows.length) throw new Error('Target contains care data; restore refused.');
     }
     for (const table of tables) {
       const columns = (await db.query('select column_name from information_schema.columns where table_schema=$1 and table_name=$2 order by ordinal_position', [schema, table])).rows.map(r => r.column_name as string);
       if (!columns.length || columns.some(c => !/^[a-z_][a-z0-9_]*$/.test(c))) throw new Error('Unexpected target schema.');
-      for (const row of snapshot.tables[table]) {
+      for (const original of snapshot.tables[table]) {
+        let row=prior&&prior<'014_intake_kind.sql'&&table==='activity_records'&&original&&!Object.hasOwn(original,'intake_kind')?{...original,intake_kind:'unknown'}:original;
+        if(prior&&prior<'017_food_focus.sql'&&row&&table==='prompt_preferences'&&!Object.hasOwn(row,'food_check_ins'))row={...row,food_check_ins:false};
+        if(prior&&prior<'017_food_focus.sql'&&row&&table==='prompt_jobs')row={response_revision:0,response:null,snoozed_until:null,...row};
         if (!row || Object.keys(row).length !== columns.length || !columns.every(c => Object.hasOwn(row, c))) throw new Error('Backup row columns differ from target.');
         // json_populate_record preserves PostgreSQL arrays, jsonb, timestamps and nulls.
         await db.query(`insert into ${schema}.${table} select * from json_populate_record(null::${schema}.${table}, $1::json)`, [JSON.stringify(row)]);

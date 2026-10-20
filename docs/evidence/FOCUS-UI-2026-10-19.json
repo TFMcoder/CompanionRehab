@@ -1,0 +1,199 @@
+{
+  "evidence_id": "FOCUS-UI-2026-10-19",
+  "observed_at": "2026-10-19T23:02:57.391Z",
+  "status": "opt_in_focus_review_deployed_current_default",
+  "intended_person_device_acceptance": "awaiting_live_test",
+  "implementation_revision": "sha256:f7aae18fe5985606bb08563394e6a3a078a02087b8634c5e20a2a0d5a11ef3c8",
+  "source_manifest": {
+    "runtime_revision": "sha256:f7aae18fe5985606bb08563394e6a3a078a02087b8634c5e20a2a0d5a11ef3c8",
+    "runtime_files": 144,
+    "all_source_revision": "sha256:26aa4a0c5cf4b7039ad4b96e2c4bdfa531b43467168136870c39d9e916778415",
+    "all_source_files": 311,
+    "method": "SHA-256 of sorted repository path, NUL, file bytes, NUL; runtime includes all src/db and entry/package/build/test config; all_source adds scripts/tests. Private files and documentation are excluded.",
+    "private_reference": ".local/probes/focus-ui-source-manifest.json"
+  },
+  "authorization": {
+    "owner_requested_verified_current_rollback": true,
+    "owner_requested_opt_in_focus_review_link": true,
+    "current_remains_default": true,
+    "new_account_permission_model_billing_or_schema": false
+  },
+  "implementation": {
+    "review_suffix": "/?layout=focus",
+    "default": "Current",
+    "selection": "Exact single layout=focus query plus enabled deployment meta switch, chosen at client mount; no local-storage preference or random assignment.",
+    "presentation": "Centered fixed-bottom Talk to Nancy and brief state; existing Stop/Interrupt controls, dynamic measured content/scroll clearance and safe-area spacing.",
+    "shared_service_and_state": true,
+    "client_tabs_unchanged": true,
+    "no_automatic_microphone": true,
+    "backend_and_schema_unchanged": true
+  },
+  "rollback": {
+    "observed_at": "2026-10-19T22:49:54.709Z",
+    "snapshot": ".local/ui-rollback/current-2026-10-19",
+    "source_files": 384,
+    "build_files": 8,
+    "client_bundle": "app-aAOMdFqm.js",
+    "source_matches_deployed_revision": true,
+    "snapshot_hashes_verified": true,
+    "isolated_restore_hashes_verified": true,
+    "private_runtime_or_care_data_copied": false,
+    "restored_source_build_passed": true,
+    "restored_source_build_matches_original_bytes": true,
+    "rebuilt_files": 3,
+    "rollback_script_drill_passed": true,
+    "live_current_restore_verified": true,
+    "negative_checks": {
+      "observed_at": "2026-10-19T22:54:08.2480683Z",
+      "changed_snapshot_refused": true,
+      "unsafe_target_refused": true,
+      "original_snapshot_changed": false,
+      "live_files_written": false
+    },
+    "private_manifest": ".local/ui-rollback/current-2026-10-19/manifest.json",
+    "command": "pwsh -NoProfile -File ./scripts/restore-client-ui.ps1 -SnapshotPath .local/ui-rollback/current-2026-10-19",
+    "care_or_credential_restore": false,
+    "restored_source_build_matches_production": true
+  },
+  "automated_checks": {
+    "typecheck": "passed",
+    "isolated_build": "passed",
+    "client_bundle": "app-DjZdbnEO.js",
+    "regression_scope": "Full regression and typecheck passed before the final CSS-only scrolling and narrow-window centering refinements. All TypeScript, server, schema and test files remain identical. The final CSS revision passed 27 focused checks, production build and deployed geometry checks at 639px and 1280px widths, including centering during scrolling and footer clearance.",
+    "full_suite": {
+      "passed": 953,
+      "failed": 0,
+      "optional_skips": 1,
+      "files": 104,
+      "implementation_revision": "sha256:7e6ad70d34ed64a799f52a93048f2710db6ffc8b0d278c6de7b015e83e3fa43f",
+      "private_reference": ".local/probes/focus-ui-full-suite.json"
+    },
+    "targeted": {
+      "passed": 27,
+      "failed": 0,
+      "files": 2,
+      "implementation_revision": "sha256:f7aae18fe5985606bb08563394e6a3a078a02087b8634c5e20a2a0d5a11ef3c8",
+      "private_reference": ".local/probes/focus-ui-targeted.json"
+    },
+    "database_scope": "No new database behaviour; server and schema bytes match the previous qualified revision. The prior 43 actual PostgreSQL checks are historical, not rerun for this presentation-only increment."
+  },
+  "deployment": {
+    "observed_at": "2026-10-19T23:02:23.6145418Z",
+    "runtime_revision": "sha256:f7aae18fe5985606bb08563394e6a3a078a02087b8634c5e20a2a0d5a11ef3c8",
+    "client_bundle": "app-DjZdbnEO.js",
+    "checks": {
+      "normal_url_served": true,
+      "review_url_served": true,
+      "same_shared_entry_page": true,
+      "verified_new_client_bundle": true,
+      "review_switch_enabled": true,
+      "anonymous_care_access_denied": true,
+      "local_voice_ready": true,
+      "no_service_restart": true,
+      "account_credentials_and_configuration_preserved": true,
+      "backend_and_schema_unchanged": true
+    },
+    "passed": true,
+    "provider_actions": 0,
+    "api_billing_enabled": false,
+    "service_restarted": false,
+    "private_reference": ".local/probes/focus-ui-deployment.json"
+  },
+  "deployed_browser": {
+    "observed_at": "2026-10-19T22:58:35.388Z",
+    "checks": {
+      "current_default": true,
+      "focus_opt_in": true,
+      "talk_centered": true,
+      "talk_fixed_and_visible": true,
+      "minimum_56px_button": true,
+      "scroll_content_clear": true,
+      "footer_and_keyboard_focus_clear": true,
+      "all_views_checked": true,
+      "single_talk_control": true
+    },
+    "passed": true,
+    "top_geometry": {
+      "button_height": 56,
+      "button_width": 352,
+      "button_x": 464,
+      "button_y": 637.40625,
+      "center_error": 0,
+      "dock_bottom": 708,
+      "dock_top": 590.8203125,
+      "main_bottom": 578,
+      "main_client_height": 578,
+      "main_scroll_height": 850,
+      "main_scroll_top": 0,
+      "position": "fixed",
+      "talk_count": 1,
+      "viewport_height": 720,
+      "viewport_width": 1280
+    },
+    "scrolled_geometry": {
+      "button_height": 56,
+      "button_width": 352,
+      "button_x": 464,
+      "button_y": 637.40625,
+      "center_error": 0,
+      "dock_top": 590.8203125,
+      "focus_clear": true,
+      "focused_bottom": 542.5625,
+      "footer_bottom": 546.21875,
+      "footer_clear": true,
+      "main_scroll_top": 271.5
+    },
+    "microphone_activated": false,
+    "reasoning_request_submitted": false,
+    "saved_care_write_submitted": false,
+    "private_screenshots": [
+      ".local/probes/focus-current-restored.png",
+      ".local/probes/focus-current-default-after.png",
+      ".local/probes/focus-review-home.png",
+      ".local/probes/focus-review-scrolled.png"
+    ],
+    "private_reference": ".local/probes/focus-ui-browser.json",
+    "narrow_window_verification": {
+      "observed_at": "2026-10-19T23:02:40.212Z",
+      "narrow_top": {
+        "button_height": 56,
+        "button_width": 352,
+        "button_x": 143.5,
+        "button_y": 621.40625,
+        "center_error": 0,
+        "dock_top": 574.8203125,
+        "main_bottom": 562,
+        "scroll_top": 0,
+        "viewport_width": 639
+      },
+      "narrow_scrolled": {
+        "button_y": 621.40625,
+        "center_error": 0,
+        "footer_clear": true,
+        "scroll_top": 263.5
+      },
+      "wide": {
+        "center_error": 0,
+        "viewport_width": 1280
+      },
+      "passed": true,
+      "microphone_activated": false,
+      "private_reference": ".local/probes/focus-ui-narrow-window.json",
+      "private_screenshot": ".local/probes/focus-open-for-review.png"
+    }
+  },
+  "preservation": {
+    "care_tables_checked": 9,
+    "care_table_rows_and_hashes_unchanged": true,
+    "account_configuration_and_credentials_unchanged": true,
+    "private_before": ".local/probes/focus-ui-care-before.json",
+    "private_after": ".local/probes/focus-ui-care-after.json"
+  },
+  "limitations": [
+    "the intended client was unavailable; actual intended-person, iPhone/Safari, fatigue and physical-device voice acceptance remain awaiting_live_test.",
+    "Desktop browser checks and synthetic voice tests do not prove full WCAG conformance or clinical benefit.",
+    "Review uses the same real care service; legitimate saved care records persist across layout changes.",
+    "No live microphone or reasoning request was needed for layout verification; earlier email/invitation actions were not repeated.",
+    "Rollback compatibility must be requalified if backend/API/schema contracts change."
+  ]
+}

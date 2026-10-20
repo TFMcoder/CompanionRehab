@@ -28,14 +28,24 @@ export function Programs({service,scopeKey,onTalk,onPlan}: {service:ProgramClien
   const [endInput,setEndInput]=useState({key:'',value:''});
   const [reviewedConflicts,setReviewedConflicts]=useState<string|null>(null);
   const [access,setAccess]=useState<Record<string,ProgramCapability[]>>({});
+  const [correction,setCorrection]=useState<{run_id:string;step_id:string;revision:number;outcome:'completed'|'skipped';reason:string;difficulty:string;assistance:string;notes:string;correction_reason:string}|null>(null);
   useEffect(()=>{let live=true;++scopeEpoch.current;setView(null);setError('');setReviewedConflicts(null);
-    setBusy(false);setPending(null);setDraft(null);setRevising(null);setApproval('');setAccess({});
+    setBusy(false);setPending(null);setDraft(null);setRevising(null);setApproval('');setAccess({});setCorrection(null);
     setStepInput(blankReport());setPauseInput({key:'',value:''});setEndInput({key:'',value:''});
     void service.workspace().then(value=>{if(live)setView(value);}).catch(e=>{if(live)setError(e instanceof Error?e.message:'Programs could not load.');});
     return()=>{live=false;};},[service,scopeKey]);
   const refresh=async(epoch:number)=>{const value=await service.workspace();if(epoch!==scopeEpoch.current)return;setView(value);setReviewedConflicts(null);};
+  useEffect(()=>{
+    const deadline=view?.runs.filter(r=>r.status==='active'&&!r.obsolete&&r.rest_until).map(r=>Date.parse(r.rest_until!)).filter(Number.isFinite).sort((a,b)=>a-b)[0];
+    if(deadline===undefined)return;
+    const epoch=scopeEpoch.current;let live=true,timer:ReturnType<typeof setTimeout>;
+    const check=async()=>{try{await refresh(epoch);}catch(e){if(live&&epoch===scopeEpoch.current){setError(e instanceof Error?e.message:'Guidance could not refresh.');timer=setTimeout(()=>void check(),5000);}}};
+    timer=setTimeout(()=>void check(),Math.min(60000,Math.max(1000,deadline-Date.now()+100)));
+    return()=>{live=false;clearTimeout(timer);};
+  },[view,service,scopeKey]);
   const clearConfirmed=(command:ProgramCommand)=>{
     if(command.type==='report_program_step'||command.type==='correct_program_step')setStepInput(blankReport());
+    if(command.type==='correct_program_step')setCorrection(null);
     if(command.type==='pause_program')setPauseInput({key:'',value:''});
     if(command.type==='end_program')setEndInput({key:'',value:''});
     if(command.type==='approve_program')setApproval('');
@@ -73,9 +83,11 @@ export function Programs({service,scopeKey,onTalk,onPlan}: {service:ProgramClien
       assistance:currentVersion?.kind==='rehab'?reportInput.assistance.trim():'',notes:currentVersion?.kind==='rehab'?reportInput.notes.trim():'',
       acknowledged_conflicts:conflicts,confirmed:true});
   };
+  const conflictTime=(instant:string)=>new Intl.DateTimeFormat('en-CA',{timeZone:view!.time_zone,hour:'numeric',minute:'2-digit'}).format(new Date(instant));
   return <section className="programs" aria-label="Morning and rehab programs">
     <button className="primary-button" type="button" onClick={onTalk}>Talk to Nancy</button>
     <h2>Morning and rehab guidance</h2>
+    <button type="button" disabled={busy||!!pending} onClick={()=>void refresh(scopeEpoch.current).catch(e=>setError(e instanceof Error?e.message:'Guidance could not refresh.'))}>Refresh guidance</button>
     {!view&&<p>Loading your approved guidance…</p>}
     {view?.role==='client'&&<p>Each step is recorded only when you report it. Starting a program does not mark a task done.</p>}
     {error&&<p role="alert">{error}</p>}
@@ -89,7 +101,7 @@ export function Programs({service,scopeKey,onTalk,onPlan}: {service:ProgramClien
           :active.current_step&&<><h4>{active.current_step.title}</h4><p>{active.current_step.instruction}</p>
             <p>Allow about {active.current_step.estimated_minutes} minutes{currentVersion?.rest_minutes?` and ${currentVersion.rest_minutes} minutes rest`:''}.</p></>}
         {conflicts.length>0&&<div className="request-panel"><h4>Appointment during protected time</h4>
-          <ul>{view.conflicts.map(item=><li key={item.id}>{item.title} · {new Date(item.starts_at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</li>)}</ul>
+          <p>Times are in {view.time_zone}.</p><ul>{view.conflicts.map(item=><li key={item.id}>{item.title} · {conflictTime(item.starts_at)}</li>)}</ul>
           <button type="button" onClick={()=>setReviewedConflicts(active.version_id)}>I reviewed this schedule</button></div>}
         {active.status==='active'&&!active.obsolete&&!active.blocked_reason&&active.current_step&&<>
           {currentVersion?.kind==='rehab'&&<div className="request-form"><label>Difficulty, if any<textarea value={reportInput.difficulty} onChange={e=>updateReport({difficulty:e.target.value})} maxLength={500}/></label>
@@ -108,7 +120,7 @@ export function Programs({service,scopeKey,onTalk,onPlan}: {service:ProgramClien
       {!active&&view.versions.filter(v=>v.current).map(version=><section key={version.id}>
         <h3>{version.title}</h3><p>{version.kind==='rehab'?'Approved rehab protocol':'Approved morning routine'} · version {version.version}</p>
         {(view.conflicts_by_version[version.id]??[]).length>0&&<div className="request-panel"><p>An appointment falls in this program's protected time. Review it before starting.</p>
-          <ul>{view.conflicts_by_version[version.id].map(item=><li key={item.id}>{item.title} · {new Date(item.starts_at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</li>)}</ul>
+          <p>Times are in {view.time_zone}.</p><ul>{view.conflicts_by_version[version.id].map(item=><li key={item.id}>{item.title} · {conflictTime(item.starts_at)}</li>)}</ul>
           <button type="button" onClick={()=>setReviewedConflicts(version.id)}>I reviewed this schedule</button></div>}
         <button type="button" disabled={busy||((view.conflicts_by_version[version.id]??[]).length>0&&reviewedConflicts!==version.id)}
           onClick={()=>void run({type:'start_program',idempotency_key:key(),version_id:version.id,local_date:view.local_date,
@@ -118,6 +130,26 @@ export function Programs({service,scopeKey,onTalk,onPlan}: {service:ProgramClien
         <p>{view.capacity?`You reported ${view.capacity.available_minutes} available minutes and ${view.capacity.rest_minutes} minutes of rest.`:'Your available capacity has not been reported today.'} A day plan still needs your acceptance.</p>
         {onPlan&&<button type="button" onClick={onPlan}>Review a proposed day</button>}</section>
     </>}
+    {view&&<section aria-label="Saved program results"><h3>Saved program results</h3>
+      {view.runs.every(r=>!r.results.length)&&<p>No step results have been reported.</p>}
+      {view.runs.filter(r=>r.results.length).map(r=><section key={r.id}><h4>{r.title} · {r.local_date}</h4>
+        {r.results.map(result=><div key={result.step_id}><p>{view.versions.find(v=>v.id===r.version_id)?.steps.find(s=>s.id===result.step_id)?.title??result.step_id}: {result.outcome} · {conflictTime(result.reported_at)}{result.revision>1?' · corrected':''}</p>
+          {result.reason&&<p>Reason: {result.reason}</p>}{result.difficulty&&<p>Difficulty: {result.difficulty}</p>}{result.assistance&&<p>Assistance: {result.assistance}</p>}{result.notes&&<p>Session note: {result.notes}</p>}
+          {view.role==='client'&&<button type="button" disabled={busy||!!pending} onClick={()=>setCorrection({run_id:r.id,step_id:result.step_id,revision:result.revision,outcome:result.outcome,reason:result.reason,difficulty:result.difficulty,assistance:result.assistance,notes:result.notes,correction_reason:''})}>Correct this step result</button>}
+        </div>)}
+      </section>)}
+      {correction&&<form aria-label="Correct a program result" onSubmit={e=>{e.preventDefault();void run({type:'correct_program_step',idempotency_key:key(),run_id:correction.run_id,step_id:correction.step_id,expected_revision:correction.revision,outcome:correction.outcome,reason:correction.outcome==='skipped'?correction.reason.trim():'',difficulty:correction.difficulty.trim(),assistance:correction.assistance.trim(),notes:correction.notes.trim(),correction_reason:correction.correction_reason.trim(),confirmed:true});}}>
+        <label>Corrected outcome<select value={correction.outcome} onChange={e=>setCorrection({...correction,outcome:e.target.value as 'completed'|'skipped'})}><option value="completed">Completed</option><option value="skipped" disabled={!view.versions.find(v=>v.id===view.runs.find(r=>r.id===correction.run_id)?.version_id)?.steps.find(s=>s.id===correction.step_id)?.optional}>Skipped</option></select></label>
+        {correction.outcome==='skipped'&&<label>Reason for skipping<input value={correction.reason} maxLength={500} onChange={e=>setCorrection({...correction,reason:e.target.value})}/></label>}
+        {view.versions.find(v=>v.id===view.runs.find(r=>r.id===correction.run_id)?.version_id)?.kind==='rehab'&&<>
+          <label>Corrected difficulty<textarea value={correction.difficulty} maxLength={500} onChange={e=>setCorrection({...correction,difficulty:e.target.value})}/></label>
+          <label>Corrected assistance<textarea value={correction.assistance} maxLength={500} onChange={e=>setCorrection({...correction,assistance:e.target.value})}/></label>
+          <label>Corrected session note<textarea value={correction.notes} maxLength={1000} onChange={e=>setCorrection({...correction,notes:e.target.value})}/></label></>}
+        <label>Why correct this result?<input required value={correction.correction_reason} maxLength={500} onChange={e=>setCorrection({...correction,correction_reason:e.target.value})}/></label>
+        <button type="submit" disabled={busy||!!pending||!correction.correction_reason.trim()||correction.outcome==='skipped'&&!correction.reason.trim()}>Save reviewed correction</button>
+        <button type="button" disabled={busy||!!pending} onClick={()=>setCorrection(null)}>Cancel correction</button>
+      </form>}
+    </section>}
     {view&&<section><h3>Approved and draft versions</h3>
       {view.versions.length===0&&<p>No approved program has been entered for this client.</p>}
       {view.versions.map(version=><div key={version.id}><strong>{version.title}</strong> · {version.kind} v{version.version} · {version.approved?'approved':'draft'}
