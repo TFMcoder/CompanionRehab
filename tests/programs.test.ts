@@ -25,7 +25,7 @@ describe('approved programs and factual runs',()=>{
   let ownerId:string,clinicianId:string,familyId:string,administratorId:string;
   beforeAll(async()=>{
     db=new PGlite();pool=pglitePool(db) as unknown as Pool;
-    for(const file of ['002_local_care.sql','003_activity_ledger.sql','004_client_readiness.sql','005_runtime_observability.sql','006_family_task_requests.sql','007_meals_groceries.sql','009_programs.sql'])
+    for(const file of ['002_local_care.sql','003_activity_ledger.sql','004_client_readiness.sql','005_runtime_observability.sql','006_family_task_requests.sql','007_meals_groceries.sql','009_programs.sql','019_trusted_device.sql'])
       await db.exec(await readFile(new URL(`../db/${file}`,import.meta.url),'utf8'));
     const owner=await bootstrapLocalUser(pool,{email:'program-client@example.invalid',password:'synthetic-program-password',role:'client',display_name:'Synthetic client',time_zone:'America/Toronto'});
     ownerId=owner.participant_id;

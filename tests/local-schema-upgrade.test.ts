@@ -47,22 +47,32 @@ async function planAndTables(db:Database){
 }
 
 describe('reviewed additive Microsoft database upgrade',()=>{
-  it('upgrades 017 to 018, preserves care/access, restores encrypted 017 backup, and repeats without replay',async()=>{
+  it.each(['018_microsoft.sql','019_trusted_device.sql'])('restores the preceding encrypted care backup from %s into the current schema',async through=>{
+    const source=await fixture(through);await seed(source);
+    const snapshot=await exportSnapshot(source,'synthetic-prior','companion_local',false,through),key=randomBytes(32);
+    const decoded=decryptSnapshot(encryptSnapshot(snapshot,key),key),target=await fixture('020_microsoft_preparation.sql');
+    await restoreSnapshot(target,decoded,'isolated-current');
+    expect((await target.query('select count(*)::int as count from companion_local.activity_records')).rows[0].count).toBe(1);
+    expect((await target.query('select count(*)::int as count from companion_local.sessions')).rows[0].count).toBe(0);
+    expect((await target.query('select count(*)::int as count from companion_local.microsoft_connections')).rows[0].count).toBe(0);
+    expect((await inspectLocalSchemaUpgrade(target)).pending).toEqual([]);
+  });
+  it('upgrades 017 through 020, preserves care/access, restores encrypted 017 backup, and repeats without replay',async()=>{
     const db=await fixture();await seed(db);
     const {plan,snapshot,tables}=await planAndTables(db);
-    expect(plan).toEqual({through:'017_food_focus.sql',pending:['018_microsoft.sql']});
+    expect(plan).toEqual({through:'017_food_focus.sql',pending:['018_microsoft.sql','019_trusted_device.sql','020_microsoft_preparation.sql']});
     const key=randomBytes(32),decoded=decryptSnapshot(encryptSnapshot(snapshot,key),key);
-    const target=await fixture('018_microsoft.sql');
+    const target=await fixture('020_microsoft_preparation.sql');
     await restoreSnapshot(target,decoded,'isolated-target');
     const restored=await exportSnapshot(target,'isolated-target','companion_local');
     for(const table of tables)expect(preservedRowsHash(restored.tables[table])).toBe(preservedRowsHash(snapshot.tables[table]));
     const reads:string[]=[];
     await applyLocalSchemaUpgrade(db,plan,tables,{readMigration:async file=>{reads.push(file);return sql(file);}});
-    expect(reads).toEqual(['018_microsoft.sql']);
+    expect(reads).toEqual(['018_microsoft.sql','019_trusted_device.sql','020_microsoft_preparation.sql']);
     const after=await exportSnapshot(db,'synthetic-source','companion_local');
     expect(after.tables).toEqual(snapshot.tables);
     const repeat=await inspectLocalSchemaUpgrade(db);
-    expect(repeat).toEqual({through:'018_microsoft.sql',pending:[]});
+    expect(repeat).toEqual({through:'020_microsoft_preparation.sql',pending:[]});
     await applyLocalSchemaUpgrade(db,repeat,tables,{readMigration:async()=>{throw new Error('Must not replay');}});
     expect((await db.query('select count(*)::int as count from companion_local.microsoft_connections')).rows[0].count).toBe(0);
   });

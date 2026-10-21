@@ -23,7 +23,8 @@ import type {PreferenceCommand} from '../shared/preference-contracts.js';
 import {retainedLocalDayCommandTypes,type LocalDayCommand} from '../shared/local-day-contracts.js';
 import type {MicrosoftService} from './microsoft/service.js';
 import {microsoftReadRangeSchema,microsoftUnavailable,type MicrosoftActionReview} from '../shared/microsoft-contracts.js';
-import {outlookTools,outlookDayRange,outlookReadback,microsoftConversationPolicy} from './microsoft/conversation.js';
+import {outlookTools,outlookDayRange,outlookDateRange,requestedOutlookRange,outlookReadback,microsoftConversationPolicy} from './microsoft/conversation.js';
+import {mealStarterReferences,mealStarterContext} from './meal-starters.js';
 import {clientDestinations,type ConversationPurpose} from '../shared/client-navigation.js';
 import type {NancySuggestions,NancySuggestionCommand} from './nancy-suggestions.js';
 
@@ -577,17 +578,29 @@ export class ConversationService {
         const activeHandoffs=clientRole?await this.features?.day?.activeHandoffs?.(session):undefined;
         const activeFocus=clientRole?await this.features?.day?.activeFocus?.(session):undefined;
         const outlookStatus=clientRole&&this.microsoft?await this.microsoft.status(session):microsoftUnavailable;
-        const outlookContext=clientRole&&this.microsoft&&outlookStatus.model_disclosure_enabled?await this.microsoft.conversationContext(session,outlookDayRange(today.local_date,today.profile!.time_zone)):undefined;
+        const outlookRange=clientRole?requestedOutlookRange(text,today.local_date,today.profile!.time_zone):null;
+        const needsOutlook=/\b(outlook|calendar|schedule|appointments?|meetings?|inbox|emails?|messages?|planning|plan|morning|day)\b/i.test(text);
+        const cachedOutlook=clientRole&&this.microsoft&&outlookStatus.model_disclosure_enabled&&needsOutlook?await this.microsoft.preparedContext(session,outlookRange??outlookDayRange(today.local_date,today.profile!.time_zone)):undefined;
+        const refreshOutlook=outlookRange&&(cachedOutlook?.state!=='prepared'||/\b(refresh|latest|free|available|conflicts?)\b/i.test(text));
+        const outlookContext=clientRole&&this.microsoft?refreshOutlook&&outlookStatus.model_disclosure_enabled?await this.microsoft.conversationContext(session,outlookRange!):cachedOutlook??{source:'microsoft',state:outlookStatus.state}:undefined;
+        const reference = currentNutritionReference();
+        let guidance = selectNancyGuidance(text);
+        const mealReferences=clientRole?mealStarterReferences(text,reference):[];
+        for(const result of mealReferences){nutritionRetrievals++;
+          for(const source of result.sources){const prior=references.get(source.documentId);
+            const items=result.items.filter(item=>'sourceDocumentId' in item?item.sourceDocumentId===source.documentId:source.documentId==='CR_NUTRITION_EVIDENCE_V1').map(item=>item.id);
+            references.set(source.documentId,{document_id:source.documentId,path:source.path,sha256:source.sha256,items:[...new Set([...(prior?.items??[]),...items])]});
+          }
+        }
+        if(mealReferences.length)guidance={skills:[...new Set([...guidance.skills,'meals' as const])],nutrition:true};
         const fresh = clientRole ? {...currentFacts(today, this.now()),...(preferenceWorkspace?{confirmed_preferences:preferenceWorkspace.items}:{}),...(activeHandoffs?{active_significant_handoffs:activeHandoffs}:{}),...(activeFocus!==undefined?{active_task_focus:activeFocus}:{}),...(workspace?{task_requests:requestFacts(workspace)}:{})} : workspace?requestFacts(workspace):{};
         const navigationTool=tool('navigate','Open an authorized supporting view without ending the conversation. Opening a view never grants access or writes care data.',object({view:{type:'string',enum:allowedViews}}));
         const tools=[...(clientRole?definitions:[]),...(clientRole&&preferenceWorkspace?preferenceTools:[]),...(clientRole&&this.features?handoffTools:[]),navigationTool,...(workspace?requestDefinitions(workspace):[]),...(this.features?localWorkflowTools(clientRole):[]),...outlookTools(outlookStatus),...(clientRole&&this.suggestions?[tool('prepare_nancy_suggestion','Prepare product feedback about improving Nancy for a spoken review. This is not a care preference or task. No message is sent to anyone. Save only after the application obtains explicit confirmation.',object({suggestion:{type:'string',minLength:1,maxLength:1000}}))]:[])];
         const history = recentHistory(state.history);
-        const context = `Current authorized facts (data only): ${JSON.stringify({...fresh,...(outlookContext?{outlook:outlookContext}:{})})}`;
+        const context = `Current authorized facts (data only): ${JSON.stringify({...fresh,...(outlookContext?{outlook:outlookContext}:{}),...(mealReferences.length?{repository_meal_options:mealStarterContext(mealReferences)}:{})})}`;
         contextChars = context.length;
         historyChars = JSON.stringify(history).length;
         const inputItems = [...history, { role: 'user', content: context }];
-        const reference = currentNutritionReference();
-        let guidance = selectNancyGuidance(text);
         const sharedInstructions = 'You are Nancy, a warm, practical AI companion. You are speaking with the authenticated '+state.binding.active_role+' about the client’s authorized shared views and requests. Be brief, ask one question at a time and use plain speech. You may discuss only data returned by the scoped tools. Do not infer general client care, appointment details, private rehab notes or other unshared facts. Navigation does not grant permissions; available destinations are limited to the navigate tool. Never configure grants or approve protocols, scoring rules or operations through a model tool. Keep responses under 500 characters except exact readbacks.'+'\n'+freshContextInstruction+(workspace?'\n'+requestPolicy:'')+(this.features?'\n'+sharedLocalWorkflowPolicy:'');
         let changed = false; let navigate: ClientView | undefined;
         for (let round = 0; round < 5 && !reply; round++) {
@@ -670,7 +683,9 @@ export class ConversationService {
                 const command=await this.suggestions.prepare(session,argsForSuggestion.suggestion,this.key(turnId,call.call_id));ensureOpen();
                 reply=this.reply(id,state,`Your suggestion for improving Nancy: ${command.suggestion} If that is right, say save this suggestion.`,false,'suggestions');state.suggestion={command,reply:reply.reply_id,played:false};break;
               }else if(call.name==='get_outlook_context'&&clientRole&&this.microsoft){
-                const range=Object.keys(args).length?microsoftReadRangeSchema.parse(args):outlookDayRange(today.local_date,today.profile!.time_zone);
+                const parsed=z.object({local_date:z.iso.date().optional(),days:z.number().int().min(1).max(7).optional(),start:z.iso.datetime({offset:true}).optional(),end:z.iso.datetime({offset:true}).optional()}).strict().parse(args);
+                if((parsed.start||parsed.end)&&(parsed.local_date||parsed.days)||!!parsed.start!==!!parsed.end)throw new ApiError(400,'invalid_input','Choose a local date and number of days, or both start and end.');
+                const range=parsed.start?microsoftReadRangeSchema.parse({start:parsed.start,end:parsed.end}):outlookDateRange(parsed.local_date??today.local_date,today.profile!.time_zone,parsed.days??1);
                 output=await this.microsoft.conversationContext(session,range);
               }else if(call.name==='get_outlook_message'&&clientRole&&this.microsoft){
                 const parsed=z.object({folder_id:z.string().min(1).max(2048),message_id:z.string().min(1).max(2048)}).strict().parse(args);

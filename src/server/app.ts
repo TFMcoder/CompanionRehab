@@ -6,7 +6,7 @@ import { z, ZodError } from 'zod';
 import { commandSchema, setupSchema, uuid } from '../shared/contracts.js';
 import { missingConfig, type Config } from './config.js';
 import { ApiError } from './errors.js';
-import { openSession, sealSession, type Session } from './session.js';
+import { openSession, sealSession, sessionLifetimeSeconds, type Session } from './session.js';
 import { Supabase } from './supabase.js';
 import { VoiceService } from './voice.js';
 import type { FastifyReply, FastifyRequest } from 'fastify';
@@ -65,7 +65,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   }, 60000); limiter.unref();
   const cookieOptions = { httpOnly: true, secure: config.origin.startsWith('https:'), sameSite: 'strict' as const, path: '/', maxAge: 7 * 86400 };
   const sessionCookieName=z.enum(['nancy_session','nancy_test_session']).parse(config.sessionCookieName??'nancy_session');
-  const setSession = (reply: FastifyReply, session: Session) => reply.setCookie(sessionCookieName, sealSession(session, config.sessionKey!), cookieOptions);
+  const setSession = (reply: FastifyReply, session: Session) => reply.setCookie(sessionCookieName, sealSession(session, config.sessionKey!), {...cookieOptions,maxAge:sessionLifetimeSeconds(session)});
   const sessionScope=async(session:Session)=>{
     const authority=await care.authority?.(session);
     const role=authority?.active_role??await care.role?.(session)??null;
@@ -132,10 +132,10 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
       ? forwarded : request.ip;
     limit(request, `login:${clientAddress}`, 20);
     if (missingConfig(config).length) throw new ApiError(503, 'not_configured', 'The care service has not been connected yet.');
-    const { email, password } = z.object({ email: z.email().max(254), password: z.string().min(1).max(256) }).strict().parse(request.body);
+    const { email, password, remember_device } = z.object({ email: z.email().max(254), password: z.string().min(1).max(256), remember_device:z.boolean().optional() }).strict().parse(request.body);
     const accountKey = createHash('sha256').update(email.toLowerCase()).digest('hex');
     limit(request, `login-account:${clientAddress}:${accountKey}`, 8);
-    const session = await care.login(email, password);
+    const session = await care.login(email, password, remember_device);
     setSession(reply, session); return { ok: true };
   });
   app.get('/api/auth/session', async request => {
@@ -150,7 +150,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   });
   app.post('/api/auth/logout', async (request, reply) => {
     const session = sessions.get(request)!;
-    revoked.revoke(session.session_id, session.issued_at * 1000 + 7 * 86400000);
+    revoked.revoke(session.session_id, (session.issued_at+sessionLifetimeSeconds(session))*1000);
     await voice.endLogin(session.session_id);
     conversation?.endLogin(session.session_id);
     await microsoft?.endLogin(session);

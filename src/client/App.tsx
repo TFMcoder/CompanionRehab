@@ -353,6 +353,7 @@ function Readiness({ message, onRetry }: { message: string | null; onRetry: () =
 }
 
 function Login({ onLoggedIn }: { onLoggedIn: () => Promise<void> }) {
+  const [rememberDevice,setRememberDevice]=useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -360,7 +361,7 @@ function Login({ onLoggedIn }: { onLoggedIn: () => Promise<void> }) {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setBusy(true); setError(null);
-    try { await api.login(email, password); await onLoggedIn(); }
+    try { await api.login(email, password, rememberDevice); await onLoggedIn(); }
     catch (reason) { setError(friendlyError(reason)); }
     finally { setBusy(false); }
   };
@@ -369,8 +370,9 @@ function Login({ onLoggedIn }: { onLoggedIn: () => Promise<void> }) {
     <p className="eyebrow">Nancy · your day</p>
     <h1 id="welcome-title">Welcome back</h1>
     <p>Sign in to see today’s plan.</p>
-    <label>Email<input autoComplete="email" type="email" value={email} onChange={event => setEmail(event.target.value)} required /></label>
+    <label>Email<input autoComplete="username" type="email" value={email} onChange={event => setEmail(event.target.value)} required /></label>
     <label>Password<input autoComplete="current-password" type="password" value={password} onChange={event => setPassword(event.target.value)} required /></label>
+    <label className="remember-device"><input type="checkbox" checked={rememberDevice} onChange={event=>setRememberDevice(event.target.checked)}/>Keep me signed in on this device for 30 days</label>
     {error && <p className="notice error" role="alert">{error}</p>}
     <button className="primary-button" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
   </form></main>;
@@ -515,7 +517,7 @@ function SupportHome({ session, voiceAvailable, voiceTransport, onCheckVoice, on
   };
   const heading = !eligible ? 'Use the buttons below' : voice === 'connecting' ? 'Starting Nancy' : voice === 'thinking' ? 'Nancy is thinking' : voice === 'listening' ? 'Nancy is listening' : voice === 'speaking' ? 'Nancy is speaking' : voice === 'closing' ? 'Nancy is waiting' : voice === 'error' ? 'Nancy needs a moment' : voiceAvailable ? 'Ready when you are' : 'Nancy is warming up';
   return <main className="today-shell"><header className="today-header"><div><p className="eyebrow">Nancy</p><h1>{title}</h1></div><button className="text-button" onClick={() => void stop().catch(() => undefined).then(onLogout)}>Sign out</button></header>
-    <section className="voice-panel" aria-label="Talk to Nancy"><div><p className="eyebrow">Talk to Nancy</p><h2 aria-live="polite">{heading}</h2><p>{voiceMessage ?? (!eligible ? session.voice_unavailable_reason ?? 'Nancy voice is not connected for this account yet. You can use the buttons below.' : 'Ask Nancy to help with a task request.')}</p></div><div className="voice-actions">{voiceActive || voice === 'connecting' ? <>{voiceActive && (voice === 'speaking' || voice === 'thinking') && <button className="interrupt-button" onClick={() => handle.current?.interrupt()}>Interrupt Nancy</button>}<button className="stop-button" onClick={() => void stop()}>Stop voice</button></> : <button className="talk-button" disabled={!eligible || requestUnconfirmed} onClick={() => void start()}>Talk to Nancy</button>}</div></section>
+    <section className="voice-panel" aria-label="Talk to Nancy"><div><p className="eyebrow">Talk to Nancy</p><h2 aria-live="polite">{heading}</h2><p>{voiceMessage ?? (!eligible ? session.voice_unavailable_reason ?? 'Nancy voice is not connected for this account yet. You can use the buttons below.' : 'Ask Nancy to help with a task request.')}</p></div><div className="voice-actions">{voiceActive || voice === 'connecting' ? <button className="stop-button" onClick={() => void stop()}>Stop voice</button> : <button className="talk-button" disabled={!eligible || requestUnconfirmed} onClick={() => void start()}>Talk to Nancy</button>}</div></section>
     {voiceActive && <form className="typed-turn" onSubmit={e => { e.preventDefault(); if (!typed.trim() || voice === 'thinking' || voice === 'speaking') return; const text = typed.trim(); setTyped(''); void handle.current?.sendText(text); }}><label>Type to Nancy<input value={typed} maxLength={2000} disabled={voice === 'thinking' || voice === 'speaking'} onChange={e => setTyped(e.target.value)} /></label><button className="secondary-button" disabled={!typed.trim() || voice === 'thinking' || voice === 'speaking'}>Send</button></form>}
     {transcript.length > 0 && <section className="transcript" aria-live="polite" aria-label="Recent conversation">{transcript.map((line, index) => <p key={index} className={line.speaker}><strong>{line.speaker === 'nancy' ? 'Nancy' : 'You'}</strong>{line.text}</p>)}</section>}
     {session.local_features_available&&<><WakeControl scopeKey={session.scope_key} enabled={eligible&&voiceAvailable&&voiceTransport==='local'} conversationActive={voiceActive||voice==='connecting'} onWake={start}/>

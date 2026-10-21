@@ -84,7 +84,7 @@ export const api = {
   microsoftActionReview:(id:string)=>request<MicrosoftActionReview>('/api/microsoft/actions/'+encodeURIComponent(id)+'/review'),
   config: () => request<AppConfig>("/api/config"),
   session: () => request<SessionInfo>("/api/auth/session"),
-  login: (email: string, password: string) => request<{ ok: true }>("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
+  login: (email: string, password: string, rememberDevice=false) => request<{ ok: true }>("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password, remember_device:rememberDevice }) }),
   logout: () => request<{ ok: true }>("/api/auth/logout", { method: "POST", body: "{}" }),
   today: () => request<Today>("/api/today"),
   setup: (input: SetupInput) => request<Today>("/api/setup", { method: "POST", body: JSON.stringify(input) }),

@@ -6,8 +6,10 @@ import { ApiError } from './errors.js';
 const sessionSchema = z.object({
   access_token: z.string().min(1), refresh_token: z.string().min(1),
   expires_at: z.number(), user_id: z.string().uuid(), issued_at: z.number(), session_id: z.string().uuid(),
+  remember_device: z.boolean().optional(),
 });
 export type Session = z.infer<typeof sessionSchema> & { reviewed_authority?: CareAuthority };
+export const sessionLifetimeSeconds=(session:Pick<Session,'remember_device'>)=> (session.remember_device?30:7)*86400;
 /** Request-only server binding; never accepted from or persisted in a browser cookie. */
 export function assertReviewedAuthority(session:Session,current:CareAuthority) {
   const expected=session.reviewed_authority;
@@ -29,7 +31,7 @@ export function openSession(value: string | undefined, key: Buffer): Session | n
     decipher.setAAD(Buffer.from('nancy-session-v1'));
     decipher.setAuthTag(bytes.subarray(12, 28));
     const result = sessionSchema.parse(JSON.parse(Buffer.concat([decipher.update(bytes.subarray(28)), decipher.final()]).toString('utf8')));
-    if (result.issued_at + 7 * 86400 < Date.now() / 1000) return null;
+    if (result.issued_at + sessionLifetimeSeconds(result) <= Date.now() / 1000) return null;
     return result;
   } catch { return null; }
 }

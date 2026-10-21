@@ -1,0 +1,206 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-10-21T22:44:23.386Z",
+  "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
+  "prior_tested_revision": "sha256:a5dd241d37c536585a9443337c8a6a4fd490b7f9707cbb008a28945d7bcea53c",
+  "scope": "Owner-directed intended-client live-test repairs, with Current preserved and a persistent top-centered Talk control, no acoustic interruption, retained sign-in, repository meal context and bounded Outlook recovery/preparation. No full-slice acceptance.",
+  "findings": {
+    "baseline": {
+      "scope": "Mixed recent diagnostic observations; not a controlled benchmark or proof of actual audibility.",
+      "completed_server_turns": {
+        "samples": 26,
+        "median_ms": 6352,
+        "slowest_ms": 17655
+      },
+      "speech_end_to_browser_playback_start": {
+        "samples": 19,
+        "median_ms": 10009,
+        "slowest_ms": 26546
+      },
+      "interrupted_turns": 15,
+      "actual_audible_response_ms": null
+    },
+    "connector": "At inspection the existing live connection was reconnect_required with deleted token and resource selections. Ordinary local authorization failure could erase otherwise durable consent. Existing Microsoft administrator consent/sole-user assignment/scopes are not repeated.",
+    "personalization": "The saved authorized profile lacked the reported ongoing dietary context. This repair does not invent a diagnosis, prescribed diet or permanent real-person note."
+  },
+  "implemented": {
+    "current_default": true,
+    "focus_review_disabled": true,
+    "top_centered_sticky_talk": true,
+    "stop_preserved": true,
+    "automatic_acoustic_interruption": false,
+    "visible_interrupt_controls": false,
+    "cyclic_synthesis_alias": true,
+    "technical_provenance_kept_out_of_spoken_guidance": true,
+    "meal_reference_choice_preload": true,
+    "client_review_required_for_lasting_preferences_and_self_reported_context": true,
+    "optional_trusted_device_days": 30,
+    "ordinary_login_days": 7,
+    "absolute_server_expiry_and_revocation": true,
+    "foreground_wake_lock_best_effort": true,
+    "per_site_microphone_permission_remains_browser_controlled": true
+  },
+  "preparation": {
+    "explicit_private_permission": "preparationApproved, default false; enabled for the existing exact approved live account by the October 21 direction.",
+    "scheduler": "Existing durable scheduler; 06:00–11:00 participant-local, no more than one attempt per five minutes; startup catch-up within the window.",
+    "scope": "Coming seven local days of selected calendars, independent past-seven-day selected Inbox; encrypted bounded snapshot, five-minute freshness maximum and fresh authority checks.",
+    "interactive_provider_read_budget_ms": 8000,
+    "interactive_row_lock_budget_ms": 1500,
+    "scheduled_provider_read_budget_ms": 10000,
+    "no_model_calls": true,
+    "no_outreach_or_microphone": true,
+    "no_provider_writes": true,
+    "unread_does_not_establish_unanswered": true,
+    "actual_scheduled_provider_read": "awaiting_live_test"
+  },
+  "verification": {
+    "full_regression": {
+      "passed": 993,
+      "failed": 0,
+      "optional_skips": 2,
+      "files": 109,
+      "revision": "sha256:a5dd241d37c536585a9443337c8a6a4fd490b7f9707cbb008a28945d7bcea53c",
+      "scope": "Complete suite before the final meal-choice context presentation reduction.",
+      "private_reference": ".local/probes/live-feedback-release-full.json"
+    },
+    "final_prompt_regression": {
+      "passed": 88,
+      "failed": 0,
+      "optional_skips": 1,
+      "files": 6,
+      "revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
+      "scope": "Final choice-summary projection, source integrity, nutrition, conversation/governance and Outlook context regression.",
+      "private_reference": ".local/probes/live-feedback-prompt-final.json"
+    },
+    "actual_postgresql": {
+      "passed": 71,
+      "failed": 0,
+      "provider_responses": "synthetic",
+      "scope": "Fresh disposable PostgreSQL; actual row-lock budget, schema 017–020 upgrades, rollback and prior 018/019 encrypted restoration, authentication expiry/rotation, scoped preparation and reviewed-action safety.",
+      "private_reference": ".local/probes/live-feedback-postgres-tests.json"
+    },
+    "recovery_login_ui": {
+      "passed": 3,
+      "failed": 0,
+      "private_reference": ".local/probes/live-feedback-ui.json"
+    },
+    "actual_owner_practice": {
+      "provider_inference_requests": 3,
+      "selected_model": "gpt-6-sol",
+      "reasoning_effort": "high",
+      "voice": "Kokoro af_heart",
+      "api_billing_enabled": false,
+      "initial_checks": 19,
+      "final_checks": 13,
+      "initial_turns": [
+        {
+          "scenario": "repository_meal_choices",
+          "response_ms": 7340,
+          "first_audio_fetch_ms": 2021,
+          "typed_request_to_first_audio_available_ms": 9361,
+          "model_calls": 1,
+          "model_duration_ms": 7196,
+          "input_tokens": 10081,
+          "output_tokens": 181,
+          "cached_input_tokens": 4224,
+          "reasoning_output_tokens": 67,
+          "context_chars": 15095,
+          "nutrition_retrievals": 4
+        },
+        {
+          "scenario": "cyclic_pronunciation",
+          "response_ms": 3442,
+          "first_audio_fetch_ms": 1234,
+          "typed_request_to_first_audio_available_ms": 4676,
+          "model_calls": 1,
+          "model_duration_ms": 3327,
+          "input_tokens": 7962,
+          "output_tokens": 31,
+          "cached_input_tokens": 4224,
+          "reasoning_output_tokens": 19,
+          "context_chars": 3770,
+          "nutrition_retrievals": 0
+        }
+      ],
+      "final_turns": [
+        {
+          "scenario": "repository_meal_choices",
+          "response_ms": 7872,
+          "first_audio_fetch_ms": 990,
+          "typed_request_to_first_audio_available_ms": 8862,
+          "model_calls": 1,
+          "model_duration_ms": 7741,
+          "input_tokens": 7615,
+          "output_tokens": 220,
+          "cached_input_tokens": 0,
+          "reasoning_output_tokens": 125,
+          "context_chars": 6900,
+          "nutrition_retrievals": 4
+        }
+      ],
+      "scope": "Synthetic owner-practice account only. No real-person microphone, audible timing, actual Outlook content or care writes.",
+      "private_references": [
+        ".local/live-feedback-2026-10-21/runtime-checks.json",
+        ".local/live-feedback-2026-10-21/runtime-checks-refined.json"
+      ]
+    },
+    "prompt_size": {
+      "preloaded_reference_chars_before": 11298,
+      "preloaded_choice_context_chars_after": 3103,
+      "input_tokens_before": 10081,
+      "input_tokens_after": 7615,
+      "latency_improvement_established": false,
+      "limitations": "One sample per meal presentation. Cache observations differ (4224 cached input tokens before, 0 afterward); model time still dominates. First audio available is not first useful audible response."
+    },
+    "deployment": {
+      "both_instances_ready": true,
+      "both_selected_speech_workers_ready": true,
+      "protected_care_tables_per_database": 15,
+      "protected_care_tables_unchanged_across_both": 30,
+      "exact_microsoft_configuration_change": "preparationApproved true only",
+      "existing_caregiver_binding_local_environment_and_revocation_files_unchanged": true,
+      "public_https_and_anonymous_denial_verified": true,
+      "private_reference": ".local/live-feedback-2026-10-21/final-state.json"
+    },
+    "browser": {
+      "checks": {
+        "button_visible": true,
+        "centered_in_panel": true,
+        "current_selected": true,
+        "five_tabs": true,
+        "lock_guidance": true,
+        "microphone_guidance": true,
+        "no_interrupt_control": true,
+        "practice_label": true,
+        "top_sticky": true
+      },
+      "scroll_y": 368,
+      "viewport_width": 1280,
+      "viewport_height": 720,
+      "physical_safari": false,
+      "private_reference": ".local/live-feedback-2026-10-21/browser-checks.json",
+      "private_screenshot": ".local/probes/live-feedback-scroll.png"
+    },
+    "typecheck": "passed",
+    "client_build": "passed",
+    "public_scan": {
+      "files": 412,
+      "findings": 0,
+      "scope": "Final publication scan including this sanitized evidence file."
+    },
+    "rollback": {
+      "encrypted_care_backups_verified": true,
+      "prior_static_restore_byte_verified": true,
+      "source_base_commit": "6dcc785105cd0967b02fa95c9c2ff5e7d03f69dc",
+      "private_reference": ".local/live-feedback-2026-10-21/source-manifest.json"
+    }
+  },
+  "remaining": {
+    "latency": "Open: the final synthetic three-meal test took 7872 ms for its typed reply and 990 ms to fetch the first audio part. This is not a conversational-speed pass or a person/device acceptance result.",
+    "outlook": "Interactive approved-client reconnect and selected resources are required; the live connection remains reconnect_required. No deleted token is resurrected and earlier email/invitation tests are not repeated.",
+    "phone": "Retest intended iPhone/Safari sticky placement, permission persistence, pause/Stop, wake-lock, pronunciation and useful response timing.",
+    "clinical": "No prescribed targets or clinical protocol supplied; generic references and reviewed self-reported context do not replace approved instructions.",
+    "scheduled_preparation": "An actual morning/provider read after reconnect is awaiting_live_test.",
+    "full_slices_completed": 0
+  }
+}

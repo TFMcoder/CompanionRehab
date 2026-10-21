@@ -7,7 +7,7 @@ export const microsoftSelectionSchema=z.object({
 }).strict().refine(value=>new Set(value.calendar_ids).size===value.calendar_ids.length&&new Set(value.mail_folder_ids).size===value.mail_folder_ids.length);
 export type MicrosoftSelection=z.infer<typeof microsoftSelectionSchema>;
 export const microsoftReadRangeSchema=z.object({start:z.iso.datetime({offset:true}),end:z.iso.datetime({offset:true})}).strict()
- .refine(value=>Date.parse(value.end)>Date.parse(value.start)&&Date.parse(value.end)-Date.parse(value.start)<=7*86400000);
+ .refine(value=>Date.parse(value.end)>Date.parse(value.start)&&Date.parse(value.end)-Date.parse(value.start)<=7*86400000+3600000);
 export type MicrosoftReadRange=z.infer<typeof microsoftReadRangeSchema>;
 export interface MicrosoftStatus {
  available:boolean;eligible:boolean;state:'not_configured'|'disconnected'|'connected'|'reconnect_required';revision:number;

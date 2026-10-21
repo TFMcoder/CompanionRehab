@@ -194,7 +194,7 @@ describe('local Nancy voice', () => {
     expect(api.conversationPlayed).not.toHaveBeenCalled(); expect(api.conversationEnd).not.toHaveBeenCalled();
     await handle.stop();
   });
-  it('allows sustained near-end microphone speech to interrupt playback when echo cancellation is active', async () => {
+  it('does not interrupt or queue sustained microphone speech during Nancy playback', async () => {
     const starting = startLocalVoice({ onState: vi.fn(), onTranscript: vi.fn(), onChange: vi.fn(), onNavigate: vi.fn() });
     await vi.waitFor(() => expect(context.source).toBeDefined());
     const audio = context.source!;
@@ -202,8 +202,9 @@ describe('local Nancy voice', () => {
       const mic=Float32Array.from({length:2048},(_,i)=>0.12*Math.sin((i+n*2048)*0.037)+0.07*Math.sin((i+n*2048)*0.051));
       context.processor.onaudioprocess?.({inputBuffer:{numberOfChannels:2,getChannelData:(channel:number)=>channel===0?mic:new Float32Array(2048)}} as unknown as AudioProcessingEvent);
     }
-    await vi.waitFor(() => expect(audio.stop).toHaveBeenCalled());
-    expect(api.conversationPlayed).not.toHaveBeenCalled(); expect(api.conversationInterrupt).toHaveBeenCalledTimes(1);
+    expect(audio.stop).not.toHaveBeenCalled();
+    expect(api.conversationPlayed).not.toHaveBeenCalled(); expect(api.conversationInterrupt).not.toHaveBeenCalled();
+    audio.onended?.();
     const handle=await starting; await handle.stop();
   });
   it('waits for interrupt confirmation before sending the next typed turn and drops late speech', async () => {

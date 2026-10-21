@@ -179,7 +179,7 @@ describe('My Day client workflow', () => {
     expect(screen.queryByText(/other internal details/)).not.toBeInTheDocument();
   });
 
-  it('shows greeting startup honestly and lets the participant interrupt before it finishes', async () => {
+  it('shows greeting startup honestly and keeps Stop available without an interruption control', async () => {
     mockRequests();
     type Handle = Awaited<ReturnType<typeof startLocalVoice>>;
     let options: (Parameters<typeof startLocalVoice>[0] & { onReady?: (handle: Handle) => void }) | undefined;
@@ -196,9 +196,8 @@ describe('My Day client workflow', () => {
     expect(screen.queryByRole('heading', { name: 'Nancy is listening' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Interrupt Nancy' })).not.toBeInTheDocument();
     act(() => { options!.onReady?.(handle); options!.onState('speaking', 'Nancy is greeting you.'); });
-    expect(await screen.findByRole('button', { name: 'Interrupt Nancy' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Interrupt Nancy' }));
-    expect(interrupt).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: 'Interrupt Nancy' })).not.toBeInTheDocument();
+    expect(interrupt).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: 'Stop voice' })).toBeInTheDocument();
     act(() => { options!.onState('listening', 'Nancy is listening.'); finishGreeting(handle); });
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Interrupt Nancy' })).not.toBeInTheDocument());

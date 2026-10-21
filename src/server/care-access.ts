@@ -12,7 +12,7 @@ export interface GroceryInput { name: string; quantity?: string; idempotency_key
 export interface GroceryItem { id: string; name: string; quantity?: string }
 export interface AppointmentInput { title: string; starts_at: string; idempotency_key: string }
 export interface CareAccess {
-  login(email: string, password: string): Promise<Session>;
+  login(email: string, password: string, rememberDevice?: boolean): Promise<Session>;
   authorize(session: Session): Promise<Session>;
   logout(session: Session): Promise<void>;
   today(session: Session): Promise<Today>;

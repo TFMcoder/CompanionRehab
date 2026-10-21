@@ -115,7 +115,7 @@ export class LocalCare implements CareAccess {
   }
   async close() { if (this.ownsPool) await this.pool.end(); }
 
-  async login(email: string, password: string): Promise<Session> {
+  async login(email: string, password: string, rememberDevice=false): Promise<Session> {
     const parsed = accountSchema.extend({ password: z.string().min(1).max(256) }).parse({ email, password });
     try {
       const { rows } = await this.pool.query(`select a.id,a.password_salt,a.password_hash,g.participant_id,g.role
@@ -130,9 +130,9 @@ export class LocalCare implements CareAccess {
       const sessionId = randomUUID();
       const access = randomBytes(32).toString('base64url');
       const refresh = randomBytes(32).toString('base64url');
-      await this.pool.query(`insert into companion_local.sessions(id,actor_id,participant_id,role,access_hash,refresh_hash,issued_at,expires_at)
-        values($1,$2,$3,$4,$5,$6,$7,$8)`, [sessionId, row.id, row.participant_id, row.role, tokenHash(access), tokenHash(refresh), now, new Date(now.getTime() + ttlSeconds * 1000)]);
-      return { access_token: access, refresh_token: refresh, user_id: row.id, expires_at: seconds(new Date(now.getTime() + ttlSeconds * 1000)), issued_at: seconds(now), session_id: sessionId };
+      await this.pool.query(`insert into companion_local.sessions(id,actor_id,participant_id,role,access_hash,refresh_hash,issued_at,expires_at,remember_device)
+        values($1,$2,$3,$4,$5,$6,$7,$8,$9)`, [sessionId, row.id, row.participant_id, row.role, tokenHash(access), tokenHash(refresh), now, new Date(now.getTime() + ttlSeconds * 1000), rememberDevice]);
+      return { access_token: access, refresh_token: refresh, user_id: row.id, expires_at: seconds(new Date(now.getTime() + ttlSeconds * 1000)), issued_at: seconds(now), session_id: sessionId, ...(rememberDevice?{remember_device:true}:{}) };
     } catch (error) { return mapError(error); }
   }
 
@@ -147,7 +147,7 @@ export class LocalCare implements CareAccess {
   }
   private async authorizeOnce(session: Session): Promise<Session> {
     try {
-      const { rows } = await this.pool.query(`select s.actor_id,s.participant_id,s.role,s.access_hash,s.refresh_hash,s.issued_at,s.expires_at,s.revoked_at,
+      const { rows } = await this.pool.query(`select s.actor_id,s.participant_id,s.role,s.access_hash,s.refresh_hash,s.issued_at,s.expires_at,s.revoked_at,s.remember_device,
           a.disabled_at, g.revoked_at as grant_revoked
         from companion_local.sessions s join companion_local.accounts a on a.id=s.actor_id
         join companion_local.role_grants g on g.actor_id=s.actor_id and g.participant_id=s.participant_id and g.role=s.role
@@ -155,14 +155,16 @@ export class LocalCare implements CareAccess {
       const row = rows[0];
       const now = this.clock();
       if (!row || row.actor_id !== session.user_id || row.revoked_at || row.disabled_at || row.grant_revoked) throw new ApiError(401, 'unauthorized', 'Please sign in again.');
+      const lifetime=row.remember_device?30*86400:refreshSeconds;
+      if(row.issued_at.getTime()+lifetime*1000<=now.getTime())throw new ApiError(401,'unauthorized','Please sign in again.');
       if (row.expires_at.getTime() > now.getTime() && timingSafeEqual(row.access_hash as Buffer, tokenHash(session.access_token))) return session;
-      if (row.issued_at.getTime() + refreshSeconds * 1000 <= now.getTime() || !timingSafeEqual(row.refresh_hash as Buffer, tokenHash(session.refresh_token)))
+      if (!timingSafeEqual(row.refresh_hash as Buffer, tokenHash(session.refresh_token)))
         throw new ApiError(401, 'unauthorized', 'Please sign in again.');
       const access = randomBytes(32).toString('base64url');
       const refresh = randomBytes(32).toString('base64url');
       const expires = new Date(now.getTime() + ttlSeconds * 1000);
       await this.pool.query('update companion_local.sessions set access_hash=$2,refresh_hash=$3,expires_at=$4 where id=$1 and revoked_at is null', [session.session_id, tokenHash(access), tokenHash(refresh), expires]);
-      return { ...session, access_token: access, refresh_token: refresh, issued_at: seconds(now), expires_at: seconds(expires) };
+      return { ...session, access_token: access, refresh_token: refresh, issued_at: seconds(row.issued_at), expires_at: seconds(expires), ...(row.remember_device?{remember_device:true}:{}) };
     } catch (error) { return mapError(error); }
   }
 

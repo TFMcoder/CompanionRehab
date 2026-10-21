@@ -6,9 +6,11 @@ import type {Session} from '../session.js';
 import {MicrosoftGraphClient,MicrosoftGraphError} from './graph.js';
 import {sealMicrosoftSecret,openMicrosoftSecret} from './credential-storage.js';
 import {MicrosoftOAuthError,type MicrosoftTokenSet} from './oauth.js';
+import {outlookDateRange} from './conversation.js';
+import {compactMicrosoftContext,recentInboxRange,usablePreparedContext,preparationFreshMs,type PreparedMicrosoftContext} from './preparation.js';
 import {microsoftSelectionSchema,microsoftReadRangeSchema,microsoftPrepareSchema,microsoftConfirmSchema,type MicrosoftAction,type MicrosoftActionReview,type MicrosoftActionReceipt,type MicrosoftActionState,type MicrosoftSelection,type MicrosoftReadRange,type MicrosoftStatus} from '../../shared/microsoft-contracts.js';
 
-export interface MicrosoftServiceConfig {tenantId:string;clientId:string;expectedObjectId:string;actorId:string;participantId:string;redirectUri:string;encryptionKey:Buffer;modelUseApproved?:boolean;reviewedWritesApproved?:boolean}
+export interface MicrosoftServiceConfig {tenantId:string;clientId:string;expectedObjectId:string;actorId:string;participantId:string;redirectUri:string;encryptionKey:Buffer;modelUseApproved?:boolean;reviewedWritesApproved?:boolean;preparationApproved?:boolean}
 export interface MicrosoftOAuth {
  beginAuthorization():{authorizationUrl:string;state:string;nonce:string;codeVerifier:string;expiresAt:string};
  exchangeCode(input:{code:string;codeVerifier:string;nonce:string},signal?:AbortSignal):Promise<MicrosoftTokenSet>;
@@ -19,7 +21,7 @@ type PreparedAction={action:MicrosoftAction;scope:string;expires_at:string;time_
 type ActionPhase='claim'|'provider'|'accepted'|'verified'|'unknown'|'failed';
 const phases:ActionPhase[]=['claim','provider','accepted','verified','unknown','failed'];
 function phaseKey(id:string,phase:ActionPhase){const hex=hash(id+':microsoft-action:'+phase);return `${hex.slice(0,8)}-${hex.slice(8,12)}-4${hex.slice(13,16)}-a${hex.slice(17,20)}-${hex.slice(20,32)}`;}
-type Row={id:string;participant_id:string;actor_id:string;grant_fingerprint:string;configuration_fingerprint:string;tenant_id:string;object_id:string;state:'connected'|'disconnected'|'reconnect_required';token_ciphertext:string|null;selected_calendar_ids:string[];selected_mail_folder_ids:string[];revision:number;last_read_at:Date|string|null;last_error:string|null};
+type Row={id:string;participant_id:string;actor_id:string;grant_fingerprint:string;configuration_fingerprint:string;tenant_id:string;object_id:string;state:'connected'|'disconnected'|'reconnect_required';token_ciphertext:string|null;selected_calendar_ids:string[];selected_mail_folder_ids:string[];revision:number;last_read_at:Date|string|null;last_error:string|null;prepared_context_ciphertext:string|null;prepared_at:Date|string|null;prepared_revision:number|null;preparation_attempt_at:Date|string|null};
 type Pending={id:string;actor_id:string;participant_id:string;login_session_id:string;state_hash:string;browser_hash:string;grant_fingerprint:string;configuration_fingerprint:string;pending_ciphertext:string;stage:string;expires_at:Date|string};
 const hash=(value:string)=>createHash('sha256').update(value).digest('hex');
 const time=(value:Date|string|null)=>value?new Date(value).toISOString():null;
@@ -53,15 +55,28 @@ export class MicrosoftService {
  private async recheck(db:LocalDb,session:Session,ctx:LocalAuthority,lock=false){const next=lock?await localAuthority(db,session,this.now(),true):await this.authority(db,session);if(!this.eligibleScope(next)||next.actor!==ctx.actor||next.participant!==ctx.participant||next.role!==ctx.role||next.grant!==ctx.grant)throw authorizationError();}
  private async erase(db:LocalDb,actor:string,participant?:string){
   await db.query('delete from companion_local.microsoft_oauth_pending where actor_id=$1'+(participant?' and participant_id=$2':''),participant?[actor,participant]:[actor]);
-  await db.query("update companion_local.microsoft_connections set token_ciphertext=null,state='reconnect_required',selected_calendar_ids='{}',selected_mail_folder_ids='{}',last_read_at=null,last_error='authorization_changed',revision=revision+1,updated_at=$2 where actor_id=$1 and state='connected'"+(participant?' and participant_id=$3':''),participant?[actor,this.now(),participant]:[actor,this.now()]);
+  await db.query("update companion_local.microsoft_connections set token_ciphertext=null,prepared_context_ciphertext=null,prepared_at=null,prepared_revision=null,state='reconnect_required',selected_calendar_ids='{}',selected_mail_folder_ids='{}',last_read_at=null,last_error='authorization_changed',revision=revision+1,updated_at=$2 where actor_id=$1 and state='connected'"+(participant?' and participant_id=$3':''),participant?[actor,this.now(),participant]:[actor,this.now()]);
  }
  private async checked<T>(session:Session,work:(ctx:LocalAuthority)=>Promise<T>):Promise<T>{
   try{return await work(await this.authority(this.pool,session));}
-  catch(error){if(error instanceof ApiError&&[401,403].includes(error.status))await this.erase(this.pool,session.user_id);throw error;}
+  catch(error){if(error instanceof ApiError&&[401,403].includes(error.status))await this.reconcileAuthorization(session.user_id);throw error;}
+ }
+ /** Persistent connector consent belongs to the exact account/grant, not an expiring browser login. */
+ private async persistentAuthority(db:LocalDb=this.pool,lock=false):Promise<LocalAuthority|null>{
+  const row=(await db.query(`select g.id,g.granted_at,p.time_zone,p.revision from companion_local.accounts a
+   join companion_local.role_grants g on g.actor_id=a.id and g.role='client' and g.revoked_at is null
+   join companion_local.participant_profiles p on p.id=g.participant_id
+   where a.id=$1 and g.participant_id=$2 and a.disabled_at is null ${lock?'for share of a,g':''}`,[this.config.actorId,this.config.participantId])).rows[0];
+  return row?{actor:this.config.actorId,participant:this.config.participantId,role:'client',zone:row.time_zone,profileRevision:row.revision,grant:hash(canonicalJson([row.id,row.granted_at,'client']))}:null;
+ }
+ private async reconcileAuthorization(actor:string){
+  if(actor!==this.config.actorId)return;
+  const ctx=await this.persistentAuthority(),row=ctx?await this.row(this.pool,ctx):undefined;
+  if(!ctx||row&&!this.matches(row,ctx))await this.erase(this.pool,actor,this.config.participantId);
  }
  /** Clear a pending authorization on logout or rejected local-session authorization; persistent tokens are invalidated separately after fresh scope checks. */
  async endLogin(session:Session){await this.pool.query('delete from companion_local.microsoft_oauth_pending where login_session_id=$1 and actor_id=$2',[session.session_id,session.user_id]);}
- async invalidateSession(session:Session){await this.endLogin(session);await this.erase(this.pool,session.user_id);}
+ async invalidateSession(session:Session){await this.endLogin(session);await this.reconcileAuthorization(session.user_id);}
  private async row(db:LocalDb,ctx:LocalAuthority,lock=false):Promise<Row|undefined>{return (await db.query('select * from companion_local.microsoft_connections where participant_id=$1 and actor_id=$2'+(lock?' for update':''),[ctx.participant,ctx.actor])).rows[0];}
  private matches(row:Row,ctx:LocalAuthority){return row.grant_fingerprint===ctx.grant&&row.configuration_fingerprint===this.fingerprint&&row.tenant_id===this.config.tenantId&&row.object_id===this.config.expectedObjectId;}
  private statusOf(row?:Row):MicrosoftStatus{return {available:true,eligible:true,state:row?.state??'disconnected',revision:row?.revision??0,selected_calendar_ids:row?.selected_calendar_ids??[],selected_mail_folder_ids:row?.selected_mail_folder_ids??[],last_read_at:time(row?.last_read_at??null),last_error:row?.last_error??null,model_disclosure_enabled:this.config.modelUseApproved===true&&row?.state==='connected',...(this.config.reviewedWritesApproved?{reviewed_writes_enabled:row?.state==='connected'}:{})};}
@@ -70,11 +85,11 @@ export class MicrosoftService {
  async status(session:Session):Promise<MicrosoftStatus>{
   try{
   const ctx=await localAuthority(this.pool,session,this.now());
-  if(!this.eligibleScope(ctx)){await this.erase(this.pool,ctx.actor);return {...this.statusOf(),eligible:false};}
+  if(!this.eligibleScope(ctx)){await this.reconcileAuthorization(ctx.actor);return {...this.statusOf(),eligible:false};}
   let row=await this.row(this.pool,ctx);
   if(row&&row.state==='connected'&&!this.matches(row,ctx)){await this.erase(this.pool,ctx.actor,ctx.participant);row=await this.row(this.pool,ctx);}
   return this.statusOf(row);
-  }catch(error){if(error instanceof ApiError&&[401,403].includes(error.status))await this.erase(this.pool,session.user_id);throw error;}
+  }catch(error){if(error instanceof ApiError&&[401,403].includes(error.status))await this.reconcileAuthorization(session.user_id);throw error;}
  }
  async begin(session:Session):Promise<{authorization_url:string;browserBinding:string}>{return this.checked(session,async ctx=>{
   const start=this.oauth.beginAuthorization(),id=randomUUID(),browserBinding=randomBytes(32).toString('base64url'),now=this.now();
@@ -130,38 +145,44 @@ export class MicrosoftService {
   }finally{clearTimeout(timer);}
  });}
  private validateTokens(tokens:MicrosoftTokenSet){if(tokens.identity.tenantId!==this.config.tenantId||tokens.identity.objectId!==this.config.expectedObjectId||!tokens.accessToken||!tokens.refreshToken||!Number.isFinite(Date.parse(tokens.expiresAt)))throw authorizationError();}
- private async connected<T>(session:Session,work:(graph:Graph,row:Row,db:PoolClient)=>Promise<T>):Promise<T>{return this.checked(session,async ctx=>{
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),Math.max(1,Math.min(45000,this.options.operationTimeoutMs??45000)));timer.unref();
+ private async connected<T>(session:Session,work:(graph:Graph,row:Row,db:PoolClient)=>Promise<T>,readTimeoutMs?:number):Promise<T>{return this.checked(session,ctx=>this.withConnection(ctx,(db,lock=false)=>this.recheck(db,session,ctx,lock),work,readTimeoutMs));}
+ private async withConnection<T>(ctx:LocalAuthority,check:(db:LocalDb,lock?:boolean)=>Promise<void>,work:(graph:Graph,row:Row,db:PoolClient)=>Promise<T>,readTimeoutMs?:number):Promise<T>{
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),Math.max(1,Math.min(readTimeoutMs??45000,this.options.operationTimeoutMs??45000)));timer.unref();
   try{return await localTransaction(this.pool,async db=>{
-   await this.recheck(db,session,ctx);
+   if(readTimeoutMs)await db.query("set local lock_timeout='1500ms'");
+   await check(db);
    const row=await this.row(db,ctx,true);
    if(!row||row.state!=='connected'||!row.token_ciphertext)throw new ApiError(409,'microsoft_not_connected','Connect Microsoft first.');
    if(!this.matches(row,ctx))throw authorizationError();
    let tokens:MicrosoftTokenSet;
-   try{tokens=this.open(row.id,row.token_ciphertext);this.validateTokens(tokens);}catch{throw authorizationError();}
+   try{tokens=this.open(row.id,row.token_ciphertext);this.validateTokens(tokens);}catch{throw new ApiError(403,'microsoft_reconnect_required','Microsoft needs you to reconnect.');}
    // The database row lock serializes refresh across processes, selections and disconnects.
    if(Date.parse(tokens.expiresAt)<=this.now().getTime()+60000){
-    try{tokens=await this.oauth.refreshTokens(tokens,controller.signal);this.validateTokens(tokens);}catch{throw new ApiError(403,'microsoft_reconnect_required','Microsoft needs you to reconnect.');}
-    await this.recheck(db,session,ctx);
+    try{tokens=await this.oauth.refreshTokens(tokens,controller.signal);this.validateTokens(tokens);}catch(error){
+     if(controller.signal.aborted||error instanceof MicrosoftOAuthError&&error.code==='provider_unavailable')throw new ApiError(502,'microsoft_unavailable','Microsoft could not refresh just now. Please try again.');
+     throw new ApiError(403,'microsoft_reconnect_required','Microsoft needs you to reconnect.');
+    }
+    await check(db);
     await db.query('update companion_local.microsoft_connections set token_ciphertext=$2,updated_at=$3 where id=$1',[row.id,this.seal(row.id,tokens),this.now()]);
    }
-   await this.recheck(db,session,ctx);
+   await check(db);
    let result:T;
-   try{result=await work(this.graph(tokens.accessToken,row.selected_calendar_ids,row.selected_mail_folder_ids,controller.signal,()=>this.recheck(db,session,ctx)),row,db);}
-   catch(error){if(error instanceof MicrosoftGraphError||error instanceof ApiError&&![401,403].includes(error.status)){await this.recheck(db,session,ctx,true);return {error} as const;}throw error;}
-   await this.recheck(db,session,ctx,true);
+   try{result=await work(this.graph(tokens.accessToken,row.selected_calendar_ids,row.selected_mail_folder_ids,controller.signal,()=>check(db)),row,db);}
+   catch(error){if(error instanceof MicrosoftGraphError||error instanceof ApiError&&![401,403].includes(error.status)){await check(db,true);return {error} as const;}throw error;}
+   await check(db,true);
    await db.query('update companion_local.microsoft_connections set last_read_at=$2,last_error=null where id=$1',[row.id,this.now()]);
    return {value:result} as const;
   }).then(outcome=>{if('error'in outcome)throw outcome.error;return outcome.value;});}catch(error){
-   if(error instanceof ApiError)throw error;
+   if(error instanceof ApiError){if(error.code==='microsoft_reconnect_required')await this.erase(this.pool,ctx.actor,ctx.participant);throw error;}
    const code=error&&typeof error==='object'&&'code'in error?String(error.code):'';
    if(/identity|account|unauthorized|authentication|invalid_token|access_denied|forbidden/.test(code)||error instanceof MicrosoftGraphError&&[401,403].includes(error.status??0)){await this.erase(this.pool,ctx.actor,ctx.participant);throw new ApiError(403,'microsoft_reconnect_required','Microsoft needs you to reconnect.');}
-   await this.pool.query("update companion_local.microsoft_connections set last_error='provider_unavailable' where actor_id=$1 and participant_id=$2",[ctx.actor,ctx.participant]);
+   // Diagnostics must not wait behind another connector operation after a read timed out.
+   await this.pool.query("update companion_local.microsoft_connections set last_error='provider_unavailable' where id in (select id from companion_local.microsoft_connections where actor_id=$1 and participant_id=$2 and state='connected' for update skip locked)",[ctx.actor,ctx.participant]);
    throw new ApiError(502,'microsoft_unavailable','Microsoft is unavailable. Previously read information may be out of date.');
   }finally{clearTimeout(timer);}
- });}
+ }
  async resources(session:Session){return this.connected(session,async graph=>({calendars:await graph.listCalendars(),mail_folders:await graph.listMailFolders()}));}
- async calendarContext(session:Session,input:MicrosoftReadRange){const range=microsoftReadRangeSchema.parse(input);return this.connected(session,async(graph,row)=>{const calendars=[];for(const id of row.selected_calendar_ids)calendars.push({id,result:await graph.calendarView(id,range)});return {source:'microsoft' as const,fetched_at:this.now().toISOString(),calendars};});}
+ async calendarContext(session:Session,input:MicrosoftReadRange){const range=microsoftReadRangeSchema.parse(input);return this.connected(session,async(graph,row)=>{const calendars=[];for(const id of row.selected_calendar_ids)calendars.push({id,result:await graph.calendarView(id,range)});return {source:'microsoft' as const,fetched_at:this.now().toISOString(),calendars};},8000);}
  async select(session:Session,input:MicrosoftSelection):Promise<MicrosoftStatus>{
   const selection=microsoftSelectionSchema.parse(input);
   await this.connected(session,async(graph,row,db)=>{
@@ -171,19 +192,66 @@ export class MicrosoftService {
    await db.query('update companion_local.microsoft_connections set selected_calendar_ids=$2,selected_mail_folder_ids=$3,revision=revision+1,updated_at=$4 where id=$1',[row.id,selection.calendar_ids,selection.mail_folder_ids,this.now()]);
   });return this.status(session);
  }
- async read(session:Session,input:MicrosoftReadRange){const range=microsoftReadRangeSchema.parse(input);return this.connected(session,async(graph,row)=>{
-  const calendars=[],mail_folders=[];
-  for(const id of row.selected_calendar_ids)calendars.push({id,result:await graph.calendarView(id,range)});
-  for(const id of row.selected_mail_folder_ids)mail_folders.push({id,result:await graph.listMessages(id,range)});
+ private async readSelected(graph:Graph,row:Row,range:MicrosoftReadRange,mailRange=range){
+  const [calendarResults,mailResults]=await Promise.all([
+   Promise.allSettled(row.selected_calendar_ids.map(async id=>({id,result:await graph.calendarView(id,range)}))),
+   Promise.allSettled(row.selected_mail_folder_ids.map(async id=>({id,result:await graph.listMessages(id,mailRange)}))),
+  ]);
+  // Drain every read before releasing the transaction used by their authorization checks.
+  for(const result of [...calendarResults,...mailResults])if(result.status==='rejected')throw result.reason;
+  const calendars=calendarResults.flatMap(result=>result.status==='fulfilled'?[result.value]:[]),mail_folders=mailResults.flatMap(result=>result.status==='fulfilled'?[result.value]:[]);
   return {source:'microsoft' as const,fetched_at:this.now().toISOString(),calendars,mail_folders,model_disclosure_enabled:this.config.modelUseApproved===true};
- });}
+ }
+ async read(session:Session,input:MicrosoftReadRange){const range=microsoftReadRangeSchema.parse(input);return this.connected(session,(graph,row)=>this.readSelected(graph,row,range));}
+ private async savePrepared(db:LocalDb,row:Row,context:PreparedMicrosoftContext){
+  const json=JSON.stringify(context);if(json.length>64000)return;
+  await db.query('update companion_local.microsoft_connections set prepared_context_ciphertext=$2,prepared_at=$3,prepared_revision=$4 where id=$1',[row.id,this.seal(row.id+':prepared',context),context.fetched_at,row.revision]);
+ }
+ /** No provider request on the ordinary reply path. Fresh authority is checked even for cached data. */
+ async preparedContext(session:Session,input:MicrosoftReadRange){
+  const range=microsoftReadRangeSchema.parse(input),status=await this.status(session);
+  if(!status.eligible||!status.model_disclosure_enabled)return {source:'microsoft',state:status.state==='connected'?'not_authorized':status.state};
+  const ctx=await this.authority(this.pool,session),row=await this.row(this.pool,ctx);
+  if(!row||!this.matches(row,ctx)||row.state!=='connected'||row.prepared_revision!==row.revision||!row.prepared_context_ciphertext)return {source:'microsoft',state:'not_prepared',requested_range:range};
+  try{const context=this.open<PreparedMicrosoftContext>(row.id+':prepared',row.prepared_context_ciphertext);
+   if(!usablePreparedContext(context,range,this.now()))return {source:'microsoft',state:'not_prepared',requested_range:range};
+   await this.recheck(this.pool,session,ctx);
+   const current=await this.row(this.pool,ctx);
+   if(!current||current.state!=='connected'||current.revision!==row.revision||!this.matches(current,ctx))throw authorizationError();
+   return {...context,state:'prepared',requested_range:range};
+  }catch(error){if(error instanceof ApiError)throw error;return {source:'microsoft',state:'not_prepared',requested_range:range};}
+ }
  async conversationContext(session:Session,input:MicrosoftReadRange){
   const status=await this.status(session);
   if(!status.eligible||!status.model_disclosure_enabled)return {source:'microsoft',state:status.state==='connected'?'not_authorized':status.state};
-  try{const context=await this.read(session,input);let remainingEvents=20,remainingMessages=12;return {source:'microsoft',state:'fresh',fetched_at:context.fetched_at,range:input,
-   calendars:context.calendars.map(({id,result})=>{const items=result.items.slice(0,remainingEvents);remainingEvents-=items.length;return {id,fetched_at:result.fetchedAt,complete:result.complete&&result.items.length===items.length,omitted:result.items.length-items.length,truncation:result.truncation,events:items.map(e=>({id:e.id,subject:e.subject.slice(0,200),start:e.start,end:e.end,cancelled:e.isCancelled,location:e.location?.slice(0,200)??null}))};}),
-   mail_folders:context.mail_folders.map(({id,result})=>{const items=result.items.slice(0,remainingMessages);remainingMessages-=items.length;return {id,fetched_at:result.fetchedAt,complete:result.complete&&result.items.length===items.length,omitted:result.items.length-items.length,truncation:result.truncation,messages:items.map(m=>({id:m.id,subject:m.subject.slice(0,200),from:m.from,received_at:m.receivedAt,is_read:m.isRead,preview:m.preview.slice(0,500)}))};})};
+  const range=microsoftReadRangeSchema.parse(input),mailRange=recentInboxRange(this.now());
+  try{return await this.connected(session,async(graph,row,db)=>{const context=compactMicrosoftContext(await this.readSelected(graph,row,range,mailRange),range,mailRange);await this.savePrepared(db,row,context);return context;},8000);
   }catch(error){if(error instanceof ApiError&&[401,403].includes(error.status))throw error;return {source:'microsoft',state:'unavailable',fetched_at:null,warning:'Do not infer availability or an empty Inbox from this failed read.'};}
+ }
+ /** Quiet read-only preparation under existing exact durable consent; never creates a login or calls a model. */
+ async prepareMorning(){
+  if(!this.config.modelUseApproved||!this.config.preparationApproved)return {state:'not_authorized'};
+  const ctx=await this.persistentAuthority();if(!ctx){await this.reconcileAuthorization(this.config.actorId);return {state:'not_authorized'};}
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:ctx.zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(this.now());
+  const part=(name:string)=>parts.find(p=>p.type===name)!.value,hour=Number(part('hour'));
+  if(hour<6||hour>=11)return {state:'outside_window'};
+  const row=await this.row(this.pool,ctx);
+  if(row&&!this.matches(row,ctx)){await this.erase(this.pool,ctx.actor,ctx.participant);return {state:'not_authorized'};}
+  if(!row||row.state!=='connected'||!row.selected_calendar_ids.length&&!row.selected_mail_folder_ids.length)return {state:'not_connected'};
+  const due=(r:Row)=>!r.preparation_attempt_at||this.now().getTime()-new Date(r.preparation_attempt_at).getTime()>=preparationFreshMs;
+  if(!due(row))return {state:'not_due'};
+  const check=async(db:LocalDb,lock=false)=>{const current=await this.persistentAuthority(db,lock);if(!current||current.grant!==ctx.grant)throw authorizationError();};
+  const range=outlookDateRange(`${part('year')}-${part('month')}-${part('day')}`,ctx.zone,7),mailRange=recentInboxRange(this.now());
+  try{return await this.withConnection(ctx,check,async(graph,current,db)=>{
+   if(!due(current))return {state:'not_due'};
+   await db.query('update companion_local.microsoft_connections set preparation_attempt_at=$2 where id=$1',[current.id,this.now()]);
+   const context=compactMicrosoftContext(await this.readSelected(graph,current,range,mailRange),range,mailRange);await this.savePrepared(db,current,context);
+   return {state:'prepared',calendar_count:context.calendars.length,folder_count:context.mail_folders.length};
+  },10000);}catch{
+   await this.reconcileAuthorization(ctx.actor);
+   await this.pool.query('update companion_local.microsoft_connections set preparation_attempt_at=$2 where id=$1 and revision=$3',[row.id,this.now(),row.revision]);
+   return {state:'unavailable'};
+  }
  }
  async conversationMessage(session:Session,folderId:string,messageId:string){
   if(!this.config.modelUseApproved)throw new ApiError(403,'microsoft_disclosure_disabled','Outlook conversation use is not enabled.');
@@ -260,13 +328,16 @@ export class MicrosoftService {
    const data=await this.prepared(db,ctx,parsed.action_id);if(this.review(parsed.action_id,data).review_token!==parsed.review_token)throw new ApiError(409,'microsoft_review_changed','Review the exact Outlook action again.');
    const rows=await this.phaseRows(db,ctx,parsed.action_id);if(rows.length)return {claimed:false,data};
    if(data.scope!==this.actionScope(ctx,row)||Date.parse(data.expires_at)<=this.now().getTime())throw new ApiError(409,'microsoft_review_expired','Review this Outlook action again.');
-   await this.recheck(db,session,ctx,true);await this.phase(db,ctx,parsed.action_id,'claim','submitting');return {claimed:true,data};
+   await this.recheck(db,session,ctx,true);
+   await db.query('update companion_local.microsoft_connections set prepared_context_ciphertext=null,prepared_at=null,prepared_revision=null where id=$1',[row.id]);
+   await this.phase(db,ctx,parsed.action_id,'claim','submitting');return {claimed:true,data};
   });
   if(!claim.claimed)return {...await this.actionReceipt(session,parsed.action_id,true),replayed:true};
   let providerMutationStarted=false;
   try{
    await this.connected(session,async(graph,row,db)=>{
     const ctx=await this.authority(db,session);if(claim.data.scope!==this.actionScope(ctx,row))throw authorizationError();
+    await db.query('update companion_local.microsoft_connections set prepared_context_ciphertext=null,prepared_at=null,prepared_revision=null where id=$1',[row.id]);
     // Do not roll back the durable provider identifier if a later send is uncertain.
     if(claim.data.action.kind==='send_mail'){
      if(!graph.createMailDraft)throw new ApiError(503,'microsoft_write_unavailable','Outlook sending is not available.');
@@ -294,7 +365,7 @@ export class MicrosoftService {
   await localTransaction(this.pool,async db=>{
    await this.recheck(db,session,ctx);const row=await this.row(db,ctx,true);
    await db.query('delete from companion_local.microsoft_oauth_pending where actor_id=$1 and participant_id=$2',[ctx.actor,ctx.participant]);
-   if(row)await db.query("update companion_local.microsoft_connections set state='disconnected',token_ciphertext=null,selected_calendar_ids='{}',selected_mail_folder_ids='{}',last_read_at=null,last_error=null,revision=revision+1,updated_at=$2 where id=$1",[row.id,this.now()]);
+   if(row)await db.query("update companion_local.microsoft_connections set state='disconnected',token_ciphertext=null,prepared_context_ciphertext=null,prepared_at=null,prepared_revision=null,preparation_attempt_at=null,selected_calendar_ids='{}',selected_mail_folder_ids='{}',last_read_at=null,last_error=null,revision=revision+1,updated_at=$2 where id=$1",[row.id,this.now()]);
   });return this.status(session);
  });}
 }

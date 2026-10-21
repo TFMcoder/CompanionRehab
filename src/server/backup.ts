@@ -38,7 +38,7 @@ export function schemaHash(schema: BackupSchema = 'private', withoutActivityReco
 function snapshotShape(snapshot:Snapshot) {
   const schema=snapshot.schema||'private';
   if(schema!=='private'&&schema!=='companion_local')throw new Error('Backup schema does not match this revision.');
-  const prior=schema==='companion_local'?['012_operations.sql','013_activity_recovery.sql','014_intake_kind.sql','015_preferences.sql','016_daily_continuity.sql','017_food_focus.sql'].find(file=>snapshot.schema_hash===schemaHash(schema,false,file)):undefined;
+  const prior=schema==='companion_local'?['012_operations.sql','013_activity_recovery.sql','014_intake_kind.sql','015_preferences.sql','016_daily_continuity.sql','017_food_focus.sql','018_microsoft.sql','019_trusted_device.sql'].find(file=>snapshot.schema_hash===schemaHash(schema,false,file)):undefined;
   if(!prior&&snapshot.schema_hash!==schemaHash(schema))throw new Error('Backup schema does not match this revision.');
   return {schema,prior,tables:tablesThrough(schema,prior)};
 }

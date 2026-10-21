@@ -2,12 +2,12 @@
 
 On October 19, 2026 the owner compared Current and Focus, chose Current, and explicitly requested locking this design and preparing the pending feature work for local/GitHub merge. This records a visual design decision; it is not full intended-person, device, genuine-day or clinical acceptance.
 
-Current is the shipped client interface, including when an older `/?layout=focus` review link is opened. The entry-page Focus switch is disabled. The preserved Focus implementation and exact verified Current source/build restore point remain available for deliberate future engineering review; they do not change the selected production design.
+Current is the shipped client interface, including when an older `/?layout=focus` review link is opened. The entry-page Focus switch is disabled. The preserved Focus implementation and exact verified Current source/build restore point remain available for deliberate future engineering review; they do not change the selected production design. October 21 live-test feedback explicitly overrides the original primary-action placement: Current's centered Talk panel now remains sticky at the top, and speech interruption controls are removed. See [the repair scope](LIVE_TEST_REPAIRS_2026-10-21.md).
 
 The approved visible structure is:
 
 - Nancy branding and Suggestions for Nancy at the top.
-- The green Talk to Nancy banner above the navigation, with concise readiness/conversation state and existing Stop/Interrupt controls during a conversation.
+- The green Talk to Nancy banner above the navigation, centered and sticky at the top with safe-area clearance, concise readiness/conversation state, always-visible Talk and an active-conversation Stop control. No Interrupt control.
 - Exactly five client tabs: Tasks, Meals, Groceries, Progress and Ask for Help.
 - A read-only Your Day timeline with participant-local times, source-attributed selected calendar events and separate untimed entries.
 - Ways to use Nancy as an expandable FAQ, plus Sign out.

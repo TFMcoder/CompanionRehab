@@ -80,7 +80,7 @@ describe('role-bound request app integration', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Talk to Nancy' }));
     await screen.findByRole('button', { name: 'Stop voice' });
     fireEvent.click(screen.getByRole('button', { name: 'Ask for Help' })); await screen.findByRole('heading',{name:'Ask for Help'});
-    expect(screen.queryByRole('button', { name: 'Talk to Nancy' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Talk to Nancy' })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: 'Tasks' }));
     fireEvent.click(screen.getByRole('button', { name: 'Ask for Help' })); await screen.findByRole('heading',{name:'Ask for Help'});
     expect(fetch.mock.calls.filter(([path]) => path === '/api/task-requests')).toHaveLength(0);
@@ -97,7 +97,7 @@ describe('role-bound request app integration', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Send' }));
     expect(mocked.handle.sendText).toHaveBeenCalledWith('Can you help me request a task?');
     await act(async () => mocked.options().onState('speaking'));
-    fireEvent.click(screen.getByRole('button', { name: 'Interrupt Nancy' })); expect(mocked.handle.interrupt).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('button', { name: 'Interrupt Nancy' })).not.toBeInTheDocument(); expect(mocked.handle.interrupt).not.toHaveBeenCalled();
     await act(async () => mocked.options().onNavigate('tasks'));
     expect(fetch.mock.calls.some(([path]) => path === '/api/today')).toBe(false);
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));

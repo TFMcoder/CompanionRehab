@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import type { CareAuthority } from './care-access.js';
 
-export const NANCY_POLICY_VERSION = 'nancy-2026-10-19-v5';
+export const NANCY_POLICY_VERSION = 'nancy-2026-10-21-v6';
 export interface InferenceScope extends CareAuthority { policy_version: string }
 export interface InferenceBinding extends InferenceScope {
   route_id: string;

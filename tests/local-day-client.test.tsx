@@ -33,8 +33,9 @@ describe('local day client',()=>{
   render(<LocalDayPanel service={service} scopeKey="client" today={today} onTalk={()=>{}} onChanged={()=>{}}/>);
   fireEvent.click(await screen.findByText('Keep in mind for next time'));
   fireEvent.change(screen.getByLabelText('Important context to remember'),{target:{value:'Synthetic context for tomorrow'}});
+  await waitFor(()=>expect((screen.getByLabelText('Important context to remember') as HTMLTextAreaElement).value).toBe('Synthetic context for tomorrow'));
   fireEvent.click(screen.getByRole('button',{name:'Review note'}));expect(command).not.toHaveBeenCalled();
-  expect(screen.getByRole('group',{name:'Review context change'}).textContent).toContain('Synthetic context for tomorrow');
+  expect((await screen.findByRole('group',{name:'Review context change'})).textContent).toContain('Synthetic context for tomorrow');
   fireEvent.click(screen.getByRole('button',{name:'Save note'}));await screen.findByText('Synthetic connection interruption');
   fireEvent.click(screen.getByRole('button',{name:'Save note'}));await screen.findByText('Saved.');
   expect(command).toHaveBeenCalledTimes(2);expect(command.mock.calls[1][0]).toEqual(command.mock.calls[0][0]);

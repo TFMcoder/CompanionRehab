@@ -31,9 +31,10 @@ const conversation = speech && care && reasoner ? new ConversationService(care, 
   runtimeLog?.record({ kind: 'conversation', actor_id, conversation_id, turn_id, outcome: outcome === 'completed' ? 'ok' : outcome === 'failed' ? 'error' : 'interrupted', measurements });
 }, taskRequests, features, session=>microsoft?.eligible(session)??Promise.resolve(false),microsoft,care?new NancySuggestions(care.pool):undefined) : undefined;
 const app = await createApp(config, { care, speech, conversation, runtimeLog, taskRequests, features, microsoft });
-// Durable due jobs survive process restarts; no model, microphone or external connector is called.
+// Durable due jobs survive restarts. Outlook preparation is separately consented,
+// exact-account read-only retrieval; it never calls a model or opens a microphone.
 let schedulerBusy=false;
-const runLocalJobs=async(trigger:'scheduler'|'startup'='scheduler')=>{if(!features||schedulerBusy)return;schedulerBusy=true;try{await features.day.tick(trigger);await features.support.refreshNotifications();}catch{console.error('Local reminder maintenance failed; it will be checked again.');}finally{schedulerBusy=false;}};
+const runLocalJobs=async(trigger:'scheduler'|'startup'='scheduler')=>{if(!features||schedulerBusy)return;schedulerBusy=true;try{await features.day.tick(trigger);await features.support.refreshNotifications();await microsoft?.prepareMorning();}catch{console.error('Local preparation or reminder maintenance failed; it will be checked again.');}finally{schedulerBusy=false;}};
 const scheduler=setInterval(()=>{void runLocalJobs();},30_000);scheduler.unref();
 let stopSpeechWarmup=()=>{};
 app.addHook('onClose',async()=>{clearInterval(scheduler);stopSpeechWarmup();});

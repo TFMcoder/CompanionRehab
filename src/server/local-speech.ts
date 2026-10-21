@@ -265,7 +265,7 @@ export function validateSpeechText(text: string) {
 
 /** A synthesis-only pronunciation alias; displayed text, transcript, and care data remain unchanged. */
 export function kokoroPronunciationInput(text: string) {
-  return text.replace(/\brehab\b/gi, match => match === match.toUpperCase() ? 'REEHAB' :
+  return text.replace(/\bcyclic\b/gi, 'sick lick').replace(/\brehab\b/gi, match => match === match.toUpperCase() ? 'REEHAB' :
     match[0] === match[0].toUpperCase() ? 'Reehab' : 'reehab');
 }
 

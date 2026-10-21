@@ -17,4 +17,6 @@ export const localCareMigrations = [
   '016_daily_continuity.sql',
   '017_food_focus.sql',
   '018_microsoft.sql',
+  '019_trusted_device.sql',
+  '020_microsoft_preparation.sql',
 ] as const;

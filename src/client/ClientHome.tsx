@@ -8,6 +8,8 @@ import {localDateTimeWithOffset} from '../shared/local-time';
 import {Progress} from './Progress';
 import {initialClientLayout,useFocusDock} from './client-layout';
 import './client-home.css';
+import {MicrosoftConnection,type MicrosoftClientService} from './MicrosoftConnection';
+const outlookSetupService:MicrosoftClientService={status:api.microsoftStatus,connect:api.microsoftConnect,finish:api.microsoftFinish,resources:api.microsoftResources,select:api.microsoftSelect,context:api.microsoftContext,disconnect:api.microsoftDisconnect};
 
 export interface ClientHomeProps {
  today:Today;scopeKey:string;localFeaturesAvailable:boolean;microsoftAvailable:boolean;voiceEligible:boolean;voiceAvailable:boolean;voiceTransport?:AppConfig['voice_transport'];
@@ -25,6 +27,8 @@ const faq=[
  ['What does Ask for Help do?','Tell Nancy what you are finding difficult. She can break a task into steps, help you think through options, or discuss who could help. Opening this page does not call or message anyone.'],
  ['Can Nancy send an email or invitation?','Ask Nancy for the exact email or event you want. She reviews the account, recipients, message and times with you before you confirm. Nothing is sent just by discussing it.'],
  ['When is my microphone on?','Talk to Nancy turns on the microphone for the conversation. Stop voice ends it. Closing the page also stops it. Nancy does not listen with the page closed.'],
+ ['How do I stop repeated microphone questions on my iPhone?','In Safari, open Nancy’s page menu, choose Website Settings, then set Microphone to Allow for this website. Use a normal tab. Your browser controls this permission.'],
+ ['Can I lock my phone while talking?','Nancy tries to keep your screen awake during a conversation. A manual lock, low battery or switching apps can still pause voice. Keep Nancy open while talking, and use Stop voice when finished.'],
  ['How do I suggest an improvement?','Open Suggestions for Nancy and tell her what could work better. She reads your suggestion back; say “save this suggestion” to save it for your caregiver to review.'],
 ];
 export function NancySuggestionsPanel({onTalk,scopeKey,refreshVersion=0,administrator=false,canTalk=true}:{onTalk?:()=>void;scopeKey:string;refreshVersion?:number;administrator?:boolean;canTalk?:boolean}){
@@ -40,6 +44,7 @@ function ClientGroceries({local,scopeKey,refreshVersion}:{local:boolean;scopeKey
 export function ClientHome(props:ClientHomeProps){
  const {today,scopeKey,voiceEligible,voiceAvailable,voiceTransport}=props;
  const [layout]=useState(initialClientLayout),focus=layout==='focus';
+ const [outlookSetup,setOutlookSetup]=useState(()=>new URL(window.location.href).searchParams.get('setup')==='outlook');
  const dock=useRef<HTMLElement|null>(null);
  useFocusDock(focus,dock);
  const [view,setView]=useState<ClientView>('my_day'),[voice,setVoice]=useState<LocalVoiceState>('stopped'),[voiceMessage,setVoiceMessage]=useState<string>(),[active,setActive]=useState(false),[reminderActive,setReminderActive]=useState(false);
@@ -51,9 +56,8 @@ export function ClientHome(props:ClientHomeProps){
   let current=true;setCalendar({events:[],state:props.microsoftAvailable?'loading':'off',fetchedAt:null});if(!props.microsoftAvailable)return;
   void api.microsoftCalendar(dayRange(today.local_date,today.profile!.time_zone)).then(data=>{if(current)setCalendar({events:data.calendars.flatMap(c=>c.result.items),state:data.calendars.some(c=>!c.result.complete)?'partial':'fresh',fetchedAt:data.fetched_at});}).catch(()=>{if(current)setCalendar({events:[],state:'unavailable',fetchedAt:null});});return()=>{current=false;};
  },[scopeKey,today.local_date,today.profile!.time_zone,props.microsoftAvailable,refreshVersion]);
- useEffect(()=>{const marker=new URL(window.location.href).searchParams.get('microsoft');if(!marker)return;let current=true;
-  if(marker==='finish')callback.current??=api.microsoftFinish();else callback.current??=Promise.reject(new Error('Outlook sign-in was not completed.'));
-  void callback.current.then(()=>{if(current)setRefreshVersion(v=>v+1);}).catch(()=>{if(current)setIssue('Outlook could not reconnect. Ask your caregiver to help.');}).finally(()=>{if(current){const url=new URL(window.location.href);url.searchParams.delete('microsoft');window.history.replaceState(null,'',url.pathname+url.search+url.hash);}});return()=>{current=false;};
+ useEffect(()=>{const marker=new URL(window.location.href).searchParams.get('microsoft');if(!marker)return;
+  if(props.microsoftAvailable)setOutlookSetup(true);else setIssue('Outlook is not available for this account.');
  },[scopeKey]);
  async function refresh(){try{await props.onRefresh();if(mounted.current){setIssue('');setRefreshVersion(v=>v+1);}}catch{if(mounted.current)setIssue('Your day could not refresh. Your last saved information is still shown.');}}
  async function start(purpose:ConversationPurpose='general'){
@@ -68,7 +72,11 @@ export function ClientHome(props:ClientHomeProps){
  async function stop(){epoch.current++;controller.current?.abort();controller.current=null;const prior=handle.current;handle.current=null;setActive(false);setVoice('stopped');setVoiceMessage(undefined);await prior?.stop();}
  const heading=voice==='thinking'?'Nancy is thinking':voice==='speaking'?'Nancy is speaking':voice==='listening'?'Nancy is listening':voice==='connecting'?'Starting Nancy':voice==='closing'?'Nancy is waiting':voice==='error'?'Nancy needs a moment':!voiceAvailable?'Nancy is warming up':'Ready when you are';
  return <main className={'today-shell client-home'+(focus?' client-focus':'')}><header className="client-header"><button className="client-brand" aria-label="Nancy home" onClick={()=>setView('my_day')}>Nancy</button><button className="client-suggestions-button" onClick={()=>setView('suggestions')}>Suggestions for Nancy</button></header>
-  <section ref={dock} className={'voice-panel'+(focus?' focus-voice-dock':'')} aria-label="Talk to Nancy"><div><h1 id={focus?'focus-voice-status':undefined} aria-live="polite">{heading}</h1>{(!focus||voiceMessage||!voiceEligible||!voiceAvailable)&&<p>{voiceMessage??(!voiceEligible?'Nancy’s voice is not connected for this account yet.':!voiceAvailable?'Nancy’s voice is warming up. Please try Talk to Nancy in a moment.':'Ask Nancy about your day, meals, or anything you need help with.')}</p>}</div><div className="voice-actions">{focus&&<button className="talk-button" aria-describedby="focus-voice-status" disabled={!voiceEligible||active||voice==='connecting'} onClick={()=>void start()}>Talk to Nancy</button>}{active||voice==='connecting'?<>{active&&['thinking','speaking'].includes(voice)&&handle.current?.interrupt&&<button className="interrupt-button" onClick={()=>handle.current?.interrupt()}>Interrupt Nancy</button>}<button className="stop-button" onClick={()=>void stop()}>Stop voice</button></>:!focus&&<button className="talk-button" disabled={!voiceEligible} onClick={()=>void start()}>Talk to Nancy</button>}</div></section>
+  <section ref={dock} className={'voice-panel persistent-voice-panel'+(focus?' focus-voice-dock':'')} aria-label="Talk to Nancy">
+   <div><h1 id="nancy-voice-status" aria-live="polite">{heading}</h1><p>{voiceMessage??(!voiceEligible?'Nancy’s voice is not connected for this account yet.':!voiceAvailable?'Nancy’s voice is warming up. Please try Talk to Nancy in a moment.':'Ask Nancy about your day, meals, or anything you need help with.')}</p></div>
+   <div className="voice-actions"><button className="talk-button" aria-describedby="nancy-voice-status" disabled={!voiceEligible||active||voice==='connecting'} onClick={()=>void start()}>Talk to Nancy</button>{(active||voice==='connecting')&&<button className="stop-button" onClick={()=>void stop()}>Stop voice</button>}</div>
+  </section>
+  {outlookSetup&&props.microsoftAvailable&&<section className="client-card" aria-label="Outlook setup"><h2>Outlook connection</h2><p>Use the approved Microsoft account and select its calendar and Inbox. Your caregiver can help with this step.</p><MicrosoftConnection service={outlookSetupService} scopeKey={scopeKey} localDate={today.local_date} timeZone={today.profile!.time_zone}/><button className="secondary-button" onClick={()=>{setOutlookSetup(false);setRefreshVersion(v=>v+1);const url=new URL(window.location.href);url.searchParams.delete('setup');url.searchParams.delete('microsoft');window.history.replaceState(null,'',url.pathname+url.search+url.hash);}}>Done with Outlook setup</button></section>}
   <nav className="client-tabs" aria-label="My Day views">{clientTabs.map(([id,label])=><button key={id} aria-current={view===id?'page':undefined} onClick={()=>setView(id)}>{label}</button>)}</nav>
   {issue&&<p role="status">{issue}</p>}
   {props.reminders(active||voice==='connecting',()=>void start(),setReminderActive)}
@@ -80,7 +88,7 @@ export function ClientHome(props:ClientHomeProps){
   {view==='progress'&&(props.localFeaturesAvailable?<Progress key={refreshVersion} scopeKey={scopeKey} localDate={today.local_date} visible readOnly/>:<section className="client-card"><h2>Progress</h2><p>{today.activity_ledger?`${today.activity_ledger.summary.tasks_completed} tasks done · ${today.activity_ledger.summary.meals_eaten} meals reported`:'No activity has been reported yet.'}</p></section>)}
   {view==='ask_for_help'&&<section className="client-card"><h2>Ask for Help</h2><p>What would you like a hand with?</p><button className="primary-button" disabled={!voiceEligible} onClick={()=>void start('help')}>Talk to Nancy about help</button></section>}
   {view==='suggestions'&&<NancySuggestionsPanel scopeKey={scopeKey} refreshVersion={refreshVersion} onTalk={()=>void start('suggestions')} canTalk={voiceEligible}/>}
-  {view==='ways_to_use'&&<section className="client-card" aria-label="Ways to use Nancy"><h2>Ways to use Nancy</h2>{faq.map(([question,answer])=><details className="client-faq" key={question}><summary>{question}</summary><p>{answer}</p></details>)}</section>}
+  {view==='ways_to_use'&&<section className="client-card" aria-label="Ways to use Nancy"><h2>Ways to use Nancy</h2>{faq.map(([question,answer])=><details className="client-faq" key={question}><summary>{question}</summary><p>{answer}</p></details>)}{props.microsoftAvailable&&<details className="client-faq"><summary>How do I reconnect Outlook?</summary><p>Your caregiver can help sign in with the approved Microsoft account and choose its calendar and Inbox.</p><button className="secondary-button" onClick={()=>setOutlookSetup(true)}>Open Outlook connection</button></details>}</section>}
   {props.pending}
   <footer className="client-footer"><button onClick={()=>setView('ways_to_use')}>Ways to use Nancy</button><button className="text-button" onClick={()=>void stop().then(props.onLogout)}>Sign out</button></footer>
  </main>;

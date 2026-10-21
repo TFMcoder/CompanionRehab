@@ -29,7 +29,7 @@ describe('bounded trusted Nancy guidance', () => {
   it('keeps the nutrition authority index out of a clear preference turn and retains it for recipes', () => {
     const preference = composeNancyGuidance(selectNancyGuidance('I prefer one question at a time.'), nutrition);
     expect(preference).not.toContain(nutrition);
-    expect(preference).toContain('Nutrition claims or recipe details require get_nutrition_reference');
+    expect(preference).toContain('Nutrition claims or recipe details require the supplied repository_meal_options or get_nutrition_reference');
     expect(composeNancyGuidance(selectNancyGuidance('Suggest a recipe for breakfast.'), nutrition)).toContain(nutrition);
   });
 

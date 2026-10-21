@@ -92,3 +92,5 @@ h1, h2, h3, p { margin-top: 0; } h1 { font-size: clamp(2rem, 5vw, 3.6rem); lette
 .outlook-panel article { border-top: 1px solid var(--line, #cad6d1); padding: .8rem 0; overflow-wrap: anywhere; }
 .outlook-panel article h4 { margin: .25rem 0; }
 .outlook-panel article p { margin: .3rem 0; }
+.auth-card .remember-device { display: flex; align-items: center; gap: .7rem; font-size: 1rem; font-weight: 500; }
+.auth-card .remember-device input[type=checkbox] { width: 1.5rem; min-height: 1.5rem; height: 1.5rem; flex: 0 0 auto; margin: 0; padding: 0; }

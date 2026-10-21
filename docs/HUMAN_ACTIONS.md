@@ -1,6 +1,6 @@
 # Human actions by implementation stage
 
-Updated: 2026-10-21. Generated from the canonical roadmap; all statuses below come from that file.
+Updated: 10/21/2026 22:44:23. Generated from the canonical roadmap; all statuses below come from that file.
 
 Source: [roadmap.json](roadmap/roadmap.json), in each slice's human_actions array. Edit the JSON, then run the renderer; do not maintain a separate checklist here. See [ROADMAP.md](ROADMAP.md) for feature scope and live tests.
 
@@ -109,7 +109,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
 - [ ] **S01-H04: Try Talk to Nancy and the morning planning conversation**
 
-  Owner: **participant_or_tester**. Status: **pending**. Requirement: **required**.
+  Owner: **participant_or_tester**. Status: **in_progress**. Requirement: **required**.
 
   **When:** After S01-LIVE2's disposable safety/restore checks pass and the working S01 feature is ready.
   **Blocks:** Completing this feature slice.
@@ -123,7 +123,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Agent prepares or handles:** Prepare the working combined voice/task/meal feature before asking for a session. Verify committed plan versions, permissions, duplicate/stale protection and restore behavior; collect sanitized technical observations.
 
-  **Completion evidence:** Observed actual two-way voice, accepted plan and revision/readback evidence on the intended device; do not substitute a dictated-text mock.
+  **Completion evidence:** Observed actual two-way voice, accepted plan and revision/readback evidence on the intended device; do not substitute a dictated-text mock. October 21 caregiver reports actual intended-client conversation and specific usability failures. This begins the real trial but does not pass accepted-plan/revision, genuine-morning, device or full-slice acceptance. Repair and follow-up are recorded in docs/evidence/LIVE-TEST-REPAIRS-2026-10-21.json.
 
   **Linked inputs/tests:** S01-LIVE1, S01-LIVE3.
 
@@ -186,7 +186,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Linked inputs/tests:** I-PROTOCOL.
 
-  **Not applicable because:** This implementation supports ordinary household meal choices only; no clinical nutrition targets or prescribed-diet protocol has been supplied, retained or implemented. Reassess before adding clinical constraints.
+  **Not applicable because:** Reassessed October 21 after reported type 2 meal-personalization needs: the increment uses general repository meal examples and explicitly reviewed self-reported context/preferences, not prescribed diets, numeric clinical targets, medication advice or an approved clinical protocol. No such instructions were supplied or inferred. Reassess before adding clinical constraints.
 
 - [ ] **S01-H08: Verify selected Heart delivery and foreground wake preference**
 
@@ -433,7 +433,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Agent prepares or handles:** Verify the existing app registration and newly reported Microsoft access first. Prepare the exact Web callback on the established HTTPS origin, protected credential setup and delegated scopes; reuse prior decisions and request only missing tenant decisions or interactive personal sign-in. No new subscription is assumed. Build bounded retrieval and reviewed external action commands, ledger/provider mappings, renewal/revocation and reconciliation; test safe failure and duplicate prevention on isolated/provider test records before the genuine trial.
 
-  **Completion evidence:** Reuse completed exact-account setup, sole-user assignment, assignment requirement, seven-scope consent and client OAuth. The October 19 owner-authorized selected-resource reasoning use and exact disposable email/15-minute invitation tests are deployed and provider-verified; receipts persist and Nancy retrieves the live event time. See docs/evidence/OUTLOOK-CONVERSATIONS-2026-10-19.json. No repeated sign-in, password, IT role or access decision is needed. Genuine intended-person/device/workflow acceptance, broader edits/cancellation and real revocation/disconnect recovery remain open; this action stays in_progress.
+  **Completion evidence:** Reuse completed exact-account setup, sole-user assignment, assignment requirement, seven-scope consent and client OAuth. The October 19 owner-authorized selected-resource reasoning use and exact disposable email/15-minute invitation tests are deployed and provider-verified; receipts persist and Nancy retrieves the live event time. See docs/evidence/OUTLOOK-CONVERSATIONS-2026-10-19.json. No repeated sign-in, password, IT role or access decision is needed. Genuine intended-person/device/workflow acceptance, broader edits/cancellation and real revocation/disconnect recovery remain open; this action stays in_progress. October 21 inspection found reconnect_required with previously erased token/resource selections. The repair preserves existing Microsoft administrator consent/assignment/scopes and fixes expiry erasure. One interactive intended-client reconnect and selected-resource live read are now required; do not repeat tenant approval or the earlier provider writes. See docs/evidence/LIVE-TEST-REPAIRS-2026-10-21.json.
 
   **Linked inputs/tests:** I-CALENDAR-EXTERNAL, S06-LIVE3, S06-LIVE4, S06-LIVE5, S06-LIVE6.
 

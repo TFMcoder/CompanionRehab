@@ -258,7 +258,9 @@ export function loadNutritionReference(options: { docsDir?: string; maxResultCha
     const id = rule.slice(0, 3);
     const fragments = compactFragments[id];
     if (!fragments?.every(fragment => behavior.includes(fragment))) throw new NutritionReferenceError('invalid_reference_source', `Nutrition authority rule ${id} changed; update the bounded context explicitly.`);
-    return `${rule}: ${fragments.join(' ')}`;
+    // Preserve the verified provenance contract while adapting its presentation for voice.
+    const spoken=fragments.join(' ').replace('Attach claim IDs/source IDs to explanations.','Keep claim/source IDs in metadata, not speech.');
+    return `${rule}: ${spoken}`;
   });
   const authorityText = [
     `Precedence: ${precedence}`,

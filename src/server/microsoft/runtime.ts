@@ -6,7 +6,7 @@ import type {Config} from '../config.js';
 import {createMicrosoftOAuthClient} from './oauth.js';
 import {MicrosoftService} from './service.js';
 
-const setup=z.object({enabled:z.literal(true),localDataUseApproved:z.literal(true),modelUseApproved:z.boolean().default(false),reviewedWritesApproved:z.boolean().default(false),tenantId:z.uuid(),clientId:z.uuid(),expectedObjectId:z.uuid(),actorId:z.uuid(),participantId:z.uuid(),redirectUri:z.url(),certificateFile:z.string().min(1),privateKeyFile:z.string().min(1),encryptionKeyFile:z.string().min(1)}).strict();
+const setup=z.object({enabled:z.literal(true),localDataUseApproved:z.literal(true),modelUseApproved:z.boolean().default(false),reviewedWritesApproved:z.boolean().default(false),preparationApproved:z.boolean().default(false),tenantId:z.uuid(),clientId:z.uuid(),expectedObjectId:z.uuid(),actorId:z.uuid(),participantId:z.uuid(),redirectUri:z.url(),certificateFile:z.string().min(1),privateKeyFile:z.string().min(1),encryptionKeyFile:z.string().min(1)}).strict();
 /** Optional private setup. Merely creating an Entra registration never enables mailbox access. */
 export async function createMicrosoftRuntime(config:Config,pool:Pool):Promise<MicrosoftService|undefined>{
  const file=process.env.NANCY_MICROSOFT_CONFIG;

@@ -2,7 +2,7 @@
   "$schema": "./roadmap.schema.json",
   "roadmap_id": "companion-rehab",
   "schema_version": "1.8.0",
-  "updated_at": "2026-10-21",
+  "updated_at": "2026-10-21T22:44:23.386Z",
   "planning_status": "ready_for_implementation",
   "implementation_status": "in_progress",
   "source_of_truth": "docs/roadmap/roadmap.json",
@@ -66,7 +66,8 @@
     "October 18 final caregiver direction: the owner states that Nancy is for their caregiver purposes and explicitly requests integration of the existing Pro connection for the permanent client before later migration. Retain no API billing, exact Sol/high and Heart, actual speaker/participant/account-owner identities, existing care grants and client-only acceptance. Prepare only the exact named caregiver/client binding; no global account switching, credential copying or general multi-user route. Automatic approval review rejected the live test; finish unaffected engineering, preserve the disabled production state and seek explicit action approval for another review without claiming provider eligibility. The owner subsequently explicitly approved the precise flagged test/activation for another review. That review allowed it; 16 real-service checks passed with one actual Sol/high request, exact activation applied, and 7 HTTPS checks plus the existing authenticated client browser verified the deployed route. Reuse this completed action approval without claiming a provider-issued exception or waiving person/device/full-slice acceptance.",
     "October 19 owner-authorized Focus experiment: preserve and verify the current UI for rollback, retain it as the default, and provide an authenticated opt-in review link with a centered Talk to Nancy control always visible while scrolling. Shared voice/data/account boundaries remain unchanged.",
     "October 19 owner decision: Current is the approved and locked production client design after comparison with Focus. Disable shipped Focus review, preserve its implementation/rollback evidence, run feature regressions, scan pending repository/code changes and prepare a local/GitHub merge proposal. Design approval does not waive actual intended-person/device/genuine-day or full-slice gates.",
-    "October 21 owner direction: create a separate duplicate database and owner tester login outside the intended clients live use. Duplicate the current schema and locked Current UI with synthetic care data, a restricted database role, distinct participant, session key/cookies/origin and Windows task. Disable Outlook and preserve live data, credentials, caregiver binding and routes. Retain only the same actual owners existing immutable owner-practice reasoning connection, with no credential copying, API billing or new-user route. Owner-only sandbox verification does not complete intended-person/device/genuine-day or full-slice gates."
+    "October 21 owner direction: create a separate duplicate database and owner tester login outside the intended clients live use. Duplicate the current schema and locked Current UI with synthetic care data, a restricted database role, distinct participant, session key/cookies/origin and Windows task. Disable Outlook and preserve live data, credentials, caregiver binding and routes. Retain only the same actual owners existing immutable owner-practice reasoning connection, with no credential copying, API billing or new-user route. Owner-only sandbox verification does not complete intended-person/device/genuine-day or full-slice gates.",
+    "October 21 intended-client live-test feedback: preserve Current while making its centered Talk control persistent at the top, remove speech interruption, reduce measured reply/connector waits without changing Sol-high/Heart or billing, correct cyclic pronunciation, retrieve repository type 2 meal references before reasoning, retain only client-reviewed lasting preferences/context, offer optional bounded trusted-device sign-in, and support foreground screen wake lock plus honest Safari permission/lock limits. Reuse the existing scheduler for separately approved read-only morning Outlook preparation; no background inference, outreach, microphone activation or new provider action. Repair local-session expiry erasing Outlook consent; a deleted token requires one interactive client reconnect, not repeated tenant consent. Keep the isolated owner test instance and exact live caregiver binding separate."
   ],
   "constraints": {
     "budget": {
@@ -471,7 +472,8 @@
         "October 19 client iteration: exactly Tasks, Meals, Groceries, Progress and Ask for Help; voice-first changes without client text fields/dropdowns; top Suggestions for Nancy with separate reviewed feedback receipts; Ways to use Nancy FAQ; read-only source-attributed day timeline. Staff setup remains separate. Ordinary task choice and local appointment use existing reviewed voice command/recovery paths.",
         "Owner-authorized opt-in Focus presentation experiment alongside the unchanged default Current layout, verified source/build rollback, persistent horizontally centered Talk to Nancy control, measured safe-area/scroll clearance, shared conversation/scope cleanup and authenticated review link.",
         "Owner-approved locked Current client design with Focus review disabled in the production entry, preserved experiment/rollback, fresh feature/security/privacy checks and a reviewable local/GitHub merge proposal.",
-        "Separate owner-only synthetic test instance with its own schema-equivalent database, restricted role, login/session/revocation scope and HTTPS origin; locked Current UI with a test-only label, Microsoft disabled and unchanged owner reasoning binding."
+        "Separate owner-only synthetic test instance with its own schema-equivalent database, restricted role, login/session/revocation scope and HTTPS origin; locked Current UI with a test-only label, Microsoft disabled and unchanged owner reasoning binding.",
+        "October 21 live-test repair increment: persistent top-centered Current Talk/Stop, no automatic speech interruption, synthesis pronunciation alias, first-round repository meal context/plain speech, client-reviewed persistent personalization, optional 30-day trusted-device login and foreground wake lock with browser-controlled microphone permission."
       ],
       "out_of_scope": [
         "Meal intake reporting and task completion history (S02)",
@@ -815,6 +817,17 @@
           ],
           "scenario": "Validate strict isolated database/profile/owner configuration; exercise independent encrypted cookies, production defaults and failed Microsoft-callback cleanup. Test actual restricted-role denial of live care tables, a synthetic save/replay, absence of test IDs from live tables, authenticated owner-only route and disconnected Outlook. Verify the labelled locked client and preserve existing service routes/configuration.",
           "expected": "The account owner can test a separate synthetic profile without access to live care tables, live session replacement, Outlook actions, provider rebinding or API fallback. Actual person/device/full-slice gates remain open."
+        },
+        {
+          "id": "S01-AUTO16",
+          "criterion_ids": [
+            "S01-AC01",
+            "S01-AC04",
+            "S01-AC11",
+            "S01-AC17"
+          ],
+          "scenario": "Exercise persistent Current Talk and Stop across views without an Interrupt control; discard microphone speech during preparation/playback. Verify synthesis-only cyclic pronunciation, source-backed meal options before reasoning, optional 30-day cookie/server expiry and rotation/revocation, foreground wake-lock cancellation/denial, and no connector setup for an ineligible practice account.",
+          "expected": "The user-requested Current revision remains simple, bounded and scope-safe. A date/permission/model/speech failure is truthful; no clinical protocol, permanent real-person note, automatic microphone or locked-screen guarantee is invented."
         }
       ],
       "live_tests": [
@@ -913,7 +926,7 @@
         "S03",
         "S04"
       ],
-      "implementation_revision": "sha256:1a6ab680bc6f4ddf144daab22ba2af2ee82ee77c8280fe9334025af7286bfd73",
+      "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
       "blockers": [
         "October 19 merge-preparation engineering qualification passes 963 full regressions (one optional skip), 219 disposable-PostgreSQL matrix checks and 67 actual HTTP recovery/restore checks. Current design is owner-approved and locked. These scoped results do not pass broader unrun live/canonical scenarios. See docs/evidence/MERGE-PREP-2026-10-19.json.",
         "October 19 Focus experiment is deployed behind an explicit review link while Current remains default. The exact Current source/build restore, byte-identical rebuild, real restore command, refusal drills, automated suite and deployed scrolling/default checks pass. Intended-person/device acceptance remains awaiting_live_test while the intended client is unavailable. See docs/evidence/FOCUS-UI-2026-10-19.json.",
@@ -925,7 +938,8 @@
         "The established client database must be preserved as care data, not treated as an empty fixture. Actual reporting, daily reliance and broader operational acceptance remain governed by their slice and release gates.",
         "October 18 scoped S01-AUTO10 context/energy/preference and timing-choice engineering qualification passes; broader S01-AUTO6/AUTO11 matrices, intended-client inference and physical iPhone/Safari/live usefulness remain open. See docs/evidence/DAILY-LOOP-GAPS-2026-10-18.json.",
         "FIN-05 continuation: permanent client identity and original care attribution are preserved; the owner explicitly selected and action-approved the exact existing-Pro caregiver connection for their purposes, now operationally tested/deployed. Genuine client acceptance and remaining full provider/account/deployment qualification are separate and open. No paid API trial, general account sharing, credential transfer or expanded care permissions were enabled. See docs/evidence/CAREGIVER-VOICE-2026-10-18.json.",
-        "October 18 caregiver operational route is now tested, activated and deployed after new explicit informed owner approval and a permitted resubmitted automatic review. One real synthetic Sol/high request completed within 16 actual service checks; 900 tests (one optional skip), actual PostgreSQL/HTTP/local speech and 7 HTTPS checks pass, with enabled Talk verified in the existing client browser. The initial review rejection is resolved for this exact action, not a provider-issued exception. Physical iPhone/Safari microphone/audible use, actual person/genuine-day usefulness, remaining credential/provider-failure matrices and full-slice qualification stay open. See docs/evidence/CAREGIVER-VOICE-2026-10-18.json."
+        "October 18 caregiver operational route is now tested, activated and deployed after new explicit informed owner approval and a permitted resubmitted automatic review. One real synthetic Sol/high request completed within 16 actual service checks; 900 tests (one optional skip), actual PostgreSQL/HTTP/local speech and 7 HTTPS checks pass, with enabled Talk verified in the existing client browser. The initial review rejection is resolved for this exact action, not a provider-issued exception. Physical iPhone/Safari microphone/audible use, actual person/genuine-day usefulness, remaining credential/provider-failure matrices and full-slice qualification stay open. See docs/evidence/CAREGIVER-VOICE-2026-10-18.json.",
+        "October 21 intended-client feedback is a real partial trial with material usability defects; the repaired iPhone/Safari, pronunciation, conversational latency and reviewed personalization paths need a follow-up actual-device run. This feedback is not a full-slice pass."
       ],
       "test_results": [
         {
@@ -1061,17 +1075,6 @@
           "notes": "Final implemented suite: 710 tests passed, one optional skip across 88 files; typecheck/build passed. voice-timing, client-voice-metrics, conversation and client voice tests cover numeric endpoint/playback timing, unknown observations, metadata filtering, actor/reply authorization, navigation and cancellation. Complete cold/warm and aborted-stage propagation across every named stage has not been established; physical-device latency remains separately open. Blocked denotes incomplete canonical qualification, not a failing regression; the suite aggregate is not a full contract pass."
         },
         {
-          "test_id": "S01-LIVE3",
-          "outcome": "blocked",
-          "implementation_revision": "sha256:d40236d62bd4fd2c3bfb2fa4616d859f736db57b4cbdc7096b6bb53e00ae0c0e",
-          "executed_at": "2026-10-14T07:02:30Z",
-          "environment": "live_real_services",
-          "data_origin": "disposable_live",
-          "observed_by": "Codex final real-service qualification and acceptance-scope review",
-          "evidence_ref": "docs/evidence/DAILY-COMPANION-2026-10-14.json",
-          "notes": "Final owner-bound Sol-high/Heart, disposable PostgreSQL/HTTP and synthetic-browser checks provide engineering evidence for the implemented paths; deployed read/greeting/navigation/logout checks also passed. The full canonical scenario, qualified intended-client route and applicable physical-device/second-device/fallback matrix remain open. Generated audio, typed turns and fixture clock advances are not actual microphone or genuine-day acceptance. See evidence for precise per-probe scope and times."
-        },
-        {
           "test_id": "S01-AUTO12",
           "outcome": "pass",
           "implementation_revision": "sha256:a593770edaa6822848a097cc427962ebcd79ab301cae0702215aca63c4c52c34",
@@ -1114,6 +1117,28 @@
           "observed_by": "Codex automated regression, actual restricted PostgreSQL/HTTP, one synthetic real owner inference/Heart and authenticated test browser",
           "evidence_ref": "docs/evidence/OWNER-TEST-2026-10-21.json",
           "notes": "Separate owner test instance is deployed: 976 regressions pass, 1 optional skip; 27 focused checks; 31 actual DB/HTTP isolation checks; one real owner-only Sol-high request plus Heart audio; browser login and synthetic save verified. Production configuration/process/assets and prior ingress routes are preserved. No full slice, intended-person, genuine-day or physical microphone gate is completed."
+        },
+        {
+          "test_id": "S01-AUTO16",
+          "outcome": "pass",
+          "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
+          "executed_at": "2026-10-21T22:44:23.386Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex synthetic regression, actual disposable PostgreSQL and scoped owner-practice engineering verification",
+          "evidence_ref": "docs/evidence/LIVE-TEST-REPAIRS-2026-10-21.json",
+          "notes": "Full pre-projection regression 993 pass/2 optional skips; final prompt projection 88 pass, 71 actual PostgreSQL synthetic-provider checks, 3 recovery/login UI checks, three bounded synthetic owner Sol-high/Heart requests and deployed browser/readiness/data checks. Both services are deployed and 15 protected care tables per database are unchanged. Model latency remains open; real Outlook reconnect, actual morning preparation and intended-person/Safari acceptance remain awaiting_live_test. No full slice is completed."
+        },
+        {
+          "test_id": "S01-LIVE3",
+          "outcome": "blocked",
+          "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
+          "executed_at": "2026-10-21T22:44:23.386Z",
+          "environment": "live_real_services",
+          "data_origin": "disposable_live",
+          "observed_by": "Codex deployed readiness and private connection-state inspection; actual person/provider interaction pending",
+          "evidence_ref": "docs/evidence/LIVE-TEST-REPAIRS-2026-10-21.json",
+          "notes": "Updated intended-person iPhone/Safari and useful audible timing have not been retested; prior caregiver feedback identified defects. Owner typed practice, generated audio and desktop scrolling cannot pass this scenario."
         }
       ],
       "human_actions": [
@@ -1237,13 +1262,13 @@
             "Prepare the working combined voice/task/meal feature before asking for a session.",
             "Verify committed plan versions, permissions, duplicate/stale protection and restore behavior; collect sanitized technical observations."
           ],
-          "expected_evidence": "Observed actual two-way voice, accepted plan and revision/readback evidence on the intended device; do not substitute a dictated-text mock.",
+          "expected_evidence": "Observed actual two-way voice, accepted plan and revision/readback evidence on the intended device; do not substitute a dictated-text mock. October 21 caregiver reports actual intended-client conversation and specific usability failures. This begins the real trial but does not pass accepted-plan/revision, genuine-morning, device or full-slice acceptance. Repair and follow-up are recorded in docs/evidence/LIVE-TEST-REPAIRS-2026-10-21.json.",
           "related_input_ids": [],
           "related_test_ids": [
             "S01-LIVE1",
             "S01-LIVE3"
           ],
-          "status": "pending",
+          "status": "in_progress",
           "completion_ref": null,
           "completed_at": null,
           "not_applicable_reason": null
@@ -1332,7 +1357,7 @@
           "status": "not_applicable",
           "completion_ref": null,
           "completed_at": null,
-          "not_applicable_reason": "This implementation supports ordinary household meal choices only; no clinical nutrition targets or prescribed-diet protocol has been supplied, retained or implemented. Reassess before adding clinical constraints."
+          "not_applicable_reason": "Reassessed October 21 after reported type 2 meal-personalization needs: the increment uses general repository meal examples and explicitly reviewed self-reported context/preferences, not prescribed diets, numeric clinical targets, medication advice or an approved clinical protocol. No such instructions were supplied or inferred. Reassess before adding clinical constraints."
         },
         {
           "id": "S01-H08",
@@ -2053,7 +2078,8 @@
         "A short multi-day live trial of the first four slices",
         "Explicit conversation about each missed prior-day task: still needed, changed priority, help needed, duration and proposed placement; retain unresolved items until reviewed",
         "Durable local scheduler for opted-in meal/appointment prompts, quiet hours, duplicate/missed-run handling and notification permission; foreground Nancy speech only while My Day is active, with supported browser notification fallback",
-        "Quiet idempotent morning/startup/open preparation using the shared bounded context operation and existing scheduler; active bounded significant-event handoffs; food-first then focus check-in increments with explicit task sessions and durable snooze."
+        "Quiet idempotent morning/startup/open preparation using the shared bounded context operation and existing scheduler; active bounded significant-event handoffs; food-first then focus check-in increments with explicit task sessions and durable snooze.",
+        "Separately approved bounded quiet Outlook preparation within the existing scheduler, encrypted five-minute snapshots and restart/due recovery; no model, microphone, new reminder, plan acceptance or inferred completion."
       ],
       "out_of_scope": [
         "Unconsented/outbound-call reminders, scheduled model/connector inference, closed-browser speech and automatic microphone activation. Quiet deterministic local preparation is in scope; wider push delivery requires a separately qualified channel.",
@@ -2261,6 +2287,15 @@
           ],
           "scenario": "First exercise personal waking intake checks with late/corrected meals and missing reports; then explicit task sessions with pause/resume/finish, repeated starts, agreed interval, long elapsed time and unknown actual work. Race conversation, duplicate delivery, snooze, restart, quiet hours and revocation.",
           "expected": "One useful consented interaction with durable suppression/snooze, no stale repeat or overlap, no overnight fasting claim or inferred hyperfixation, and no false closed-browser/microphone promise."
+        },
+        {
+          "id": "S04-AUTO8",
+          "criterion_ids": [
+            "S04-AC05",
+            "S04-AC08"
+          ],
+          "scenario": "Under separate exact-account preparation consent, exercise local 06:00–11:00 readiness, five-minute due/restart recovery, encrypted dated snapshots, out-of-window and revoked/changed-scope denial, concurrent reads and expiry. Keep Inbox recency independent of the calendar range.",
+          "expected": "Preparation reuses existing durable state without model/outreach/microphone or task/meal effects. Stale/partial data never establish free time, a reply status or care completion."
         }
       ],
       "live_tests": [
@@ -2319,6 +2354,19 @@
             "Exercise food-check delivery first, then explicit task timing and a focus check; snooze/decline, complete/correct the underlying item, restart and deny notification permission. Verify no overlapping or stale prompt and truthful closed-page behaviour."
           ],
           "expected": "Real-service/device preparation, bounded handoff and prompt recovery satisfy the stated boundaries; disposable fixtures do not qualify three genuine days or a genuine focus/food interaction."
+        },
+        {
+          "id": "S04-LIVE4",
+          "criterion_ids": [
+            "S04-AC05",
+            "S04-AC08"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "After the approved Outlook account has reconnected and selected its authorized resources, observe an actual participant-local morning preparation within 06:00–11:00, with the browser closed and no model/microphone/outreach.",
+            "Open the intended client and inspect exact source freshness, coming-week calendar and recent selected Inbox coverage; repeat after a real change and expired snapshot. Verify that unread/partial messages are not called unanswered and prepared plans are not called accepted or performed."
+          ],
+          "expected": "An actual separately consented scheduled source read and useful dated retrieval are evidenced. Synthetic clock shifts, mock Graph responses and owner-practice inference do not complete this test."
         }
       ],
       "story_refs": [
@@ -2335,13 +2383,14 @@
         "S01",
         "S04"
       ],
-      "implementation_revision": "sha256:f50fd9292c845d88deab0b20d3d01a4694ae68da430f2014299c7dbaaccead87",
+      "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
       "blockers": [
         "October 19 merge-preparation engineering qualification passes 963 full regressions (one optional skip), 219 disposable-PostgreSQL matrix checks and 67 actual HTTP recovery/restore checks. Current design is owner-approved and locked. These scoped results do not pass broader unrun live/canonical scenarios. See docs/evidence/MERGE-PREP-2026-10-19.json.",
         "S03 is unfinished; its completion dependency remains in force.",
         "Prompt preferences require participant confirmation before actual delivery. Three genuine local days, a genuinely due consented prompt and physical-browser fallback have not been observed.",
         "October 18 S04-AUTO4-AUTO7 scheduler/delivery, quiet/DST preparation, restored handoff and consented food/focus engineering qualification passes. Broader S04-AUTO1-AUTO3 repeat-day qualification and actual intended-device/useful delivery remain open. See docs/evidence/DAILY-LOOP-GAPS-2026-10-18.json.",
-        "S04-LIVE3, three genuine local dates, relevant naturally occurring handoff review and a useful consented food prompt followed by a real-task focus check remain open. Synthetic clock advances, disposable incidents and browser automation cannot pass these human-use gates."
+        "S04-LIVE3, three genuine local dates, relevant naturally occurring handoff review and a useful consented food prompt followed by a real-task focus check remain open. Synthetic clock advances, disposable incidents and browser automation cannot pass these human-use gates.",
+        "October 21 quiet Outlook preparation is separately permission gated and engineered/tested; an actual scheduled morning/provider read cannot pass before the intended account reconnects and the real window is observed. S04-LIVE4 remains awaiting_live_test."
       ],
       "test_results": [
         {
@@ -2442,6 +2491,28 @@
           "observed_by": "Codex final real-service qualification and acceptance-scope review",
           "evidence_ref": "docs/evidence/DAILY-COMPANION-2026-10-14.json",
           "notes": "Final owner-bound Sol-high/Heart, disposable PostgreSQL/HTTP and synthetic-browser checks provide engineering evidence for the implemented paths; deployed read/greeting/navigation/logout checks also passed. The full canonical scenario, qualified intended-client route and applicable physical-device/second-device/fallback matrix remain open. Generated audio, typed turns and fixture clock advances are not actual microphone or genuine-day acceptance. See evidence for precise per-probe scope and times."
+        },
+        {
+          "test_id": "S04-AUTO8",
+          "outcome": "pass",
+          "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
+          "executed_at": "2026-10-21T22:44:23.386Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex synthetic regression, actual disposable PostgreSQL and scoped owner-practice engineering verification",
+          "evidence_ref": "docs/evidence/LIVE-TEST-REPAIRS-2026-10-21.json",
+          "notes": "Full pre-projection regression 993 pass/2 optional skips; final prompt projection 88 pass, 71 actual PostgreSQL synthetic-provider checks, 3 recovery/login UI checks, three bounded synthetic owner Sol-high/Heart requests and deployed browser/readiness/data checks. Both services are deployed and 15 protected care tables per database are unchanged. Model latency remains open; real Outlook reconnect, actual morning preparation and intended-person/Safari acceptance remain awaiting_live_test. No full slice is completed."
+        },
+        {
+          "test_id": "S04-LIVE4",
+          "outcome": "blocked",
+          "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
+          "executed_at": "2026-10-21T22:44:23.386Z",
+          "environment": "live_real_services",
+          "data_origin": "real_consented",
+          "observed_by": "Codex deployed readiness and private connection-state inspection; actual person/provider interaction pending",
+          "evidence_ref": "docs/evidence/LIVE-TEST-REPAIRS-2026-10-21.json",
+          "notes": "The actual separately approved scheduled morning Outlook read awaits client reconnect and a real morning window. Synthetic clocks and mock Graph responses are engineering evidence only."
         }
       ],
       "human_actions": [
@@ -2804,7 +2875,8 @@
         "Transactional outbound completion with retries and conflict review",
         "Microsoft 365 delegated OAuth for selected mailbox/calendar; bounded reads and user-reviewed calendar create/update/cancel, mail drafts/edits and sending",
         "Reconcile calendar changes/outages without silently altering accepted task/meal plans or double-booking",
-        "Explicit review of external recipients, content, event changes and invitation/cancellation effects; durable intent/result records and safe reconciliation of unknown provider outcomes"
+        "Explicit review of external recipients, content, event changes and invitation/cancellation effects; durable intent/result records and safe reconciliation of unknown provider outcomes",
+        "Repair expiration versus durable consent, independent Inbox lookback, explicit local dates/DST, bounded concurrent reads, exact-grant preparation/invalidation and scoped reconnect/resource-selection recovery without new tenant permissions."
       ],
       "out_of_scope": [
         "Asana-wide access",
@@ -2967,6 +3039,15 @@
           ],
           "scenario": "Selected Outlook conversation data remains lower trust and consent bound; exact email/new-invitation UI and voice reviews precede dispatch. Exercise expired/changed reviews, account isolation, interruption/playback, concurrent confirmation, restart and uncertain provider responses.",
           "expected": "Only the exact reviewed new action dispatches once; encrypted durable claims/receipts preserve truthful accepted/verified/unknown states and safe read-only reconciliation. No care-task acceptance or provider delivery/attendee acceptance is inferred."
+        },
+        {
+          "id": "S06-AUTO8",
+          "criterion_ids": [
+            "S06-AC03",
+            "S06-AC05"
+          ],
+          "scenario": "Distinguish browser login expiry from actual durable account/grant/provider invalidation; preserve consent during temporary refresh failure and fail closed for damaged tokens. Exercise wider local dates/DST, prepared-context expiry/resource isolation, bounded actual PostgreSQL lock waits, drained concurrent reads, and reviewed additive migrations 019/020 with restore/rollback.",
+          "expected": "Expired local sessions cannot erase an otherwise authorized connector or disclose cached content. Actual revocation still clears credentials/context. Reads and failures stay bounded; no write is retried or new account/scope is introduced."
         }
       ],
       "live_tests": [
@@ -3074,6 +3155,19 @@
             "Reopen the browser, read both durable verified receipts, and ask Nancy to retrieve the disposable event time without changing anything; verify unrelated existing care tables remain unchanged."
           ],
           "expected": "Exactly the two reviewed actions are provider-verified, their receipts survive reopening, and Nancy uses the selected live calendar context without inferring delivery, attendee acceptance or care completion. This bounded checkpoint does not replace S06-LIVE3 through S06-LIVE6."
+        },
+        {
+          "id": "S06-LIVE9",
+          "criterion_ids": [
+            "S06-AC03",
+            "S06-AC05"
+          ],
+          "data_policy": "real_consented",
+          "steps": [
+            "Use the existing account-bound reconnect screen with interactive intended-client sign-in and selected calendar/Inbox; retain existing tenant consent and sole-user assignment. Do not reuse deleted tokens or repeat prior email/invitation tests.",
+            "Ask for tomorrow and an explicitly dated coming-week interval, verify a bounded selected-resource read and source freshness, then observe ordinary local-session renewal without losing Outlook. Qualify actual provider refresh/revocation and preparation separately."
+          ],
+          "expected": "Live Outlook is demonstrably available across the requested dates under the unchanged exact account/grant, and ordinary Nancy authentication expiry no longer disconnects it. Until observed the recovery gate remains awaiting_live_test."
         }
       ],
       "story_refs": [
@@ -3082,12 +3176,13 @@
         "S02",
         "S04"
       ],
-      "implementation_revision": "sha256:f50fd9292c845d88deab0b20d3d01a4694ae68da430f2014299c7dbaaccead87",
+      "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
       "blockers": [
         "October 19 merge-preparation engineering qualification passes 963 full regressions (one optional skip), 219 disposable-PostgreSQL matrix checks and 67 actual HTTP recovery/restore checks. Current design is owner-approved and locked. These scoped results do not pass broader unrun live/canonical scenarios. See docs/evidence/MERGE-PREP-2026-10-19.json.",
         "October 19 simplified-client timeline adds a bounded selected-calendar-only read, without Inbox retrieval. Current full regression, focused and actual PostgreSQL checks pass; the deployed authenticated timeline displays the already-authorized test event. Existing account/credential/config hashes and nine care tables are unchanged. Removed client Outlook settings do not remove the connection or authorize new writes. Earlier S06 live receipts remain historical and are not replayed. See docs/evidence/CLIENT-INTERFACE-2026-10-19.json.",
         "October 19 scoped checkpoint is deployed: selected Calendar/Inbox in Nancy reasoning and exact reviewed new email/invitation actions reuse completed the intended client-only Microsoft setup. Two specifically requested disposable live actions are provider-verified, durable receipts survive reopening, and Nancy retrieves the new event time. Nine existing care tables are unchanged. See docs/evidence/OUTLOOK-CONVERSATIONS-2026-10-19.json.",
-        "Full S06 still requires S02 dependency completion, Asana, mail draft editing, calendar update/cancel, genuine intended-person/device/workflow acceptance and real authorization-loss/disconnect recovery. S06-H03 remains in_progress. The original Entra workflow row stays Not reviewed despite independently verified actual grants; do not repeat consent or change reviewer policy to clear the old marker."
+        "Full S06 still requires S02 dependency completion, Asana, mail draft editing, calendar update/cancel, genuine intended-person/device/workflow acceptance and real authorization-loss/disconnect recovery. S06-H03 remains in_progress. The original Entra workflow row stays Not reviewed despite independently verified actual grants; do not repeat consent or change reviewer policy to clear the old marker.",
+        "October 21 live Outlook token/resource selections were already erased by an authorization-failure path. The repaired code must not recreate credentials from backups: interactive intended-client reconnect and exact resource selection/read remain necessary. Existing tenant consent is preserved; S06-LIVE9 is awaiting_live_test."
       ],
       "test_results": [
         {
@@ -3188,6 +3283,28 @@
           "observed_by": "Codex engineering and authenticated deployed-client/provider verification",
           "evidence_ref": "docs/evidence/OUTLOOK-CONVERSATIONS-2026-10-19.json",
           "notes": "The specifically requested new email/invitation subset passes under S06-LIVE8. Draft editing, event update/cancel and the remaining real recovery drills have not run, so this broader scenario is not passed."
+        },
+        {
+          "test_id": "S06-AUTO8",
+          "outcome": "pass",
+          "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
+          "executed_at": "2026-10-21T22:44:23.386Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex synthetic regression, actual disposable PostgreSQL and scoped owner-practice engineering verification",
+          "evidence_ref": "docs/evidence/LIVE-TEST-REPAIRS-2026-10-21.json",
+          "notes": "Full pre-projection regression 993 pass/2 optional skips; final prompt projection 88 pass, 71 actual PostgreSQL synthetic-provider checks, 3 recovery/login UI checks, three bounded synthetic owner Sol-high/Heart requests and deployed browser/readiness/data checks. Both services are deployed and 15 protected care tables per database are unchanged. Model latency remains open; real Outlook reconnect, actual morning preparation and intended-person/Safari acceptance remain awaiting_live_test. No full slice is completed."
+        },
+        {
+          "test_id": "S06-LIVE9",
+          "outcome": "blocked",
+          "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
+          "executed_at": "2026-10-21T22:44:23.386Z",
+          "environment": "live_real_services",
+          "data_origin": "real_consented",
+          "observed_by": "Codex deployed readiness and private connection-state inspection; actual person/provider interaction pending",
+          "evidence_ref": "docs/evidence/LIVE-TEST-REPAIRS-2026-10-21.json",
+          "notes": "The live service is repaired and ready, but the existing token is absent and state is reconnect_required. Interactive approved-client sign-in/resource selection and actual bounded reads remain necessary. Existing tenant consent/assignment/scopes are preserved."
         }
       ],
       "human_actions": [
@@ -3265,7 +3382,7 @@
             "Verify the existing app registration and newly reported Microsoft access first. Prepare the exact Web callback on the established HTTPS origin, protected credential setup and delegated scopes; reuse prior decisions and request only missing tenant decisions or interactive personal sign-in. No new subscription is assumed.",
             "Build bounded retrieval and reviewed external action commands, ledger/provider mappings, renewal/revocation and reconciliation; test safe failure and duplicate prevention on isolated/provider test records before the genuine trial."
           ],
-          "expected_evidence": "Reuse completed exact-account setup, sole-user assignment, assignment requirement, seven-scope consent and client OAuth. The October 19 owner-authorized selected-resource reasoning use and exact disposable email/15-minute invitation tests are deployed and provider-verified; receipts persist and Nancy retrieves the live event time. See docs/evidence/OUTLOOK-CONVERSATIONS-2026-10-19.json. No repeated sign-in, password, IT role or access decision is needed. Genuine intended-person/device/workflow acceptance, broader edits/cancellation and real revocation/disconnect recovery remain open; this action stays in_progress.",
+          "expected_evidence": "Reuse completed exact-account setup, sole-user assignment, assignment requirement, seven-scope consent and client OAuth. The October 19 owner-authorized selected-resource reasoning use and exact disposable email/15-minute invitation tests are deployed and provider-verified; receipts persist and Nancy retrieves the live event time. See docs/evidence/OUTLOOK-CONVERSATIONS-2026-10-19.json. No repeated sign-in, password, IT role or access decision is needed. Genuine intended-person/device/workflow acceptance, broader edits/cancellation and real revocation/disconnect recovery remain open; this action stays in_progress. October 21 inspection found reconnect_required with previously erased token/resource selections. The repair preserves existing Microsoft administrator consent/assignment/scopes and fixes expiry erasure. One interactive intended-client reconnect and selected-resource live read are now required; do not repeat tenant approval or the earlier provider writes. See docs/evidence/LIVE-TEST-REPAIRS-2026-10-21.json.",
           "related_input_ids": [
             "I-CALENDAR-EXTERNAL"
           ],
@@ -5479,15 +5596,15 @@
         "discretionary_task_finish_target": "20:00"
       },
       "routine_policy": "One typed server-owned daily rhythm drives screen and Nancy facts. Preferred morning is 06:00-09:00; 09:00-11:00 is optional delayed catch-up only when needed. Otherwise use daytime activity, with lunch/snacks as appropriate, until 16:00. At 16:00 review dinner preparation using preferred dinner time and known preparation duration. Aim to finish discretionary tasks by 20:00, considering duration, preparation/travel/rest; explicit choices and commitments may differ. These are soft windows, not access gates, meal deadlines or failure conditions. Skip completed steps, simplify a late start, and never compress all missed work into the remaining morning. Breakfast and planning plus existing approved post-breakfast exercise/rehab remain morning content; formal guided programs stay S07/S08. Quiet hours and outreach consent are separate from these windows.",
-      "ux_policy": "Keep Talk to Nancy, one useful next interaction and a few relevant touch actions. No skill selector, mandatory questionnaire, timer dashboard or required navigation before speaking. Ask one question at a time; clarify unknowns only when they affect the action. Review/confirm writes concisely under the existing command contract. Show task start/pause/done controls only where relevant. Ordinary conversation and mood support remain available; a routine or notification can be declined or postponed without penalty.",
+      "ux_policy": "Keep Talk to Nancy, one useful next interaction and a few relevant touch actions. No skill selector, mandatory questionnaire, timer dashboard or required navigation before speaking. Ask one question at a time; clarify unknowns only when they affect the action. Review/confirm writes concisely under the existing command contract. Show task start/pause/done controls only where relevant. Ordinary conversation and mood support remain available; a routine or notification can be declined or postponed without penalty. October 21 explicit override: Current remains default but its centered Talk/Stop panel stays sticky at the top with safe-area clearance; remove acoustic interruption and visible Interrupt controls. Preserve explicit Stop and scope cancellation. Add no persistent setup tab; an eligible-client Outlook recovery view is a deliberate bounded setup link.",
       "context_policy": "Extend the existing fresh authorized facts and priority calculation with one bounded deterministic context builder, shared by opening, relevant turns and later preparation. Include server now, participant time zone, today/nearby commitments, relevant actual intake/task state, confirmed preferences and active handoffs. Revalidate time, permissions and changed facts before time-sensitive output or delivery. UTC instants drive elapsed time across local midnight/DST; distinguish occurrence from recording time. Keep most conversational context within today, with recent cross-midnight facts and unresolved significant events only as needed. Fetch extra records on demand. No repository crawl, extra model skill-router call or universal context database. Start with fresh reads; persistent snapshots and invalidation machinery require measured need.",
       "skill_policy": "Use a short versioned trusted Nancy core and a handful of named application skills for morning planning, meal reporting, task support and preference capture. Load bounded instructions predictably; AGENTS.md remains development guidance. Human/tool content is lower-trust data. The care service enforces permissions, confirmations, versions and receipts independently of Markdown or model output. No graph crawler, vector memory store, autonomous memory agent or continuous reasoning loop.",
       "preference_policy": "Persist explicit client-confirmed preferences through a small versioned care command and matching voice/UI readback, correction and removal. Reuse the participant profile with only the structure required by current behaviour. Distinguish a lasting preference from a one-day choice. Do not infer traits, energy, stress or clinical rules from conversation. Preferences cannot override approved constraints or authorization; no transcript-wide extraction job.",
       "handoff_policy": "In S04 persist only bounded, source-attributed significant reported events and relevant unresolved context, with occurrence time, review state and explicit resolution/correction. Reuse S03 recovery and existing care authority/receipts. Ordinary dialogue falls away; active reported injury or other significant context survives midnight until reviewed/resolved and is not silently expired. Unfinished tasks alone do not imply distress; carryover still needs client review. Do not create emergencies for testing or automatically diagnose/escalate from inferred mood.",
-      "preparation_policy": "In S04 reuse the same bounded local context operation and existing scheduler for quiet readiness at the preferred morning start, plus startup/open recovery. Prepare facts and check existing speech/reference readiness without a model or connector call, accepted plan, completed activity or microphone activation. Re-running for the same local day is idempotent; a missed run catches up once without replaying greetings/reminders. Fresh reads remain authoritative when the user arrives. An in-app morning invitation requires current eligibility and outreach consent; preparation time is not permission to wake the client. No new queue or persistent context cache unless measured need.",
+      "preparation_policy": "Reuse the existing durable scheduler and bounded local facts/reference readiness. October 21 authorizes separately gated exact-account read-only Outlook preparation, after measured long waits and redundant sequential reads: 06:00–11:00 participant-local, at most one attempt per five minutes, startup catch-up within the window, coming-seven-local-day calendars and independent recent-seven-day selected Inbox. Store only bounded encrypted source snapshots in the existing connection row, expire after five minutes, revalidate actual account/grant/configuration/resource revision before disclosure, invalidate on changed access/selection/reconnect/disconnect and reviewed writes, and refresh current availability requests. Repository recipes remain the deployed validated local index. No model call, microphone, automatic speech, outreach, accepted plan, performed activity, new queue or arbitrary GitHub policy fetch. Snapshot freshness and partial/unavailable results stay explicit. Actual scheduled-provider/person acceptance is awaiting_live_test until observed.",
       "prompt_policy": "Extend existing durable prompt jobs, consent, claims/acknowledgement, source versions, quiet hours and recovery. First prove one food-related check-in, then ordinary-task focus support. Recheck current records/consent at delivery; cancel stale prompts after correction, completion or revocation. Coordinate conversation and reminders so only one useful interaction is offered; support durable snooze/decline and avoid repeated nagging. Foreground speech requires an active supported page; current page notifications do not establish closed-browser push. Qualify broader delivery separately, with truthful missed/unavailable states.",
       "focus_policy": "Add only the explicit task start/pause/resume/finish state needed for an agreed check-in. Use an individually chosen interval, usually earlier than the user example of four hours; no universal interval is imposed here. Elapsed time since start is not proof of continuous work or hyperfixation. Ask whether work is continuing and offer a break or another choice. Compare known task duration/effort, preparation/travel/rest and self-reported energy with remaining time; leave unknown values unknown. Available calendar time is not capacity. General task timing does not require a program-run engine.",
-      "latency_policy": "Extend existing bounded numeric telemetry to measure speech-end-to-first-useful-audible-response, endpointing, ASR, authorization/context reads, model/tool rounds and speech preparation/playback where observable. Separate cold/warm runs and navigation, conversation and care-write scenarios; record actual sample counts and median/slow-end observations, with unknowns explicit and no transcript/audio/credential logs. Optimize the dominant measured delay, redundant reads/calls and payload size before adding caches or speculative model calls. Preserve validated-result/authorization checks before audio release, exact selected model/voice and independent truthful save acknowledgement.",
+      "latency_policy": "Extend existing bounded numeric telemetry to measure speech-end-to-first-useful-audible-response, endpointing, ASR, authorization/context reads, model/tool rounds and speech preparation/playback where observable. Separate cold/warm runs and navigation, conversation and care-write scenarios; record actual sample counts and median/slow-end observations, with unknowns explicit and no transcript/audio/credential logs. Optimize the dominant measured delay, redundant reads/calls and payload size before adding caches or speculative model calls. Preserve validated-result/authorization checks before audio release, exact selected model/voice and independent truthful save acknowledgement. October 21 observations establish a mixed recent baseline: completed server turns median 6352 ms across 26 records; speech-end to browser playback start median 10009 ms across 19 records, audible response unknown. Remove unnecessary Graph work for unrelated turns and preload bounded repository meal references to avoid avoidable tool/model round trips. This does not establish a controlled before/after improvement or qualify physical-device audibility.",
       "portability_policy": "Care identity, grants, durable facts and reusable context survive inference funding/provider changes. Keep the present narrow reasoner boundary; normalize remaining provider-specific types when introducing a second qualified backend with contract tests. No universal provider framework or claim that any model is interchangeable. Future notification/source adapters reuse existing authorization and records; future glucose observations need measurement time, ingestion time, source, units and freshness/quality. Glucose extraction and clinical response rules remain deferred.",
       "evidence_policy": "The October 14 source increment has final automated, owner-bound selected-provider, disposable real-service/browser and deployed-host engineering evidence in docs/evidence/DAILY-COMPANION-2026-10-14.json. The canonical contract results identify remaining coverage rather than treating the suite count as a full contract pass. Preserve historical evidence, all slice dependencies, intended-client activation and route qualification, physical-device acceptance, genuine-day requirements and consent boundaries. No full slice is complete."
     }

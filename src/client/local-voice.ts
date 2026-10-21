@@ -2,6 +2,7 @@ import { api, ApiError, notifyAuthorizationFailure, type ConversationReply } fro
 import { SpeechActivityGate } from './speech-activity';
 import { reportVoiceTiming, voiceTimingMetric, type VoiceTiming } from './voice-timing';
 import type {ConversationPurpose} from '../shared/client-navigation';
+import {keepConversationAwake} from './conversation-awake';
 
 export type LocalVoiceState = 'connecting' | 'thinking' | 'listening' | 'speaking' | 'closing' | 'stopped' | 'error';
 export interface LocalVoiceOptions {
@@ -79,7 +80,8 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
   }).catch(() => undefined);
   let merger: ChannelMergerNode | undefined, silent: GainNode | undefined;
   let playback: AudioBufferSourceNode | undefined, playbackDone: (() => void) | undefined;
-  let sessionId: string | undefined, listening = false, working = false, automaticInterrupt = false;
+  let sessionId: string | undefined, listening = false, working = false;
+  const releaseScreen=keepConversationAwake();
   let monitor: ReturnType<typeof setInterval> | undefined;
   let chunks: Float32Array[] = [], preRoll: Float32Array[] = [], utteranceStarted = 0, lastSound = 0, quietStarted = 0, graceStarted = 0;
   let lastSoundAt: number | null = null;
@@ -98,7 +100,7 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     if (closed) return;
     terminalError = errorMessage;
     closed = true; generation++; controller.abort(); replyController.abort(); listening = false;
-    clearInterval(monitor); stopPlayback();
+    clearInterval(monitor); stopPlayback(); releaseScreen();
     processor?.disconnect(); source?.disconnect(); merger?.disconnect(); silent?.disconnect();
     stream?.getTracks().forEach(track => track.stop()); chunks = []; preRoll = [];
     // The browser may leave audio unlock pending while a permission prompt is open.
@@ -119,7 +121,7 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
   };
   const startListening = (message = 'Nancy is listening. Speak normally, or type below.') => {
     if (closed) return;
-    chunks = []; utteranceStarted = 0; lastSound = 0; graceStarted = 0;
+    chunks = []; preRoll = []; activity.reset(); utteranceStarted = 0; lastSound = 0; graceStarted = 0;
     lastSoundAt = null;
     quietStarted = Date.now(); listening = true; working = false;
     options.onState('listening', message);
@@ -171,7 +173,7 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
           if (playback === node) { playback = undefined; playbackDone = undefined; }
           node.disconnect(); resolve();
         };
-        options.onState('speaking', automaticInterrupt ? 'Nancy is speaking. Speak to interrupt, or tap Interrupt Nancy.' : 'Nancy is speaking. Tap Interrupt Nancy to take your turn.');
+        options.onState('speaking', 'Nancy is speaking. Your turn is next.');
         node.start();
         if (part === 0) onPlayback?.();
       });
@@ -218,7 +220,7 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
   };
   const sendText = async (text: string) => {
     const value = text.trim(); if (!value || closed || !sessionId) return;
-    if (working) interrupt();
+    if (working) return;
     listening = false; working = true; graceStarted = 0;
     const ticket = ++generation; replyController = new AbortController();
     const turnSignal = AbortSignal.any([signal, replyController.signal]);
@@ -251,8 +253,6 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
   try {
     options.onState('connecting', 'Allow microphone and audio access in your browser to start Nancy…');
     stream = await waitForStartup(); assertOpen();
-    // Only enable acoustic interruption when the browser confirms AEC is active.
-    automaticInterrupt = stream.getAudioTracks?.()[0]?.getSettings?.().echoCancellation === true;
     const openingTiming: VoiceTiming = {inputMode: 'opening', inputAt: openingAt, speechEndedAt: null, requestAt: performance.now()};
     const first = options.purpose&&options.purpose!=='general'?await api.conversationStart(signal,options.purpose):await api.conversationStart(signal);
     openingTiming.repliedAt = performance.now();
@@ -266,18 +266,15 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     silent = context.createGain(); silent.gain.value = 0;
     source.connect(merger, 0, 0); merger.connect(processor); processor.connect(silent); silent.connect(context.destination);
     processor.onaudioprocess = event => {
-      if (closed || (!listening && !working)) return;
+      // Do not capture, queue or interpret speech while a reply is being prepared
+      // or played. A waiting client must never accidentally cancel that reply.
+      if (closed || !listening || working) return;
       const chunk = new Float32Array(event.inputBuffer.getChannelData(0));
       const reference = event.inputBuffer.numberOfChannels > 1 ? event.inputBuffer.getChannelData(1) : new Float32Array(chunk.length);
-      const detected = activity.observe(chunk, reference, working);
+      const detected = activity.observe(chunk, reference, false);
       const now = Date.now();
       preRoll.push(chunk);
-      while (preRoll.reduce((n, c) => n + c.length, 0) > context.sampleRate * (working ? 0.8 : 0.25)) preRoll.shift();
-      if (working) {
-        if (!automaticInterrupt || !detected.interrupt) return;
-        const lead = preRoll.slice(); interrupt();
-        chunks = lead; utteranceStarted = now; lastSound = now; lastSoundAt = performance.now(); preRoll = []; return;
-      }
+      while (preRoll.reduce((n, c) => n + c.length, 0) > context.sampleRate * 0.25) preRoll.shift();
       if (detected.speech) {
         if (!utteranceStarted) { utteranceStarted = now; chunks.push(...preRoll.slice(0, -1)); }
         lastSound = now; quietStarted = now; graceStarted = 0;
