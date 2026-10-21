@@ -2,7 +2,7 @@
   "$schema": "./roadmap.schema.json",
   "roadmap_id": "companion-rehab",
   "schema_version": "1.8.0",
-  "updated_at": "2026-10-21T22:44:23.386Z",
+  "updated_at": "2026-10-21T23:01:45.938Z",
   "planning_status": "ready_for_implementation",
   "implementation_status": "in_progress",
   "source_of_truth": "docs/roadmap/roadmap.json",
@@ -826,7 +826,7 @@
             "S01-AC11",
             "S01-AC17"
           ],
-          "scenario": "Exercise persistent Current Talk and Stop across views without an Interrupt control; discard microphone speech during preparation/playback. Verify synthesis-only cyclic pronunciation, source-backed meal options before reasoning, optional 30-day cookie/server expiry and rotation/revocation, foreground wake-lock cancellation/denial, and no connector setup for an ineligible practice account.",
+          "scenario": "Exercise persistent Current Talk and Stop across views without an Interrupt control; discard microphone speech during preparation/playback. Verify synthesis-only cyclic pronunciation, source-backed meal options before reasoning, optional 30-day cookie/server expiry and rotation/revocation, foreground wake-lock cancellation/denial, and no connector setup for an ineligible practice account. Reproduce delayed old-cookie requests after renewal, reject changed actor/credentials, bound reuse to ten seconds without extending it, preserve each request’s review authority, and recheck logout/account/grant revocation.",
           "expected": "The user-requested Current revision remains simple, bounded and scope-safe. A date/permission/model/speech failure is truthful; no clinical protocol, permanent real-person note, automatic microphone or locked-screen guarantee is invented."
         }
       ],
@@ -926,7 +926,7 @@
         "S03",
         "S04"
       ],
-      "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
+      "implementation_revision": "sha256:453a56aa48646f01e2aeecd28af36fa623431c97dde5cd733e8c2776ad62fb85",
       "blockers": [
         "October 19 merge-preparation engineering qualification passes 963 full regressions (one optional skip), 219 disposable-PostgreSQL matrix checks and 67 actual HTTP recovery/restore checks. Current design is owner-approved and locked. These scoped results do not pass broader unrun live/canonical scenarios. See docs/evidence/MERGE-PREP-2026-10-19.json.",
         "October 19 Focus experiment is deployed behind an explicit review link while Current remains default. The exact Current source/build restore, byte-identical rebuild, real restore command, refusal drills, automated suite and deployed scrolling/default checks pass. Intended-person/device acceptance remains awaiting_live_test while the intended client is unavailable. See docs/evidence/FOCUS-UI-2026-10-19.json.",
@@ -1121,19 +1121,19 @@
         {
           "test_id": "S01-AUTO16",
           "outcome": "pass",
-          "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
-          "executed_at": "2026-10-21T22:44:23.386Z",
+          "implementation_revision": "sha256:453a56aa48646f01e2aeecd28af36fa623431c97dde5cd733e8c2776ad62fb85",
+          "executed_at": "2026-10-21T23:01:45.938Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex synthetic regression, actual disposable PostgreSQL and scoped owner-practice engineering verification",
           "evidence_ref": "docs/evidence/LIVE-TEST-REPAIRS-2026-10-21.json",
-          "notes": "Full pre-projection regression 993 pass/2 optional skips; final prompt projection 88 pass, 71 actual PostgreSQL synthetic-provider checks, 3 recovery/login UI checks, three bounded synthetic owner Sol-high/Heart requests and deployed browser/readiness/data checks. Both services are deployed and 15 protected care tables per database are unchanged. Model latency remains open; real Outlook reconnect, actual morning preparation and intended-person/Safari acceptance remain awaiting_live_test. No full slice is completed."
+          "notes": "Full pre-projection regression 993 pass/2 optional skips; final prompt projection 88 pass, 71 actual PostgreSQL synthetic-provider checks, 3 recovery/login UI checks, three bounded synthetic owner Sol-high/Heart requests and deployed browser/readiness/data checks. Both services are deployed and 15 protected care tables per database are unchanged. Model latency remains open; real Outlook reconnect, actual morning preparation and intended-person/Safari acceptance remain awaiting_live_test. No full slice is completed. Final renewal addendum: 999 broad regressions pass before the last request-local binding refinement; 45 final focused checks and 78 actual PostgreSQL checks pass, with 13 deployed test HTTP checks and no additional provider requests. See evidence for precise revision scopes."
         },
         {
           "test_id": "S01-LIVE3",
           "outcome": "blocked",
-          "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
-          "executed_at": "2026-10-21T22:44:23.386Z",
+          "implementation_revision": "sha256:453a56aa48646f01e2aeecd28af36fa623431c97dde5cd733e8c2776ad62fb85",
+          "executed_at": "2026-10-21T23:01:45.938Z",
           "environment": "live_real_services",
           "data_origin": "disposable_live",
           "observed_by": "Codex deployed readiness and private connection-state inspection; actual person/provider interaction pending",
@@ -2383,7 +2383,7 @@
         "S01",
         "S04"
       ],
-      "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
+      "implementation_revision": "sha256:453a56aa48646f01e2aeecd28af36fa623431c97dde5cd733e8c2776ad62fb85",
       "blockers": [
         "October 19 merge-preparation engineering qualification passes 963 full regressions (one optional skip), 219 disposable-PostgreSQL matrix checks and 67 actual HTTP recovery/restore checks. Current design is owner-approved and locked. These scoped results do not pass broader unrun live/canonical scenarios. See docs/evidence/MERGE-PREP-2026-10-19.json.",
         "S03 is unfinished; its completion dependency remains in force.",
@@ -2495,19 +2495,19 @@
         {
           "test_id": "S04-AUTO8",
           "outcome": "pass",
-          "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
-          "executed_at": "2026-10-21T22:44:23.386Z",
+          "implementation_revision": "sha256:453a56aa48646f01e2aeecd28af36fa623431c97dde5cd733e8c2776ad62fb85",
+          "executed_at": "2026-10-21T23:01:45.938Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex synthetic regression, actual disposable PostgreSQL and scoped owner-practice engineering verification",
           "evidence_ref": "docs/evidence/LIVE-TEST-REPAIRS-2026-10-21.json",
-          "notes": "Full pre-projection regression 993 pass/2 optional skips; final prompt projection 88 pass, 71 actual PostgreSQL synthetic-provider checks, 3 recovery/login UI checks, three bounded synthetic owner Sol-high/Heart requests and deployed browser/readiness/data checks. Both services are deployed and 15 protected care tables per database are unchanged. Model latency remains open; real Outlook reconnect, actual morning preparation and intended-person/Safari acceptance remain awaiting_live_test. No full slice is completed."
+          "notes": "Full pre-projection regression 993 pass/2 optional skips; final prompt projection 88 pass, 71 actual PostgreSQL synthetic-provider checks, 3 recovery/login UI checks, three bounded synthetic owner Sol-high/Heart requests and deployed browser/readiness/data checks. Both services are deployed and 15 protected care tables per database are unchanged. Model latency remains open; real Outlook reconnect, actual morning preparation and intended-person/Safari acceptance remain awaiting_live_test. No full slice is completed. Final renewal addendum: 999 broad regressions pass before the last request-local binding refinement; 45 final focused checks and 78 actual PostgreSQL checks pass, with 13 deployed test HTTP checks and no additional provider requests. See evidence for precise revision scopes."
         },
         {
           "test_id": "S04-LIVE4",
           "outcome": "blocked",
-          "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
-          "executed_at": "2026-10-21T22:44:23.386Z",
+          "implementation_revision": "sha256:453a56aa48646f01e2aeecd28af36fa623431c97dde5cd733e8c2776ad62fb85",
+          "executed_at": "2026-10-21T23:01:45.938Z",
           "environment": "live_real_services",
           "data_origin": "real_consented",
           "observed_by": "Codex deployed readiness and private connection-state inspection; actual person/provider interaction pending",
@@ -3176,7 +3176,7 @@
         "S02",
         "S04"
       ],
-      "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
+      "implementation_revision": "sha256:453a56aa48646f01e2aeecd28af36fa623431c97dde5cd733e8c2776ad62fb85",
       "blockers": [
         "October 19 merge-preparation engineering qualification passes 963 full regressions (one optional skip), 219 disposable-PostgreSQL matrix checks and 67 actual HTTP recovery/restore checks. Current design is owner-approved and locked. These scoped results do not pass broader unrun live/canonical scenarios. See docs/evidence/MERGE-PREP-2026-10-19.json.",
         "October 19 simplified-client timeline adds a bounded selected-calendar-only read, without Inbox retrieval. Current full regression, focused and actual PostgreSQL checks pass; the deployed authenticated timeline displays the already-authorized test event. Existing account/credential/config hashes and nine care tables are unchanged. Removed client Outlook settings do not remove the connection or authorize new writes. Earlier S06 live receipts remain historical and are not replayed. See docs/evidence/CLIENT-INTERFACE-2026-10-19.json.",
@@ -3287,19 +3287,19 @@
         {
           "test_id": "S06-AUTO8",
           "outcome": "pass",
-          "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
-          "executed_at": "2026-10-21T22:44:23.386Z",
+          "implementation_revision": "sha256:453a56aa48646f01e2aeecd28af36fa623431c97dde5cd733e8c2776ad62fb85",
+          "executed_at": "2026-10-21T23:01:45.938Z",
           "environment": "local_synthetic",
           "data_origin": "synthetic",
           "observed_by": "Codex synthetic regression, actual disposable PostgreSQL and scoped owner-practice engineering verification",
           "evidence_ref": "docs/evidence/LIVE-TEST-REPAIRS-2026-10-21.json",
-          "notes": "Full pre-projection regression 993 pass/2 optional skips; final prompt projection 88 pass, 71 actual PostgreSQL synthetic-provider checks, 3 recovery/login UI checks, three bounded synthetic owner Sol-high/Heart requests and deployed browser/readiness/data checks. Both services are deployed and 15 protected care tables per database are unchanged. Model latency remains open; real Outlook reconnect, actual morning preparation and intended-person/Safari acceptance remain awaiting_live_test. No full slice is completed."
+          "notes": "Full pre-projection regression 993 pass/2 optional skips; final prompt projection 88 pass, 71 actual PostgreSQL synthetic-provider checks, 3 recovery/login UI checks, three bounded synthetic owner Sol-high/Heart requests and deployed browser/readiness/data checks. Both services are deployed and 15 protected care tables per database are unchanged. Model latency remains open; real Outlook reconnect, actual morning preparation and intended-person/Safari acceptance remain awaiting_live_test. No full slice is completed. Final renewal addendum: 999 broad regressions pass before the last request-local binding refinement; 45 final focused checks and 78 actual PostgreSQL checks pass, with 13 deployed test HTTP checks and no additional provider requests. See evidence for precise revision scopes."
         },
         {
           "test_id": "S06-LIVE9",
           "outcome": "blocked",
-          "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
-          "executed_at": "2026-10-21T22:44:23.386Z",
+          "implementation_revision": "sha256:453a56aa48646f01e2aeecd28af36fa623431c97dde5cd733e8c2776ad62fb85",
+          "executed_at": "2026-10-21T23:01:45.938Z",
           "environment": "live_real_services",
           "data_origin": "real_consented",
           "observed_by": "Codex deployed readiness and private connection-state inspection; actual person/provider interaction pending",
@@ -5596,7 +5596,7 @@
         "discretionary_task_finish_target": "20:00"
       },
       "routine_policy": "One typed server-owned daily rhythm drives screen and Nancy facts. Preferred morning is 06:00-09:00; 09:00-11:00 is optional delayed catch-up only when needed. Otherwise use daytime activity, with lunch/snacks as appropriate, until 16:00. At 16:00 review dinner preparation using preferred dinner time and known preparation duration. Aim to finish discretionary tasks by 20:00, considering duration, preparation/travel/rest; explicit choices and commitments may differ. These are soft windows, not access gates, meal deadlines or failure conditions. Skip completed steps, simplify a late start, and never compress all missed work into the remaining morning. Breakfast and planning plus existing approved post-breakfast exercise/rehab remain morning content; formal guided programs stay S07/S08. Quiet hours and outreach consent are separate from these windows.",
-      "ux_policy": "Keep Talk to Nancy, one useful next interaction and a few relevant touch actions. No skill selector, mandatory questionnaire, timer dashboard or required navigation before speaking. Ask one question at a time; clarify unknowns only when they affect the action. Review/confirm writes concisely under the existing command contract. Show task start/pause/done controls only where relevant. Ordinary conversation and mood support remain available; a routine or notification can be declined or postponed without penalty. October 21 explicit override: Current remains default but its centered Talk/Stop panel stays sticky at the top with safe-area clearance; remove acoustic interruption and visible Interrupt controls. Preserve explicit Stop and scope cancellation. Add no persistent setup tab; an eligible-client Outlook recovery view is a deliberate bounded setup link.",
+      "ux_policy": "Keep Talk to Nancy, one useful next interaction and a few relevant touch actions. No skill selector, mandatory questionnaire, timer dashboard or required navigation before speaking. Ask one question at a time; clarify unknowns only when they affect the action. Review/confirm writes concisely under the existing command contract. Show task start/pause/done controls only where relevant. Ordinary conversation and mood support remain available; a routine or notification can be declined or postponed without penalty. October 21 explicit override: Current remains default but its centered Talk/Stop panel stays sticky at the top with safe-area clearance; remove acoustic interruption and visible Interrupt controls. Preserve explicit Stop and scope cancellation. Add no persistent setup tab; an eligible-client Outlook recovery view is a deliberate bounded setup link. The remembered-device path also tolerates only an exact just-replaced local cookie for a fixed ten-second overlap in the qualified single service, with fresh SQL authorization and preserved request review scope; wrong credentials and revoked/expired access still fail closed.",
       "context_policy": "Extend the existing fresh authorized facts and priority calculation with one bounded deterministic context builder, shared by opening, relevant turns and later preparation. Include server now, participant time zone, today/nearby commitments, relevant actual intake/task state, confirmed preferences and active handoffs. Revalidate time, permissions and changed facts before time-sensitive output or delivery. UTC instants drive elapsed time across local midnight/DST; distinguish occurrence from recording time. Keep most conversational context within today, with recent cross-midnight facts and unresolved significant events only as needed. Fetch extra records on demand. No repository crawl, extra model skill-router call or universal context database. Start with fresh reads; persistent snapshots and invalidation machinery require measured need.",
       "skill_policy": "Use a short versioned trusted Nancy core and a handful of named application skills for morning planning, meal reporting, task support and preference capture. Load bounded instructions predictably; AGENTS.md remains development guidance. Human/tool content is lower-trust data. The care service enforces permissions, confirmations, versions and receipts independently of Markdown or model output. No graph crawler, vector memory store, autonomous memory agent or continuous reasoning loop.",
       "preference_policy": "Persist explicit client-confirmed preferences through a small versioned care command and matching voice/UI readback, correction and removal. Reuse the participant profile with only the structure required by current behaviour. Distinguish a lasting preference from a one-day choice. Do not infer traits, energy, stress or clinical rules from conversation. Preferences cannot override approved constraints or authorization; no transcript-wide extraction job.",

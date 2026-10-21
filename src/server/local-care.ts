@@ -107,13 +107,14 @@ export class LocalCare implements CareAccess {
   private readonly ownsPool: boolean;
   private readonly clock: () => Date;
   private renewing = new Map<string, Promise<Session>>();
+  private renewed = new Map<string,{session:Session;until:number}>();
   constructor(options: LocalCareOptions) {
     if (!options.pool && !options.connectionString && !options.poolConfig) throw new Error('LocalCare requires a PostgreSQL pool or connection settings.');
     this.ownsPool = !options.pool;
     this.pool = options.pool || new Pool({ ...(options.poolConfig || {}), connectionString: options.connectionString });
     this.clock = options.clock || (() => new Date());
   }
-  async close() { if (this.ownsPool) await this.pool.end(); }
+  async close() { this.renewed.clear(); if (this.ownsPool) await this.pool.end(); }
 
   async login(email: string, password: string, rememberDevice=false): Promise<Session> {
     const parsed = accountSchema.extend({ password: z.string().min(1).max(256) }).parse({ email, password });
@@ -137,13 +138,33 @@ export class LocalCare implements CareAccess {
   }
 
   async authorize(session: Session): Promise<Session> {
-    let pending = this.renewing.get(session.session_id);
+    const now=this.clock().getTime();
+    for(const [key,value] of this.renewed)if(value.until<=now)this.renewed.delete(key);
+    // Match the exact prior cookie, not just its session ID. Never share a
+    // legitimate pending renewal with changed credentials or another actor.
+    const key=tokenHash(JSON.stringify([session.user_id,session.session_id,session.access_token,session.refresh_token])).toString('hex');
+    const recent=this.renewed.get(key);
+    let pending = this.renewing.get(key);
     if (!pending) {
-      pending = this.authorizeOnce(session);
-      this.renewing.set(session.session_id, pending);
+      // Every overlap hit still rechecks the live session/account/grant in SQL.
+      pending = this.authorizeOnce(recent?.session??session).then(authorized=>{
+        if(!recent&&authorized.access_token!==session.access_token){
+          const {reviewed_authority:_,...stored}=authorized;
+          this.renewed.set(key,{session:stored,until:this.clock().getTime()+10000});
+          while(this.renewed.size>512)this.renewed.delete(this.renewed.keys().next().value!);
+        }
+        return authorized;
+      }).catch(error=>{this.renewed.delete(key);throw error;});
+      this.renewing.set(key, pending);
     }
-    try { return await pending; }
-    finally { if (this.renewing.get(session.session_id) === pending) this.renewing.delete(session.session_id); }
+    try {
+      const authorized=await pending;
+      // Review authority belongs to this request, never to a coalesced renewal.
+      if(session.reviewed_authority)return {...authorized,reviewed_authority:session.reviewed_authority};
+      if(authorized.reviewed_authority){const {reviewed_authority:_,...plain}=authorized;return plain;}
+      return authorized;
+    }
+    finally { if (this.renewing.get(key) === pending) this.renewing.delete(key); }
   }
   private async authorizeOnce(session: Session): Promise<Session> {
     try {
@@ -171,6 +192,7 @@ export class LocalCare implements CareAccess {
   async logout(session: Session): Promise<void> {
     try {
       await this.pool.query('update companion_local.sessions set revoked_at=coalesce(revoked_at,$2) where id=$1 and access_hash=$3', [session.session_id, this.clock(), tokenHash(session.access_token)]);
+      for(const [key,value] of this.renewed)if(value.session.session_id===session.session_id)this.renewed.delete(key);
     } catch (error) { mapError(error); }
   }
 

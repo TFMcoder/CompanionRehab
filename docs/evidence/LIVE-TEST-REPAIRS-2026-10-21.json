@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "observed_at": "2026-10-21T22:44:23.386Z",
-  "implementation_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2",
+  "observed_at": "2026-10-21T23:01:45.938Z",
+  "implementation_revision": "sha256:453a56aa48646f01e2aeecd28af36fa623431c97dde5cd733e8c2776ad62fb85",
   "prior_tested_revision": "sha256:a5dd241d37c536585a9443337c8a6a4fd490b7f9707cbb008a28945d7bcea53c",
   "scope": "Owner-directed intended-client live-test repairs, with Current preserved and a persistent top-centered Talk control, no acoustic interruption, retained sign-in, repository meal context and bounded Outlook recovery/preparation. No full-slice acceptance.",
   "findings": {
@@ -21,7 +21,15 @@
       "actual_audible_response_ms": null
     },
     "connector": "At inspection the existing live connection was reconnect_required with deleted token and resource selections. Ordinary local authorization failure could erase otherwise durable consent. Existing Microsoft administrator consent/sole-user assignment/scopes are not repeated.",
-    "personalization": "The saved authorized profile lacked the reported ongoing dietary context. This repair does not invent a diagnosis, prescribed diet or permanent real-person note."
+    "personalization": "The saved authorized profile lacked the reported ongoing dietary context. This repair does not invent a diagnosis, prescribed diet or permanent real-person note.",
+    "session_renewal": {
+      "reproduced_before": {
+        "passed": 3,
+        "failed": 3
+      },
+      "issue": "A late request with the just-replaced cookie could fail after the pending renewal promise had settled; coalescing by session ID alone also failed to separate changed credentials.",
+      "repaired": true
+    }
   },
   "implemented": {
     "current_default": true,
@@ -38,7 +46,9 @@
     "ordinary_login_days": 7,
     "absolute_server_expiry_and_revocation": true,
     "foreground_wake_lock_best_effort": true,
-    "per_site_microphone_permission_remains_browser_controlled": true
+    "per_site_microphone_permission_remains_browser_controlled": true,
+    "session_renewal_overlap_seconds": 10,
+    "session_renewal_binding": "Exact prior actor/session/access/refresh fingerprint; bounded single-service memory, fixed overlap deadline, current SQL session/account/grant checks on every reuse, and per-request review authority preserved. No new lifetime extension, role, care permission or provider credential."
   },
   "preparation": {
     "explicit_private_permission": "preparationApproved, default false; enabled for the existing exact approved live account by the October 21 direction.",
@@ -55,13 +65,13 @@
   },
   "verification": {
     "full_regression": {
-      "passed": 993,
+      "passed": 999,
       "failed": 0,
       "optional_skips": 2,
-      "files": 109,
-      "revision": "sha256:a5dd241d37c536585a9443337c8a6a4fd490b7f9707cbb008a28945d7bcea53c",
-      "scope": "Complete suite before the final meal-choice context presentation reduction.",
-      "private_reference": ".local/probes/live-feedback-release-full.json"
+      "files": 110,
+      "revision": "sha256:d524d1f5c0e98b07545f704154752e8d20d37433083595b8bf845b6b5d7d47ee",
+      "scope": "Complete renewal-overlap increment before its final request-local review-authority carry refinement. That final refinement is qualified by the separate focused and actual PostgreSQL/deployed HTTP runs below.",
+      "private_reference": ".local/probes/live-feedback-release-with-renewal.json"
     },
     "final_prompt_regression": {
       "passed": 88,
@@ -73,11 +83,12 @@
       "private_reference": ".local/probes/live-feedback-prompt-final.json"
     },
     "actual_postgresql": {
-      "passed": 71,
+      "passed": 78,
       "failed": 0,
       "provider_responses": "synthetic",
-      "scope": "Fresh disposable PostgreSQL; actual row-lock budget, schema 017–020 upgrades, rollback and prior 018/019 encrypted restoration, authentication expiry/rotation, scoped preparation and reviewed-action safety.",
-      "private_reference": ".local/probes/live-feedback-postgres-tests.json"
+      "scope": "Fresh disposable PostgreSQL; actual row-lock budget, schema 017–020 upgrades, rollback and prior 018/019 encrypted restoration, authentication expiry/rotation, scoped preparation and reviewed-action safety. Includes the final seven renewal/review-binding scenarios over actual PostgreSQL and HTTP.",
+      "private_reference": ".local/probes/live-feedback-postgres-tests.json",
+      "revision": "sha256:453a56aa48646f01e2aeecd28af36fa623431c97dde5cd733e8c2776ad62fb85"
     },
     "recovery_login_ui": {
       "passed": 3,
@@ -138,11 +149,12 @@
           "nutrition_retrievals": 4
         }
       ],
-      "scope": "Synthetic owner-practice account only. No real-person microphone, audible timing, actual Outlook content or care writes.",
+      "scope": "Synthetic owner-practice account only. No real-person microphone, audible timing, actual Outlook content or care writes. Subsequent authentication-only changes do not alter the tested reasoning, speech or meal-reference code; no further provider inference was needed.",
       "private_references": [
         ".local/live-feedback-2026-10-21/runtime-checks.json",
         ".local/live-feedback-2026-10-21/runtime-checks-refined.json"
-      ]
+      ],
+      "model_probe_revision": "sha256:e34a30a9f9bb51780ebf322f77a159afcc2b1395d62e376b29f508e135a7b4e2"
     },
     "prompt_size": {
       "preloaded_reference_chars_before": 11298,
@@ -160,7 +172,8 @@
       "exact_microsoft_configuration_change": "preparationApproved true only",
       "existing_caregiver_binding_local_environment_and_revocation_files_unchanged": true,
       "public_https_and_anonymous_denial_verified": true,
-      "private_reference": ".local/live-feedback-2026-10-21/final-state.json"
+      "private_reference": ".local/live-feedback-2026-10-21/final-state.json",
+      "revision": "sha256:453a56aa48646f01e2aeecd28af36fa623431c97dde5cd733e8c2776ad62fb85"
     },
     "browser": {
       "checks": {
@@ -184,15 +197,55 @@
     "typecheck": "passed",
     "client_build": "passed",
     "public_scan": {
-      "files": 412,
+      "files": 413,
       "findings": 0,
-      "scope": "Final publication scan including this sanitized evidence file."
+      "scope": "Final scan after the additional renewal fixture is added; checked at handoff."
     },
     "rollback": {
       "encrypted_care_backups_verified": true,
       "prior_static_restore_byte_verified": true,
       "source_base_commit": "6dcc785105cd0967b02fa95c9c2ff5e7d03f69dc",
       "private_reference": ".local/live-feedback-2026-10-21/source-manifest.json"
+    },
+    "prior_full_regression": {
+      "passed": 993,
+      "failed": 0,
+      "optional_skips": 2,
+      "files": 109,
+      "revision": "sha256:a5dd241d37c536585a9443337c8a6a4fd490b7f9707cbb008a28945d7bcea53c",
+      "scope": "Complete suite before the final meal-choice context presentation reduction.",
+      "private_reference": ".local/probes/live-feedback-release-full.json"
+    },
+    "renewal_refinement": {
+      "revision": "sha256:453a56aa48646f01e2aeecd28af36fa623431c97dde5cd733e8c2776ad62fb85",
+      "focused_passed": 45,
+      "focused_failed": 0,
+      "optional_skips": 1,
+      "scenario_tests": 7,
+      "scope": "Includes exact previous-cookie overlap, changed-credential/actor separation, fixed expiry, immediate logout/grant/account invalidation, and independent request review-authority preservation with stale-review denial.",
+      "private_reference": ".local/probes/session-renewal-focused.json"
+    },
+    "deployed_renewal": {
+      "passed": 13,
+      "total": 13,
+      "checks": {
+        "practice_http_target": true,
+        "normal_test_login": true,
+        "test_cookie_and_actor": true,
+        "restricted_test_database": true,
+        "only_new_test_session_expired": true,
+        "renewed_request_200": true,
+        "access_rotated": true,
+        "late_cookie_200": true,
+        "same_rotation_not_repeated": true,
+        "old_cookie_rejected_after_window": true,
+        "fresh_cookie_stays_valid": true,
+        "normal_logout_200": true,
+        "logout_effective_immediately": true
+      },
+      "provider_calls": 0,
+      "care_records_changed": false,
+      "private_reference": ".local/live-feedback-2026-10-21/renewal-runtime.json"
     }
   },
   "remaining": {
