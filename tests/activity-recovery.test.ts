@@ -1,4 +1,4 @@
-import {afterAll,beforeAll,describe,expect,it,vi} from 'vitest';
+import {afterAll,afterEach,beforeAll,describe,expect,it,vi} from 'vitest';
 import {PGlite} from '@electric-sql/pglite';
 import {readFile} from 'node:fs/promises';
 import {randomUUID,randomBytes} from 'node:crypto';
@@ -21,6 +21,7 @@ describe('durable confirmed spoken activity recovery',()=>{
  let db:PGlite,pool:Pool;const now=new Date('2026-10-13T14:00:00Z');
  beforeAll(async()=>{db=new PGlite();pool=pglitePool(db) as unknown as Pool;for(const f of localCareMigrations)await db.exec(await readFile(new URL('../db/'+f,import.meta.url),'utf8'));});
  afterAll(async()=>{await db.close();});
+ afterEach(()=>vi.useRealTimers());
  async function fixture(){const email=randomUUID()+'@example.invalid',password='synthetic-recovery-password';await bootstrapLocalUser(pool,{email,password,role:'client'});
   const care=new LocalCare({pool,clock:()=>now}),session=await care.login(email,password),respond=vi.fn();
   const command:ActivityCommand={type:'record_activity',idempotency_key:randomUUID(),local_date:'2026-10-13',expected_revision:0,payload:{unplanned:{kind:'meal',title:'Synthetic toast',meal_slot:'breakfast'},status:'completed',occurred_at:'2026-10-13T13:00:00Z',notes:'',portion:null}};
@@ -172,6 +173,7 @@ describe('durable confirmed spoken activity recovery',()=>{
   }finally{f.service.close();}
  });
  it('acknowledges through the authenticated HTTP route while rejecting missing auth, origin changes and another actor',async()=>{
+  vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(now);
   const f=await fixture(),first=await saveReviewed(f);
   const config=configFromEnv({PUBLIC_ORIGIN:'http://localhost:8787',DATABASE_URL:'postgresql://local.invalid/synthetic',SESSION_KEY:randomBytes(32).toString('base64')});
   const app=await createApp(config,{care:f.care,conversation:f.service,speech:{readiness:()=>({kokoro:'ready',asr:'ready'}),close:vi.fn()} as unknown as LocalSpeech,revocations:new SessionRevocations()});
@@ -188,6 +190,8 @@ describe('durable confirmed spoken activity recovery',()=>{
    expect((await app.inject({method:'POST',url,headers,payload})).statusCode).toBe(200);
    expect((await app.inject({method:'POST',url,headers,payload})).statusCode).toBe(200);
    expect(await f.care.pendingActivityCommand(f.session)).toBeNull();
+   vi.setSystemTime(new Date(now.getTime()+8*86400000));
+   expect((await app.inject({url:'/api/today',headers})).statusCode).toBe(401);
   }finally{await app.close();}
  });
 });

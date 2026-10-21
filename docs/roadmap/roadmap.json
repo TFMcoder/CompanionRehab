@@ -2,7 +2,7 @@
   "$schema": "./roadmap.schema.json",
   "roadmap_id": "companion-rehab",
   "schema_version": "1.8.0",
-  "updated_at": "2026-10-19",
+  "updated_at": "2026-10-21",
   "planning_status": "ready_for_implementation",
   "implementation_status": "in_progress",
   "source_of_truth": "docs/roadmap/roadmap.json",
@@ -65,7 +65,8 @@
     "October 16-17: IT confirmed Cloud Application Administrator assignment on October 15. The owner authorizes resuming the Microsoft portion of S06 and stopping after the initial integration steps: secure account-bound OAuth, protected credentials, explicit calendar/mail-folder selection, bounded reads and backend/browser tests. Reviewed external writes, model disclosure and Asana integration remain later work. Preserve S01-S04 dependencies and all live acceptance gates.",
     "October 18 final caregiver direction: the owner states that Nancy is for their caregiver purposes and explicitly requests integration of the existing Pro connection for the permanent client before later migration. Retain no API billing, exact Sol/high and Heart, actual speaker/participant/account-owner identities, existing care grants and client-only acceptance. Prepare only the exact named caregiver/client binding; no global account switching, credential copying or general multi-user route. Automatic approval review rejected the live test; finish unaffected engineering, preserve the disabled production state and seek explicit action approval for another review without claiming provider eligibility. The owner subsequently explicitly approved the precise flagged test/activation for another review. That review allowed it; 16 real-service checks passed with one actual Sol/high request, exact activation applied, and 7 HTTPS checks plus the existing authenticated client browser verified the deployed route. Reuse this completed action approval without claiming a provider-issued exception or waiving person/device/full-slice acceptance.",
     "October 19 owner-authorized Focus experiment: preserve and verify the current UI for rollback, retain it as the default, and provide an authenticated opt-in review link with a centered Talk to Nancy control always visible while scrolling. Shared voice/data/account boundaries remain unchanged.",
-    "October 19 owner decision: Current is the approved and locked production client design after comparison with Focus. Disable shipped Focus review, preserve its implementation/rollback evidence, run feature regressions, scan pending repository/code changes and prepare a local/GitHub merge proposal. Design approval does not waive actual intended-person/device/genuine-day or full-slice gates."
+    "October 19 owner decision: Current is the approved and locked production client design after comparison with Focus. Disable shipped Focus review, preserve its implementation/rollback evidence, run feature regressions, scan pending repository/code changes and prepare a local/GitHub merge proposal. Design approval does not waive actual intended-person/device/genuine-day or full-slice gates.",
+    "October 21 owner direction: create a separate duplicate database and owner tester login outside the intended clients live use. Duplicate the current schema and locked Current UI with synthetic care data, a restricted database role, distinct participant, session key/cookies/origin and Windows task. Disable Outlook and preserve live data, credentials, caregiver binding and routes. Retain only the same actual owners existing immutable owner-practice reasoning connection, with no credential copying, API billing or new-user route. Owner-only sandbox verification does not complete intended-person/device/genuine-day or full-slice gates."
   ],
   "constraints": {
     "budget": {
@@ -469,7 +470,8 @@
         "Fresh bounded daily context, the shared adaptive daily rhythm and explicitly confirmed preference capture/readback; phase-aware UX and end-to-end latency measurement per product_contract.daily_companion.",
         "October 19 client iteration: exactly Tasks, Meals, Groceries, Progress and Ask for Help; voice-first changes without client text fields/dropdowns; top Suggestions for Nancy with separate reviewed feedback receipts; Ways to use Nancy FAQ; read-only source-attributed day timeline. Staff setup remains separate. Ordinary task choice and local appointment use existing reviewed voice command/recovery paths.",
         "Owner-authorized opt-in Focus presentation experiment alongside the unchanged default Current layout, verified source/build rollback, persistent horizontally centered Talk to Nancy control, measured safe-area/scroll clearance, shared conversation/scope cleanup and authenticated review link.",
-        "Owner-approved locked Current client design with Focus review disabled in the production entry, preserved experiment/rollback, fresh feature/security/privacy checks and a reviewable local/GitHub merge proposal."
+        "Owner-approved locked Current client design with Focus review disabled in the production entry, preserved experiment/rollback, fresh feature/security/privacy checks and a reviewable local/GitHub merge proposal.",
+        "Separate owner-only synthetic test instance with its own schema-equivalent database, restricted role, login/session/revocation scope and HTTPS origin; locked Current UI with a test-only label, Microsoft disabled and unchanged owner reasoning binding."
       ],
       "out_of_scope": [
         "Meal intake reporting and task completion history (S02)",
@@ -804,6 +806,15 @@
           ],
           "scenario": "Read the shipped entry page and open the normal and former Focus URLs. Verify the selected Current layout, existing navigation/voice boundaries and no automatic microphone. Exercise public-file/credential payload rejection, fixed fixture-clock login and explicit expiry denial, and the final cross-feature disposable-service regression. Create each synthetic caregiver fixture in its own fresh private directory so the tests run on clean public checkouts.",
           "expected": "Current stays the approved production design; the experiment cannot reopen via a stale link, private material is excluded from publication, and deterministic tests preserve actual authorization/expiry rules. Live/person/device gates remain separate."
+        },
+        {
+          "id": "S01-AUTO15",
+          "criterion_ids": [
+            "S01-AC01",
+            "S01-AC04"
+          ],
+          "scenario": "Validate strict isolated database/profile/owner configuration; exercise independent encrypted cookies, production defaults and failed Microsoft-callback cleanup. Test actual restricted-role denial of live care tables, a synthetic save/replay, absence of test IDs from live tables, authenticated owner-only route and disconnected Outlook. Verify the labelled locked client and preserve existing service routes/configuration.",
+          "expected": "The account owner can test a separate synthetic profile without access to live care tables, live session replacement, Outlook actions, provider rebinding or API fallback. Actual person/device/full-slice gates remain open."
         }
       ],
       "live_tests": [
@@ -902,7 +913,7 @@
         "S03",
         "S04"
       ],
-      "implementation_revision": "sha256:f50fd9292c845d88deab0b20d3d01a4694ae68da430f2014299c7dbaaccead87",
+      "implementation_revision": "sha256:1a6ab680bc6f4ddf144daab22ba2af2ee82ee77c8280fe9334025af7286bfd73",
       "blockers": [
         "October 19 merge-preparation engineering qualification passes 963 full regressions (one optional skip), 219 disposable-PostgreSQL matrix checks and 67 actual HTTP recovery/restore checks. Current design is owner-approved and locked. These scoped results do not pass broader unrun live/canonical scenarios. See docs/evidence/MERGE-PREP-2026-10-19.json.",
         "October 19 Focus experiment is deployed behind an explicit review link while Current remains default. The exact Current source/build restore, byte-identical rebuild, real restore command, refusal drills, automated suite and deployed scrolling/default checks pass. Intended-person/device acceptance remains awaiting_live_test while the intended client is unavailable. See docs/evidence/FOCUS-UI-2026-10-19.json.",
@@ -1092,6 +1103,17 @@
           "observed_by": "Codex automated, disposable PostgreSQL/listening HTTP, critical-path source review and authenticated deployed-browser verification",
           "evidence_ref": "docs/evidence/MERGE-PREP-2026-10-19.json",
           "notes": "Final full suite 963 passed, 1 optional skip across 105 files; actual PostgreSQL matrix 219/219, listening HTTP 67/67, typecheck/build, zero registry advisories and both publication scans pass. Initial clock-only failures are preserved and repaired, with expiry denial retained. Production Current is verified at normal and old Focus links. No live microphone, real inference/provider mutation, care migration or full human gate completion. The first GitHub Linux/Windows runs exposed only a missing private test-directory assumption (12 fixture failures each). A test-only per-fixture directory repair passes all 12 focused checks; production/runtime source is unchanged. Consult the proposal CI for the final head. The corrected source manifest excludes five ignored generated Python caches and matches all 311 public source files in the isolated test copy; runtime fingerprint is unchanged. Final isolated public-source copy subsequently passes 963 tests, one optional skip, typecheck and build, with all 311 source files matching this candidate and no private runtime copied."
+        },
+        {
+          "test_id": "S01-AUTO15",
+          "outcome": "pass",
+          "implementation_revision": "sha256:1a6ab680bc6f4ddf144daab22ba2af2ee82ee77c8280fe9334025af7286bfd73",
+          "executed_at": "2026-10-21T21:01:42.937Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex automated regression, actual restricted PostgreSQL/HTTP, one synthetic real owner inference/Heart and authenticated test browser",
+          "evidence_ref": "docs/evidence/OWNER-TEST-2026-10-21.json",
+          "notes": "Separate owner test instance is deployed: 976 regressions pass, 1 optional skip; 27 focused checks; 31 actual DB/HTTP isolation checks; one real owner-only Sol-high request plus Heart audio; browser login and synthetic save verified. Production configuration/process/assets and prior ingress routes are preserved. No full slice, intended-person, genuine-day or physical microphone gate is completed."
         }
       ],
       "human_actions": [

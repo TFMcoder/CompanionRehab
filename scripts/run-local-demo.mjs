@@ -11,12 +11,15 @@ import { randomUUID } from 'node:crypto';
 const run = promisify(execFile);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 process.chdir(root);
-const runtime = path.join(root, '.local/runtime');
+const ownerTest = process.argv.includes('--owner-test');
+const port = ownerTest ? 8788 : 8787;
+const runtime = path.join(root, ownerTest ? '.local/owner-test/runtime' : '.local/runtime');
 mkdirSync(runtime, { recursive: true });
-const settings = JSON.parse(readFileSync(path.join(runtime, 'demo-host.json'), 'utf8'));
+const settings = JSON.parse(readFileSync(path.join(runtime, ownerTest ? 'host.json' : 'demo-host.json'), 'utf8'));
 const origin = new URL(settings.origin);
 if (origin.origin !== settings.origin || origin.username || origin.password ||
     (origin.protocol !== 'https:' && settings.origin !== 'http://localhost:8787')) throw Error('Invalid demo origin');
+if (ownerTest && (origin.protocol !== 'https:' || origin.port !== '10000')) throw Error('Invalid owner test origin');
 const lock = path.join(runtime, 'demo-supervisor.lock');
 async function inspectProcess(pid) {
   if (!Number.isSafeInteger(pid) || pid <= 0) throw Error('Invalid process identity');
@@ -59,7 +62,7 @@ function record(state, reason) {
 }
 function health() {
   return new Promise(resolve => {
-    const req = http.get({ hostname: '127.0.0.1', port: 8787, path: '/api/config',
+    const req = http.get({ hostname: '127.0.0.1', port, path: '/api/config',
       headers: { host: origin.host }, timeout: 3000 }, res => {
       res.resume(); resolve(res.statusCode === 200);
     });
@@ -68,7 +71,7 @@ function health() {
 }
 function portInUse() {
   return new Promise(resolve => {
-    const socket = net.createConnection({ host: '127.0.0.1', port: 8787 });
+    const socket = net.createConnection({ host: '127.0.0.1', port });
     socket.setTimeout(3000);
     socket.once('connect', () => { socket.destroy(); resolve(true); });
     socket.once('error', () => resolve(false));
@@ -97,9 +100,9 @@ function start() {
   const outFd = openSync(out, 'a'), errFd = openSync(err, 'a');
   // Tailscale does not use Cloudflare's client-IP header. Keep that trust mode off.
   runId = randomUUID();
-  child = spawn(process.execPath, ['--import', 'tsx', 'src/server/index.ts', `--nancy-demo-run=${runId}`], {
+  child = spawn(process.execPath, ['--import', 'tsx', ownerTest ? 'src/server/owner-test.ts' : 'src/server/index.ts', `--nancy-demo-run=${runId}`], {
     cwd: root, windowsHide: true, stdio: ['ignore', outFd, errFd],
-    env: { ...process.env, PUBLIC_ORIGIN: origin.origin, PORT: '8787', NANCY_TRUSTED_PROXY: '' },
+    env: { ...process.env, PUBLIC_ORIGIN: origin.origin, PORT: String(port), NANCY_TRUSTED_PROXY: '' },
   });
   closeSync(outFd); closeSync(errFd);
   const launched = child;

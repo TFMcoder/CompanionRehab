@@ -6,10 +6,10 @@ import type {MicrosoftService} from './service.js';
 import {microsoftReadRangeSchema,microsoftSelectionSchema,microsoftUnavailable,microsoftPrepareSchema,microsoftConfirmSchema} from '../../shared/microsoft-contracts.js';
 
 export const microsoftCallbackPath='/api/microsoft/callback';
-export function registerMicrosoftRoutes(app:FastifyInstance,options:{service?:MicrosoftService;sessions:WeakMap<FastifyRequest,Session>;origin:string;limit:(request:FastifyRequest,key:string,maximum:number)=>void}){
+export function registerMicrosoftRoutes(app:FastifyInstance,options:{service?:MicrosoftService;sessions:WeakMap<FastifyRequest,Session>;origin:string;bindingCookieName?:'nancy_microsoft_binding'|'nancy_test_microsoft_binding';limit:(request:FastifyRequest,key:string,maximum:number)=>void}){
  const {sessions,origin,limit}=options;
  const service=()=>{if(!options.service)throw new ApiError(503,'microsoft_not_configured','The Outlook connection is not available yet.');return options.service;};
- const bindingCookie='nancy_microsoft_binding';
+ const bindingCookie=options.bindingCookieName??'nancy_microsoft_binding';
  const cookie={httpOnly:true,secure:origin.startsWith('https:'),sameSite:'lax' as const,path:'/api/microsoft',maxAge:600};
  const empty=z.object({}).strict();
  const bounded=(request:FastifyRequest)=>limit(request,`microsoft:${sessions.get(request)!.user_id}`,20);

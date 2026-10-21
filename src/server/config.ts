@@ -12,6 +12,7 @@ export interface Config {
   databaseUrl?: string; voiceTransport?: 'local' | 'legacy'; planUserId?: string; synthetic?: boolean;
   trustedProxy?: 'cloudflare-loopback';
   caregiverVoiceConfig?: string;
+  sessionCookieName?: 'nancy_session' | 'nancy_test_session';
 }
 export function configFromEnv(env: NodeJS.ProcessEnv = process.env): Config {
   const origin = new URL(env.PUBLIC_ORIGIN || 'http://localhost:8787');

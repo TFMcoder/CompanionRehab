@@ -1,0 +1,100 @@
+{
+  "evidence_id": "OWNER-TEST-2026-10-21",
+  "observed_at": "2026-10-21T21:01:42.937Z",
+  "status": "owner_test_instance_deployed_engineering_verified",
+  "implementation_revision": "sha256:1a6ab680bc6f4ddf144daab22ba2af2ee82ee77c8280fe9334025af7286bfd73",
+  "source_manifest": {
+    "runtime_revision": "sha256:1a6ab680bc6f4ddf144daab22ba2af2ee82ee77c8280fe9334025af7286bfd73",
+    "runtime_files": 146,
+    "all_source_revision": "sha256:2900fb53b65303d57d00eeb68d3b3572dd2cf3ace456ed92a5644d3ab86f4833",
+    "all_source_files": 317,
+    "private_reference": ".local/probes/owner-test-source.json"
+  },
+  "authorization": "Owner requested a duplicate database and personal tester login separate from the live intended-client use. The copy uses the current schema and synthetic care data; it retains only the actual existing owner identity for the unchanged immutable owner-practice connection.",
+  "isolation": {
+    "new_database": true,
+    "restricted_database_role": true,
+    "new_synthetic_participant": true,
+    "independent_password": true,
+    "independent_session_key_and_cookies": true,
+    "independent_origin_and_browser_storage": true,
+    "independent_revocations_and_windows_task": true,
+    "live_care_table_access_denied": true,
+    "test_profile_and_grocery_absent_from_live": true,
+    "microsoft_disabled": true,
+    "provider_credentials_copied": false,
+    "caregiver_route_widened": false,
+    "api_fallback": false,
+    "live_database_reseeded": false,
+    "old_practice_database_preserved": true
+  },
+  "final_checks": {
+    "full_suite": {
+      "passed": 976,
+      "failed": 0,
+      "optional_skips": 1,
+      "files": 106,
+      "private_reference": ".local/probes/owner-test-final-full.json"
+    },
+    "focused": {
+      "passed": 27,
+      "failed": 0,
+      "private_reference": ".local/probes/owner-test-final-targeted.json"
+    },
+    "actual_database_http": {
+      "passed": 31,
+      "total": 31,
+      "scope": "Actual restricted-role PostgreSQL, own synthetic HTTP save/replay, read-only live ID-absence verification and cookie/Outlook denial; no provider request in this final run.",
+      "private_reference": ".local/probes/owner-test-local.json"
+    },
+    "actual_owner_inference": {
+      "passed": 33,
+      "total": 33,
+      "model_requests": 1,
+      "selected_model": "gpt-6-sol",
+      "reasoning_effort": "high",
+      "heart_greeting_and_reply_audio": true,
+      "actual_numeric_usage": {
+        "actual_numeric_usage_found": true,
+        "input_tokens": 7479,
+        "output_tokens": 24,
+        "total_tokens": 7503,
+        "cached_input_tokens": 4224,
+        "reasoning_output_tokens": 15,
+        "duration_ms": 2602
+      },
+      "scope": "One synthetic owner-practice request before the final callback-cookie-only cleanup repair; inference code and immutable binding were unchanged by that repair. No physical microphone or actual-device speech acceptance.",
+      "private_reference": ".local/probes/owner-test-model.json"
+    },
+    "browser": {
+      "passed": 9,
+      "total": 9,
+      "private_screenshot": ".local/probes/owner-test-browser.png",
+      "private_reference": ".local/probes/owner-test-browser.json"
+    },
+    "ingress": {
+      "passed": true,
+      "checks": 5,
+      "existing_routes_preserved": true,
+      "private_reference": ".local/probes/owner-test-route-preservation.json"
+    },
+    "typecheck": "passed",
+    "isolated_build": "passed"
+  },
+  "findings_repaired": [
+    "Separate both ordinary session and Microsoft callback cookies because cookies on the same host can span different ports. Test logout and error cleanup retain live-site cookies.",
+    "A historical HTTP recovery fixture used an eight-day-old login with the real clock. Its Date is now fixed to the fixture and explicitly advanced eight days to preserve expiry denial; production authentication is unchanged."
+  ],
+  "initial_full_run": {
+    "passed": 974,
+    "failed": 2,
+    "optional_skips": 1,
+    "private_reference": ".local/probes/owner-test-full-suite.json"
+  },
+  "acceptance": {
+    "owner_synthetic_environment": "engineering_verified",
+    "physical_microphone_and_safari": "awaiting_live_test",
+    "intended_person_and_genuine_day": "awaiting_live_test",
+    "full_slices_completed": 0
+  }
+}

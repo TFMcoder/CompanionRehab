@@ -64,7 +64,8 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     for (const [key, entry] of limits) if (entry.starts + 60000 < Date.now()) limits.delete(key);
   }, 60000); limiter.unref();
   const cookieOptions = { httpOnly: true, secure: config.origin.startsWith('https:'), sameSite: 'strict' as const, path: '/', maxAge: 7 * 86400 };
-  const setSession = (reply: FastifyReply, session: Session) => reply.setCookie('nancy_session', sealSession(session, config.sessionKey!), cookieOptions);
+  const sessionCookieName=z.enum(['nancy_session','nancy_test_session']).parse(config.sessionCookieName??'nancy_session');
+  const setSession = (reply: FastifyReply, session: Session) => reply.setCookie(sessionCookieName, sealSession(session, config.sessionKey!), cookieOptions);
   const sessionScope=async(session:Session)=>{
     const authority=await care.authority?.(session);
     const role=authority?.active_role??await care.role?.(session)??null;
@@ -84,7 +85,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     const microsoftCallback=request.method==='GET'&&request.url.split('?')[0]===microsoftCallbackPath;
     if (request.url.startsWith('/api/') && !['/api/config', '/api/auth/login'].includes(request.url)&&!microsoftCallback) {
       if (missingConfig(config).length) throw new ApiError(503, 'not_configured', 'The care service has not been connected yet.');
-      const current = openSession(request.cookies.nancy_session, config.sessionKey!);
+      const current = openSession(request.cookies[sessionCookieName], config.sessionKey!);
       if (!current || revoked.has(current.session_id)) {if(current)await microsoft?.invalidateSession(current);throw new ApiError(401, 'unauthorized', 'Please sign in.');}
       let session:Session;
       try{session=await care.authorize(current);}catch(error){await microsoft?.invalidateSession(current);throw error;}
@@ -108,7 +109,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof ZodError) return reply.code(400).send({ error: { code: 'invalid_input', message: 'Check the information and choices, then try again.' } });
     if (error instanceof ApiError) {
-      if (error.status === 401) reply.clearCookie('nancy_session', cookieOptions);
+      if (error.status === 401) reply.clearCookie(sessionCookieName, cookieOptions);
       return reply.code(error.status).send({ error: { code: error.code, message: error.message } });
     }
     if (error && typeof error === 'object' && 'statusCode' in error && error.statusCode === 413) return reply.code(413).send({ error: { code: 'too_large', message: 'That request is too large.' } });
@@ -155,7 +156,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     await microsoft?.endLogin(session);
     for (const [key, controller] of speaking) if (key.startsWith(session.session_id + ':')) { controller.abort(); speaking.delete(key); }
     for (const key of audioCache.keys()) if (key.startsWith(session.session_id + ':')) audioCache.delete(key);
-    reply.clearCookie('nancy_session', cookieOptions);
+    reply.clearCookie(sessionCookieName, cookieOptions);
     await care.logout(session);
     return { ok: true };
   });
@@ -175,7 +176,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   app.get('/api/priority-context', async request => priorityContext(await care.today(sessions.get(request)!)));
   registerLocalFeatures(app,{features,sessions,care,speech,voiceOwner:config.planUserId,voiceAccess:async session=>(await voiceAccess(session))?.binding_ref??null,limit});
   registerClientVoiceMetrics(app,{sessions,conversation,runtimeLog:dependencies.runtimeLog,limit});
-  registerMicrosoftRoutes(app,{service:microsoft,sessions,origin:config.origin,limit});
+  registerMicrosoftRoutes(app,{service:microsoft,sessions,origin:config.origin,limit,bindingCookieName:sessionCookieName==='nancy_test_session'?'nancy_test_microsoft_binding':'nancy_microsoft_binding'});
   const requestsService=()=>{
     if(!taskRequests)throw new ApiError(503,'requests_unavailable','Task requests are not available on this care connection.');
     return taskRequests;
