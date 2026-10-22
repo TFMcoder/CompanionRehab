@@ -1,6 +1,6 @@
 # Human actions by implementation stage
 
-Updated: 10/21/2026 23:01:45. Generated from the canonical roadmap; all statuses below come from that file.
+Updated: 10/22/2026 03:27:44. Generated from the canonical roadmap; all statuses below come from that file.
 
 Source: [roadmap.json](roadmap/roadmap.json), in each slice's human_actions array. Edit the JSON, then run the renderer; do not maintain a separate checklist here. See [ROADMAP.md](ROADMAP.md) for feature scope and live tests.
 

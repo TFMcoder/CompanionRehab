@@ -20,6 +20,8 @@ The deployed address and login remain in ignored `.local/owner-test/` files. The
 
 The private `Open-Nancy-Test-Login.cmd` opens `scripts/show-owner-test-login.ts` in a human-only TTY. Copy the test password there; do not capture the viewer output in logs or repository evidence. The current client has no self-service password-change flow.
 
+The October 21 owner-authorized [speed/quality comparison](REASONING_COMPARISON_2026-10-21.md) may select an explicitly reviewed experimental model/effort in this copy. Its separate private `reasoning-experiment.json` must match the exact owner, synthetic participant and origin; selection is pinned at startup. Main never reads it, and alternate profiles are rejected on caregiver routes. Absence retains Sol/high, with no automatic fallback. Preserve the previous selection/absence and entry page before a guarded test-only restart. The production client remains Sol/high until a separate owner review.
+
 The test route can be taken offline independently with `tailscale funnel --https=10000 off`. This preserves test records and the other routes; it does not stop the Windows task. Stop or remove only the named test task after separately checking its recorded process identity. Never stop the shared PostgreSQL cluster or live Nancy task to manage a test copy.
 
 ## Verification and limits

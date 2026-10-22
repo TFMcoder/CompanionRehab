@@ -4,6 +4,21 @@ import type { PlanCredential } from './storage.js';
 
 export const selectedModel = 'gpt-6-sol';
 export const selectedEffort = 'high';
+export const selectedReasoning = Object.freeze({ model: selectedModel, effort: selectedEffort });
+/** Explicit owner-test candidates; production continues to call requestSolHigh. */
+export const reasoningCandidates = Object.freeze({
+  'sol-high': selectedReasoning,
+  'sol-low': Object.freeze({ model: 'gpt-6-sol', effort: 'low' }),
+  'sol-none': Object.freeze({ model: 'gpt-6-sol', effort: 'none' }),
+  'luna-low': Object.freeze({ model: 'gpt-6-luna', effort: 'low' }),
+  'sol61-low': Object.freeze({ model: 'gpt-6.1-sol', effort: 'low' }),
+} as const);
+export type ReasoningProfile = Readonly<{model: string; effort: string}>;
+export function validateReasoningProfile(profile: ReasoningProfile): ReasoningProfile {
+  const candidate = Object.values(reasoningCandidates).find(value => value.model === profile.model && value.effort === profile.effort);
+  if (!candidate || Object.keys(profile).some(key => !['model', 'effort'].includes(key))) throw new Error('Unapproved reasoning experiment profile.');
+  return candidate;
+}
 const responsesEndpoint = `${resource}/responses`;
 
 export class PlanRequestError extends Error {
@@ -75,7 +90,7 @@ export function sumInferenceUsage(usages: readonly (InferenceUsage | undefined)[
   return total;
 }
 
-export interface ProbeResult { completed: true; model: typeof selectedModel; effort: typeof selectedEffort;
+export interface ProbeResult { completed: true; model: string; effort: string;
   text: string; usage?: InferenceUsage; requestId?: string }
 function responseError(payload: unknown, status: number, requestId?: string): PlanRequestError {
   const data = payload && typeof payload === 'object' ? payload as Record<string, unknown> : {};
@@ -113,10 +128,11 @@ interface StreamTimingObserver {
   firstSpeakable?: (elapsedMs: number) => void;
   completed?: (elapsedMs: number, usage: ProbeResult['usage']) => void;
 }
-export async function requestSolHigh(account: PlanCredential, input: OutputItem[],
+async function requestProfile(profile: ReasoningProfile, account: PlanCredential, input: OutputItem[],
   options: { tools?: OutputItem[]; tool_choice?: 'required' | 'none' | 'auto'; instructions?: string } = {}, fetcher: typeof fetch = fetch,
   timing?: StreamTimingObserver, signal?: AbortSignal): Promise<CompletedTurn> {
   if (!account.scopes.includes(requiredScope)) throw new Error('ChatGPT plan use was not granted for this connection.');
+  if (Object.keys(options).some(key => !['tools', 'tool_choice', 'instructions'].includes(key))) throw new Error('Unsupported ChatGPT plan request option.');
   const started = performance.now();
   let observedText = '';
   let firstDeltaSeen = false;
@@ -125,8 +141,7 @@ export async function requestSolHigh(account: PlanCredential, input: OutputItem[
   const response = await fetcher(responsesEndpoint, {
     method: 'POST', redirect: 'error',
     headers: { Authorization: `Bearer ${account.accessToken}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: selectedModel, reasoning: { effort: selectedEffort },
-      input, ...options,
+    body: JSON.stringify({ input, ...options, model: profile.model, reasoning: { effort: profile.effort },
       store: false, stream: true }),
     signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(45000)]) : AbortSignal.timeout(45000),
   });
@@ -181,7 +196,7 @@ export async function requestSolHigh(account: PlanCredential, input: OutputItem[
         if (item.type === 'response.incomplete') throw attachInferenceUsage(new Error('ChatGPT response was incomplete.'), readUsage(record(item.response).usage));
         if (item.type === 'response.completed') {
           const result = item.response && typeof item.response === 'object' ? item.response as Record<string, unknown> : {};
-          if (result.status !== 'completed' || result.model !== selectedModel) throw new Error('ChatGPT completed with a different model or status.');
+          if (result.status !== 'completed' || result.model !== profile.model) throw new Error('ChatGPT completed with a different model or status.');
           const usage = readUsage(result.usage);
           // The plan stream can omit aggregated output at the terminal event.
           // Only completed item events are eligible for stateless continuation.
@@ -193,7 +208,7 @@ export async function requestSolHigh(account: PlanCredential, input: OutputItem[
             firstSpeakableSeen = true; timing.firstSpeakable?.(performance.now() - started);
           }
           timing?.completed?.(performance.now() - started, usage);
-          completed = { completed: true, model: selectedModel, effort: selectedEffort, text, usage, requestId, output };
+          completed = { completed: true, model: profile.model, effort: profile.effort, text, usage, requestId, output };
           break;
         }
       }
@@ -202,6 +217,17 @@ export async function requestSolHigh(account: PlanCredential, input: OutputItem[
   } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
   if (!completed) throw new Error('ChatGPT stream ended without response.completed.');
   return completed;
+}
+
+/** Pinned for its whole lifetime, including tool rounds; no environment/global model switch. */
+export function createPlanRequest(profile: ReasoningProfile) {
+  const pinned = validateReasoningProfile(profile);
+  return (...args: Parameters<typeof requestSolHigh>) => requestProfile(pinned, ...args);
+}
+export function requestSolHigh(account: PlanCredential, input: OutputItem[],
+  options: { tools?: OutputItem[]; tool_choice?: 'required' | 'none' | 'auto'; instructions?: string } = {}, fetcher: typeof fetch = fetch,
+  timing?: StreamTimingObserver, signal?: AbortSignal): Promise<CompletedTurn> {
+  return requestProfile(selectedReasoning, account, input, options, fetcher, timing, signal);
 }
 
 const timingPrompts = [

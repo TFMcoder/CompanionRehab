@@ -1,5 +1,6 @@
 import {resolve} from 'node:path';
 import {z} from 'zod';
+import {reasoningCandidates} from './chatgpt-plan/inference.js';
 
 export const ownerTestDirectory=resolve('.local/owner-test');
 export const ownerTestSchema=z.object({
@@ -19,6 +20,16 @@ export const ownerTestSchema=z.object({
   ctx.addIssue({code:'custom',message:'Test sessions require an independent 32-byte key.'});
 });
 export type OwnerTestSettings=z.infer<typeof ownerTestSchema>;
+
+const reasoningSelection=z.object({schema_version:z.literal(1),owner_actor_id:z.uuid(),participant_id:z.uuid(),origin:z.url(),
+ profile:z.enum(['sol-high','sol-low','sol-none','luna-low','sol61-low'])}).strict();
+/** Private startup-only selection. Main, browser input and caregiver routing never read it. */
+export function ownerTestReasoning(settings:OwnerTestSettings,selection?:unknown){
+ if(selection===undefined)return reasoningCandidates['sol-high'];
+ const chosen=reasoningSelection.parse(selection);
+ if(chosen.owner_actor_id!==settings.owner_actor_id||chosen.participant_id!==settings.participant_id||chosen.origin!==settings.origin)throw Error('Reasoning selection must match this exact owner test copy.');
+ return reasoningCandidates[chosen.profile];
+}
 
 export function ownerTestIndex(html:string){
  if(!html.includes('name="nancy-focus-review" content="disabled"')||!html.includes('<body>')||!html.includes('</head>'))throw Error('Build must retain the locked Current design.');

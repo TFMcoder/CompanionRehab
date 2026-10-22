@@ -3,7 +3,7 @@ import { z, ZodError } from 'zod';
 import type { Session } from './session.js';
 import type { CareService } from './care-access.js';
 import type { Reasoner } from './plan-reasoner.js';
-import { sumInferenceUsage, inferenceUsageFromError, type InferenceUsage, type OutputItem } from './chatgpt-plan/inference.js';
+import { sumInferenceUsage, inferenceUsageFromError, selectedReasoning, validateReasoningProfile, type ReasoningProfile, type InferenceUsage, type OutputItem } from './chatgpt-plan/inference.js';
 import { bindingRef, NANCY_POLICY_VERSION, type InferenceBinding } from './inference-binding.js';
 import { ApiError } from './errors.js';
 import { commandSchema, groceryInput, planInput, type AppRole, type ClientView, type Today } from '../shared/contracts.js';
@@ -192,7 +192,9 @@ export class ConversationService {
   constructor(private care: CareService, private reasoner: Reasoner, private ownerId: string, private now = () => new Date(), private prepareSpeech?: PrepareSpeech,
     private observeTurn?: (metric: ConversationTurnMetric) => void,
     private observeCall?: (metric: InferenceCallMetric) => void,
-    private requests?: RequestConversationService, private features?:LocalFeatures, private microsoftEligible?:(session:Session)=>Promise<boolean>,private microsoft?:MicrosoftService,private suggestions?:NancySuggestions) {
+    private requests?: RequestConversationService, private features?:LocalFeatures, private microsoftEligible?:(session:Session)=>Promise<boolean>,private microsoft?:MicrosoftService,private suggestions?:NancySuggestions,
+    private expectedReasoning:ReasoningProfile=selectedReasoning) {
+    this.expectedReasoning=validateReasoningProfile(expectedReasoning);
     this.timer = setInterval(() => { for (const [id, state] of this.sessions) if (state.expires < Date.now()) this.endState(id, state); }, 30000); this.timer.unref();
   }
   private async getBinding(session: Session) {
@@ -203,7 +205,11 @@ export class ConversationService {
     let revision = this.requests ? createHash('sha256').update(scope.grant_revision + ':' + await this.requests.authorityRevision(session)).digest('hex') : scope.grant_revision;
     if(this.features)revision=createHash('sha256').update(revision+':'+await this.features.authorityRevision(session)).digest('hex');
     if(this.microsoft)revision=createHash('sha256').update(revision+':'+await this.microsoft.authorityRevision(session)).digest('hex');
-    return this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION });
+    const experiment=this.expectedReasoning!==selectedReasoning;
+    if(experiment&&scope.actor_id!==this.ownerId)throw new ApiError(403,'experiment_owner_only','Reasoning experiments are limited to the owner’s practice copy.');
+    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}`:'') });
+    if(experiment&&(binding.route_id!=='chatgpt_plan_owner_practice'||binding.qualification!=='owner_practice'))throw new ApiError(403,'experiment_owner_only','Reasoning experiments require the owner practice connection.');
+    return binding;
   }
   private async validateScope(session: Session, state?: Conversation) {
     try {
@@ -642,7 +648,7 @@ export class ConversationService {
           }
           await this.validateScope(session, state);
           ensureOpen();
-          if (response.model !== 'gpt-6-sol' || response.effort !== 'high' || !response.completed) throw new ApiError(503, 'wrong_model', 'The selected reasoning model was not used.');
+          if (response.model !== this.expectedReasoning.model || response.effort !== this.expectedReasoning.effort || !response.completed) throw new ApiError(503, 'wrong_model', 'The selected reasoning model was not used.');
           const calls = response.output.filter(item => item.type === 'function_call');
           toolCalls += calls.length;
           if (response.output.some(item => !['reasoning', 'message', 'function_call'].includes(String(item.type))) || calls.length > 8) throw new ApiError(503, 'invalid_response', 'Nancy could not safely finish that response.');

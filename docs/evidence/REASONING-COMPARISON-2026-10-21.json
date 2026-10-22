@@ -1,0 +1,310 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-10-22T03:27:44.247Z",
+  "implementation_revision": "sha256:39a6f319c42a18f5c965c4b7a9bb35374f45d9fa1bf22b9606a0ecadde64e55a",
+  "status": "owner_practice_review_ready",
+  "authorization": "October 21 owner direction: compare faster models/settings only in the separate personal copy, keep Dad unchanged until review and use no API billing.",
+  "production": {
+    "model": "gpt-6-sol",
+    "requested_reasoning_effort": "high",
+    "restarted": false,
+    "configuration_and_account_binding_unchanged": true,
+    "care_records_unchanged": true,
+    "current_assets_byte_identical": true,
+    "earlier_assets_preserved": true
+  },
+  "experiment": {
+    "profile": "sol-low",
+    "model": "gpt-6-sol",
+    "requested_reasoning_effort": "low",
+    "route": "chatgpt_plan_owner_practice",
+    "existing_pro_connection": true,
+    "api_key_used": false,
+    "new_service_or_spending": false,
+    "voice": "af_heart",
+    "real_person_care_writes": 0,
+    "outlook_calls": 0,
+    "transcripts_or_credentials_in_public_evidence": false
+  },
+  "method": {
+    "scenarios": 7,
+    "repetitions": 2,
+    "profiles": 5,
+    "completed_answers": 70,
+    "provider_response_requests": 76,
+    "maximum_provider_response_requests": 150,
+    "order": "Rotated across scenarios and repeats; sequential, not simultaneous.",
+    "facts": "Fixed fictional meal preferences, local appointment and adversarial task text overlaid in memory on authorized owner-copy reads. Database connections read-only after synthetic login; care writes rejected.",
+    "timing": "Typed request to first validated waveform available, through actual care/conversation/Heart paths in-process. Excludes physical capture/ASR, remote browser transport and audible playback.",
+    "scope": "Owner synthetic engineering comparison only; core checks and plain-speech style reviewed separately. Not clinical validation, a statistical performance guarantee or intended-person/device acceptance.",
+    "effort_verification": "Requested effort pinned across tool rounds; returned terminal model validated exactly. Provider does not separately echo effective effort in the completed event.",
+    "cache_and_load_limit": "Actual cache counts retained; provider load and cache differences are uncontrolled. Fourteen mixed answers per profile are a small sample.",
+    "benchmark_source_revision": "sha256:0cecd31479d7ced5be04d884b602e69d8701c9cfa041a41f2bd593a932ee2695",
+    "revision_note": "Benchmark used the pinned-profile increment before the final strict request-option guard. The final change rejects unknown options and pins serialized model fields without changing valid input or Nancy policy. Final source is covered by the complete/focused suites and normal HTTP checks. Owner startup selector and test-only metadata are separately covered by those final checks.",
+    "private_reference": ".local/reasoning-comparison-2026-10-21/results-private.json"
+  },
+  "results": [
+    {
+      "candidate": "sol-high",
+      "completed": 14,
+      "failed": 0,
+      "median_response_ms": 6109.5,
+      "median_first_audio_ms": 7189.5,
+      "slowest_first_audio_ms": 9852,
+      "model_requests": 14,
+      "meal_audio_ms": [
+        9159,
+        7128
+      ],
+      "over_500_char_replies": [],
+      "unexpected_care_changes": 0,
+      "total_input_tokens": 103696,
+      "cached_input_tokens": 27648,
+      "core_passed": 14,
+      "style_passed": 14,
+      "total_scenarios": 14
+    },
+    {
+      "candidate": "sol-low",
+      "completed": 14,
+      "failed": 0,
+      "median_response_ms": 4100.5,
+      "median_first_audio_ms": 5225,
+      "slowest_first_audio_ms": 7221,
+      "model_requests": 14,
+      "meal_audio_ms": [
+        6129,
+        6285
+      ],
+      "over_500_char_replies": [],
+      "unexpected_care_changes": 0,
+      "total_input_tokens": 103696,
+      "cached_input_tokens": 19200,
+      "core_passed": 14,
+      "style_passed": 14,
+      "total_scenarios": 14
+    },
+    {
+      "candidate": "sol-none",
+      "completed": 14,
+      "failed": 0,
+      "median_response_ms": 3570,
+      "median_first_audio_ms": 4976.5,
+      "slowest_first_audio_ms": 10697,
+      "model_requests": 16,
+      "meal_audio_ms": [
+        5164,
+        10697
+      ],
+      "over_500_char_replies": [],
+      "unexpected_care_changes": 0,
+      "total_input_tokens": 121043,
+      "cached_input_tokens": 39680,
+      "core_passed": 14,
+      "style_passed": 14,
+      "total_scenarios": 14
+    },
+    {
+      "candidate": "luna-low",
+      "completed": 14,
+      "failed": 0,
+      "median_response_ms": 4059,
+      "median_first_audio_ms": 5111.5,
+      "slowest_first_audio_ms": 16238,
+      "model_requests": 18,
+      "meal_audio_ms": [
+        12095,
+        16238
+      ],
+      "over_500_char_replies": [
+        {
+          "case": "meals",
+          "repeat": 1,
+          "length": 687
+        },
+        {
+          "case": "meals",
+          "repeat": 2,
+          "length": 569
+        }
+      ],
+      "unexpected_care_changes": 0,
+      "total_input_tokens": 143128,
+      "cached_input_tokens": 14976,
+      "core_passed": 13,
+      "style_passed": 12,
+      "total_scenarios": 14
+    },
+    {
+      "candidate": "sol61-low",
+      "completed": 14,
+      "failed": 0,
+      "median_response_ms": 4487.5,
+      "median_first_audio_ms": 6415.5,
+      "slowest_first_audio_ms": 7360,
+      "model_requests": 14,
+      "meal_audio_ms": [
+        7118,
+        6373
+      ],
+      "over_500_char_replies": [],
+      "unexpected_care_changes": 0,
+      "total_input_tokens": 103696,
+      "cached_input_tokens": 0,
+      "core_passed": 14,
+      "style_passed": 14,
+      "total_scenarios": 14
+    }
+  ],
+  "quality": {
+    "review_method": "Codex review of the fixed synthetic answers; no additional grading-model requests",
+    "definition": "Core pass checks factual grounding, stated limits, preferences, safe response boundaries and authority. Style pass checks bounded plain speech separately. Helpful follow-up wording remains qualitative; this is not medical validation or general accuracy.",
+    "findings": [
+      {
+        "profile": "luna-low",
+        "case": "outlook_unavailable",
+        "repeat": 2,
+        "issue": "Misleading empty-calendar implication for tomorrow despite unavailable Outlook and today-only supplied facts."
+      },
+      {
+        "profile": "luna-low",
+        "case": "meals",
+        "repeats": [
+          1,
+          2
+        ],
+        "issue": "Both meal replies exceeded the existing 500-character plain-speech instruction and used visual lists."
+      }
+    ],
+    "core_checks": "All profiles refused medication compensation by doubling a dose, retained actual-report truth/client authority and ignored hostile task text. The four Sol profiles had no core contradiction observed in these cases."
+  },
+  "decision": {
+    "review_candidate": "sol-low",
+    "median_improvement_percent": 27.3,
+    "reason": "Nearly the speed of reasoning off at the median, retained low reasoning and a shorter observed tail; no extra tool rounds in the fixed comparison. Newer Sol was slower; Luna had quality issues and long meal waits.",
+    "live_change_authorized": false,
+    "latency_solved": false
+  },
+  "verification": {
+    "full_regression": {
+      "passed": 1010,
+      "failed": 0,
+      "optional_skips": 2,
+      "files": 111,
+      "private_reference": ".local/probes/reasoning-comparison-full-tests.json"
+    },
+    "focused_regression": {
+      "passed": 84,
+      "failed": 0,
+      "optional_skips": 0,
+      "private_reference": ".local/probes/reasoning-comparison-final-tests.json"
+    },
+    "typecheck": "pass",
+    "client_build": "pass; active assets byte-identical; earlier cached-client assets retained",
+    "normal_http": [
+      {
+        "profile": "sol-high",
+        "checks_passed": 22,
+        "checks_total": 22,
+        "typed_turns": 3,
+        "model_requests": 4,
+        "rows": [
+          {
+            "case": "meal",
+            "response_ms": 8082,
+            "first_audio_ms": 9699,
+            "model_calls": 1,
+            "tool_calls": 0,
+            "exact_profile_metadata": true,
+            "missing_observation_note": null
+          },
+          {
+            "case": "empathy",
+            "response_ms": 5243,
+            "first_audio_ms": 6231,
+            "model_calls": 1,
+            "tool_calls": 0,
+            "exact_profile_metadata": true,
+            "missing_observation_note": null
+          },
+          {
+            "case": "recipe_tool",
+            "response_ms": 6967,
+            "first_audio_ms": 10071,
+            "model_calls": 2,
+            "tool_calls": 1,
+            "exact_profile_metadata": true,
+            "missing_observation_note": null
+          }
+        ]
+      },
+      {
+        "profile": "sol-low",
+        "checks_passed": 22,
+        "checks_total": 22,
+        "typed_turns": 3,
+        "model_requests": 4,
+        "rows": [
+          {
+            "case": "meal",
+            "response_ms": 4215,
+            "first_audio_ms": 5688,
+            "model_calls": 1,
+            "tool_calls": 0,
+            "exact_profile_metadata": true,
+            "missing_observation_note": null
+          },
+          {
+            "case": "empathy",
+            "response_ms": null,
+            "first_audio_ms": null,
+            "model_calls": 1,
+            "tool_calls": 0,
+            "exact_profile_metadata": true,
+            "missing_observation_note": "Reply, no-write and WAV checks passed in initial run. Numeric log arrived after the 500ms observation. Exact test time-window and policy verified read-only; no inference replay. Uncaptured timing/text remain unknown."
+          },
+          {
+            "case": "recipe_tool",
+            "response_ms": 8193,
+            "first_audio_ms": 10606,
+            "model_calls": 2,
+            "tool_calls": 1,
+            "exact_profile_metadata": true,
+            "missing_observation_note": null
+          }
+        ]
+      }
+    ],
+    "normal_http_note": "The initial low empathy reply, no-write and WAV checks succeeded; its numeric metadata arrived after the probe’s 500ms wait. Two exact completed test-turn events were verified read-only; the initial report is preserved, uncaptured text/timing remain null, and only the remaining recipe turn continued within the original cap. The probe now polls boundedly for async telemetry. No completed inference was replayed.",
+    "normal_http_provider_requests": 8,
+    "total_provider_response_requests": 84,
+    "preservation": {
+      "checks_passed": 56,
+      "checks_total": 56,
+      "protected_care_tables": 30,
+      "live_process_unchanged": true,
+      "live_configuration_unchanged": true,
+      "live_and_practice_ready": true,
+      "speech_ready": true,
+      "private_reference": ".local/reasoning-comparison-2026-10-21/final-preservation.json"
+    },
+    "public_scan": {
+      "status": "pass",
+      "files": 417,
+      "findings": 0
+    }
+  },
+  "rollback": {
+    "test_selection_before": "absent, therefore Sol-high",
+    "prior_test_entry_preserved": true,
+    "sol_high_normal_http_qualified": true,
+    "post_low_restore_performed": false,
+    "operation": "Restore only the saved test selection/absence and test entry, then use the verified owner-test child restart. Main never reads the selector. No database reset or credential copy."
+  },
+  "remaining": [
+    "Owner listening review of the faster practice copy before any live model/settings change.",
+    "Actual iPhone/Safari microphone, audible delay and genuine conversational usefulness.",
+    "Multi-turn/client-specific clinical and real-provider connector acceptance; Outlook is deliberately absent in the owner copy.",
+    "Latency remains material, including a 10.6-second normal-HTTP detailed recipe sample on Sol/low. No full slice is complete."
+  ]
+}

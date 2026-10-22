@@ -2,7 +2,7 @@ import {describe,it,expect,vi} from 'vitest';
 import {randomBytes,randomUUID} from 'node:crypto';
 import {createApp} from '../src/server/app.js';
 import {configFromEnv} from '../src/server/config.js';
-import {ownerTestSchema,ownerTestIndex} from '../src/server/owner-test-config.js';
+import {ownerTestSchema,ownerTestIndex,ownerTestReasoning} from '../src/server/owner-test-config.js';
 import {sealSession,type Session} from '../src/server/session.js';
 import {SessionRevocations} from '../src/server/revocations.js';
 import type {CareService} from '../src/server/care-access.js';
@@ -11,6 +11,12 @@ const session:Session={user_id:randomUUID(),session_id:randomUUID(),access_token
 const settings=()=>({schema_version:1,database_name:'nancy_owner_test',database_role:'nancy_owner_test',database_url:'postgres://nancy_owner_test:synthetic@127.0.0.1:55432/nancy_owner_test',origin:'https://synthetic.example:10000',port:8788,owner_actor_id:randomUUID(),participant_id:randomUUID(),excluded_live_participant_id:randomUUID(),session_key:randomBytes(32).toString('base64'),email:'tester@nancy.local'});
 const double=()=>({login:vi.fn(async()=>session),authorize:vi.fn(async(s:Session)=>s),logout:vi.fn(async()=>{}),today:vi.fn(async()=>({profile:null})),setup:vi.fn(),command:vi.fn(),receipt:vi.fn()} as unknown as CareService);
 describe('isolated owner test contract',()=>{
+ it('keeps Sol-high by default and accepts an alternate only for the exact private owner copy',()=>{
+  const config=ownerTestSchema.parse(settings()),selection={schema_version:1,owner_actor_id:config.owner_actor_id,participant_id:config.participant_id,origin:config.origin,profile:'sol-none'};
+  expect(ownerTestReasoning(config)).toEqual({model:'gpt-6-sol',effort:'high'});
+  expect(ownerTestReasoning(config,selection)).toEqual({model:'gpt-6-sol',effort:'none'});
+  for(const change of [{owner_actor_id:randomUUID()},{participant_id:randomUUID()},{origin:'https://synthetic.example:8443'},{profile:'anything'},{api_key:'synthetic'}])expect(()=>ownerTestReasoning(config,{...selection,...change})).toThrow();
+ });
  it('accepts a separate local database, restricted role and independent synthetic profile',()=>{expect(ownerTestSchema.parse(settings())).toMatchObject({database_name:'nancy_owner_test',port:8788});});
  it.each([
   {database_url:'postgres://nancy_owner_test:synthetic@127.0.0.1:55432/nancy_client_trial'},
