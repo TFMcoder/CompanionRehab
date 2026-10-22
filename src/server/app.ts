@@ -309,6 +309,8 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
       audioCache.set(cacheKey, audio);
       while (audioCache.size > 4) audioCache.delete(audioCache.keys().next().value!);
     }
+    const parts=splitSpeechParts(fullText,conversation.speechPartSize);
+    void conversation.prepareConversation(id,session,turn_id,part===0||part===undefined&&parts.length===1?audio:undefined,part===undefined||part===parts.length-1).catch(()=>{});
     return reply.type('audio/wav').send(audio);
   });
   app.post('/api/conversation/:id/played', async request => {
