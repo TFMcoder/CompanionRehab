@@ -1,4 +1,4 @@
-import {afterAll,beforeAll,describe,it,expect} from 'vitest';
+import {afterAll,beforeAll,describe,it,expect,vi} from 'vitest';
 import {randomBytes} from 'node:crypto';
 import {microsoftTestDatabase,createMicrosoftFixture} from './helpers/microsoft-fixture.js';
 import {createApp} from '../src/server/app.js';
@@ -37,13 +37,20 @@ describe('local browser session renewal overlap',()=>{
   await expect(f.care.authorize(f.session)).rejects.toMatchObject({status:401});
  });
  it('sets a usable replacement cookie for a late actual HTTP request instead of clearing the login',async()=>{
-  const f=await fixture(),config=configFromEnv({PUBLIC_ORIGIN:'http://localhost:8787',DATABASE_URL:'postgresql://localhost/synthetic',SESSION_KEY:randomBytes(32).toString('base64')}),app=await createApp(config,{care:f.care,revocations:new SessionRevocations()});
-  const headers={host:'localhost:8787',origin:config.origin,cookie:'nancy_session='+sealSession(f.session,config.sessionKey!)};
-  try{f.advance(8*3600000+1);
+  const f=await fixture();
+  // Cookie, feature and care authority checks must share the synthetic instant.
+  // Leaving feature services on wall time makes this test expire as dates pass.
+  vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(f.now());
+  let app:Awaited<ReturnType<typeof createApp>>|undefined;
+  try{
+   const config=configFromEnv({PUBLIC_ORIGIN:'http://localhost:8787',DATABASE_URL:'postgresql://localhost/synthetic',SESSION_KEY:randomBytes(32).toString('base64')});
+   app=await createApp(config,{care:f.care,revocations:new SessionRevocations()});
+   const headers={host:'localhost:8787',origin:config.origin,cookie:'nancy_session='+sealSession(f.session,config.sessionKey!)};
+   f.advance(8*3600000+1);vi.setSystemTime(f.now());
    const first=await app.inject({url:'/api/auth/session',headers}),late=await app.inject({url:'/api/auth/session',headers});
    expect(first.statusCode).toBe(200);expect(late.statusCode).toBe(200);
    const read=(value:unknown)=>openSession(/nancy_session=([^;]+)/.exec(String(value))?.[1],config.sessionKey!);
    expect(read(first.headers['set-cookie'])).toEqual(read(late.headers['set-cookie']));expect(String(late.headers['set-cookie'])).not.toContain('Max-Age=0');
-  }finally{await app.close();}
+  }finally{await app?.close();vi.useRealTimers();}
  });
 });

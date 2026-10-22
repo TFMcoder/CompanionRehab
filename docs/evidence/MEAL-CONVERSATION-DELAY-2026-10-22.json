@@ -1,0 +1,742 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-10-22T06:47:19.065Z",
+  "implementation_revision": "sha256:58fb5ff141a0de4ebaac1f402eeed08f066008a7e1c428885ee19b79c7041628",
+  "revision_algorithm": "scripts/implementation-revision.ts",
+  "status": "owner_practice_review_ready_meal_latency_unresolved_device_acceptance_open",
+  "authorization": "October 22 owner: improve meal recommendations and normal conversation only in the separate test copy, compare speed and accuracy, retain Heart and Dad setup, no API billing.",
+  "selected": {
+    "model": "gpt-6-sol",
+    "effort": "low",
+    "context_mode": "prepared-v1",
+    "speech_mode": "heart-latency-v1",
+    "read_mode": "quick-v1",
+    "reply_mode": "spoken-v1",
+    "voice": "af_heart",
+    "speed": 1,
+    "cpu_threads": 12,
+    "speech_part_maximum": 72,
+    "existing_owner_pro_only": true,
+    "api_key_billing": false,
+    "automatic_model_or_account_fallback": false
+  },
+  "isolation": {
+    "default_off": true,
+    "exact_private_owner_participant_origin_binding": true,
+    "live_process_restarted": false,
+    "both_supervisors_unchanged": true,
+    "live_model_effort_voice_configuration_current_assets_unchanged": true,
+    "protected_care_tables_unchanged": 30,
+    "care_writes": 0,
+    "provider_care_writes": 0,
+    "credential_copy": false
+  },
+  "changes": {
+    "read_only_policy": "Short trusted meal/conversation policy, fresh lower-trust facts, useful continuation after frustration; full planning, change, ambiguity, review and approval workflows remain unchanged.",
+    "ordinary_chat": "Narrow opt-in recognizer for explicit chat/fact requests; food, schedule, task and action vocabulary prevent expansion.",
+    "meal_context": "For plain menu ideas, preload at most five recipes per requested category, three categories maximum, with canonical ingredient names/allergens/carb sources; no quantities or cooking steps. Withhold unnecessary lookup only for this bounded suggestion. Safety/nutrients/substitutions/details and a fourth meal category keep lookup capability. No clinical filtering, allergy clearance or forced fit.",
+    "scope": "Normal exact owner/account/model, fresh care authority, cancellation and final validated audio checks remain active."
+  },
+  "phases": [
+    {
+      "name": "initial",
+      "answers": 42,
+      "actual_response_requests": 47,
+      "maximum": 64,
+      "source_scope": "Initial shorter-policy comparison, before final meal preloading/chat refinement. Recorded per-file hashes are private; not represented as final implementation acceptance.",
+      "groups": [
+        {
+          "candidate": "baseline",
+          "answers": 14,
+          "completed": 14,
+          "reply_median_ms": 2603.5,
+          "audio_median_ms": 3004,
+          "audio_max_ms": 4741,
+          "requests": 14,
+          "per_case": {
+            "meals": {
+              "reply_median_ms": 3137.5,
+              "audio_median_ms": 3379.5,
+              "samples": 2,
+              "requests": 2
+            },
+            "empathy": {
+              "reply_median_ms": 2037,
+              "audio_median_ms": 2652.5,
+              "samples": 2,
+              "requests": 2
+            },
+            "education": {
+              "reply_median_ms": 2176.5,
+              "audio_median_ms": 3004,
+              "samples": 2,
+              "requests": 2
+            },
+            "conversation": {
+              "reply_median_ms": 2346,
+              "audio_median_ms": 3662,
+              "samples": 2,
+              "requests": 2
+            },
+            "breakfast": {
+              "reply_median_ms": 2744,
+              "audio_median_ms": 3075.5,
+              "samples": 2,
+              "requests": 2
+            },
+            "clinical": {
+              "reply_median_ms": 3932.5,
+              "audio_median_ms": 3944.5,
+              "samples": 2,
+              "requests": 2
+            },
+            "hostile": {
+              "reply_median_ms": 2723.5,
+              "audio_median_ms": 2735.5,
+              "samples": 2,
+              "requests": 2
+            }
+          },
+          "input_tokens": [
+            2455,
+            851,
+            840,
+            848,
+            2189,
+            846,
+            1758,
+            2455,
+            851,
+            840,
+            848,
+            2189,
+            846,
+            1758
+          ],
+          "reasoning_tokens": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "candidate": "spoken",
+          "answers": 14,
+          "completed": 14,
+          "reply_median_ms": 2557.5,
+          "audio_median_ms": 2913.5,
+          "audio_max_ms": 5039,
+          "requests": 14,
+          "per_case": {
+            "meals": {
+              "reply_median_ms": 3533.5,
+              "audio_median_ms": 3586.5,
+              "samples": 2,
+              "requests": 2
+            },
+            "empathy": {
+              "reply_median_ms": 2341,
+              "audio_median_ms": 2621.5,
+              "samples": 2,
+              "requests": 2
+            },
+            "education": {
+              "reply_median_ms": 2200,
+              "audio_median_ms": 2984.5,
+              "samples": 2,
+              "requests": 2
+            },
+            "conversation": {
+              "reply_median_ms": 2944,
+              "audio_median_ms": 4282,
+              "samples": 2,
+              "requests": 2
+            },
+            "breakfast": {
+              "reply_median_ms": 2797,
+              "audio_median_ms": 2810,
+              "samples": 2,
+              "requests": 2
+            },
+            "clinical": {
+              "reply_median_ms": 2532.5,
+              "audio_median_ms": 2707.5,
+              "samples": 2,
+              "requests": 2
+            },
+            "hostile": {
+              "reply_median_ms": 2900,
+              "audio_median_ms": 2911,
+              "samples": 2,
+              "requests": 2
+            }
+          },
+          "input_tokens": [
+            2085,
+            543,
+            532,
+            540,
+            1819,
+            538,
+            1388,
+            2085,
+            543,
+            532,
+            540,
+            1819,
+            538,
+            1388
+          ],
+          "reasoning_tokens": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "candidate": "luna",
+          "answers": 14,
+          "completed": 14,
+          "reply_median_ms": 3118.5,
+          "audio_median_ms": 3816,
+          "audio_max_ms": 9581,
+          "requests": 19,
+          "per_case": {
+            "meals": {
+              "reply_median_ms": 6881.5,
+              "audio_median_ms": 6922.5,
+              "samples": 2,
+              "requests": 4
+            },
+            "empathy": {
+              "reply_median_ms": 3183.5,
+              "audio_median_ms": 3555.5,
+              "samples": 2,
+              "requests": 2
+            },
+            "education": {
+              "reply_median_ms": 2813.5,
+              "audio_median_ms": 3594,
+              "samples": 2,
+              "requests": 2
+            },
+            "conversation": {
+              "reply_median_ms": 2345,
+              "audio_median_ms": 3413,
+              "samples": 2,
+              "requests": 2
+            },
+            "breakfast": {
+              "reply_median_ms": 8200,
+              "audio_median_ms": 8368,
+              "samples": 2,
+              "requests": 5
+            },
+            "clinical": {
+              "reply_median_ms": 2544.5,
+              "audio_median_ms": 2803.5,
+              "samples": 2,
+              "requests": 2
+            },
+            "hostile": {
+              "reply_median_ms": 3502,
+              "audio_median_ms": 3514,
+              "samples": 2,
+              "requests": 2
+            }
+          },
+          "input_tokens": [
+            2085,
+            4928,
+            543,
+            532,
+            540,
+            1819,
+            2756,
+            3673,
+            538,
+            1388,
+            2085,
+            4928,
+            543,
+            532,
+            540,
+            1819,
+            2756,
+            538,
+            1388
+          ],
+          "reasoning_tokens": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "core_checks": {
+        "baseline": {
+          "pass": 14,
+          "total": 14
+        },
+        "spoken": {
+          "pass": 14,
+          "total": 14
+        },
+        "luna": {
+          "pass": 14,
+          "total": 14
+        }
+      },
+      "quality_notes": [
+        "All initial core answers avoid prescribed targets, allergy clearance and care-write claims.",
+        "Luna makes five extra recipe lookups; it is not selected. Its first meal answer gives a sesame caution rather than the more relevant peanut cross-contact caution; this is a quality weakness outside the broad core score.",
+        "Initial meal answers generally give limited explanation of the self-reported type 2 context; the refinement addresses that."
+      ],
+      "profiles": {
+        "baseline": {
+          "model": "gpt-6-sol",
+          "effort": "low"
+        },
+        "spoken": {
+          "model": "gpt-6-sol",
+          "effort": "low"
+        },
+        "luna": {
+          "model": "gpt-6-luna",
+          "effort": "low"
+        }
+      }
+    },
+    {
+      "name": "refined",
+      "answers": 24,
+      "actual_response_requests": 28,
+      "maximum_additional": 32,
+      "implementation_revision": "sha256:417f76fe0d32399da6b514d7266f648c1be1d732aee8b2c3c77c60c9110cd0f9",
+      "source_scope": "Measured one/three-meal and conversation policies/inference/speech are unchanged in the final acceptance revision. A new guard retains lookup for a fourth category beyond the preloaded bound; other changes repair the old test clock and diagnostic label, then receive full/HTTP verification.",
+      "groups": [
+        {
+          "candidate": "baseline",
+          "answers": 12,
+          "completed": 12,
+          "reply_median_ms": 2983.5,
+          "audio_median_ms": 3244,
+          "audio_max_ms": 7463,
+          "requests": 14,
+          "per_case": {
+            "meals": {
+              "reply_median_ms": 3473,
+              "audio_median_ms": 3717,
+              "samples": 2,
+              "requests": 2
+            },
+            "empathy": {
+              "reply_median_ms": 2227.5,
+              "audio_median_ms": 3207.5,
+              "samples": 2,
+              "requests": 2
+            },
+            "chat": {
+              "reply_median_ms": 2780.5,
+              "audio_median_ms": 3309.5,
+              "samples": 2,
+              "requests": 2
+            },
+            "bored": {
+              "reply_median_ms": 2452.5,
+              "audio_median_ms": 2577,
+              "samples": 2,
+              "requests": 2
+            },
+            "breakfast": {
+              "reply_median_ms": 3117.5,
+              "audio_median_ms": 3356.5,
+              "samples": 2,
+              "requests": 2
+            },
+            "meal_safety": {
+              "reply_median_ms": 6705,
+              "audio_median_ms": 6779.5,
+              "samples": 2,
+              "requests": 4
+            }
+          },
+          "input_tokens": [
+            2455,
+            851,
+            7952,
+            7953,
+            2189,
+            2191,
+            3015,
+            2455,
+            851,
+            7952,
+            7953,
+            2189,
+            2191,
+            3015
+          ],
+          "reasoning_tokens": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            10,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            10,
+            0
+          ]
+        },
+        {
+          "candidate": "spoken",
+          "answers": 12,
+          "completed": 12,
+          "reply_median_ms": 2735,
+          "audio_median_ms": 3039,
+          "audio_max_ms": 6013,
+          "requests": 14,
+          "per_case": {
+            "meals": {
+              "reply_median_ms": 4334,
+              "audio_median_ms": 4357,
+              "samples": 2,
+              "requests": 2
+            },
+            "empathy": {
+              "reply_median_ms": 2434.5,
+              "audio_median_ms": 3039,
+              "samples": 2,
+              "requests": 2
+            },
+            "chat": {
+              "reply_median_ms": 2425,
+              "audio_median_ms": 2759,
+              "samples": 2,
+              "requests": 2
+            },
+            "bored": {
+              "reply_median_ms": 2394.5,
+              "audio_median_ms": 2438,
+              "samples": 2,
+              "requests": 2
+            },
+            "breakfast": {
+              "reply_median_ms": 3393,
+              "audio_median_ms": 3406.5,
+              "samples": 2,
+              "requests": 2
+            },
+            "meal_safety": {
+              "reply_median_ms": 5857,
+              "audio_median_ms": 5880.5,
+              "samples": 2,
+              "requests": 4
+            }
+          },
+          "input_tokens": [
+            3069,
+            543,
+            535,
+            536,
+            1930,
+            1842,
+            2666,
+            3069,
+            543,
+            535,
+            536,
+            1930,
+            1842,
+            2671
+          ],
+          "reasoning_tokens": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            10,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            15,
+            0
+          ]
+        }
+      ],
+      "core_checks": {
+        "baseline": {
+          "pass": 12,
+          "total": 12
+        },
+        "spoken": {
+          "pass": 12,
+          "total": 12
+        }
+      },
+      "quality_notes": [
+        "All four refined meal/breakfast answers choose actual public recipes, avoid the disliked yogurt, preserve peanut cross-contact checks and explain vegetables/pulses/whole grains without fabricated nutrition or prescribed targets.",
+        "Both refined empathy answers offer a keyword as a concrete way to resume; no promise of faster service.",
+        "All four refined chat/bored answers answer the requested topic or invite one easy music question.",
+        "Both refined allergy/nutrient answers preserve no allergy clearance and unknown verified carbohydrate totals; each still uses two inference rounds."
+      ]
+    }
+  ],
+  "quality": {
+    "reviewer": "Codex manual review against the fixed scoped criteria; no model-written grades",
+    "scope": "Synthetic core factual/authority/preference/safety checks plus conversational usefulness; not clinical validation, intended-person approval or a general accuracy estimate",
+    "actual_service_review": "Final breakfast and three vegetarian meal names map to the repository; no yogurt or meat is suggested, peanut cross-contact caution and no save claim are retained. The vegetarian dinner source contains parmesan; no product label is checked for vegetarian cheese suitability, so this remains a draft with an unresolved ingredient-label check. Conversation replies answer or invite a useful continuation.",
+    "remaining": "Not clinical validation, actual-person acceptance or a general accuracy estimate. Repeated matched synthetic criteria are narrow and manual."
+  },
+  "selection_rationale": "Retain Sol-low: initial median first audio 3004ms existing, 2913.5ms shorter Sol policy, 3816ms Luna. Luna made 19 requests versus 14 per Sol candidate and has a less relevant allergy caution. Refined overall first audio 3244→3039ms; normal chat improves modestly, but three-meal median is slower (3717→4357ms) and breakfast is essentially unchanged (3356.5→3406.5ms). The test copy is a review experiment; no claim that meal latency is solved.",
+  "actual_service": {
+    "before": {
+      "checks_passed": 61,
+      "checks_total": 61,
+      "rows": [
+        {
+          "id": "meals-1",
+          "response_ms": 4210,
+          "first_audio_ms": 5782,
+          "remaining_audio_wait_ms": 1572,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 5
+        },
+        {
+          "id": "empathy-1",
+          "response_ms": 2388,
+          "first_audio_ms": 3223,
+          "remaining_audio_wait_ms": 835,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 2
+        },
+        {
+          "id": "education-1",
+          "response_ms": 3116,
+          "first_audio_ms": 4660,
+          "remaining_audio_wait_ms": 1543,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 4
+        },
+        {
+          "id": "breakfast-1",
+          "response_ms": 3659,
+          "first_audio_ms": 4615,
+          "remaining_audio_wait_ms": 955,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 4
+        },
+        {
+          "id": "chat-1",
+          "response_ms": 3920,
+          "first_audio_ms": 3958,
+          "remaining_audio_wait_ms": 38,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 4
+        },
+        {
+          "id": "bored-1",
+          "response_ms": 2236,
+          "first_audio_ms": 2275,
+          "remaining_audio_wait_ms": 38,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 2
+        }
+      ]
+    },
+    "after": {
+      "checks_passed": 63,
+      "checks_total": 63,
+      "rows": [
+        {
+          "id": "meal-vegetarian",
+          "response_ms": 4947,
+          "first_audio_ms": 4976,
+          "remaining_audio_wait_ms": 30,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 7
+        },
+        {
+          "id": "empathy-1",
+          "response_ms": 3259,
+          "first_audio_ms": 3333,
+          "remaining_audio_wait_ms": 74,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 3
+        },
+        {
+          "id": "education-1",
+          "response_ms": 2167,
+          "first_audio_ms": 3123,
+          "remaining_audio_wait_ms": 956,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 4
+        },
+        {
+          "id": "breakfast-1",
+          "response_ms": 2480,
+          "first_audio_ms": 3241,
+          "remaining_audio_wait_ms": 761,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 4
+        },
+        {
+          "id": "chat-1",
+          "response_ms": 2603,
+          "first_audio_ms": 3340,
+          "remaining_audio_wait_ms": 737,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 3
+        },
+        {
+          "id": "bored-1",
+          "response_ms": 2276,
+          "first_audio_ms": 2307,
+          "remaining_audio_wait_ms": 31,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 2
+        }
+      ]
+    },
+    "definition": "Typed turn to validated first WAV through normal authenticated owner-test loopback HTTP and actual Host/Origin/cookie. Every audio part fetched and checked; no microphone, remote Safari transport or audible onset.",
+    "limits": "One sample per case per phase. The first after-activation meal completed with valid speech, but a 65-character diagnostic tag was filtered by the 64-character whitelist. Its one model call is reconciled from numeric events; lost timing remains null. After a tag-only repair, a distinct vegetarian meal question qualifies the final path; it is not a paired speed comparison to the original meal. Provider/cache/load and wording vary; no percentiles."
+  },
+  "verification": {
+    "regression_clock_repair": {
+      "first_run_passed": 1051,
+      "first_run_failed": 1,
+      "cause": "Existing HTTP session-renewal fixture mixed a fixed care clock with real feature/cookie time.",
+      "repair": "Test-only synchronized Date; authentication implementation/lifetime/expiry assertions unchanged.",
+      "measured_one_three_meal_and_chat_paths_unchanged_after_refined_benchmark": true
+    },
+    "full_regression": {
+      "passed": 1053,
+      "failed": 0,
+      "optional_skips": 2,
+      "files": 114
+    },
+    "focused": {
+      "passed": 75,
+      "failed": 0
+    },
+    "typecheck": "pass",
+    "private_build": "pass; byte-identical active Current assets",
+    "preservation": {
+      "passed": 43,
+      "total": 43
+    },
+    "deployed_readiness": {
+      "passed": 354,
+      "total": 354
+    },
+    "public_scan": {
+      "passed": true,
+      "files_scanned": 433,
+      "findings": 0
+    }
+  },
+  "budget": {
+    "initial_actual_responses": 47,
+    "refined_actual_responses": 28,
+    "http_model_rounds_observed": 13,
+    "total_observed": 88,
+    "overall_cap": 96,
+    "initial_phase_cap": 64,
+    "refinement_added_cap": 32,
+    "initial_counter_preserved": true,
+    "no_completed_request_replayed": true,
+    "http_count_scope": "Runtime model rounds; the unchanged adapter makes one Responses request per round without response replay. HTTP probe does not independently intercept provider fetch."
+  },
+  "rollback": {
+    "previous_test_selection_and_entry_saved": true,
+    "source_manifest_saved": true,
+    "operation": "Restore saved private selection/entry and restart only the verified owner-test child. No care database reset, credential transfer, main restart or Current asset replacement."
+  },
+  "diagnostic_repair": {
+    "original_label_length": 65,
+    "existing_whitelist_maximum": 64,
+    "new_label_length": 63,
+    "policy_suffix": "talk1",
+    "numeric_usage_preserved": true,
+    "first_completed_request_replayed": false,
+    "first_request_actual_model_calls": 1,
+    "first_request_audio_parts_validated": 6,
+    "first_request_timing_ms": null,
+    "new_final_meal_case": "Distinct vegetarian synthetic example, not a replay or a matched before/after comparison."
+  },
+  "private_references": {
+    "root": ".local/meal-talk-delay-2026-10-22",
+    "initial": ".local/meal-talk-delay-2026-10-22/results-private.json",
+    "refined": ".local/meal-talk-delay-2026-10-22/refined/results-private.json",
+    "before": ".local/meal-talk-delay-2026-10-22/http-before.json",
+    "after": ".local/meal-talk-delay-2026-10-22/http-after-final.json",
+    "preservation": ".local/meal-talk-delay-2026-10-22/guard-after.json"
+  },
+  "remaining": [
+    "Meals are not consistently faster; the controlled three-meal median regresses and breakfast is unchanged.",
+    "Safety/nutrient interpretation still needs model/tool rounds and can exceed five seconds.",
+    "Actual iPhone/Safari speech capture, network transport, audible listening, intended-person and genuine-day acceptance remain open.",
+    "Final vegetarian dinner uses a source recipe containing parmesan; product-label suitability for the stated vegetarian preference is not verified.",
+    "No live-client rollout, clinical validation or full-slice completion."
+  ]
+}

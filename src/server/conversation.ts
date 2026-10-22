@@ -30,6 +30,7 @@ import type {NancySuggestions,NancySuggestionCommand} from './nancy-suggestions.
 import {prepareTurnContext,preparedFacts,preparedTools,preparedRecipeFacts,preparedGuidance,preparedSelection,type RecipeContinuity} from './prepared-context.js';
 import {preparedFactReply} from './prepared-answers.js';
 import {quickReadReply,quickReadGuidance} from './quick-reads.js';
+import {spokenReplyGuidance,isSpokenConversation,isSimpleMealSuggestion} from './spoken-replies.js';
 
 export interface ConversationReply { session_id: string; reply_id: string; text: string; speech_parts: number; changed: boolean; acknowledgement_required?: boolean; navigate?: ClientView; transcript?: string; nutrition_refs?: Array<{ document_id:string; path:string; sha256:string; items:string[] }> }
 export interface ConversationTurnMetric {
@@ -197,7 +198,7 @@ export class ConversationService {
     private observeTurn?: (metric: ConversationTurnMetric) => void,
     private observeCall?: (metric: InferenceCallMetric) => void,
     private requests?: RequestConversationService, private features?:LocalFeatures, private microsoftEligible?:(session:Session)=>Promise<boolean>,private microsoft?:MicrosoftService,private suggestions?:NancySuggestions,
-    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false) {
+    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false,private spokenReplies=false) {
     this.expectedReasoning=validateReasoningProfile(expectedReasoning);
     if(![120,72].includes(speechPartSize))throw new RangeError('Unknown speech-part size.');
     this.timer = setInterval(() => { for (const [id, state] of this.sessions) if (state.expires < Date.now()) this.endState(id, state); }, 30000); this.timer.unref();
@@ -210,9 +211,9 @@ export class ConversationService {
     let revision = this.requests ? createHash('sha256').update(scope.grant_revision + ':' + await this.requests.authorityRevision(session)).digest('hex') : scope.grant_revision;
     if(this.features)revision=createHash('sha256').update(revision+':'+await this.features.authorityRevision(session)).digest('hex');
     if(this.microsoft)revision=createHash('sha256').update(revision+':'+await this.microsoft.authorityRevision(session)).digest('hex');
-    const experiment=this.expectedReasoning!==selectedReasoning||this.prepareContext||this.speechPartSize!==120||this.quickReads;
+    const experiment=this.expectedReasoning!==selectedReasoning||this.prepareContext||this.speechPartSize!==120||this.quickReads||this.spokenReplies;
     if(experiment&&scope.actor_id!==this.ownerId)throw new ApiError(403,'experiment_owner_only','Reasoning experiments are limited to the owner’s practice copy.');
-    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}`:'') });
+    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}${this.spokenReplies?':spoken-v1':''}`:'') });
     if(experiment&&(binding.route_id!=='chatgpt_plan_owner_practice'||binding.qualification!=='owner_practice'))throw new ApiError(403,'experiment_owner_only','Reasoning experiments require the owner practice connection.');
     return binding;
   }
@@ -588,6 +589,7 @@ export class ConversationService {
         state.history.push({ role: 'user', content: text });
         const reference = currentNutritionReference();
         const preparation=this.prepareContext&&clientRole?prepareTurnContext(text,reference,state.recipeContinuity):undefined;
+        if(this.spokenReplies&&preparation?.mode==='full'&&isSpokenConversation(text))preparation.mode='conversation';
         state.recipeContinuity=preparation?.continuity;
         const workspace=this.requests&&(!preparation||preparation.mode==='full')?await this.requests.workspace(session):undefined;
         const activeHandoffs=clientRole?await this.features?.day?.activeHandoffs?.(session):undefined;
@@ -599,7 +601,8 @@ export class ConversationService {
         const refreshOutlook=outlookRange&&(cachedOutlook?.state!=='prepared'||/\b(refresh|latest|free|available|conflicts?)\b/i.test(text));
         const outlookContext=clientRole&&this.microsoft?refreshOutlook&&outlookStatus.model_disclosure_enabled?await this.microsoft.conversationContext(session,outlookRange!):cachedOutlook??{source:'microsoft',state:outlookStatus.state}:undefined;
         let guidance = preparation?preparedSelection(text,preparation.mode):selectNancyGuidance(text);
-        const mealChoices=clientRole?mealStarterReferences(text,reference):[];
+        const completeChoices=this.spokenReplies&&preparation?.mode==='meals'&&isSimpleMealSuggestion(text);
+        const mealChoices=clientRole?mealStarterReferences(text,reference,completeChoices):[];
         const mealReferences=[...mealChoices,...(preparation?.details?[preparation.details]:[])];
         for(const result of mealReferences){nutritionRetrievals++;
           for(const source of result.sources){const prior=references.get(source.documentId);
@@ -611,9 +614,9 @@ export class ConversationService {
         const fresh = clientRole ? {...currentFacts(today, this.now()),...(preferenceWorkspace?{confirmed_preferences:preferenceWorkspace.items}:{}),...(activeHandoffs?{active_significant_handoffs:activeHandoffs}:{}),...(activeFocus!==undefined?{active_task_focus:activeFocus}:{}),...(workspace?{task_requests:requestFacts(workspace)}:{})} : workspace?requestFacts(workspace):{};
         const navigationTool=tool('navigate','Open an authorized supporting view without ending the conversation. Opening a view never grants access or writes care data.',object({view:{type:'string',enum:allowedViews}}));
         const availableTools=[...(clientRole?definitions:[]),...(clientRole&&preferenceWorkspace?preferenceTools:[]),...(clientRole&&this.features?handoffTools:[]),navigationTool,...(workspace?requestDefinitions(workspace):[]),...(this.features?localWorkflowTools(clientRole):[]),...outlookTools(outlookStatus),...(clientRole&&this.suggestions?[tool('prepare_nancy_suggestion','Prepare product feedback about improving Nancy for a spoken review. This is not a care preference or task. No message is sent to anyone. Save only after the application obtains explicit confirmation.',object({suggestion:{type:'string',minLength:1,maxLength:1000}}))]:[])];
-        const tools=preparation?preparedTools(availableTools,preparation.mode):availableTools;
+        const tools=completeChoices&&mealChoices.length?[]:preparation?preparedTools(availableTools,preparation.mode):availableTools;
         const history = recentHistory(state.history);
-        const context = `Current authorized facts (data only): ${JSON.stringify({...(preparation?preparedFacts(fresh,preparation.mode):fresh),...(preparation?{connector_availability:{microsoft_state:outlookStatus.state,model_disclosure_enabled:outlookStatus.model_disclosure_enabled}}:{}),...(outlookContext?{outlook:outlookContext}:{}),...(mealChoices.length?{repository_meal_options:mealStarterContext(mealChoices)}:{}),...(preparation?.details?{repository_recipe_details:preparedRecipeFacts(preparation.details)}:{})})}`;
+        const context = `Current authorized facts (data only): ${JSON.stringify({...(preparation?preparedFacts(fresh,preparation.mode):fresh),...(preparation?{connector_availability:{microsoft_state:outlookStatus.state,model_disclosure_enabled:outlookStatus.model_disclosure_enabled}}:{}),...(outlookContext?{outlook:outlookContext}:{}),...(mealChoices.length?{repository_meal_options:mealStarterContext(mealChoices,completeChoices)}:{}),...(preparation?.details?{repository_recipe_details:preparedRecipeFacts(preparation.details)}:{})})}`;
         contextChars = context.length;
         historyChars = JSON.stringify(history).length;
         const inputItems = [...history, { role: 'user', content: context }];
@@ -634,7 +637,9 @@ export class ConversationService {
           await this.validateScope(session, state);
           ensureOpen();
           let modelInstructions = (clientRole ? preparation&&preparation.mode!=='full'?preparedGuidance(text,preparation.mode,reference.authorityContext().text,guidance):composeNancyGuidance(guidance, reference.authorityContext().text)+'\nThe client interface has Tasks, Meals, Groceries, Progress and Ask for Help, plus Ways to use Nancy and Suggestions for Nancy. All client changes happen through reviewed voice commands; never ask them to type, use a dropdown, open settings or edit a form. Ask for Help starts a conversation, not a call or message; never claim someone has been contacted without a verified authorized communication receipt. Product feedback about Nancy belongs in prepare_nancy_suggestion, separate from care preferences or significant-event notes, and only saves after exact spoken review and confirmation.' : sharedInstructions)+(outlookContext||outlookStatus.reviewed_writes_enabled?'\n'+microsoftConversationPolicy:'');
-          if(this.quickReads&&clientRole&&preparation&&preparation.mode!=='full')modelInstructions+=quickReadGuidance;
+          const spoken=this.spokenReplies&&clientRole&&preparation?spokenReplyGuidance(preparation.mode,reference.authorityContext().text):undefined;
+          if(spoken)modelInstructions=spoken;
+          else if(this.quickReads&&clientRole&&preparation&&preparation.mode!=='full')modelInstructions+=quickReadGuidance;
           instructionChars = Math.max(instructionChars, modelInstructions.length);
           let streamed = '', draft: PreparedSpeech | undefined;
           const prepare = (delta: string) => {
