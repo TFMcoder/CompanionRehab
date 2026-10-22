@@ -1,5 +1,7 @@
 # Separate owner test environment
 
+The October 22 [new-question first-reply experiment](FIRST_REPLY_SPEED_2026-10-22.md) rejected all four candidates. No experiment selection, entry-page change or test/live restart was performed. The existing prepared-conversation/meal trial, Heart and locked Current design remain active. Candidate code and measurements are retained privately; the previous source is restored exactly. Current actual-site first audio remains 3.681/3.890s, so useful new-question latency and ordinary factual precision remain unresolved. No API billing or human/slice acceptance is implied.
+
 The owner requested a duplicate database and login for personal testing on October 21, 2026. The test copy duplicates the current application schema and locked Current client, with synthetic tasks and meal options. It does not copy the live participant's care records, account password, Microsoft connection, tokens, sessions or permissions. The older practice database is preserved independently.
 
 The deployed address and login remain in ignored `.local/owner-test/` files. The test site is labelled **Nancy Test — practice data only**. Its HTTPS origin uses port 10000; the live application keeps port 8443 and its existing assets. The existing service on port 443 is also preserved. Tailscale's [Funnel CLI](https://tailscale.com/docs/reference/tailscale-cli/funnel) supports an independent port-specific route; never reset the whole Funnel configuration to change this test site.

@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-10-22T22:06:08.872Z",
+  "status": "all_candidates_rejected_first_question_latency_unresolved",
+  "authorization": "Owner-only synthetic first-question latency experiments. Preserve Heart, Dad and no API billing.",
+  "implementation_revision": "sha256:013594267d89eb555047313c1a09c674de8e45d8c0f46520426f91d7c7c79099",
+  "active_source_files_verified": 342,
+  "active_runtime_changed": false,
+  "test_runtime_restarted": false,
+  "live_runtime_restarted": false,
+  "voice": "af_heart",
+  "voice_speed": 1,
+  "funding": "Existing exact owner Pro binding in place; no API key or paid API fallback.",
+  "comparison": [
+    {
+      "id": "appended_brevity",
+      "baseline": {
+        "answers": 12,
+        "median_first_validated_audio_ms": 2879.5,
+        "worst_first_validated_audio_ms": 6234
+      },
+      "candidate": {
+        "answers": 12,
+        "median_first_validated_audio_ms": 3066,
+        "worst_first_validated_audio_ms": 3792
+      },
+      "selected": false
+    },
+    {
+      "id": "replacement_policy_audio72",
+      "baseline": {
+        "answers": 6,
+        "median_first_validated_audio_ms": 3033,
+        "worst_first_validated_audio_ms": 4809
+      },
+      "candidate": {
+        "answers": 6,
+        "median_first_validated_audio_ms": 3220,
+        "worst_first_validated_audio_ms": 3380
+      },
+      "selected": false
+    },
+    {
+      "id": "replacement_policy_audio48",
+      "baseline": {
+        "answers": 3,
+        "median_first_validated_audio_ms": 2380,
+        "worst_first_validated_audio_ms": 3402
+      },
+      "candidate": {
+        "answers": 3,
+        "median_first_validated_audio_ms": 2463,
+        "worst_first_validated_audio_ms": 3041
+      },
+      "selected": false
+    },
+    {
+      "id": "original_policy_audio48",
+      "baseline": {
+        "answers": 6,
+        "median_first_validated_audio_ms": 2878.5,
+        "worst_first_validated_audio_ms": 5283
+      },
+      "candidate": {
+        "answers": 6,
+        "median_first_validated_audio_ms": 2686.5,
+        "worst_first_validated_audio_ms": 3689
+      },
+      "selected": false
+    }
+  ],
+  "measurement": "Typed request to validated native Heart WAV availability; excludes physical microphone, transcription, browser/network playback and real-device listening. Sequential requests, rotated candidate order and warmed native voice; small samples and provider load prevent causal claims from overall latency.",
+  "render_component": {
+    "source_texts": 12,
+    "renderings": 24,
+    "provider_requests": 0,
+    "median_audio72_ms": 820.5,
+    "median_audio48_ms": 804.5,
+    "decision": "16 ms median component reduction is not a useful overall improvement. Do not activate."
+  },
+  "accuracy": {
+    "scope": "Manual final-candidate and matched-baseline science precision review; no general accuracy certification.",
+    "science_precision": {
+      "baseline": {
+        "fully_supported": 3,
+        "total": 6,
+        "issues": [
+          {
+            "case": "sky",
+            "repeat": 1,
+            "issue": "Says sunlight looks blue and overgeneralizes the color comparison."
+          },
+          {
+            "case": "rain",
+            "repeat": 2,
+            "issue": "The approaching-drop explanation for smell before rainfall is not established by the fetched mechanism source."
+          },
+          {
+            "case": "sky",
+            "repeat": 2,
+            "issue": "Blue versus all other colors overgeneralizes; violet is not accounted for."
+          }
+        ]
+      },
+      "candidate": {
+        "fully_supported": 4,
+        "total": 6,
+        "issues": [
+          {
+            "case": "sky",
+            "repeat": 1,
+            "issue": "Scattering mechanism is relevant, but blue versus all other colors is imprecise."
+          },
+          {
+            "case": "sky",
+            "repeat": 2,
+            "issue": "Same imprecise general color comparison."
+          }
+        ]
+      }
+    },
+    "authority_read_only": {
+      "baseline": 6,
+      "candidate": 6,
+      "total_per_path": 6
+    },
+    "hypothetical_safety": {
+      "cases": 2,
+      "passed": 2,
+      "care_writes": 0
+    },
+    "policy_unchanged_in_last_trial": true,
+    "limitations": [
+      "Two candidate sky answers overgeneralize the color comparison.",
+      "The baseline includes the same precision issue and one unverified explanation for smell before rainfall.",
+      "No permanent fact correction, clinical validation or source-connected general-answer mechanism was implemented."
+    ]
+  },
+  "actual_http_baseline": {
+    "checks": 22,
+    "passed": true,
+    "turns": 2,
+    "first_validated_audio_ms": [
+      3681,
+      3890
+    ],
+    "model_calls": [
+      1,
+      1
+    ],
+    "preparation_requests": 1,
+    "after_phase": "Not run: candidate rejected; both app processes remain unchanged."
+  },
+  "verification": {
+    "candidate_focused_tests": 64,
+    "candidate_revision": "sha256:49a274c0b18850bf59f80aab6877d179725dbe4dd5fe10056ced999f08d0a380",
+    "candidate_failed_tests": 0,
+    "restored_focused_tests": 51,
+    "restored_failed_tests": 0,
+    "typecheck": "pass after exact restoration",
+    "care_configuration_checks": 43,
+    "care_tables_unchanged": 30,
+    "source_service_readiness_checks": 358,
+    "source_manifest_matches": true,
+    "full_regression_rerun": false,
+    "full_regression_note": "No candidate shipped. Final source is byte-identical to the existing 342-file manifest at the previously tested revision; new current-turn checks are stated separately.",
+    "public_boundary_scan": {
+      "files": 447,
+      "findings": 0,
+      "passed": true
+    },
+    "roadmap": {
+      "passed": true,
+      "slices": 12,
+      "human_actions": 36,
+      "automated_checks": 67,
+      "live_scenarios": 31,
+      "completed_features": 0
+    },
+    "human_action_statuses_unchanged": true,
+    "generated_human_actions_checked": true
+  },
+  "request_accounting": {
+    "maximum": 72,
+    "actual": 59,
+    "controlled_answers": 56,
+    "controlled_provider_requests": 56,
+    "site_answers": 2,
+    "observed_site_requests": 3,
+    "all_answers": 58,
+    "closed": true,
+    "unused_allowance": 13,
+    "provider_failure_replays": 0
+  },
+  "rollback": "No runtime activation or service restart. Candidate source/patch and frozen manifests are preserved privately; five modified tracked sources restored with exact prior hashes and the two trial-only files removed.",
+  "private_evidence_base": ".local/first-reply-speed-2026-10-22",
+  "sources": [
+    "https://gpm.nasa.gov/science/anatomy-of-a-raindrop",
+    "https://news.mit.edu/2015/rainfall-can-release-aerosols-0114",
+    "https://science.nasa.gov/ems/03_behaviors/",
+    "https://pscresearch.faculty.ucdavis.edu/wp-content/uploads/sites/112/2014/11/Janata-music-evoked-memories.pdf"
+  ],
+  "remaining_gates": [
+    "Useful first-question latency improvement",
+    "Ordinary factual precision",
+    "Real microphone/phone/listening timing",
+    "Intended-person, clinical, genuine-day and full-slice acceptance"
+  ]
+}
