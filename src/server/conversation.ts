@@ -34,8 +34,9 @@ import {spokenReplyGuidance,isSpokenConversation,isSimpleMealSuggestion} from '.
 import {mealSlots,preparedMealSlots,mealPreparationMaterial,mealPreparationKey,preparedMealPolicy,PreparedMealError,validateMealSelection,renderPreparedMeals,type MealSlot} from './prepared-meals.js';
 import {conversationFollowup,canPrepareConversation,validatePreparedConversation,conversationPreparationPolicy,type ConversationFollowup,type PreparedConversationAnswers} from './conversation-preparation.js';
 import {dialogueChatReply,dialogueConversationGuidance,dialogueMealPreparationPolicy,validateDialogueMeals,mealFollowup,mealFollowupReply,type MealThread,type MealFollowup} from './dialogue-replies.js';
+import {verifiedAnswer,verifiedCard,verifiedSourceQuestion,verifiedSourceReply,verifiedReferenceContext,verifiedReferenceGuidance,verifiedReferenceHash,type VerifiedAnswer,type VerifiedReference} from './verified-answers.js';
 
-export interface ConversationReply { session_id: string; reply_id: string; text: string; speech_parts: number; changed: boolean; acknowledgement_required?: boolean; navigate?: ClientView; transcript?: string; nutrition_refs?: Array<{ document_id:string; path:string; sha256:string; items:string[] }> }
+export interface ConversationReply { session_id: string; reply_id: string; text: string; speech_parts: number; changed: boolean; acknowledgement_required?: boolean; navigate?: ClientView; transcript?: string; nutrition_refs?: Array<{ document_id:string; path:string; sha256:string; items:string[] }>;reference_sources?:VerifiedReference[] }
 export interface ConversationTurnMetric {
   conversation_id: string; turn_id: string; actor_id: string;
   outcome: 'completed' | 'failed' | 'interrupted'; duration_ms: number;
@@ -44,6 +45,7 @@ export interface ConversationTurnMetric {
   nutrition_retrievals: number;
   prepared_meal_hit?:number;
   meal_followup_hit?:number;conversation_quick_hit?:number;prepared_conversation_hit?:number;conversation_followup_routed?:number;
+  verified_reference_hit?:number;verified_reference_context?:number;
   nutrition_refs: Array<{ document_id: string; sha256: string; items: string[] }>;
   policy_version: string; binding_ref: string;
   input_tokens: number | null; output_tokens: number | null; total_tokens: number | null;
@@ -63,6 +65,7 @@ interface PreparedConversationDraft {
  key:string;historyKey:string;replyId:string;history:OutputItem[];facts:Record<string,unknown>;expires:number;
  controller:AbortController;attempted:boolean;ready:boolean;audioReady:boolean;releaseAudio?:()=>void;
  answers?:PreparedConversationAnswers;audio:Map<string,Buffer>;
+  verifiedId?:string;verifiedHash?:string;
 }
 interface PreparedMealDraft {
  key:string;expires:number;controller:AbortController;ready:boolean;
@@ -227,9 +230,10 @@ export class ConversationService {
     private observeTurn?: (metric: ConversationTurnMetric) => void,
     private observeCall?: (metric: InferenceCallMetric) => void,
     private requests?: RequestConversationService, private features?:LocalFeatures, private microsoftEligible?:(session:Session)=>Promise<boolean>,private microsoft?:MicrosoftService,private suggestions?:NancySuggestions,
-    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false,private spokenReplies=false,private prepareMealsAhead=false,private observeMealPreparation?:(metric:MealPreparationMetric)=>void,private dialogueReplies=false,private prepareChat=false,private observeChatPreparation?:(metric:ConversationPreparationMetric)=>void) {
+    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false,private spokenReplies=false,private prepareMealsAhead=false,private observeMealPreparation?:(metric:MealPreparationMetric)=>void,private dialogueReplies=false,private prepareChat=false,private observeChatPreparation?:(metric:ConversationPreparationMetric)=>void,private verifiedReferences=false) {
     this.expectedReasoning=validateReasoningProfile(expectedReasoning);
     if(prepareChat&&(!dialogueReplies||!prepareMealsAhead||!spokenReplies||!quickReads||!prepareContext||speechPartSize!==72||this.expectedReasoning.model!=='gpt-6-sol'||this.expectedReasoning.effort!=='low'))throw new RangeError('Conversation preparation requires the exact existing owner dialogue trial.');
+    if(verifiedReferences&&!prepareChat)throw new RangeError('Verified references require the exact existing owner conversation trial.');
     if(![120,72].includes(speechPartSize))throw new RangeError('Unknown speech-part size.');
     this.timer = setInterval(() => { for (const [id, state] of this.sessions){if(state.expires<Date.now())this.endState(id,state);else if(state.chatDraft&&state.chatDraft.expires<=this.now().getTime())this.clearChatDraft(state);}for(const[login,draft]of this.mealDrafts)if(draft.expires<=this.now().getTime())this.clearMealDraft(login); }, 30000); this.timer.unref();
   }
@@ -243,7 +247,7 @@ export class ConversationService {
     if(this.microsoft)revision=createHash('sha256').update(revision+':'+await this.microsoft.authorityRevision(session)).digest('hex');
     const experiment=this.expectedReasoning!==selectedReasoning||this.prepareContext||this.speechPartSize!==120||this.quickReads||this.spokenReplies||this.prepareMealsAhead||this.dialogueReplies||this.prepareChat;
     if(experiment&&scope.actor_id!==this.ownerId)throw new ApiError(403,'experiment_owner_only','Reasoning experiments are limited to the owner’s practice copy.');
-    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}${this.spokenReplies?':spoken-v1':''}${this.prepareMealsAhead?':meal-ahead-v1':''}${this.dialogueReplies?':dialogue-v1':''}${this.prepareChat?':chat-ahead-v1':''}`:'') });
+    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}${this.spokenReplies?':spoken-v1':''}${this.prepareMealsAhead?':meal-ahead-v1':''}${this.dialogueReplies?':dialogue-v1':''}${this.prepareChat?':chat-ahead-v1':''}${this.verifiedReferences?':references-v1-'+verifiedReferenceHash.slice(0,8):''}`:'') });
     if(experiment&&(binding.route_id!=='chatgpt_plan_owner_practice'||binding.qualification!=='owner_practice'))throw new ApiError(403,'experiment_owner_only','Reasoning experiments require the owner practice connection.');
     return binding;
   }
@@ -291,12 +295,19 @@ export class ConversationService {
       try{
         const snapshot=await assertCurrent();failure='model_failed';
         metric={actor_id:session.user_id,conversation_id:id,turn_id:randomUUID(),stage:'conversation_preparation',outcome:'failed',duration_ms:0,model_duration_ms:0,model_calls:1,policy_version:NANCY_POLICY_VERSION,binding_ref:bindingRef(snapshot.binding),...this.usageMetric({})};
-        const at=performance.now();let response;
-        try{response=await this.reasoner.respond([{role:'user',content:JSON.stringify({current_authorized_facts:draft.facts})},...draft.history],conversationPreparationPolicy,[],signal,undefined,snapshot.binding);usage=response.usage;}
-        catch(error){usage=inferenceUsageFromError(error);throw error;}finally{metric.model_duration_ms=Math.round(performance.now()-at);}
-        failure='model_invalid';
-        if(!response.completed||response.model!==this.expectedReasoning.model||response.effort!==this.expectedReasoning.effort||response.output.some(item=>!['reasoning','message'].includes(String(item.type))))throw Error('Invalid continuation response');
-        draft.answers=validatePreparedConversation(response.text);metric.prepared_candidates=Object.values(draft.answers).filter(Boolean).length;await assertCurrent();failure='speech_failed';
+        if(draft.verifiedId){
+          const card=this.verifiedReferences&&draft.verifiedHash===verifiedReferenceHash?verifiedCard(draft.verifiedId):undefined;
+          if(!card)throw Error('Verified reference changed');
+          metric.model_calls=0;draft.answers={why:card.why,more:card.more,simple:card.answer};
+        }else{
+          const at=performance.now();let response;
+          try{response=await this.reasoner.respond([{role:'user',content:JSON.stringify({current_authorized_facts:draft.facts})},...draft.history],conversationPreparationPolicy+(this.verifiedReferences&&draft.facts.verified_public_references?'\n'+verifiedReferenceGuidance:''),[],signal,undefined,snapshot.binding);usage=response.usage;}
+          catch(error){usage=inferenceUsageFromError(error);throw error;}finally{metric.model_duration_ms=Math.round(performance.now()-at);}
+          failure='model_invalid';
+          if(!response.completed||response.model!==this.expectedReasoning.model||response.effort!==this.expectedReasoning.effort||response.output.some(item=>!['reasoning','message'].includes(String(item.type))))throw Error('Invalid continuation response');
+          draft.answers=validatePreparedConversation(response.text);
+        }
+        metric.prepared_candidates=Object.values(draft.answers).filter(Boolean).length;await assertCurrent();failure='speech_failed';
         if(!draft.audioReady)await new Promise<void>((resolve,reject)=>{const done=()=>{signal.removeEventListener('abort',abort);draft.releaseAudio=undefined;resolve();},abort=()=>{signal.removeEventListener('abort',abort);draft.releaseAudio=undefined;reject(signal.reason);};draft.releaseAudio=done;signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();else if(draft.audioReady)done();});
         if(!this.prepareSpeech)throw Error('Prepared Heart unavailable');
         for(const answer of Object.values(draft.answers)){if(!answer)continue;signal.throwIfAborted();const first=splitSpeechParts(answer,this.speechPartSize)[0];if(!draft.audio.has(first)){const wav=await this.prepareSpeech(first,signal);if(wav.length>1024*1024)throw Error('Prepared speech exceeds bound');draft.audio.set(first,Buffer.from(wav));}}
@@ -574,8 +585,9 @@ export class ConversationService {
     const generation = state.generation;
     const controller = new AbortController(); state.active = { id: turnId, controller };
     const turn: Turn = { signature: fingerprint }; state.turns.set(turnId, turn);
-    let preparedMealHit=0,mealFollowupHit=0,conversationQuickHit=0,preparedConversationHit=0,conversationFollowupRouted=0;
-    let priorChat:PreparedConversationDraft|undefined,priorChatAudio:Buffer|undefined,chatFollowup:ConversationFollowup|undefined,chatFresh=false,chatFacts:Record<string,unknown>|undefined,chatEligible=false;
+    let preparedMealHit=0,mealFollowupHit=0,conversationQuickHit=0,preparedConversationHit=0,conversationFollowupRouted=0,verifiedReferenceHit=0,verifiedReferenceCount=0;
+    let verifiedUsed:VerifiedAnswer|undefined;
+    let priorChat:PreparedConversationDraft|undefined,priorChatAudio:Buffer|undefined,chatFollowup:ConversationFollowup|'source'|undefined,chatFresh=false,chatFacts:Record<string,unknown>|undefined,chatEligible=false;
     let followup:MealFollowup|undefined,priorBenignChatOnly=false;
     const drafts: PreparedSpeech[] = [];
     const references=new Map<string,NonNullable<ConversationReply['nutrition_refs']>[number]>();
@@ -585,7 +597,7 @@ export class ConversationService {
       await this.cancelMealJob();
       await this.cancelChatJob();
       const text = z.string().trim().min(1).max(2000).parse(typeof input === 'string' ? input : await input());
-      chatFollowup=this.prepareChat&&priorChat?conversationFollowup(text):undefined;state.chatDraft=undefined;priorChat?.controller.abort();
+      chatFollowup=this.prepareChat&&priorChat?conversationFollowup(text)??(this.verifiedReferences&&priorChat.verifiedId&&verifiedSourceQuestion(text)?'source':undefined):undefined;state.chatDraft=undefined;priorChat?.controller.abort();
       priorBenignChatOnly=this.dialogueReplies&&state.history.filter(item=>item.role==='user').every(item=>typeof item.content==='string'&&dialogueChatReply(item.content)!==undefined);
       if(this.dialogueReplies&&state.mealThread){followup=mealFollowup(text,state.mealThread);const slots=preparedMealSlots(text);if(!followup&&slots?.length===1)followup={kind:'repeat',slot:slots[0]};if(!followup&&!dialogueChatReply(text)){state.mealThread.audio.clear();state.mealThread=undefined;}}
       if(this.prepareMealsAhead&&(!preparedMealSlots(text)||state.turns.size!==1)&&!(this.dialogueReplies&&(dialogueChatReply(text)||priorBenignChatOnly&&preparedMealSlots(text))))this.clearMealDraft(session.session_id);
@@ -761,7 +773,9 @@ export class ConversationService {
         state.history.push({ role: 'user', content: text });
         const reference = currentNutritionReference();
         const preparation=this.prepareContext&&clientRole?prepareTurnContext(text,reference,state.recipeContinuity):undefined;
-        if(this.prepareChat&&priorChat&&chatFollowup&&priorChat.expires>this.now().getTime()&&this.historyKey(state.history.slice(0,-1))===priorChat.historyKey){const snapshot=await this.chatSnapshot(session,today);chatFresh=snapshot.key===priorChat.key;if(chatFresh&&preparation){preparation.mode='conversation';conversationFollowupRouted=1;}}
+        const verifiedDirect=this.verifiedReferences&&clientRole?verifiedAnswer(text):undefined;
+        if(verifiedDirect&&preparation)preparation.mode='conversation';
+        if(this.prepareChat&&priorChat&&chatFollowup&&priorChat.expires>this.now().getTime()&&this.historyKey(state.history.slice(0,-1))===priorChat.historyKey){const snapshot=await this.chatSnapshot(session,today);chatFresh=snapshot.key===priorChat.key&&(!priorChat.verifiedId||priorChat.verifiedHash===verifiedReferenceHash);if(chatFresh&&preparation){preparation.mode='conversation';conversationFollowupRouted=1;}}
         if(this.dialogueReplies&&followup&&preparation)preparation.mode='meals';
         if(this.dialogueReplies&&dialogueChatReply(text)&&preparation)preparation.mode='conversation';
         if(this.spokenReplies&&preparation?.mode==='full'&&isSpokenConversation(text))preparation.mode='conversation';
@@ -787,10 +801,19 @@ export class ConversationService {
         }
         if(mealReferences.length)guidance={skills:[...new Set([...guidance.skills,'meals' as const])],nutrition:true};
         const fresh = clientRole ? {...currentFacts(today, this.now()),...(preferenceWorkspace?{confirmed_preferences:preferenceWorkspace.items}:{}),...(activeHandoffs?{active_significant_handoffs:activeHandoffs}:{}),...(activeFocus!==undefined?{active_task_focus:activeFocus}:{}),...(workspace?{task_requests:requestFacts(workspace)}:{})} : workspace?requestFacts(workspace):{};
-        if(this.prepareChat&&preparation?.mode==='conversation')chatFacts=preparedFacts(fresh,'conversation');
+        const priorVerified=this.verifiedReferences&&chatFresh&&priorChat?.verifiedHash===verifiedReferenceHash&&priorChat.verifiedId?verifiedCard(priorChat.verifiedId):undefined;
+        const verifiedFacts=this.verifiedReferences&&clientRole?(verifiedDirect?[verifiedDirect]:priorVerified&&chatFollowup?[priorVerified]:verifiedReferenceContext(text)):[];
+        verifiedReferenceCount=verifiedFacts.length;
+        if(this.prepareChat&&preparation?.mode==='conversation')chatFacts={...preparedFacts(fresh,'conversation'),...(verifiedFacts.length?{verified_public_references:verifiedFacts}:{})};
+        if(verifiedDirect){
+          const snapshot=await this.chatSnapshot(session,today),first=splitSpeechParts(verifiedDirect.answer,this.speechPartSize)[0],draftController=new AbortController();
+          reply=this.reply(id,state,verifiedDirect.answer);verifiedUsed=verifiedDirect;verifiedReferenceHit=1;references.clear();
+          const audio=this.prepareSpeech?.(first,AbortSignal.any([controller.signal,draftController.signal])).then(wav=>wav.length<=1024*1024?wav:undefined).catch(()=>undefined)??Promise.resolve(undefined);
+          matchingDraft={text:first,audio,controller:draftController,chatKey:snapshot.key};drafts.push(matchingDraft);
+        }
         if(this.prepareChat&&chatFresh&&priorChat&&chatFollowup){
-          const answer=chatFollowup==='repeat'?state.replies.get(priorChat.replyId):priorChat.ready&&chatFollowup!=='example'?priorChat.answers?.[chatFollowup]:undefined;
-          if(answer){const first=splitSpeechParts(answer,this.speechPartSize)[0],cached=chatFollowup==='repeat'?priorChatAudio:priorChat.audio.get(first),draftController=new AbortController();reply=this.reply(id,state,answer);preparedConversationHit=1;const audio=cached?Promise.resolve(Buffer.from(cached)):this.prepareSpeech?.(first,AbortSignal.any([controller.signal,draftController.signal])).then(wav=>wav.length<=1024*1024?wav:undefined).catch(()=>undefined)??Promise.resolve(undefined);matchingDraft={text:first,audio,controller:draftController,chatKey:priorChat.key};drafts.push(matchingDraft);references.clear();}
+          const answer=chatFollowup==='source'?priorVerified&&verifiedSourceReply(priorVerified):chatFollowup==='repeat'?state.replies.get(priorChat.replyId):priorChat.ready&&chatFollowup!=='example'?priorChat.answers?.[chatFollowup]:undefined;
+          if(answer){const first=splitSpeechParts(answer,this.speechPartSize)[0],cached=chatFollowup==='repeat'?priorChatAudio:priorChat.audio.get(first),draftController=new AbortController();reply=this.reply(id,state,answer);preparedConversationHit=1;if(priorVerified){verifiedUsed=priorVerified;verifiedReferenceHit=1;}const audio=cached?Promise.resolve(Buffer.from(cached)):this.prepareSpeech?.(first,AbortSignal.any([controller.signal,draftController.signal])).then(wav=>wav.length<=1024*1024?wav:undefined).catch(()=>undefined)??Promise.resolve(undefined);matchingDraft={text:first,audio,controller:draftController,chatKey:priorChat.key};drafts.push(matchingDraft);references.clear();}
         }
         const setMealReferences=(ids:string[])=>{references.clear();for(const source of reference.authorityContext().sources)references.set(source.documentId,{document_id:source.documentId,path:source.path,sha256:source.sha256,items:source.documentId==='CR_NUTRITION_EVIDENCE_V1'?['C02','C10']:ids});};
         if(this.dialogueReplies&&state.mealThread&&followup){
@@ -830,7 +853,7 @@ export class ConversationService {
         const availableTools=[...(clientRole?definitions:[]),...(clientRole&&preferenceWorkspace?preferenceTools:[]),...(clientRole&&this.features?handoffTools:[]),navigationTool,...(workspace?requestDefinitions(workspace):[]),...(this.features?localWorkflowTools(clientRole):[]),...outlookTools(outlookStatus),...(clientRole&&this.suggestions?[tool('prepare_nancy_suggestion','Prepare product feedback about improving Nancy for a spoken review. This is not a care preference or task. No message is sent to anyone. Save only after the application obtains explicit confirmation.',object({suggestion:{type:'string',minLength:1,maxLength:1000}}))]:[])];
         const tools=completeChoices&&mealChoices.length?[]:preparation?preparedTools(availableTools,preparation.mode):availableTools;
         const history = recentHistory(state.history);
-        const context = `Current authorized facts (data only): ${JSON.stringify({...(preparation?preparedFacts(fresh,preparation.mode):fresh),...(preparation?{connector_availability:{microsoft_state:outlookStatus.state,model_disclosure_enabled:outlookStatus.model_disclosure_enabled}}:{}),...(outlookContext?{outlook:outlookContext}:{}),...(mealChoices.length?{repository_meal_options:mealStarterContext(mealChoices,completeChoices)}:{}),...(preparation?.details?{repository_recipe_details:preparedRecipeFacts(preparation.details)}:{})})}`;
+        const context = `Current authorized facts (data only): ${JSON.stringify({...(preparation?preparedFacts(fresh,preparation.mode):fresh),...(verifiedFacts.length?{verified_public_references:verifiedFacts}:{}),...(preparation?{connector_availability:{microsoft_state:outlookStatus.state,model_disclosure_enabled:outlookStatus.model_disclosure_enabled}}:{}),...(outlookContext?{outlook:outlookContext}:{}),...(mealChoices.length?{repository_meal_options:mealStarterContext(mealChoices,completeChoices)}:{}),...(preparation?.details?{repository_recipe_details:preparedRecipeFacts(preparation.details)}:{})})}`;
         contextChars = context.length;
         historyChars = JSON.stringify(history).length;
         const inputItems = [...history, { role: 'user', content: context }];
@@ -856,6 +879,7 @@ export class ConversationService {
           const spoken=this.spokenReplies&&clientRole&&preparation?spokenReplyGuidance(preparation.mode,reference.authorityContext().text):undefined;
           if(spoken)modelInstructions=this.dialogueReplies&&preparation?.mode==='conversation'?dialogueConversationGuidance:spoken;
           else if(this.quickReads&&clientRole&&preparation&&preparation.mode!=='full')modelInstructions+=quickReadGuidance;
+          if(verifiedFacts.length)modelInstructions+='\n'+verifiedReferenceGuidance;
           instructionChars = Math.max(instructionChars, modelInstructions.length);
           let streamed = '', draft: PreparedSpeech | undefined;
           const prepare = (delta: string) => {
@@ -1043,6 +1067,7 @@ export class ConversationService {
           }
         }
         if (!reply) throw new ApiError(503, 'turn_limit', 'Nancy needs a pause. Check the plan and try a shorter request.');
+        if(verifiedFacts.length)reply.reference_sources=verifiedFacts.map(card=>({...card.reference}));
       }
       await this.validateScope(session, state); ensureOpen();
       if(matchingDraft?.chatKey&&(await this.chatSnapshot(session)).key!==matchingDraft.chatKey)throw new ApiError(409,'prepared_conversation_changed','Your context changed. Ask Nancy again for a fresh answer.');
@@ -1050,9 +1075,10 @@ export class ConversationService {
       state.history.push({ role: 'assistant', content: reply.text });
       state.history = recentHistory(state.history);
       if (matchingDraft) { state.prepared.set(reply.reply_id, matchingDraft); promotedDraft = matchingDraft; }
-      if(this.prepareChat&&chatFacts&&(chatEligible||preparedConversationHit&&canPrepareConversation(text,reply.text))&&!reply.changed&&!reply.navigate){
-        const snapshot=await this.chatSnapshot(session);ensureOpen();const carry=chatFollowup==='repeat'&&chatFresh?priorChat:undefined;
+      if(this.prepareChat&&chatFacts&&(verifiedUsed||chatEligible||preparedConversationHit&&canPrepareConversation(text,reply.text))&&!reply.changed&&!reply.navigate){
+        const snapshot=await this.chatSnapshot(session);ensureOpen();const carry=chatFresh&&(chatFollowup==='repeat'||verifiedUsed&&priorChat?.verifiedId===verifiedUsed.id)?priorChat:undefined;
         state.chatDraft={key:snapshot.key,historyKey:this.historyKey(state.history),replyId:reply.reply_id,history:structuredClone(state.history),facts:structuredClone(chatFacts),expires:this.now().getTime()+120000,controller:new AbortController(),attempted:!!carry,ready:carry?.ready??false,audioReady:!!carry,answers:carry?.answers,audio:new Map(carry?[...carry.audio].map(([key,wav])=>[key,Buffer.from(wav)]):[])};
+        if(verifiedUsed){state.chatDraft.ready=true;state.chatDraft.verifiedId=verifiedUsed.id;state.chatDraft.verifiedHash=verifiedReferenceHash;state.chatDraft.answers={why:verifiedUsed.why,more:verifiedUsed.more,simple:verifiedUsed.answer};}
       }
       reply.transcript = text; turn.reply = reply;turn.mealKey=matchingDraft?.mealKey;turn.chatKey=matchingDraft?.chatKey;
       if(references.size)reply.nutrition_refs=[...references.values()];
@@ -1074,6 +1100,7 @@ export class ConversationService {
         ...(this.prepareMealsAhead?{prepared_meal_hit:preparedMealHit}:{}),
         ...(this.dialogueReplies?{meal_followup_hit:mealFollowupHit,conversation_quick_hit:conversationQuickHit}:{}),
         ...(this.prepareChat?{prepared_conversation_hit:preparedConversationHit,conversation_followup_routed:conversationFollowupRouted}:{}),
+        ...(this.verifiedReferences?{verified_reference_hit:verifiedReferenceHit,verified_reference_context:verifiedReferenceCount}:{}),
         nutrition_refs: [...references.values()].slice(0, 2).map(ref => ({ document_id: ref.document_id,
           sha256: ref.sha256, items: ref.items.slice(0, 14) })) }); }
       catch { /* Observability must not change a care response. */ }

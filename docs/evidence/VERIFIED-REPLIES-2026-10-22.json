@@ -1,0 +1,2039 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-10-22T22:44:32.206Z",
+  "status": "owner_test_review_ready_bounded_coverage_not_general_latency_acceptance",
+  "implementation_revision": "sha256:d82834192f374118ba22e291f1f255c7fc951a5c14b85ca655d6c7d5804a77d1",
+  "authorization": "October 22: try a different first-question approach and correct observed accuracy issues in the exact owner test copy; keep Heart, Dad and no API billing.",
+  "selected": {
+    "reference_mode": "verified-v1",
+    "default_off": true,
+    "source_packet_sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4",
+    "question_types": 14,
+    "distinct_reviewed_texts": 42,
+    "model": "gpt-6-sol",
+    "effort": "low",
+    "funding": "Existing immutable owner Pro binding in place; no API key or paid fallback.",
+    "voice": "af_heart",
+    "voice_speed": 1,
+    "speech_checkpoint": "1939ad2a8e416c0acfeecc08a694d14ef25f2231",
+    "speech_precision": "fp32",
+    "speech_cpu_threads": 12,
+    "speech_part_chars": 72,
+    "main_model": "gpt-6-sol/high",
+    "main_changed": false
+  },
+  "behavior": {
+    "whole_question_selection": true,
+    "public_facts_not_personal_or_clinical": true,
+    "unmatched_requests_use_existing_authorized_route": true,
+    "source_version_history_facts_and_authority_checked": true,
+    "known_continuations_make_zero_model_calls": true,
+    "first_audio_has_no_filler": true,
+    "no_tentative_model_text_released": true,
+    "foreground_audio_trigger_only": true,
+    "preparation_attempts_per_conversation": 6,
+    "preparation_attempts_per_running_service": 18,
+    "continuation_ttl_seconds": 120,
+    "care_approval_unchanged": true,
+    "source_metadata_not_spoken_as_ids": true
+  },
+  "measurement": "Typed turn to first validated native Heart WAV ready; excludes microphone, transcription, browser transport and audible/physical-device listening. No builds or tests overlap the clean matched/final-native/HTTP measurements. Small fixed samples, not production percentiles.",
+  "primary_comparison": {
+    "revision": "sha256:d82834192f374118ba22e291f1f255c7fc951a5c14b85ca655d6c7d5804a77d1",
+    "questions": 8,
+    "repetitions": 2,
+    "answers": 32,
+    "order_reversed_on_second_repetition": true,
+    "groups": [
+      {
+        "path": "baseline",
+        "answers": 16,
+        "median_first_validated_audio_ms": 4796,
+        "worst_first_validated_audio_ms": 8098,
+        "provider_requests": 16
+      },
+      {
+        "path": "verified",
+        "answers": 16,
+        "median_first_validated_audio_ms": 948.5,
+        "worst_first_validated_audio_ms": 1160,
+        "provider_requests": 0
+      }
+    ],
+    "rows": [
+      {
+        "case_id": "sky",
+        "path": "baseline",
+        "repeat": 1,
+        "response_ms": 4115,
+        "first_validated_audio_ms": 4686,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 4110,
+          "model_duration_ms": 3949,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 594,
+          "output_tokens": 29,
+          "total_tokens": 623,
+          "cached_input_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "rain-before",
+        "path": "baseline",
+        "repeat": 1,
+        "response_ms": 3584,
+        "first_validated_audio_ms": 3763,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 3584,
+          "model_duration_ms": 3473,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 597,
+          "output_tokens": 33,
+          "total_tokens": 630,
+          "cached_input_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "petrichor",
+        "path": "baseline",
+        "repeat": 1,
+        "response_ms": 3698,
+        "first_validated_audio_ms": 4988,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 3698,
+          "model_duration_ms": 3441,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 7607,
+          "output_tokens": 40,
+          "total_tokens": 7647,
+          "cached_input_tokens": 6400,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "moon",
+        "path": "baseline",
+        "repeat": 1,
+        "response_ms": 5204,
+        "first_validated_audio_ms": 5248,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 5204,
+          "model_duration_ms": 5112,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 7606,
+          "output_tokens": 35,
+          "total_tokens": 7641,
+          "cached_input_tokens": 6400,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "seasons",
+        "path": "baseline",
+        "repeat": 1,
+        "response_ms": 4376,
+        "first_validated_audio_ms": 4392,
+        "wav_parts_checked": 4,
+        "measurements": {
+          "duration_ms": 4376,
+          "model_duration_ms": 4312,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 7604,
+          "output_tokens": 49,
+          "total_tokens": 7653,
+          "cached_input_tokens": 7424,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "space",
+        "path": "baseline",
+        "repeat": 1,
+        "response_ms": 3978,
+        "first_validated_audio_ms": 4114,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 3978,
+          "model_duration_ms": 3850,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 598,
+          "output_tokens": 29,
+          "total_tokens": 627,
+          "cached_input_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "thunder",
+        "path": "baseline",
+        "repeat": 1,
+        "response_ms": 4297,
+        "first_validated_audio_ms": 5028,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 4297,
+          "model_duration_ms": 4230,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 7603,
+          "output_tokens": 36,
+          "total_tokens": 7639,
+          "cached_input_tokens": 7424,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "music",
+        "path": "baseline",
+        "repeat": 1,
+        "response_ms": 2499,
+        "first_validated_audio_ms": 2545,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 2499,
+          "model_duration_ms": 2404,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 595,
+          "output_tokens": 34,
+          "total_tokens": 629,
+          "cached_input_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "sky",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 106,
+        "first_validated_audio_ms": 849,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 106,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "sky-blue",
+            "url": "https://science.nasa.gov/ems/03_behaviors/",
+            "related_urls": [
+              "https://spaceplace.nasa.gov/blue-sky/en/"
+            ],
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "rain-before",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 136,
+        "first_validated_audio_ms": 970,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 136,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "rain-before",
+            "url": "https://news.mit.edu/2015/rainfall-can-release-aerosols-0114",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "petrichor",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 87,
+        "first_validated_audio_ms": 806,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 87,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "rain-smell",
+            "url": "https://news.mit.edu/2015/rainfall-can-release-aerosols-0114",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "moon",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 91,
+        "first_validated_audio_ms": 992,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 91,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "moon-phases",
+            "url": "https://science.nasa.gov/moon/moon-phases/",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "seasons",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 84,
+        "first_validated_audio_ms": 728,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 83,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "seasons",
+            "url": "https://spaceplace.nasa.gov/seasons/en/",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "space",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 92,
+        "first_validated_audio_ms": 943,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 92,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "space-sound",
+            "url": "https://science.gsfc.nasa.gov/attic/cosmicopia.gsfc.nasa.gov/qa_sp_ev.html",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "thunder",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 185,
+        "first_validated_audio_ms": 1160,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 185,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "thunder",
+            "url": "https://www.weather.gov/safety/lightning-science-overview",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "music",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 120,
+        "first_validated_audio_ms": 1006,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 120,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "music-memory",
+            "url": "https://pscresearch.faculty.ucdavis.edu/wp-content/uploads/sites/112/2014/11/Janata-music-evoked-memories.pdf",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "sky",
+        "path": "verified",
+        "repeat": 2,
+        "response_ms": 103,
+        "first_validated_audio_ms": 883,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 103,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "sky-blue",
+            "url": "https://science.nasa.gov/ems/03_behaviors/",
+            "related_urls": [
+              "https://spaceplace.nasa.gov/blue-sky/en/"
+            ],
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "rain-before",
+        "path": "verified",
+        "repeat": 2,
+        "response_ms": 97,
+        "first_validated_audio_ms": 896,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 97,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "rain-before",
+            "url": "https://news.mit.edu/2015/rainfall-can-release-aerosols-0114",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "petrichor",
+        "path": "verified",
+        "repeat": 2,
+        "response_ms": 139,
+        "first_validated_audio_ms": 954,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 139,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "rain-smell",
+            "url": "https://news.mit.edu/2015/rainfall-can-release-aerosols-0114",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "moon",
+        "path": "verified",
+        "repeat": 2,
+        "response_ms": 97,
+        "first_validated_audio_ms": 982,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 97,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "moon-phases",
+            "url": "https://science.nasa.gov/moon/moon-phases/",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "seasons",
+        "path": "verified",
+        "repeat": 2,
+        "response_ms": 95,
+        "first_validated_audio_ms": 733,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 95,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "seasons",
+            "url": "https://spaceplace.nasa.gov/seasons/en/",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "space",
+        "path": "verified",
+        "repeat": 2,
+        "response_ms": 121,
+        "first_validated_audio_ms": 1025,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 121,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "space-sound",
+            "url": "https://science.gsfc.nasa.gov/attic/cosmicopia.gsfc.nasa.gov/qa_sp_ev.html",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "thunder",
+        "path": "verified",
+        "repeat": 2,
+        "response_ms": 115,
+        "first_validated_audio_ms": 1088,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 115,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "thunder",
+            "url": "https://www.weather.gov/safety/lightning-science-overview",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "music",
+        "path": "verified",
+        "repeat": 2,
+        "response_ms": 173,
+        "first_validated_audio_ms": 850,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 173,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "music-memory",
+            "url": "https://pscresearch.faculty.ucdavis.edu/wp-content/uploads/sites/112/2014/11/Janata-music-evoked-memories.pdf",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "sky",
+        "path": "baseline",
+        "repeat": 2,
+        "response_ms": 4147,
+        "first_validated_audio_ms": 5124,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 4147,
+          "model_duration_ms": 3999,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 594,
+          "output_tokens": 31,
+          "total_tokens": 625,
+          "cached_input_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "rain-before",
+        "path": "baseline",
+        "repeat": 2,
+        "response_ms": 5409,
+        "first_validated_audio_ms": 5469,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 5409,
+          "model_duration_ms": 5244,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 597,
+          "output_tokens": 34,
+          "total_tokens": 631,
+          "cached_input_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "petrichor",
+        "path": "baseline",
+        "repeat": 2,
+        "response_ms": 5781,
+        "first_validated_audio_ms": 5799,
+        "wav_parts_checked": 5,
+        "measurements": {
+          "duration_ms": 5781,
+          "model_duration_ms": 5723,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 7607,
+          "output_tokens": 48,
+          "total_tokens": 7655,
+          "cached_input_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "moon",
+        "path": "baseline",
+        "repeat": 2,
+        "response_ms": 4165,
+        "first_validated_audio_ms": 4190,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 4165,
+          "model_duration_ms": 4105,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 7606,
+          "output_tokens": 43,
+          "total_tokens": 7649,
+          "cached_input_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "seasons",
+        "path": "baseline",
+        "repeat": 2,
+        "response_ms": 4540,
+        "first_validated_audio_ms": 4906,
+        "wav_parts_checked": 6,
+        "measurements": {
+          "duration_ms": 4540,
+          "model_duration_ms": 4487,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 7604,
+          "output_tokens": 59,
+          "total_tokens": 7663,
+          "cached_input_tokens": 7424,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "space",
+        "path": "baseline",
+        "repeat": 2,
+        "response_ms": 3799,
+        "first_validated_audio_ms": 3871,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 3799,
+          "model_duration_ms": 3627,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 598,
+          "output_tokens": 29,
+          "total_tokens": 627,
+          "cached_input_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "thunder",
+        "path": "baseline",
+        "repeat": 2,
+        "response_ms": 7648,
+        "first_validated_audio_ms": 8098,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 7648,
+          "model_duration_ms": 7591,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 7603,
+          "output_tokens": 27,
+          "total_tokens": 7630,
+          "cached_input_tokens": 6400,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      },
+      {
+        "case_id": "music",
+        "path": "baseline",
+        "repeat": 2,
+        "response_ms": 4137,
+        "first_validated_audio_ms": 4151,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 4137,
+          "model_duration_ms": 4075,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 595,
+          "output_tokens": 40,
+          "total_tokens": 635,
+          "cached_input_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "prepared_conversation_hit": 0
+        }
+      }
+    ],
+    "native_continuation_preparations": [
+      {
+        "outcome": "completed",
+        "duration_ms": 2121,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 3107,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 1881,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2090,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2191,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2404,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2148,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 3493,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2173,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 4055,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 1851,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2129,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2131,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2518,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2090,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 3396,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      }
+    ],
+    "care_writes": 0
+  },
+  "final_native_coverage": {
+    "revision": "sha256:d82834192f374118ba22e291f1f255c7fc951a5c14b85ca655d6c7d5804a77d1",
+    "answers": 14,
+    "all_base_wav_parts_validated": true,
+    "provider_requests": 0,
+    "rows": [
+      {
+        "case_id": "sky",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 126,
+        "first_validated_audio_ms": 834,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 123,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "sky-blue",
+            "url": "https://science.nasa.gov/ems/03_behaviors/",
+            "related_urls": [
+              "https://spaceplace.nasa.gov/blue-sky/en/"
+            ],
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "rain-shape",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 99,
+        "first_validated_audio_ms": 802,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 99,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "rain-shape",
+            "url": "https://gpm.nasa.gov/science/anatomy-of-a-raindrop",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "petrichor",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 140,
+        "first_validated_audio_ms": 965,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 140,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "rain-smell",
+            "url": "https://news.mit.edu/2015/rainfall-can-release-aerosols-0114",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "rain-before",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 90,
+        "first_validated_audio_ms": 870,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 90,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "rain-before",
+            "url": "https://news.mit.edu/2015/rainfall-can-release-aerosols-0114",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "gravity",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 116,
+        "first_validated_audio_ms": 1154,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 116,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "rain-gravity",
+            "url": "https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/free-falling-objects/",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "rainbow",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 197,
+        "first_validated_audio_ms": 1484,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 197,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "rainbow",
+            "url": "https://science.nasa.gov/ems/03_behaviors/",
+            "related_urls": [
+              "https://spaceplace.nasa.gov/blue-sky/en/"
+            ],
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "space",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 215,
+        "first_validated_audio_ms": 1403,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 215,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "space-sound",
+            "url": "https://science.gsfc.nasa.gov/attic/cosmicopia.gsfc.nasa.gov/qa_sp_ev.html",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "music",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 201,
+        "first_validated_audio_ms": 1172,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 200,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "music-memory",
+            "url": "https://pscresearch.faculty.ucdavis.edu/wp-content/uploads/sites/112/2014/11/Janata-music-evoked-memories.pdf",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "sunset",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 130,
+        "first_validated_audio_ms": 887,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 130,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "sunset",
+            "url": "https://spaceplace.nasa.gov/blue-sky/en/",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "sunlight",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 94,
+        "first_validated_audio_ms": 930,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 94,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "sunlight-color",
+            "url": "https://spaceplace.nasa.gov/blue-sky/en/",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "moon",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 120,
+        "first_validated_audio_ms": 1223,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 120,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "moon-phases",
+            "url": "https://science.nasa.gov/moon/moon-phases/",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "seasons",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 119,
+        "first_validated_audio_ms": 837,
+        "wav_parts_checked": 3,
+        "measurements": {
+          "duration_ms": 119,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "seasons",
+            "url": "https://spaceplace.nasa.gov/seasons/en/",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "day-night",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 85,
+        "first_validated_audio_ms": 786,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 85,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "day-night",
+            "url": "https://spaceplace.nasa.gov/seasons/en/",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      },
+      {
+        "case_id": "thunder",
+        "path": "verified",
+        "repeat": 1,
+        "response_ms": 112,
+        "first_validated_audio_ms": 982,
+        "wav_parts_checked": 2,
+        "measurements": {
+          "duration_ms": 112,
+          "model_duration_ms": 0,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "reasoning_output_tokens": null,
+          "prepared_conversation_hit": 0,
+          "verified_reference_hit": 1,
+          "verified_reference_context": 1
+        },
+        "references": [
+          {
+            "id": "thunder",
+            "url": "https://www.weather.gov/safety/lightning-science-overview",
+            "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+          }
+        ]
+      }
+    ],
+    "local_continuation_preparations": [
+      {
+        "outcome": "completed",
+        "duration_ms": 2233,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2583,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 1875,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 3163,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2136,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2844,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 3120,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 3161,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2288,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2273,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2310,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 2097,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 1578,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      },
+      {
+        "outcome": "completed",
+        "duration_ms": 1720,
+        "model_calls": 0,
+        "prepared_candidates": 3
+      }
+    ],
+    "care_writes": 0
+  },
+  "accuracy": {
+    "reviewed_base_answers": 14,
+    "reviewed_additional_why_more_texts": 28,
+    "simple_aliases_reuse_base": 14,
+    "reviewed_distinct_texts": 42,
+    "known_corrections": [
+      "Blue/red comparison preserves violet’s stronger scattering.",
+      "Ordinary sunlight usually appears white.",
+      "Rain-before explanation is a possible wind-carried scent mechanism; no certain current-weather claim or approaching-drop-only cause."
+    ],
+    "compound_revised_questions": 4,
+    "compound_review_passed": 4,
+    "compound_packet_qualification_revision": "sha256:6756ec9930b3e610aefb776635f3a3e3a1c02852b96d68f5154e83caf0e951c3",
+    "compound_revision_note": "Same final public fact packet; active source differs by a type-only readonly-array declaration fix. Two critical compound questions were also tested again on the exact active HTTP runtime.",
+    "actual_http_compound_review_passed": 2,
+    "hypothetical_safety_cases": 2,
+    "hypothetical_safety_passed": 2,
+    "safety_ref_fast_path_hits": [
+      0,
+      0
+    ],
+    "safety_care_writes": 0,
+    "limits": "Scoped manual engineering review, not a general model accuracy rate, clinical validation or treatment claim."
+  },
+  "exploration": {
+    "excluded_from_performance_conclusions": true,
+    "reason": "Compilation/focused checks overlapped portions of initial exploratory and model-only quality phases.",
+    "phases": [
+      {
+        "revision": "sha256:f0bf58797f88194217173ed9d58e66b9116f5ce97a0943bdcd98eb613a77fb9d",
+        "kind": "initial matched exploration",
+        "answers": 32,
+        "provider_requests": 16
+      },
+      {
+        "revision": "sha256:04776f5eec601929e9f20e96abc172f2b186290f17158eeba70944e7fba727dd",
+        "kind": "compound/private/creative quality exploration",
+        "answers": 12,
+        "provider_requests": 12
+      },
+      {
+        "revision": "sha256:6756ec9930b3e610aefb776635f3a3e3a1c02852b96d68f5154e83caf0e951c3",
+        "kind": "revised fact-packet compound quality qualification",
+        "answers": 4,
+        "provider_requests": 4
+      }
+    ],
+    "retained_precision_issue": "Initial compound answer lacked the explicit white-sunlight statement; positive fact and dedicated answer added before final qualification."
+  },
+  "actual_http": {
+    "before": {
+      "revision": "sha256:013594267d89eb555047313c1a09c674de8e45d8c0f46520426f91d7c7c79099",
+      "passed": true,
+      "checks": 21,
+      "rows": [
+        {
+          "case_id": "sky",
+          "response_ms": 3514,
+          "first_validated_audio_ms": 5523,
+          "wav_parts_checked": 2,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 3509,
+            "model_calls": 1,
+            "input_tokens": 578,
+            "total_tokens": 604,
+            "output_tokens": 26,
+            "model_duration_ms": 3350,
+            "cached_input_tokens": 0,
+            "reasoning_output_tokens": 0,
+            "prepared_conversation_hit": 0
+          }
+        },
+        {
+          "case_id": "rain-before",
+          "response_ms": 4048,
+          "first_validated_audio_ms": 4671,
+          "wav_parts_checked": 3,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 4042,
+            "model_calls": 1,
+            "input_tokens": 619,
+            "total_tokens": 651,
+            "output_tokens": 32,
+            "model_duration_ms": 3908,
+            "cached_input_tokens": 0,
+            "reasoning_output_tokens": 0,
+            "prepared_conversation_hit": 0
+          }
+        }
+      ],
+      "observed_requests": 3
+    },
+    "after": {
+      "revision": "sha256:d82834192f374118ba22e291f1f255c7fc951a5c14b85ca655d6c7d5804a77d1",
+      "passed": true,
+      "checks": 113,
+      "turns": 12,
+      "rows": [
+        {
+          "case_id": "sky",
+          "response_ms": 157,
+          "first_validated_audio_ms": 838,
+          "wav_parts_checked": 2,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 150,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "model_duration_ms": 0,
+            "cached_input_tokens": null,
+            "verified_reference_hit": 1,
+            "reasoning_output_tokens": null,
+            "prepared_conversation_hit": 0,
+            "verified_reference_context": 1
+          },
+          "references": [
+            {
+              "id": "sky-blue",
+              "url": "https://science.nasa.gov/ems/03_behaviors/",
+              "related_urls": [
+                "https://spaceplace.nasa.gov/blue-sky/en/"
+              ],
+              "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+            }
+          ]
+        },
+        {
+          "case_id": "why",
+          "response_ms": 98,
+          "first_validated_audio_ms": 211,
+          "wav_parts_checked": 2,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 94,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "model_duration_ms": 0,
+            "cached_input_tokens": null,
+            "verified_reference_hit": 1,
+            "reasoning_output_tokens": null,
+            "prepared_conversation_hit": 1,
+            "verified_reference_context": 1
+          },
+          "references": [
+            {
+              "id": "sky-blue",
+              "url": "https://science.nasa.gov/ems/03_behaviors/",
+              "related_urls": [
+                "https://spaceplace.nasa.gov/blue-sky/en/"
+              ],
+              "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+            }
+          ]
+        },
+        {
+          "case_id": "more",
+          "response_ms": 93,
+          "first_validated_audio_ms": 189,
+          "wav_parts_checked": 3,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 90,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "model_duration_ms": 0,
+            "cached_input_tokens": null,
+            "verified_reference_hit": 1,
+            "reasoning_output_tokens": null,
+            "prepared_conversation_hit": 1,
+            "verified_reference_context": 1
+          },
+          "references": [
+            {
+              "id": "sky-blue",
+              "url": "https://science.nasa.gov/ems/03_behaviors/",
+              "related_urls": [
+                "https://spaceplace.nasa.gov/blue-sky/en/"
+              ],
+              "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+            }
+          ]
+        },
+        {
+          "case_id": "source",
+          "response_ms": 115,
+          "first_validated_audio_ms": 1268,
+          "wav_parts_checked": 1,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 112,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "model_duration_ms": 0,
+            "cached_input_tokens": null,
+            "verified_reference_hit": 1,
+            "reasoning_output_tokens": null,
+            "prepared_conversation_hit": 1,
+            "verified_reference_context": 1
+          },
+          "references": [
+            {
+              "id": "sky-blue",
+              "url": "https://science.nasa.gov/ems/03_behaviors/",
+              "related_urls": [
+                "https://spaceplace.nasa.gov/blue-sky/en/"
+              ],
+              "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+            }
+          ]
+        },
+        {
+          "case_id": "repeat",
+          "response_ms": 104,
+          "first_validated_audio_ms": 233,
+          "wav_parts_checked": 1,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 101,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "model_duration_ms": 0,
+            "cached_input_tokens": null,
+            "verified_reference_hit": 1,
+            "reasoning_output_tokens": null,
+            "prepared_conversation_hit": 1,
+            "verified_reference_context": 1
+          },
+          "references": [
+            {
+              "id": "sky-blue",
+              "url": "https://science.nasa.gov/ems/03_behaviors/",
+              "related_urls": [
+                "https://spaceplace.nasa.gov/blue-sky/en/"
+              ],
+              "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+            }
+          ]
+        },
+        {
+          "case_id": "rain-before",
+          "response_ms": 139,
+          "first_validated_audio_ms": 1029,
+          "wav_parts_checked": 3,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 135,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "model_duration_ms": 0,
+            "cached_input_tokens": null,
+            "verified_reference_hit": 1,
+            "reasoning_output_tokens": null,
+            "prepared_conversation_hit": 0,
+            "verified_reference_context": 1
+          },
+          "references": [
+            {
+              "id": "rain-before",
+              "url": "https://news.mit.edu/2015/rainfall-can-release-aerosols-0114",
+              "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+            }
+          ]
+        },
+        {
+          "case_id": "moon",
+          "response_ms": 134,
+          "first_validated_audio_ms": 1257,
+          "wav_parts_checked": 2,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 131,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "model_duration_ms": 0,
+            "cached_input_tokens": null,
+            "verified_reference_hit": 1,
+            "reasoning_output_tokens": null,
+            "prepared_conversation_hit": 0,
+            "verified_reference_context": 1
+          },
+          "references": [
+            {
+              "id": "moon-phases",
+              "url": "https://science.nasa.gov/moon/moon-phases/",
+              "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+            }
+          ]
+        },
+        {
+          "case_id": "thunder",
+          "response_ms": 101,
+          "first_validated_audio_ms": 899,
+          "wav_parts_checked": 2,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 99,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "model_duration_ms": 0,
+            "cached_input_tokens": null,
+            "verified_reference_hit": 1,
+            "reasoning_output_tokens": null,
+            "prepared_conversation_hit": 0,
+            "verified_reference_context": 1
+          },
+          "references": [
+            {
+              "id": "thunder",
+              "url": "https://www.weather.gov/safety/lightning-science-overview",
+              "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+            }
+          ]
+        },
+        {
+          "case_id": "white-compound",
+          "response_ms": 4160,
+          "first_validated_audio_ms": 4200,
+          "wav_parts_checked": 4,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 4157,
+            "model_calls": 1,
+            "input_tokens": 1130,
+            "total_tokens": 1176,
+            "output_tokens": 46,
+            "model_duration_ms": 4053,
+            "cached_input_tokens": 0,
+            "verified_reference_hit": 0,
+            "reasoning_output_tokens": 0,
+            "prepared_conversation_hit": 0,
+            "verified_reference_context": 2
+          },
+          "references": [
+            {
+              "id": "sky-blue",
+              "url": "https://science.nasa.gov/ems/03_behaviors/",
+              "related_urls": [
+                "https://spaceplace.nasa.gov/blue-sky/en/"
+              ],
+              "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+            },
+            {
+              "id": "sunlight-color",
+              "url": "https://spaceplace.nasa.gov/blue-sky/en/",
+              "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+            }
+          ]
+        },
+        {
+          "case_id": "before-compound",
+          "response_ms": 4095,
+          "first_validated_audio_ms": 4267,
+          "wav_parts_checked": 3,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 4092,
+            "model_calls": 1,
+            "input_tokens": 1349,
+            "total_tokens": 1391,
+            "output_tokens": 42,
+            "model_duration_ms": 3991,
+            "cached_input_tokens": 0,
+            "verified_reference_hit": 0,
+            "reasoning_output_tokens": 0,
+            "prepared_conversation_hit": 0,
+            "verified_reference_context": 3
+          },
+          "references": [
+            {
+              "id": "rain-shape",
+              "url": "https://gpm.nasa.gov/science/anatomy-of-a-raindrop",
+              "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+            },
+            {
+              "id": "rain-smell",
+              "url": "https://news.mit.edu/2015/rainfall-can-release-aerosols-0114",
+              "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+            },
+            {
+              "id": "rain-before",
+              "url": "https://news.mit.edu/2015/rainfall-can-release-aerosols-0114",
+              "sha256": "d2fbf0eee705efdb59f972c9f4bf386a85f43cd28a0c4f5104aef4f7649cd5f4"
+            }
+          ]
+        },
+        {
+          "case_id": "unknown",
+          "response_ms": 3448,
+          "first_validated_audio_ms": 3757,
+          "wav_parts_checked": 2,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 3444,
+            "model_calls": 1,
+            "input_tokens": 761,
+            "total_tokens": 778,
+            "output_tokens": 17,
+            "model_duration_ms": 3390,
+            "cached_input_tokens": 0,
+            "verified_reference_hit": 0,
+            "reasoning_output_tokens": 0,
+            "prepared_conversation_hit": 0,
+            "verified_reference_context": 0
+          }
+        },
+        {
+          "case_id": "outlook",
+          "response_ms": 52,
+          "first_validated_audio_ms": 79,
+          "wav_parts_checked": 1,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 49,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "model_duration_ms": 0,
+            "cached_input_tokens": null,
+            "verified_reference_hit": 0,
+            "reasoning_output_tokens": null,
+            "prepared_conversation_hit": 0,
+            "verified_reference_context": 0
+          }
+        }
+      ],
+      "preparations": [
+        {
+          "outcome": "ok",
+          "duration_ms": 3727,
+          "model_calls": 0,
+          "input_tokens": null,
+          "total_tokens": null,
+          "output_tokens": null,
+          "model_duration_ms": 0,
+          "cached_input_tokens": null,
+          "prepared_candidates": 3,
+          "reasoning_output_tokens": null
+        },
+        {
+          "outcome": "ok",
+          "duration_ms": 6395,
+          "model_calls": 0,
+          "input_tokens": null,
+          "total_tokens": null,
+          "output_tokens": null,
+          "model_duration_ms": 0,
+          "cached_input_tokens": null,
+          "prepared_candidates": 3,
+          "reasoning_output_tokens": null
+        },
+        {
+          "outcome": "ok",
+          "duration_ms": 3759,
+          "model_calls": 0,
+          "input_tokens": null,
+          "total_tokens": null,
+          "output_tokens": null,
+          "model_duration_ms": 0,
+          "cached_input_tokens": null,
+          "prepared_candidates": 3,
+          "reasoning_output_tokens": null
+        },
+        {
+          "outcome": "ok",
+          "duration_ms": 3091,
+          "model_calls": 0,
+          "input_tokens": null,
+          "total_tokens": null,
+          "output_tokens": null,
+          "model_duration_ms": 0,
+          "cached_input_tokens": null,
+          "prepared_candidates": 3,
+          "reasoning_output_tokens": null
+        },
+        {
+          "outcome": "ok",
+          "duration_ms": 11692,
+          "model_calls": 1,
+          "input_tokens": 1302,
+          "total_tokens": 1413,
+          "output_tokens": 111,
+          "model_duration_ms": 4989,
+          "cached_input_tokens": 0,
+          "prepared_candidates": 3,
+          "reasoning_output_tokens": 16
+        },
+        {
+          "outcome": "ok",
+          "duration_ms": 8695,
+          "model_calls": 1,
+          "input_tokens": 1502,
+          "total_tokens": 1621,
+          "output_tokens": 119,
+          "model_duration_ms": 4351,
+          "cached_input_tokens": 0,
+          "prepared_candidates": 3,
+          "reasoning_output_tokens": 20
+        }
+      ],
+      "observed_requests": 5
+    },
+    "simulated_playback": true,
+    "actual_microphone": false,
+    "actual_listening": false
+  },
+  "verification": {
+    "full_tests": 1175,
+    "failed": 0,
+    "optional_skips": 2,
+    "test_files": 118,
+    "focused_tests": 90,
+    "focused_failed": 0,
+    "typecheck": "pass",
+    "private_build": "pass; same Current assets",
+    "care_configuration_checks": 43,
+    "protected_care_tables_unchanged": 30,
+    "readiness_source_checks": 362,
+    "source_manifest_entries": 344,
+    "main_app_and_both_supervisors_unchanged": true,
+    "only_test_child_restarted": true,
+    "rollback_syntax_checked": true,
+    "rollback_not_executed": true,
+    "public_boundary_scan": {
+      "passed": true,
+      "files": 451,
+      "findings": 0
+    },
+    "roadmap": {
+      "passed": true,
+      "slices": 12,
+      "human_actions": 36,
+      "automated_checks": 68,
+      "live_scenarios": 31,
+      "completed_features": 0
+    },
+    "human_action_statuses_unchanged": true,
+    "generated_human_actions_checked": true
+  },
+  "request_accounting": {
+    "maximum": 64,
+    "actual": 58,
+    "controlled_answers": 96,
+    "controlled_provider_requests": 50,
+    "site_answers": 14,
+    "site_observed_provider_requests": 8,
+    "all_answers": 110,
+    "closed": true,
+    "unused": 6,
+    "provider_failure_replays": 0
+  },
+  "rollback": "Prior private selection and entry page preserved; guarded rollback restores both and restarts only the verified test child. No database, credential, network or main restore.",
+  "private_evidence_base": ".local/verified-replies-2026-10-22",
+  "remaining_gates": [
+    "Arbitrary/unsupported-wording new-question latency",
+    "General model factual reliability beyond the reviewed packet",
+    "Actual microphone/phone/listening acceptance",
+    "Intended-person, clinical, genuine-day and full-slice completion"
+  ]
+}

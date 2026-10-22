@@ -4,7 +4,7 @@ import {parseEnv} from 'node:util';
 import {join} from 'node:path';
 import {createApp} from './app.js';
 import {configFromEnv} from './config.js';
-import {ownerTestDirectory,ownerTestSchema,ownerTestReasoning,ownerTestPreparation,ownerTestSpeech,ownerTestQuickReads,ownerTestSpokenReplies,ownerTestMealsAhead,ownerTestDialogue,ownerTestChatPreparation,ownerTestTelemetryPolicy} from './owner-test-config.js';
+import {ownerTestDirectory,ownerTestSchema,ownerTestReasoning,ownerTestPreparation,ownerTestSpeech,ownerTestQuickReads,ownerTestSpokenReplies,ownerTestMealsAhead,ownerTestDialogue,ownerTestChatPreparation,ownerTestVerifiedReferences,ownerTestTelemetryPolicy} from './owner-test-config.js';
 import {NANCY_POLICY_VERSION} from './inference-binding.js';
 import {LocalCare} from './local-care.js';
 import {LocalSpeech} from './local-speech.js';
@@ -32,6 +32,7 @@ const spokenReplies=ownerTestSpokenReplies(settings,selection);
 const mealsAhead=ownerTestMealsAhead(settings,selection);
 const dialogue=ownerTestDialogue(settings,selection);
 const chatAhead=ownerTestChatPreparation(settings,selection);
+const verifiedReferences=ownerTestVerifiedReferences(settings,selection);
 const telemetryPolicy=ownerTestTelemetryPolicy(NANCY_POLICY_VERSION,settings,selection);
 if(prepareContext)warmRecipeCatalogue(currentNutritionReference());
 // Read only the existing owner's encryption key and selected speech settings.
@@ -58,7 +59,7 @@ const runtimeLog=new RuntimeLog(care.pool),taskRequests=new TaskRequestService(c
 const features=createLocalFeatures(care.pool,{dayContext:(participant,date)=>care.preparationFacts(participant,date)});
 const speech=new LocalSpeech({latencyTrial,dialogueTrial:dialogue});
 const record=(metric:ConversationTurnMetric|InferenceCallMetric|MealPreparationMetric|ConversationPreparationMetric)=>{const {actor_id,conversation_id,turn_id,outcome,...measurements}=metric;runtimeLog.record({kind:'conversation',actor_id,conversation_id,turn_id,outcome:outcome==='completed'?'ok':outcome==='failed'?'error':'interrupted',measurements:{...measurements,policy_version:telemetryPolicy}});};
-const conversation=new ConversationService(care,reasoner,settings.owner_actor_id,undefined,(text,signal)=>speech.synthesize(text,signal),record,record,taskRequests,features,()=>Promise.resolve(false),undefined,new NancySuggestions(care.pool),reasoningProfile,prepareContext,latencyTrial?72:120,quickReads,spokenReplies,mealsAhead,record,dialogue,chatAhead,record);
+const conversation=new ConversationService(care,reasoner,settings.owner_actor_id,undefined,(text,signal)=>speech.synthesize(text,signal),record,record,taskRequests,features,()=>Promise.resolve(false),undefined,new NancySuggestions(care.pool),reasoningProfile,prepareContext,latencyTrial?72:120,quickReads,spokenReplies,mealsAhead,record,dialogue,chatAhead,record,verifiedReferences);
 const app=await createApp(config,{care,speech,conversation,runtimeLog,taskRequests,features,microsoft:null,staticRoot:join(ownerTestDirectory,'client'),revocations:new SessionRevocations(join(ownerTestDirectory,'revoked-sessions.json'))});
 let busy=false;
 const tick=async()=>{if(busy)return;busy=true;try{await features.day.tick('scheduler');await features.support.refreshNotifications();}catch{console.error('Test reminder maintenance will retry.');}finally{busy=false;}};
