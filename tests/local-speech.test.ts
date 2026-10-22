@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { LocalSpeech, kokoroPronunciationInput, validateSpeechText, validateWav } from '../src/server/local-speech.js';
+import {outlookUnavailableReply} from '../src/shared/fixed-speech.js';
 
 const dirs: string[] = [];
 function fakeWav() {
@@ -16,7 +17,7 @@ function fakeWav() {
   return wav;
 }
 
-async function makeService(responseDelay = 5) {
+async function makeService(responseDelay = 5,latencyTrial=false) {
   const dir = await mkdtemp(resolve(tmpdir(), 'nancy-local-speech-'));
   dirs.push(dir);
   const script = resolve(dir, 'fake-worker.mjs');
@@ -47,7 +48,7 @@ createInterface({input:process.stdin}).on('line', line => {
 });
 `, 'utf8');
   const spec = (kind: string) => ({ executable: process.execPath, args: [script, kind], cwd: dir, env: process.env });
-  return new LocalSpeech({ workerSpecs: { kokoro: spec('kokoro'), asr: spec('asr') } });
+  return new LocalSpeech({ latencyTrial,workerSpecs: { kokoro: spec('kokoro'), asr: spec('asr') } });
 }
 
 // Run lifecycle failures in a real Node process, where an unobserved startup
@@ -128,6 +129,24 @@ afterEach(async () => {
 });
 
 describe('LocalSpeech input bounds and worker lifecycle', () => {
+  it('prepares only an allowlisted public reply in the trial and never caches arbitrary care speech',async()=>{
+    const baseline=await makeService(),trial=await makeService(5,true);
+    try{
+      const first=await baseline.synthesize(outlookUnavailableReply),second=await baseline.synthesize(outlookUnavailableReply);
+      expect(first).not.toEqual(second);
+      await trial.primeNavigation();
+      const cached=await trial.synthesize(outlookUnavailableReply);expect(cached.readInt16LE(44)).toBe(7);
+      cached.writeInt16LE(99,44);expect((await trial.synthesize(outlookUnavailableReply)).readInt16LE(44)).toBe(7);
+      const a=await trial.synthesize('Your private appointment is at four.'),b=await trial.synthesize('Your private appointment is at four.');expect(a).not.toEqual(b);
+      const controller=new AbortController();controller.abort();await expect(trial.synthesize(outlookUnavailableReply,controller.signal)).rejects.toMatchObject({name:'AbortError'});
+    }finally{await Promise.all([baseline.close(),trial.close()]);}
+  });
+  it('rejects an unknown trial flag before starting speech workers',()=>{
+    expect(()=>new LocalSpeech({latencyTrial:'auto' as unknown as boolean})).toThrow('Unknown speech trial');
+  });
+  it.each(['cpu6-v1','auto','directml'])('refuses an unqualified worker profile without a device fallback: %s',async profile=>{
+    await expect(promisify(execFile)(process.execPath,[resolve('scripts/local-speech-worker.mjs'),'kokoro'],{cwd:resolve('.'),windowsHide:true,env:{...process.env,NANCY_HEART_PROFILE:profile},timeout:3000})).rejects.toMatchObject({code:1,stdout:'',stderr:expect.stringContaining('Unknown Heart runtime profile')});
+  });
   it('validates only bounded text and WAV inputs', () => {
     expect(validateSpeechText('  Hello Nancy.  ')).toBe('Hello Nancy.');
     expect(() => validateSpeechText('  ')).toThrow(RangeError);

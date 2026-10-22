@@ -11,6 +11,9 @@ const localImport = name => import(pathToFileURL(join(runtime, 'node_modules', n
 const maxTextChars = 1800;
 const maxAudioSeconds = 45;
 const maxWavBytes = 10 * 1024 * 1024;
+const profile=process.env.NANCY_HEART_PROFILE??'cpu4-v1';
+if(!['cpu4-v1','cpu12-v1'].includes(profile))throw new Error('Unknown Heart runtime profile.');
+const heartThreads=profile==='cpu12-v1'?12:4;
 let tts;
 let active = null;
 
@@ -50,7 +53,7 @@ async function main() {
   env.cacheDir = cache;
   const modelId = 'onnx-community/Kokoro-82M-v1.0-ONNX';
   const revision = '1939ad2a8e416c0acfeecc08a694d14ef25f2231';
-  const options = { revision, cache_dir: cache, dtype: 'fp32', device: 'cpu', session_options: { intraOpNumThreads: 4, interOpNumThreads: 1 } };
+  const options = { revision, cache_dir: cache, dtype: 'fp32', device: 'cpu', session_options: { intraOpNumThreads: heartThreads, interOpNumThreads: 1 } };
   const [model, tokenizer] = await Promise.all([
     StyleTextToSpeech2Model.from_pretrained(modelId, options),
     AutoTokenizer.from_pretrained(modelId, { revision, cache_dir: cache }),

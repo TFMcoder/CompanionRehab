@@ -4,7 +4,7 @@ import {parseEnv} from 'node:util';
 import {join} from 'node:path';
 import {createApp} from './app.js';
 import {configFromEnv} from './config.js';
-import {ownerTestDirectory,ownerTestSchema,ownerTestReasoning,ownerTestPreparation} from './owner-test-config.js';
+import {ownerTestDirectory,ownerTestSchema,ownerTestReasoning,ownerTestPreparation,ownerTestSpeech} from './owner-test-config.js';
 import {LocalCare} from './local-care.js';
 import {LocalSpeech} from './local-speech.js';
 import {PlanStore,defaultPlanPath} from './chatgpt-plan/storage.js';
@@ -25,6 +25,7 @@ let selection:unknown;
 try{selection=JSON.parse(await readFile(join(ownerTestDirectory,'reasoning-experiment.json'),'utf8'));}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
 const reasoningProfile=ownerTestReasoning(settings,selection);
 const prepareContext=ownerTestPreparation(settings,selection);
+const latencyTrial=ownerTestSpeech(settings,selection);
 if(prepareContext)warmRecipeCatalogue(currentNutritionReference());
 // Read only the existing owner's encryption key and selected speech settings.
 // Do not copy a credential store, rebind an account or load a caregiver route.
@@ -48,9 +49,9 @@ const reasoner=new PlanReasoner(store,settings.owner_actor_id,createPlanRequest(
 if(!await reasoner.available())throw Error('Existing owner reasoning is unavailable.');
 const runtimeLog=new RuntimeLog(care.pool),taskRequests=new TaskRequestService(care.pool);
 const features=createLocalFeatures(care.pool,{dayContext:(participant,date)=>care.preparationFacts(participant,date)});
-const speech=new LocalSpeech();
-const record=(metric:ConversationTurnMetric|InferenceCallMetric)=>{const {actor_id,conversation_id,turn_id,outcome,...measurements}=metric;runtimeLog.record({kind:'conversation',actor_id,conversation_id,turn_id,outcome:outcome==='completed'?'ok':outcome==='failed'?'error':'interrupted',measurements:{...measurements,policy_version:`${measurements.policy_version}-test-${reasoningProfile.model}-${reasoningProfile.effort}${prepareContext?'-prep1':''}`}});};
-const conversation=new ConversationService(care,reasoner,settings.owner_actor_id,undefined,(text,signal)=>speech.synthesize(text,signal),record,record,taskRequests,features,()=>Promise.resolve(false),undefined,new NancySuggestions(care.pool),reasoningProfile,prepareContext);
+const speech=new LocalSpeech({latencyTrial});
+const record=(metric:ConversationTurnMetric|InferenceCallMetric)=>{const {actor_id,conversation_id,turn_id,outcome,...measurements}=metric;runtimeLog.record({kind:'conversation',actor_id,conversation_id,turn_id,outcome:outcome==='completed'?'ok':outcome==='failed'?'error':'interrupted',measurements:{...measurements,policy_version:`${measurements.policy_version}-test-${reasoningProfile.model}-${reasoningProfile.effort}${prepareContext?'-prep1':''}${latencyTrial?'-heart1':''}`}});};
+const conversation=new ConversationService(care,reasoner,settings.owner_actor_id,undefined,(text,signal)=>speech.synthesize(text,signal),record,record,taskRequests,features,()=>Promise.resolve(false),undefined,new NancySuggestions(care.pool),reasoningProfile,prepareContext,latencyTrial?72:120);
 const app=await createApp(config,{care,speech,conversation,runtimeLog,taskRequests,features,microsoft:null,staticRoot:join(ownerTestDirectory,'client'),revocations:new SessionRevocations(join(ownerTestDirectory,'revoked-sessions.json'))});
 let busy=false;
 const tick=async()=>{if(busy)return;busy=true;try{await features.day.tick('scheduler');await features.support.refreshNotifications();}catch{console.error('Test reminder maintenance will retry.');}finally{busy=false;}};

@@ -287,7 +287,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     const { turn_id, part } = z.object({ turn_id: uuid, part: z.coerce.number().int().min(0).max(31).optional() }).strict().parse(request.query);
     const { conversation, speech } = localConversation();
     const fullText = await conversation.speech(id, session, turn_id);
-    const text = part === undefined ? fullText : splitSpeechParts(fullText)[part];
+    const text = part === undefined ? fullText : splitSpeechParts(fullText,conversation.speechPartSize)[part];
     if (!text) throw new ApiError(404, 'reply_part_missing', 'That part of the reply is unavailable.');
     const cacheKey = `${session.session_id}:${id}:${turn_id}:${part ?? 'full'}`;
     let audio = audioCache.get(cacheKey);

@@ -1,11 +1,12 @@
 import{dateInZone,type Today}from'../shared/contracts.js';
 import type{TurnPreparation}from'./prepared-context.js';
+import{outlookUnavailableReply}from'../shared/fixed-speech.js';
 const normalized=(text:string)=>text.toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
 /** Quote only unambiguous saved/reference facts. No diagnosis, calculation of a diet or care write. */
 export function preparedFactReply(text:string,preparation:TurnPreparation,today:Today,microsoftConfigured:boolean):string|undefined{
  if(preparation.mode==='full')return;
  if(preparation.mode==='schedule'){
-  if(/\boutlook\b/i.test(text)&&!microsoftConfigured)return 'Outlook isn’t connected here, so I can’t check that calendar.';
+  if(/\boutlook\b/i.test(text)&&!microsoftConfigured)return outlookUnavailableReply;
   if(!/\b(what time|when)\b/i.test(text)||/\b(outlook|tomorrow|yesterday|next|last|week|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b|\d{4}-\d{2}-\d{2}/i.test(text)||!today.profile)return;
   if((today.appointment_context?.omitted_count??0)>0)return;
   const question=' '+normalized(text)+' ',all=today.appointments??[];

@@ -3,6 +3,7 @@ import { createInterface } from 'node:readline';
 import { resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { navigationReply } from './navigation-intent.js';
+import {outlookUnavailableReply} from '../shared/fixed-speech.js';
 
 const MAX_TEXT_CHARS = 1500;
 const MAX_WAV_BYTES = 10 * 1024 * 1024;
@@ -254,6 +255,8 @@ class WarmWorker {
 export interface LocalSpeechOptions {
   /** Test seam for a fake line worker; production callers should use the pinned defaults. */
   workerSpecs?: { kokoro: ChildSpec; asr: ChildSpec };
+  /** Explicit startup selection for the isolated owner trial; defaults stay unchanged. */
+  latencyTrial?: boolean;
 }
 
 export function validateSpeechText(text: string) {
@@ -276,7 +279,7 @@ export function validateWav(wav: Buffer) {
   }
 }
 
-function defaultWorkerSpecs(): { kokoro: ChildSpec; asr: ChildSpec } {
+function defaultWorkerSpecs(latencyTrial=false): { kokoro: ChildSpec; asr: ChildSpec } {
   const root = resolve(process.cwd());
   const runtime = resolve(root, '.local/speech/kokoro-runtime');
   const python = resolve(root, '.local/speech/runtime/venv/Scripts/python.exe');
@@ -292,7 +295,7 @@ function defaultWorkerSpecs(): { kokoro: ChildSpec; asr: ChildSpec } {
   };
   return {
     kokoro: { executable: process.execPath, args: [resolve(root, 'scripts/local-speech-worker.mjs'), 'kokoro'], cwd: root,
-      env: { ...commonEnv, KOKORO_RUNTIME: runtime, KOKORO_CACHE: resolve(root, '.local/speech/kokoro-cache') } },
+      env: { ...commonEnv, KOKORO_RUNTIME: runtime, KOKORO_CACHE: resolve(root, '.local/speech/kokoro-cache'), NANCY_HEART_PROFILE:latencyTrial?'cpu12-v1':'cpu4-v1' } },
     asr: { executable: python, args: [resolve(root, 'scripts/local-speech-worker.py'), 'asr'], cwd: root,
       env: { ...commonEnv, HF_HOME: resolve(root, '.local/speech/runtime/model-cache'), HF_HUB_OFFLINE: '1',
         NANCY_ASR_DEVICE: process.env.NANCY_ASR_DEVICE || 'cpu', NANCY_ASR_CUDA_ROOT: process.env.NANCY_ASR_CUDA_ROOT } },
@@ -305,9 +308,12 @@ export class LocalSpeech {
   private readonly asr: WarmWorker;
   private readonly greetingAudio = new Map<string, { wav: Buffer; expiresAt: number }>();
   private navigationPriming?: Promise<void>;
+  private readonly fixedReplies:Set<string>;
 
   constructor(options: LocalSpeechOptions = {}) {
-    const specs = options.workerSpecs ?? defaultWorkerSpecs();
+    if(options.latencyTrial!==undefined&&typeof options.latencyTrial!=='boolean')throw new RangeError('Unknown speech trial selection.');
+    this.fixedReplies=new Set(options.latencyTrial?[outlookUnavailableReply]:[]);
+    const specs = options.workerSpecs ?? defaultWorkerSpecs(options.latencyTrial);
     this.kokoro = new WarmWorker(specs.kokoro);
     this.asr = new WarmWorker(specs.asr);
   }
@@ -325,7 +331,7 @@ export class LocalSpeech {
     if (!this.navigationPriming) {
       this.navigationPriming = (async () => {
         await this.ready();
-        for (const text of NAVIGATION_PHRASES) await this.synthesize(text);
+        for (const text of [...NAVIGATION_PHRASES,...this.fixedReplies]) await this.synthesize(text);
       })().finally(() => { this.navigationPriming = undefined; });
       // Preserve failure for callers while allowing shutdown during warmup.
       void this.navigationPriming.catch(() => undefined);
@@ -335,7 +341,7 @@ export class LocalSpeech {
 
   async synthesize(text: string, signal?: AbortSignal): Promise<Buffer> {
     const clean = validateSpeechText(text);
-    if (isGreetingForCache(clean)) {
+    if (isGreetingForCache(clean)||this.fixedReplies.has(clean)) {
       const cached = this.getCachedGreeting(clean);
       if (cached) {
         if (signal?.aborted) throw abortError();
@@ -349,7 +355,7 @@ export class LocalSpeech {
     }
     const wav = Buffer.from(encoded, 'base64');
     validateWav(wav);
-    if (isGreetingForCache(clean) && wav.length <= GREETING_CACHE_MAX_BYTES) this.cacheGreeting(clean, wav);
+    if ((isGreetingForCache(clean)||this.fixedReplies.has(clean)) && wav.length <= GREETING_CACHE_MAX_BYTES) this.cacheGreeting(clean, wav);
     return wav;
   }
 
@@ -383,7 +389,7 @@ export class LocalSpeech {
       if (oldest === undefined) return;
       this.greetingAudio.delete(oldest);
     }
-    this.greetingAudio.set(text, { wav: Buffer.from(wav), expiresAt: NAVIGATION_PHRASES.has(text) ? Infinity : Date.now() + GREETING_CACHE_TTL_MS });
+    this.greetingAudio.set(text, { wav: Buffer.from(wav), expiresAt: NAVIGATION_PHRASES.has(text)||this.fixedReplies.has(text) ? Infinity : Date.now() + GREETING_CACHE_TTL_MS });
   }
 }
 

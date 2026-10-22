@@ -8,7 +8,25 @@ import { sealSession, type Session } from '../src/server/session.js';
 import type { CareService } from '../src/server/care-access.js';
 import type { LocalSpeech } from '../src/server/local-speech.js';
 import { SessionRevocations } from '../src/server/revocations.js';
+import {splitSpeechParts} from '../src/shared/speech-parts.js';
 describe('authenticated local voice routes', () => {
+  it('delivers all shorter trial parts exactly once, preserves text and refuses even cached audio after scope change',async()=>{
+    const config=configFromEnv({PUBLIC_ORIGIN:'http://localhost:8787',DATABASE_URL:'postgresql://local.invalid/synthetic',SESSION_KEY:randomBytes(32).toString('base64')});
+    const session:Session={user_id:randomUUID(),session_id:randomUUID(),issued_at:Date.now()/1000,expires_at:Date.now()/1000+3600,access_token:'synthetic',refresh_token:'synthetic'};
+    let revision='initial';const care={authorize:vi.fn(async s=>s),authority:async()=>({...await testAuthority(session),grant_revision:revision}),today:vi.fn(async()=>({profile:{id:session.user_id,display_name:'Synthetic',time_zone:'America/Toronto',preferences:'',revision:0},local_date:'2026-10-22',tasks:[],meal_options:[],checkin:null})),command:vi.fn(),close:vi.fn()}as unknown as CareService;
+    const text='For one serving, use 200 grams of plain Greek yogurt and 35 grams of dry rolled oats, keeping the amounts exactly as shown. Do not change your medication dose.';
+    const synthesize=vi.fn(async(text:string)=>Buffer.from(text)),conversation=new ConversationService(care,{bind:async scope=>({...await bindTestInference(scope),route_id:'chatgpt_plan_owner_practice'}),respond:async(_i,_p,_t,_s,delta)=>{delta?.(text);return{completed:true,model:'gpt-6-sol',effort:'high',text,output:[]};}},session.user_id,undefined,synthesize,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,false,72);
+    const app=await createApp(config,{care,conversation,speech:{synthesize,readiness:()=>({kokoro:'ready',asr:'ready'}),close:vi.fn()}as unknown as LocalSpeech,revocations:new SessionRevocations()});
+    const headers={host:'localhost:8787',origin:config.origin,cookie:'nancy_session='+sealSession(session,config.sessionKey!)};
+    try{
+      const opening=(await app.inject({method:'POST',url:'/api/conversation',headers,payload:{}})).json();
+      const result=await app.inject({method:'POST',url:`/api/conversation/${opening.session_id}/turn`,headers,payload:{turn_id:randomUUID(),text:'Tell me the exact recipe quantities.'}});expect(result.statusCode).toBe(200);
+      const reply=result.json(),expected=splitSpeechParts(text,72);expect(reply.speech_parts).toBe(expected.length);expect(expected[0].length).toBeLessThan(splitSpeechParts(text)[0].length);
+      const pieces:string[]=[];for(let part=0;part<reply.speech_parts;part++){const response=await app.inject({url:`/api/conversation/${opening.session_id}/speech?turn_id=${reply.reply_id}&part=${part}`,headers});expect(response.statusCode).toBe(200);pieces.push(response.body);}
+      expect(pieces).toEqual(expected);expect(pieces.join('')).toBe(text);expect(synthesize).toHaveBeenCalledTimes(expected.length);expect(care.command).not.toHaveBeenCalled();
+      revision='revoked';const denied=await app.inject({url:`/api/conversation/${opening.session_id}/speech?turn_id=${reply.reply_id}&part=0`,headers});expect(denied.statusCode).not.toBe(200);expect(denied.body).not.toBe(expected[0]);expect(synthesize).toHaveBeenCalledTimes(expected.length);
+    }finally{await app.close();}
+  });
   it('serves the validated prepared first sentence once and rejects it after interruption', async () => {
     const config = configFromEnv({ PUBLIC_ORIGIN: 'http://localhost:8787', DATABASE_URL: 'postgresql://local.invalid/synthetic', SESSION_KEY: randomBytes(32).toString('base64') });
     const session: Session = { user_id: randomUUID(), session_id: randomUUID(), issued_at: Date.now() / 1000, expires_at: Date.now() / 1000 + 3600, access_token: 'synthetic', refresh_token: 'synthetic' };

@@ -22,7 +22,9 @@ export const ownerTestSchema=z.object({
 export type OwnerTestSettings=z.infer<typeof ownerTestSchema>;
 
 const reasoningSelection=z.object({schema_version:z.literal(1),owner_actor_id:z.uuid(),participant_id:z.uuid(),origin:z.url(),
- profile:z.enum(['sol-high','sol-low','sol-none','luna-low','sol61-low']),context_mode:z.literal('prepared-v1').optional()}).strict();
+ profile:z.enum(['sol-high','sol-low','sol-none','luna-low','sol61-low']),context_mode:z.literal('prepared-v1').optional(),speech_mode:z.literal('heart-latency-v1').optional()}).strict().superRefine((value,ctx)=>{
+ if(value.speech_mode&&(value.profile!=='sol-low'||value.context_mode!=='prepared-v1'))ctx.addIssue({code:'custom',message:'Speech trial requires the existing prepared Sol-low owner copy.'});
+});
 /** Private startup-only selection. Main, browser input and caregiver routing never read it. */
 export function ownerTestReasoning(settings:OwnerTestSettings,selection?:unknown){
  if(selection===undefined)return reasoningCandidates['sol-high'];
@@ -33,6 +35,10 @@ export function ownerTestReasoning(settings:OwnerTestSettings,selection?:unknown
 export function ownerTestPreparation(settings:OwnerTestSettings,selection?:unknown){
  ownerTestReasoning(settings,selection);
  return selection!==undefined&&reasoningSelection.parse(selection).context_mode==='prepared-v1';
+}
+export function ownerTestSpeech(settings:OwnerTestSettings,selection?:unknown){
+ ownerTestReasoning(settings,selection);
+ return selection!==undefined&&reasoningSelection.parse(selection).speech_mode==='heart-latency-v1';
 }
 
 export function ownerTestIndex(html:string){

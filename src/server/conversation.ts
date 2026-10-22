@@ -196,8 +196,9 @@ export class ConversationService {
     private observeTurn?: (metric: ConversationTurnMetric) => void,
     private observeCall?: (metric: InferenceCallMetric) => void,
     private requests?: RequestConversationService, private features?:LocalFeatures, private microsoftEligible?:(session:Session)=>Promise<boolean>,private microsoft?:MicrosoftService,private suggestions?:NancySuggestions,
-    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false) {
+    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120) {
     this.expectedReasoning=validateReasoningProfile(expectedReasoning);
+    if(![120,72].includes(speechPartSize))throw new RangeError('Unknown speech-part size.');
     this.timer = setInterval(() => { for (const [id, state] of this.sessions) if (state.expires < Date.now()) this.endState(id, state); }, 30000); this.timer.unref();
   }
   private async getBinding(session: Session) {
@@ -208,9 +209,9 @@ export class ConversationService {
     let revision = this.requests ? createHash('sha256').update(scope.grant_revision + ':' + await this.requests.authorityRevision(session)).digest('hex') : scope.grant_revision;
     if(this.features)revision=createHash('sha256').update(revision+':'+await this.features.authorityRevision(session)).digest('hex');
     if(this.microsoft)revision=createHash('sha256').update(revision+':'+await this.microsoft.authorityRevision(session)).digest('hex');
-    const experiment=this.expectedReasoning!==selectedReasoning||this.prepareContext;
+    const experiment=this.expectedReasoning!==selectedReasoning||this.prepareContext||this.speechPartSize!==120;
     if(experiment&&scope.actor_id!==this.ownerId)throw new ApiError(403,'experiment_owner_only','Reasoning experiments are limited to the owner’s practice copy.');
-    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}`:'') });
+    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}`:'') });
     if(experiment&&(binding.route_id!=='chatgpt_plan_owner_practice'||binding.qualification!=='owner_practice'))throw new ApiError(403,'experiment_owner_only','Reasoning experiments require the owner practice connection.');
     return binding;
   }
@@ -261,7 +262,7 @@ export class ConversationService {
       const oldest = state.replies.keys().next().value!;
       state.prepared.get(oldest)?.controller.abort(); state.prepared.delete(oldest); state.replies.delete(oldest); state.activityDeliveries.delete(oldest);state.preferenceDeliveries.delete(oldest);state.handoffDeliveries.delete(oldest);
     }
-    return { session_id: id, reply_id, text, speech_parts: splitSpeechParts(text).length, changed, ...(navigate ? { navigate } : {}) };
+    return { session_id: id, reply_id, text, speech_parts: splitSpeechParts(text,this.speechPartSize).length, changed, ...(navigate ? { navigate } : {}) };
   }
   private activitySavedReply(id:string,state:Conversation,command:ActivityCommand,text:string,navigate?:ClientView) {
     const reply=this.reply(id,state,text,true,navigate);
@@ -319,7 +320,7 @@ export class ConversationService {
   async preparedAudio(id: string, session: Session, replyId: string, text: string, signal: AbortSignal) {
     const final = await this.speech(id, session, replyId);
     const state = this.state(id, session), prepared = state.prepared.get(replyId);
-    if (!prepared || splitSpeechParts(final)[0].trim() !== text.trim() || prepared.text.trim() !== text.trim()) return undefined;
+    if (!prepared || splitSpeechParts(final,this.speechPartSize)[0].trim() !== text.trim() || prepared.text.trim() !== text.trim()) return undefined;
     const abort = () => prepared.controller.abort();
     if (signal.aborted) abort();
     signal.addEventListener('abort', abort, { once: true });
@@ -622,7 +623,7 @@ export class ConversationService {
           if(factual){
             reply=this.reply(id,state,factual);
             if(this.prepareSpeech){
-              const first=splitSpeechParts(factual)[0],draftController=new AbortController();
+              const first=splitSpeechParts(factual,this.speechPartSize)[0],draftController=new AbortController();
               const audio=this.prepareSpeech(first,AbortSignal.any([controller.signal,draftController.signal])).then(wav=>wav.length<=1024*1024?wav:undefined).catch(()=>undefined);
               matchingDraft={text:first,audio,controller:draftController};drafts.push(matchingDraft);
             }
@@ -637,7 +638,7 @@ export class ConversationService {
           const prepare = (delta: string) => {
             if (!this.prepareSpeech || draft || controller.signal.aborted || state.generation !== generation || state.closed) return;
             streamed = (streamed + delta).slice(0, 1500);
-            const first = firstCompleteSpeechPart(streamed);
+            const first = firstCompleteSpeechPart(streamed,this.speechPartSize);
             if (!first) return;
             const draftController = new AbortController();
             const audio = this.prepareSpeech(first, AbortSignal.any([controller.signal, draftController.signal]))
@@ -689,7 +690,7 @@ export class ConversationService {
           if (!calls.length) {
             const final = response.output.filter(item => item.type === 'message' && item.role === 'assistant').flatMap(item => Array.isArray(item.content) ? item.content : []).filter(p => p?.type === 'output_text' && typeof p.text === 'string').map(p => p.text).join('') || response.text;
             if (!final.trim() || final.length > 1500) throw new ApiError(503, 'invalid_response', 'Nancy could not finish that reply. You can use the buttons.');
-            if (draft && draft.text.trim() === splitSpeechParts(final)[0].trim()) matchingDraft = draft;
+            if (draft && draft.text.trim() === splitSpeechParts(final,this.speechPartSize)[0].trim()) matchingDraft = draft;
             reply = this.reply(id, state, final, changed, navigate); break;
           }
           // Text accompanying a tool request is not the authoritative reply.

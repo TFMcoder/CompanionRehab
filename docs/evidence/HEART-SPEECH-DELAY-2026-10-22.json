@@ -1,0 +1,369 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-10-22T05:22:15.587Z",
+  "implementation_revision": "sha256:0059aac3dcac08931023e573c42ac28ad4bdaadcde9bb151f4e0ab0c7c5881d6",
+  "revision_algorithm": "scripts/implementation-revision.ts",
+  "status": "owner_practice_review_ready_device_listening_open",
+  "authorization": "October 22 owner direction: reduce speech delay only in the test copy; preserve Heart, Dad setup and no API billing.",
+  "isolation": {
+    "default_off": true,
+    "selection": "Exact private owner/participant/origin, prepared Sol-low and heart-latency-v1",
+    "live_process_restarted": false,
+    "live_configuration_and_current_assets_unchanged": true,
+    "protected_care_tables_unchanged": 30,
+    "credentials_copied": false,
+    "provider_writes": 0,
+    "real_care_writes": 0
+  },
+  "speech": {
+    "voice": "af_heart",
+    "speed": 1,
+    "dtype": "fp32",
+    "checkpoint_revision": "1939ad2a8e416c0acfeecc08a694d14ef25f2231",
+    "live_cpu_threads": 4,
+    "test_cpu_threads": 12,
+    "live_part_maximum": 120,
+    "test_part_maximum": 72,
+    "asr_unchanged": true,
+    "additional_cached_phrase": "One exact public Outlook-unavailable reply; eligibility still checked against fresh scoped state",
+    "arbitrary_personal_reply_cache_added": false,
+    "final_authority_model_and_cancellation_checks_retained": true
+  },
+  "diagnostics": {
+    "thread_phases": [
+      {
+        "phase": "initial",
+        "profiles": [
+          {
+            "id": "baseline-4",
+            "samples": 15,
+            "median_generate_ms": 2077,
+            "slowest_generate_ms": 3082
+          },
+          {
+            "id": "two-2",
+            "samples": 15,
+            "median_generate_ms": 2910,
+            "slowest_generate_ms": 4546
+          },
+          {
+            "id": "one-1",
+            "samples": 15,
+            "median_generate_ms": 4425,
+            "slowest_generate_ms": 6599
+          },
+          {
+            "id": "confirm-4",
+            "samples": 15,
+            "median_generate_ms": 2099,
+            "slowest_generate_ms": 3100
+          }
+        ]
+      },
+      {
+        "phase": "/higher-threads",
+        "profiles": [
+          {
+            "id": "six-6",
+            "samples": 15,
+            "median_generate_ms": 1732,
+            "slowest_generate_ms": 2541
+          },
+          {
+            "id": "eight-8",
+            "samples": 15,
+            "median_generate_ms": 1544,
+            "slowest_generate_ms": 2254
+          },
+          {
+            "id": "twelve-12",
+            "samples": 15,
+            "median_generate_ms": 1293,
+            "slowest_generate_ms": 1948
+          },
+          {
+            "id": "confirm-4",
+            "samples": 15,
+            "median_generate_ms": 2082,
+            "slowest_generate_ms": 3103
+          }
+        ]
+      },
+      {
+        "phase": "/directml",
+        "profiles": [
+          {
+            "id": "baseline-4",
+            "samples": 15,
+            "median_generate_ms": 2106,
+            "slowest_generate_ms": 3245
+          },
+          {
+            "id": "directml-0",
+            "failed": true
+          },
+          {
+            "id": "directml-1",
+            "failed": true
+          },
+          {
+            "id": "confirm-4",
+            "samples": 15,
+            "median_generate_ms": 2070,
+            "slowest_generate_ms": 3181
+          }
+        ]
+      }
+    ],
+    "directml": {
+      "adapters_tested": [
+        0,
+        1
+      ],
+      "outcome": "Rejected before activation: pinned model failed ConvTranspose during warmup. No graphics option, driver, checkpoint or device fallback deployed."
+    },
+    "final_native_groups": [
+      {
+        "profile": "cpu4-120",
+        "answers": 14,
+        "median_first_audio_ms": 1734.5,
+        "slowest_first_audio_ms": 3172,
+        "parts_ready_within_previous_part_duration": true
+      },
+      {
+        "profile": "cpu12-120",
+        "answers": 14,
+        "median_first_audio_ms": 1265,
+        "slowest_first_audio_ms": 2264,
+        "parts_ready_within_previous_part_duration": true
+      },
+      {
+        "profile": "cpu12-72",
+        "answers": 14,
+        "median_first_audio_ms": 1133,
+        "slowest_first_audio_ms": 1638,
+        "parts_ready_within_previous_part_duration": true
+      },
+      {
+        "profile": "cpu4-confirm",
+        "answers": 7,
+        "median_first_audio_ms": 1672,
+        "slowest_first_audio_ms": 3055,
+        "parts_ready_within_previous_part_duration": true
+      }
+    ],
+    "final_native_answers": 49,
+    "waveform_checks": "Every generated part passed bounded WAV/non-silence/peak validation.",
+    "audio_release_scope": "Native first validated speech-piece availability after text is supplied; no microphone/browser/audio-device playback.",
+    "intelligibility": {
+      "clips": 28,
+      "normalized_exact": 16,
+      "reviewed_core_preserved": 28,
+      "reviewer": "Codex comparison of all 28 local synthetic transcripts against source quantities, negation, dates/times and instructions",
+      "non_exact_explanation": "Twelve normalized-string differences reflect hyphenated food names or equivalent spoken/numeric time forms; no new core omission, changed quantity/time or reversed negation observed. Baseline cooking punctuation split before/serving is retained in raw evidence.",
+      "model": "faster-whisper-small.en",
+      "local_only": true,
+      "human_listening": false,
+      "general_accuracy_estimate": false
+    }
+  },
+  "actual_test_service": {
+    "before": {
+      "checks_passed": 56,
+      "checks_total": 56,
+      "rows": [
+        {
+          "id": "recipe-1",
+          "response_ms": 119,
+          "first_audio_ms": 4539,
+          "remaining_audio_wait_ms": 4421,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "speech_parts": 1
+        },
+        {
+          "id": "recipe_followup",
+          "response_ms": 3115,
+          "first_audio_ms": 6526,
+          "remaining_audio_wait_ms": 3411,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 3
+        },
+        {
+          "id": "meal",
+          "response_ms": 3693,
+          "first_audio_ms": 4984,
+          "remaining_audio_wait_ms": 1291,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 5
+        },
+        {
+          "id": "recipe-2",
+          "response_ms": 141,
+          "first_audio_ms": 3082,
+          "remaining_audio_wait_ms": 2941,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "speech_parts": 1
+        },
+        {
+          "id": "outlook-1",
+          "response_ms": 93,
+          "first_audio_ms": 1817,
+          "remaining_audio_wait_ms": 1725,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "speech_parts": 1
+        },
+        {
+          "id": "recipe-3",
+          "response_ms": 90,
+          "first_audio_ms": 3071,
+          "remaining_audio_wait_ms": 2981,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "speech_parts": 1
+        },
+        {
+          "id": "outlook-2",
+          "response_ms": 53,
+          "first_audio_ms": 1783,
+          "remaining_audio_wait_ms": 1730,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "speech_parts": 1
+        }
+      ]
+    },
+    "after": {
+      "checks_passed": 65,
+      "checks_total": 65,
+      "rows": [
+        {
+          "id": "recipe-1",
+          "response_ms": 100,
+          "first_audio_ms": 1631,
+          "remaining_audio_wait_ms": 1531,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "speech_parts": 2
+        },
+        {
+          "id": "recipe_followup",
+          "response_ms": 4599,
+          "first_audio_ms": 5248,
+          "remaining_audio_wait_ms": 649,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 6
+        },
+        {
+          "id": "meal",
+          "response_ms": 3266,
+          "first_audio_ms": 3299,
+          "remaining_audio_wait_ms": 33,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 8
+        },
+        {
+          "id": "recipe-2",
+          "response_ms": 125,
+          "first_audio_ms": 1718,
+          "remaining_audio_wait_ms": 1593,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "speech_parts": 2
+        },
+        {
+          "id": "outlook-1",
+          "response_ms": 88,
+          "first_audio_ms": 115,
+          "remaining_audio_wait_ms": 27,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "speech_parts": 1
+        },
+        {
+          "id": "recipe-3",
+          "response_ms": 53,
+          "first_audio_ms": 1598,
+          "remaining_audio_wait_ms": 1545,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "speech_parts": 2
+        },
+        {
+          "id": "outlook-2",
+          "response_ms": 77,
+          "first_audio_ms": 106,
+          "remaining_audio_wait_ms": 29,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "speech_parts": 1
+        }
+      ]
+    },
+    "definition": "Typed turn to first validated WAV available through the normal authenticated loopback HTTP route, with the actual test Host/Origin/cookie; Tailscale/Safari transport, microphone and audible playback excluded.",
+    "caveat": "Seven turns per phase. Recipe three samples and unavailable Outlook two; meal/cooking one each, with independently generated model replies. Do not attribute model/provider variation or differing wording entirely to speech settings."
+  },
+  "verification": {
+    "full_regression": {
+      "passed": 1034,
+      "failed": 0,
+      "optional_skips": 2,
+      "files": 112
+    },
+    "focused": {
+      "passed": 64,
+      "failed": 0
+    },
+    "typecheck": "pass",
+    "private_client_build": "pass; active JavaScript and CSS unchanged",
+    "preservation": {
+      "passed": 43,
+      "total": 43
+    },
+    "deployed_readiness": {
+      "passed": 350,
+      "total": 350
+    },
+    "public_scan": {
+      "status": "pass",
+      "files_scanned": 425,
+      "findings": 0
+    }
+  },
+  "inference": {
+    "existing_owner_pro_only": true,
+    "model": "gpt-6-sol",
+    "effort": "low",
+    "reported_model_rounds": 4,
+    "maximum_reserved_model_rounds": 12,
+    "raw_provider_http_attempts": "not independently counted by this HTTP probe",
+    "api_key_billing": false,
+    "model_or_account_fallback": false,
+    "native_and_asr_diagnostic_model_rounds": 0
+  },
+  "rollback": {
+    "previous_test_selection_and_entry_saved": true,
+    "source_manifest_saved": true,
+    "operation": "Restore the prior private selection/entry and restart only the verified owner-test child; no database reset or credential movement."
+  },
+  "private_references": {
+    "root": ".local/heart-delay-2026-10-22",
+    "native": ".local/heart-delay-2026-10-22/qualified/results-private.json",
+    "asr": ".local/heart-delay-2026-10-22/qualified/asr-private.json",
+    "before": ".local/heart-delay-2026-10-22/http-before.json",
+    "after": ".local/heart-delay-2026-10-22/http-after.json",
+    "preservation": ".local/heart-delay-2026-10-22/guard-after.json"
+  },
+  "remaining": [
+    "Actual iPhone/Safari microphone-to-audible timing and subjective listening quality.",
+    "Provider/model thinking time remains variable; faster synthesis does not guarantee a fixed overall response time.",
+    "Intended-person/genuine-day and full-slice gates remain open.",
+    "Trial remains test-only until owner review."
+  ]
+}
