@@ -32,6 +32,7 @@ import {preparedFactReply} from './prepared-answers.js';
 import {quickReadReply,quickReadGuidance} from './quick-reads.js';
 import {spokenReplyGuidance,isSpokenConversation,isSimpleMealSuggestion} from './spoken-replies.js';
 import {mealSlots,preparedMealSlots,mealPreparationMaterial,mealPreparationKey,preparedMealPolicy,PreparedMealError,validateMealSelection,renderPreparedMeals,type MealSlot} from './prepared-meals.js';
+import {dialogueChatReply,dialogueConversationGuidance,dialogueMealPreparationPolicy,validateDialogueMeals,mealFollowup,mealFollowupReply,type MealThread,type MealFollowup} from './dialogue-replies.js';
 
 export interface ConversationReply { session_id: string; reply_id: string; text: string; speech_parts: number; changed: boolean; acknowledgement_required?: boolean; navigate?: ClientView; transcript?: string; nutrition_refs?: Array<{ document_id:string; path:string; sha256:string; items:string[] }> }
 export interface ConversationTurnMetric {
@@ -41,6 +42,7 @@ export interface ConversationTurnMetric {
   input_chars: number; instruction_chars: number; context_chars: number; history_chars: number;
   nutrition_retrievals: number;
   prepared_meal_hit?:number;
+  meal_followup_hit?:number;conversation_quick_hit?:number;
   nutrition_refs: Array<{ document_id: string; sha256: string; items: string[] }>;
   policy_version: string; binding_ref: string;
   input_tokens: number | null; output_tokens: number | null; total_tokens: number | null;
@@ -58,6 +60,7 @@ export interface MealPreparationMetric {
 interface PreparedMealDraft {
  key:string;expires:number;controller:AbortController;ready:boolean;
  choices?:ReturnType<typeof validateMealSelection>;material:ReturnType<typeof mealPreparationMaterial>;audio:Map<string,Buffer>;
+ options?:MealThread['options'];
 }
 export interface InferenceCallMetric {
   conversation_id: string; turn_id: string; actor_id: string; outcome: 'completed' | 'failed' | 'interrupted';
@@ -69,6 +72,7 @@ interface Turn { signature: string; reply?: ConversationReply; failed?: boolean;
 interface PreparedSpeech { text: string; audio: Promise<Buffer | undefined>; controller: AbortController;mealKey?:string }
 type PrepareSpeech = (text: string, signal: AbortSignal) => Promise<Buffer>;
 interface Conversation {
+  mealThread?:MealThread;
   recipeContinuity?:RecipeContinuity;
   binding: InferenceBinding;
   user: string; login: string; expires: number; busy: boolean; closed: boolean; generation: number;
@@ -215,7 +219,7 @@ export class ConversationService {
     private observeTurn?: (metric: ConversationTurnMetric) => void,
     private observeCall?: (metric: InferenceCallMetric) => void,
     private requests?: RequestConversationService, private features?:LocalFeatures, private microsoftEligible?:(session:Session)=>Promise<boolean>,private microsoft?:MicrosoftService,private suggestions?:NancySuggestions,
-    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false,private spokenReplies=false,private prepareMealsAhead=false,private observeMealPreparation?:(metric:MealPreparationMetric)=>void) {
+    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false,private spokenReplies=false,private prepareMealsAhead=false,private observeMealPreparation?:(metric:MealPreparationMetric)=>void,private dialogueReplies=false) {
     this.expectedReasoning=validateReasoningProfile(expectedReasoning);
     if(![120,72].includes(speechPartSize))throw new RangeError('Unknown speech-part size.');
     this.timer = setInterval(() => { for (const [id, state] of this.sessions) if (state.expires < Date.now()) this.endState(id, state);for(const[login,draft]of this.mealDrafts)if(draft.expires<=this.now().getTime())this.clearMealDraft(login); }, 30000); this.timer.unref();
@@ -228,9 +232,9 @@ export class ConversationService {
     let revision = this.requests ? createHash('sha256').update(scope.grant_revision + ':' + await this.requests.authorityRevision(session)).digest('hex') : scope.grant_revision;
     if(this.features)revision=createHash('sha256').update(revision+':'+await this.features.authorityRevision(session)).digest('hex');
     if(this.microsoft)revision=createHash('sha256').update(revision+':'+await this.microsoft.authorityRevision(session)).digest('hex');
-    const experiment=this.expectedReasoning!==selectedReasoning||this.prepareContext||this.speechPartSize!==120||this.quickReads||this.spokenReplies||this.prepareMealsAhead;
+    const experiment=this.expectedReasoning!==selectedReasoning||this.prepareContext||this.speechPartSize!==120||this.quickReads||this.spokenReplies||this.prepareMealsAhead||this.dialogueReplies;
     if(experiment&&scope.actor_id!==this.ownerId)throw new ApiError(403,'experiment_owner_only','Reasoning experiments are limited to the owner’s practice copy.');
-    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}${this.spokenReplies?':spoken-v1':''}${this.prepareMealsAhead?':meal-ahead-v1':''}`:'') });
+    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}${this.spokenReplies?':spoken-v1':''}${this.prepareMealsAhead?':meal-ahead-v1':''}${this.dialogueReplies?':dialogue-v1':''}`:'') });
     if(experiment&&(binding.route_id!=='chatgpt_plan_owner_practice'||binding.qualification!=='owner_practice'))throw new ApiError(403,'experiment_owner_only','Reasoning experiments require the owner practice connection.');
     return binding;
   }
@@ -287,17 +291,22 @@ export class ConversationService {
         metric={actor_id:session.user_id,conversation_id:randomUUID(),turn_id:randomUUID(),stage:'meal_preparation',outcome:'failed',duration_ms:0,model_duration_ms:0,model_calls:1,policy_version:NANCY_POLICY_VERSION,binding_ref:bindingRef(snapshot.binding),...this.usageMetric({})};
         modelStarted=performance.now();
         let response;
-        try{response=await this.reasoner.respond([{role:'user',content:JSON.stringify({current_authorized_facts:snapshot.facts,repository_choices:snapshot.material.context})}],preparedMealPolicy+'\n'+currentNutritionReference().authorityContext().text,[],signal,undefined,snapshot.binding);usage=response.usage;}
+        try{response=await this.reasoner.respond([{role:'user',content:JSON.stringify({current_authorized_facts:snapshot.facts,repository_choices:snapshot.material.context})}],(this.dialogueReplies?dialogueMealPreparationPolicy:preparedMealPolicy)+'\n'+currentNutritionReference().authorityContext().text,[],signal,undefined,snapshot.binding);usage=response.usage;}
         catch(error){usage=inferenceUsageFromError(error);throw error;}
         finally{metric.model_duration_ms=Math.round(performance.now()-modelStarted);}
         failure='model_invalid';
         if(!response.completed||response.model!==this.expectedReasoning.model||response.effort!==this.expectedReasoning.effort||response.output.some(item=>!['reasoning','message'].includes(String(item.type))))throw Error('Invalid prepared model response.');
-        draft.choices=validateMealSelection(response.text,snapshot.material,snapshot.facts);
+        if(this.dialogueReplies){const selected=validateDialogueMeals(response.text,snapshot.material,snapshot.facts);draft.choices=selected.choices;draft.options=selected.options;}
+        else draft.choices=validateMealSelection(response.text,snapshot.material,snapshot.facts);
         failure='speech_failed';
         if(!this.prepareSpeech)throw Error('Prepared Heart speech unavailable.');
         const variants=[...mealSlots.map(slot=>[slot] as MealSlot[]),[...mealSlots]];
         for(const slots of variants){
           signal.throwIfAborted();const first=splitSpeechParts(renderPreparedMeals(draft.choices,slots),this.speechPartSize)[0];
+          if(!draft.audio.has(first)){const audio=await this.prepareSpeech(first,signal);if(audio.length>1024*1024)throw Error('Prepared audio exceeds bound.');draft.audio.set(first,audio);}
+        }
+        for(const slot of this.dialogueReplies?mealSlots:[])for(const recipe of draft.options?.[slot].slice(1)??[]){
+          signal.throwIfAborted();const first=splitSpeechParts(renderPreparedMeals({...draft.choices,[slot]:recipe},[slot]),this.speechPartSize)[0];
           if(!draft.audio.has(first)){const audio=await this.prepareSpeech(first,signal);if(audio.length>1024*1024)throw Error('Prepared audio exceeds bound.');draft.audio.set(first,audio);}
         }
         failure='context_changed';const fresh=await this.mealSnapshot(session);signal.throwIfAborted();
@@ -471,6 +480,7 @@ export class ConversationService {
     state.outlook=undefined;
     state.suggestion=undefined;
     state.recipeContinuity=undefined;
+    state.mealThread?.audio.clear();state.mealThread=undefined;
     this.clearPrepared(state);
     // An interrupted review cannot be accepted by a late playback acknowledgement.
     state.review = undefined; state.grocery = undefined; state.activity=undefined;state.request=undefined;state.local=undefined;state.preference=undefined; state.replies.clear();state.activityDeliveries.clear();state.preferenceDeliveries.clear();state.handoffDeliveries.clear();
@@ -505,14 +515,17 @@ export class ConversationService {
     const generation = state.generation;
     const controller = new AbortController(); state.active = { id: turnId, controller };
     const turn: Turn = { signature: fingerprint }; state.turns.set(turnId, turn);
-    let preparedMealHit=0;
+    let preparedMealHit=0,mealFollowupHit=0,conversationQuickHit=0;
+    let followup:MealFollowup|undefined,priorBenignChatOnly=false;
     const drafts: PreparedSpeech[] = [];
     const references=new Map<string,NonNullable<ConversationReply['nutrition_refs']>[number]>();
     let matchingDraft: PreparedSpeech | undefined, promotedDraft: PreparedSpeech | undefined;
     try {
       await this.cancelMealJob();
       const text = z.string().trim().min(1).max(2000).parse(typeof input === 'string' ? input : await input());
-      if(this.prepareMealsAhead&&(!preparedMealSlots(text)||state.turns.size!==1))this.clearMealDraft(session.session_id);
+      priorBenignChatOnly=this.dialogueReplies&&state.history.filter(item=>item.role==='user').every(item=>typeof item.content==='string'&&dialogueChatReply(item.content)!==undefined);
+      if(this.dialogueReplies&&state.mealThread){followup=mealFollowup(text,state.mealThread);const slots=preparedMealSlots(text);if(!followup&&slots?.length===1)followup={kind:'repeat',slot:slots[0]};if(!followup&&!dialogueChatReply(text)){state.mealThread.audio.clear();state.mealThread=undefined;}}
+      if(this.prepareMealsAhead&&(!preparedMealSlots(text)||state.turns.size!==1)&&!(this.dialogueReplies&&(dialogueChatReply(text)||priorBenignChatOnly&&preparedMealSlots(text))))this.clearMealDraft(session.session_id);
       let today = await this.authorize(session, state);
       const ensureOpen = () => {
         if (state.closed || !this.sessions.has(id)) throw new ApiError(409, 'conversation_ended', 'The conversation ended. Check any saved changes in My Day.');
@@ -685,6 +698,8 @@ export class ConversationService {
         state.history.push({ role: 'user', content: text });
         const reference = currentNutritionReference();
         const preparation=this.prepareContext&&clientRole?prepareTurnContext(text,reference,state.recipeContinuity):undefined;
+        if(this.dialogueReplies&&followup&&preparation)preparation.mode='meals';
+        if(this.dialogueReplies&&dialogueChatReply(text)&&preparation)preparation.mode='conversation';
         if(this.spokenReplies&&preparation?.mode==='full'&&isSpokenConversation(text))preparation.mode='conversation';
         state.recipeContinuity=preparation?.continuity;
         const workspace=this.requests&&(!preparation||preparation.mode==='full')?await this.requests.workspace(session):undefined;
@@ -708,10 +723,26 @@ export class ConversationService {
         }
         if(mealReferences.length)guidance={skills:[...new Set([...guidance.skills,'meals' as const])],nutrition:true};
         const fresh = clientRole ? {...currentFacts(today, this.now()),...(preferenceWorkspace?{confirmed_preferences:preferenceWorkspace.items}:{}),...(activeHandoffs?{active_significant_handoffs:activeHandoffs}:{}),...(activeFocus!==undefined?{active_task_focus:activeFocus}:{}),...(workspace?{task_requests:requestFacts(workspace)}:{})} : workspace?requestFacts(workspace):{};
+        const setMealReferences=(ids:string[])=>{references.clear();for(const source of reference.authorityContext().sources)references.set(source.documentId,{document_id:source.documentId,path:source.path,sha256:source.sha256,items:source.documentId==='CR_NUTRITION_EVIDENCE_V1'?['C02','C10']:ids});};
+        if(this.dialogueReplies&&state.mealThread&&followup){
+          const thread=state.mealThread,snapshot=await this.mealSnapshot(session,today);ensureOpen();
+          if(thread.key===snapshot.key&&thread.expires>this.now().getTime()&&thread.reference===reference){
+            const answer=mealFollowupReply(followup,thread);
+            if(answer){
+              reply=this.reply(id,state,answer.text);mealFollowupHit=1;
+              if(followup.slot){thread.pending=undefined;thread.lastSlot=followup.slot;if(answer.selected){thread.choices[followup.slot]=answer.selected;thread.used[followup.slot].push(answer.selected.id);}}
+              if(answer.recipe){state.recipeContinuity={reference,ids:[answer.recipe.id]};setMealReferences([answer.recipe.id]);}else references.clear();
+              const first=splitSpeechParts(answer.text,this.speechPartSize)[0],cached=thread.audio.get(first),draftController=new AbortController();
+              const audio=cached?Promise.resolve(Buffer.from(cached)):this.prepareSpeech?.(first,AbortSignal.any([controller.signal,draftController.signal])).then(wav=>{if(wav.length>1024*1024)return;if(state.mealThread===thread&&!draftController.signal.aborted&&thread.audio.size<24)thread.audio.set(first,Buffer.from(wav));return wav;}).catch(()=>undefined)??Promise.resolve(undefined);
+              matchingDraft={text:first,audio,controller:draftController,mealKey:snapshot.key};drafts.push(matchingDraft);
+            }
+          }
+          if(!reply){thread.audio.clear();state.mealThread=undefined;}
+        }
         if(this.prepareMealsAhead){
           const slots=preparedMealSlots(text),draft=this.mealDrafts.get(session.session_id);
           // Only the first user turn can consume a draft: no earlier spoken constraint is discarded.
-          if(slots&&state.turns.size===1&&state.history.filter(item=>item.role==='user').length===1&&draft?.ready&&draft.choices){
+          if(!reply&&slots&&(state.turns.size===1&&state.history.filter(item=>item.role==='user').length===1||priorBenignChatOnly)&&draft?.ready&&draft.choices){
             const snapshot=await this.mealSnapshot(session,today);ensureOpen();
             if(draft.key===snapshot.key&&draft.expires>this.now().getTime()){
               const answer=renderPreparedMeals(draft.choices,slots),first=splitSpeechParts(answer,this.speechPartSize)[0],audio=draft.audio.get(first);
@@ -720,10 +751,11 @@ export class ConversationService {
                 references.clear();
                 for(const source of snapshot.material.sources)references.set(source.documentId,{document_id:source.documentId,path:source.path,sha256:source.sha256,
                   items:source.documentId==='CR_NUTRITION_EVIDENCE_V1'?['C02','C10']:slots.map(slot=>draft.choices![slot].id)});
+                if(this.dialogueReplies&&draft.options){state.mealThread={key:draft.key,expires:draft.expires,reference,choices:{...draft.choices},options:draft.options,used:Object.fromEntries(mealSlots.map(slot=>[slot,[draft.choices![slot].id]])) as MealThread['used'],lastSlot:slots.length===1?slots[0]:undefined,audio:new Map([...draft.audio].map(([key,wav])=>[key,Buffer.from(wav)]))};if(slots.length===1)state.recipeContinuity={reference,ids:[draft.choices[slots[0]].id]};}
               }
             }
           }
-          this.clearMealDraft(session.session_id);
+          if(!(this.dialogueReplies&&dialogueChatReply(text)))this.clearMealDraft(session.session_id);
         }
         const navigationTool=tool('navigate','Open an authorized supporting view without ending the conversation. Opening a view never grants access or writes care data.',object({view:{type:'string',enum:allowedViews}}));
         const availableTools=[...(clientRole?definitions:[]),...(clientRole&&preferenceWorkspace?preferenceTools:[]),...(clientRole&&this.features?handoffTools:[]),navigationTool,...(workspace?requestDefinitions(workspace):[]),...(this.features?localWorkflowTools(clientRole):[]),...outlookTools(outlookStatus),...(clientRole&&this.suggestions?[tool('prepare_nancy_suggestion','Prepare product feedback about improving Nancy for a spoken review. This is not a care preference or task. No message is sent to anyone. Save only after the application obtains explicit confirmation.',object({suggestion:{type:'string',minLength:1,maxLength:1000}}))]:[])];
@@ -736,8 +768,10 @@ export class ConversationService {
         const sharedInstructions = 'You are Nancy, a warm, practical AI companion. You are speaking with the authenticated '+state.binding.active_role+' about the client’s authorized shared views and requests. Be brief, ask one question at a time and use plain speech. You may discuss only data returned by the scoped tools. Do not infer general client care, appointment details, private rehab notes or other unshared facts. Navigation does not grant permissions; available destinations are limited to the navigate tool. Never configure grants or approve protocols, scoring rules or operations through a model tool. Keep responses under 500 characters except exact readbacks.'+'\n'+freshContextInstruction+(workspace?'\n'+requestPolicy:'')+(this.features?'\n'+sharedLocalWorkflowPolicy:'');
         let changed = false; let navigate: ClientView | undefined;
         if(preparation&&!reply){
-          const factual=preparedFactReply(text,preparation,today,!!this.microsoft)??(this.quickReads?quickReadReply(text,preparation,!!this.microsoft):undefined);
+          const chat=this.dialogueReplies?dialogueChatReply(text):undefined;
+          const factual=chat??preparedFactReply(text,preparation,today,!!this.microsoft)??(this.quickReads?quickReadReply(text,preparation,!!this.microsoft):undefined);
           if(factual){
+            if(chat)conversationQuickHit=1;
             reply=this.reply(id,state,factual);
             if(this.prepareSpeech){
               const first=splitSpeechParts(factual,this.speechPartSize)[0],draftController=new AbortController();
@@ -751,7 +785,7 @@ export class ConversationService {
           ensureOpen();
           let modelInstructions = (clientRole ? preparation&&preparation.mode!=='full'?preparedGuidance(text,preparation.mode,reference.authorityContext().text,guidance):composeNancyGuidance(guidance, reference.authorityContext().text)+'\nThe client interface has Tasks, Meals, Groceries, Progress and Ask for Help, plus Ways to use Nancy and Suggestions for Nancy. All client changes happen through reviewed voice commands; never ask them to type, use a dropdown, open settings or edit a form. Ask for Help starts a conversation, not a call or message; never claim someone has been contacted without a verified authorized communication receipt. Product feedback about Nancy belongs in prepare_nancy_suggestion, separate from care preferences or significant-event notes, and only saves after exact spoken review and confirmation.' : sharedInstructions)+(outlookContext||outlookStatus.reviewed_writes_enabled?'\n'+microsoftConversationPolicy:'');
           const spoken=this.spokenReplies&&clientRole&&preparation?spokenReplyGuidance(preparation.mode,reference.authorityContext().text):undefined;
-          if(spoken)modelInstructions=spoken;
+          if(spoken)modelInstructions=this.dialogueReplies&&preparation?.mode==='conversation'?dialogueConversationGuidance:spoken;
           else if(this.quickReads&&clientRole&&preparation&&preparation.mode!=='full')modelInstructions+=quickReadGuidance;
           instructionChars = Math.max(instructionChars, modelInstructions.length);
           let streamed = '', draft: PreparedSpeech | undefined;
@@ -964,6 +998,7 @@ export class ConversationService {
         tool_rejections: toolRejections, activity_outcome: activityOutcome,
         nutrition_retrievals: nutritionRetrievals,
         ...(this.prepareMealsAhead?{prepared_meal_hit:preparedMealHit}:{}),
+        ...(this.dialogueReplies?{meal_followup_hit:mealFollowupHit,conversation_quick_hit:conversationQuickHit}:{}),
         nutrition_refs: [...references.values()].slice(0, 2).map(ref => ({ document_id: ref.document_id,
           sha256: ref.sha256, items: ref.items.slice(0, 14) })) }); }
       catch { /* Observability must not change a care response. */ }
@@ -993,7 +1028,7 @@ export class ConversationService {
     const reply=this.reply(id,state,text,changed,navigate);state.review=undefined;state.grocery=undefined;state.activity={command,reply:reply.reply_id,played:false};return reply;
   }
   private key(turn: string, call: string) { const b = createHash('sha256').update(`${turn}:${call}`).digest().subarray(0, 16); b[6] = b[6] & 15 | 64; b[8] = b[8] & 63 | 128; const h = b.toString('hex'); return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`; }
-  private endState(id: string, state: Conversation) { state.closed = true; state.active?.controller.abort(); this.clearPrepared(state); state.recipeContinuity=undefined;state.history = []; state.replies.clear(); state.activityDeliveries.clear();state.preferenceDeliveries.clear();state.handoffDeliveries.clear();state.turns.clear(); this.sessions.delete(id); }
+  private endState(id: string, state: Conversation) { state.closed = true; state.active?.controller.abort(); this.clearPrepared(state);state.mealThread?.audio.clear();state.mealThread=undefined; state.recipeContinuity=undefined;state.history = []; state.replies.clear(); state.activityDeliveries.clear();state.preferenceDeliveries.clear();state.handoffDeliveries.clear();state.turns.clear(); this.sessions.delete(id); }
   end(id: string, session: Session) { const state = this.sessions.get(id); if (state?.user === session.user_id && state.login === session.session_id) this.endState(id, state); }
   endLogin(login: string) { if(this.mealJob?.login===login)this.mealJob.controller.abort();this.clearMealDraft(login);for (const [id, state] of this.sessions) if (state.login === login) this.endState(id, state); }
   close() { this.closed=true;this.mealJob?.controller.abort();for(const login of this.mealDrafts.keys())this.clearMealDraft(login);clearInterval(this.timer); for (const [id, state] of this.sessions) this.endState(id, state); }

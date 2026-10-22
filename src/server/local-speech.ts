@@ -4,6 +4,8 @@ import { resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { navigationReply } from './navigation-intent.js';
 import {outlookUnavailableReply} from '../shared/fixed-speech.js';
+import {dialogueChatReplies} from './dialogue-replies.js';
+import {splitSpeechParts} from '../shared/speech-parts.js';
 
 const MAX_TEXT_CHARS = 1500;
 const MAX_WAV_BYTES = 10 * 1024 * 1024;
@@ -257,6 +259,7 @@ export interface LocalSpeechOptions {
   workerSpecs?: { kokoro: ChildSpec; asr: ChildSpec };
   /** Explicit startup selection for the isolated owner trial; defaults stay unchanged. */
   latencyTrial?: boolean;
+  dialogueTrial?:boolean;
 }
 
 export function validateSpeechText(text: string) {
@@ -309,10 +312,14 @@ export class LocalSpeech {
   private readonly greetingAudio = new Map<string, { wav: Buffer; expiresAt: number }>();
   private navigationPriming?: Promise<void>;
   private readonly fixedReplies:Set<string>;
+  private readonly dialogueParts:Set<string>;
+  private readonly dialogueAudio=new Map<string,Buffer>();
 
   constructor(options: LocalSpeechOptions = {}) {
     if(options.latencyTrial!==undefined&&typeof options.latencyTrial!=='boolean')throw new RangeError('Unknown speech trial selection.');
+    if(options.dialogueTrial!==undefined&&typeof options.dialogueTrial!=='boolean'||options.dialogueTrial&&!options.latencyTrial)throw new RangeError('Dialogue speech requires the existing Heart latency trial.');
     this.fixedReplies=new Set(options.latencyTrial?[outlookUnavailableReply]:[]);
+    this.dialogueParts=new Set(options.dialogueTrial?Object.values(dialogueChatReplies).map(text=>splitSpeechParts(text,72)[0].trim()):[]);
     const specs = options.workerSpecs ?? defaultWorkerSpecs(options.latencyTrial);
     this.kokoro = new WarmWorker(specs.kokoro);
     this.asr = new WarmWorker(specs.asr);
@@ -332,6 +339,7 @@ export class LocalSpeech {
       this.navigationPriming = (async () => {
         await this.ready();
         for (const text of [...NAVIGATION_PHRASES,...this.fixedReplies]) await this.synthesize(text);
+        for(const text of this.dialogueParts)await this.synthesize(text);
       })().finally(() => { this.navigationPriming = undefined; });
       // Preserve failure for callers while allowing shutdown during warmup.
       void this.navigationPriming.catch(() => undefined);
@@ -341,6 +349,7 @@ export class LocalSpeech {
 
   async synthesize(text: string, signal?: AbortSignal): Promise<Buffer> {
     const clean = validateSpeechText(text);
+    const dialogue=this.dialogueAudio.get(clean);if(dialogue){signal?.throwIfAborted();return Buffer.from(dialogue);}
     if (isGreetingForCache(clean)||this.fixedReplies.has(clean)) {
       const cached = this.getCachedGreeting(clean);
       if (cached) {
@@ -355,6 +364,7 @@ export class LocalSpeech {
     }
     const wav = Buffer.from(encoded, 'base64');
     validateWav(wav);
+    if(this.dialogueParts.has(clean)&&wav.length<=1024*1024)this.dialogueAudio.set(clean,Buffer.from(wav));
     if ((isGreetingForCache(clean)||this.fixedReplies.has(clean)) && wav.length <= GREETING_CACHE_MAX_BYTES) this.cacheGreeting(clean, wav);
     return wav;
   }
@@ -368,6 +378,7 @@ export class LocalSpeech {
 
   async close() {
     this.greetingAudio.clear();
+    this.dialogueAudio.clear();
     await Promise.all([this.kokoro.close(), this.asr.close()]);
   }
 

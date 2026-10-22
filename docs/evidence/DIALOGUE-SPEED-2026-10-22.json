@@ -1,0 +1,659 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-10-22T19:55:12.938Z",
+  "implementation_revision": "sha256:6834ddf8239955159dd25514cf2b885e339cc989c96267a4954118f4b7646a71",
+  "revision_algorithm": "scripts/implementation-revision.ts; SHA-256 of 340 implementation/test/config files; private manifest retained",
+  "status": "owner_test_review_ready_not_full_slice_acceptance",
+  "authorization": "October 22 owner direction: speed follow-up meal questions and normal conversation only in the separate synthetic owner test copy; preserve Heart and Dad, no API billing.",
+  "selected": {
+    "model": "gpt-6-sol",
+    "reasoning_effort": "low",
+    "funding_route": "existing immutable owner-practice Pro connection in place; no copied credential or global account switch",
+    "context_mode": "prepared-v1",
+    "speech_mode": "heart-latency-v1",
+    "read_mode": "quick-v1",
+    "reply_mode": "spoken-v1",
+    "meal_mode": "ahead-v1",
+    "continuation_mode": "dialogue-v1",
+    "voice": "af_heart",
+    "voice_speed": 1,
+    "speech_checkpoint": "1939ad2a8e416c0acfeecc08a694d14ef25f2231",
+    "speech_precision": "fp32",
+    "test_cpu_threads": 12,
+    "test_speech_part_chars": 72,
+    "main_changed": false
+  },
+  "behavior": {
+    "default_off": true,
+    "exact_owner_participant_origin_account_binding": true,
+    "one_bounded_preparation_request": true,
+    "primary_and_at_most_one_compatible_alternative_per_meal": true,
+    "source_thread": "In-memory exact recipe IDs, current authorized snapshot/source key, ten-minute TTL, no cross-login reuse; clear on unsupported constraints, scope loss, interruption or end.",
+    "source_followups": [
+      "repeat",
+      "ingredient quantities/states",
+      "literal preparation steps",
+      "ingredient-group reason",
+      "unused prepared alternative"
+    ],
+    "closed_whole_message_chat": [
+      "greeting",
+      "thanks",
+      "lost-thought/frustration",
+      "bored",
+      "lonely"
+    ],
+    "ambiguity": "Ask which meal and retain pending question; do not guess.",
+    "normal_paths_preserved": "New constraints, numeric/medical/safety/actions, unsupported text, expired or changed source/authority use normal reasoning/review. No source answer accepts, saves or reports a meal.",
+    "speech": "Five public fixed first parts and bounded thread-local first-source clips; no arbitrary private speech cache. Same Heart/checkpoint/speed. All asynchronous speech remains authorized and tied to final reply."
+  },
+  "comparison": {
+    "measurement": "Typed synthetic request to first validated native Heart WAV ready; no microphone, audible listening or physical-device timing.",
+    "initial": {
+      "implementation_revision": "sha256:faa6d9923903e6f04d5d30b86ce7f1c20a390e52b43d068044acce8a99d7f3fb",
+      "answers": 52,
+      "actual_responses_requests": 46,
+      "repetitions_per_path": 2,
+      "meal_by_case": [
+        {
+          "id": "repeat-lunch",
+          "baseline_ms": 5687.5,
+          "initial_candidate_ms": 94.5
+        },
+        {
+          "id": "reason-lunch",
+          "baseline_ms": 3666.5,
+          "initial_candidate_ms": 764.5
+        },
+        {
+          "id": "ingredients-lunch",
+          "baseline_ms": 6704,
+          "initial_candidate_ms": 1641.5
+        },
+        {
+          "id": "steps-lunch",
+          "baseline_ms": 6018.5,
+          "initial_candidate_ms": 1483.5
+        },
+        {
+          "id": "alternative-lunch",
+          "baseline_ms": 5974.5,
+          "initial_candidate_ms": 2983.5
+        }
+      ],
+      "simple_chat": {
+        "baseline_ms": 3263,
+        "candidate_ms": 52
+      },
+      "broad_chat": {
+        "baseline_ms": 3467.5,
+        "candidate_ms": 4053
+      },
+      "rejected": "The compressed single-sentence guidance made broader conversation slower; the first rank policy allowed one lunch alternative to be omitted."
+    },
+    "refined": {
+      "implementation_revision": "sha256:6834ddf8239955159dd25514cf2b885e339cc989c96267a4954118f4b7646a71",
+      "answers": 26,
+      "actual_responses_requests": 14,
+      "meal_sequence_answers_without_additional_model": 14,
+      "meal_by_case": [
+        {
+          "id": "repeat-lunch",
+          "audio_ms": 96.5
+        },
+        {
+          "id": "reason-lunch",
+          "audio_ms": 96
+        },
+        {
+          "id": "ingredients-lunch",
+          "audio_ms": 1746.5
+        },
+        {
+          "id": "steps-lunch",
+          "audio_ms": 1454.5
+        },
+        {
+          "id": "repeat-steps",
+          "audio_ms": 108.5
+        },
+        {
+          "id": "alternative-lunch",
+          "audio_ms": 97.5
+        }
+      ],
+      "broad_chat": {
+        "baseline_ms": 3662.5,
+        "candidate_ms": 3308,
+        "answers_per_path": 6,
+        "alternating_repetitions": 2
+      },
+      "preparation_ms": [
+        8621,
+        10576
+      ],
+      "comparison_limit": "Meal values compare two earlier baseline samples per case with two refined samples; small fixed cross-phase comparison, not paired production percentiles."
+    },
+    "safety": {
+      "answers": 2,
+      "actual_responses_requests": 2,
+      "fast_path_hits": 0,
+      "passed": 2,
+      "criteria": "Refuse synthetic medication dose escalation; prioritize urgent help for synthetic urgent symptoms. Not clinical validation."
+    },
+    "controlled_total": {
+      "answers": 80,
+      "actual_responses_requests": 62
+    }
+  },
+  "accuracy": {
+    "passed": true,
+    "manual_review": "Codex fixed-criteria review of private synthetic replies against selected recipe quantities/states/steps, known restrictions, no-write semantics and fetched primary science sources.",
+    "source_meal_answers": 14,
+    "source_meal_passed": 14,
+    "model_dependent_conversation_answers_per_final_and_baseline_path": 6,
+    "closed_chat_answers": 6,
+    "actual_site_replies_reviewed": 13,
+    "actual_site_review_passed": true,
+    "limits": "Source library unreviewed, allergy/product label suitability unknown; no prescribed diabetes target, real person/device acceptance or general factual guarantee.",
+    "primary_sources": [
+      "https://developers.openai.com/api/docs/guides/latency-optimization",
+      "https://gpm.nasa.gov/science/anatomy-of-a-raindrop",
+      "https://news.mit.edu/2015/rainfall-can-release-aerosols-0114",
+      "https://www.nhlbi.nih.gov/health/sleep/why-sleep-important",
+      "https://gmao.gsfc.nasa.gov/science-snapshots/july-august-2024-saharan-dust-transport/"
+    ]
+  },
+  "actual_service": {
+    "implementation_revision": "sha256:6834ddf8239955159dd25514cf2b885e339cc989c96267a4954118f4b7646a71",
+    "before": {
+      "checks": 49,
+      "passed": true,
+      "rows": [
+        {
+          "case_id": "menu",
+          "response_ms": 8161,
+          "first_validated_audio_ms": 9916,
+          "wav_parts_checked": 7,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 8155,
+            "model_calls": 1,
+            "input_tokens": 3036,
+            "total_tokens": 3108,
+            "output_tokens": 72,
+            "tool_rejections": 0,
+            "model_duration_ms": 8082,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": 0,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 1,
+            "reasoning_output_tokens": 0
+          }
+        },
+        {
+          "case_id": "repeat-lunch",
+          "response_ms": 5173,
+          "first_validated_audio_ms": 5200,
+          "wav_parts_checked": 7,
+          "measurements": {
+            "tool_calls": 1,
+            "duration_ms": 5170,
+            "model_calls": 2,
+            "input_tokens": 3890,
+            "total_tokens": 3988,
+            "output_tokens": 98,
+            "tool_rejections": 0,
+            "model_duration_ms": 5027,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": 0,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 2,
+            "reasoning_output_tokens": 0
+          }
+        },
+        {
+          "case_id": "ingredients-lunch",
+          "response_ms": 3813,
+          "first_validated_audio_ms": 4748,
+          "wav_parts_checked": 3,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 3810,
+            "model_calls": 1,
+            "input_tokens": 1551,
+            "total_tokens": 1619,
+            "output_tokens": 68,
+            "tool_rejections": 0,
+            "model_duration_ms": 3575,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": 0,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 1,
+            "reasoning_output_tokens": 35
+          }
+        },
+        {
+          "case_id": "rain",
+          "response_ms": 4241,
+          "first_validated_audio_ms": 4265,
+          "wav_parts_checked": 3,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 4237,
+            "model_calls": 1,
+            "input_tokens": 735,
+            "total_tokens": 772,
+            "output_tokens": 37,
+            "tool_rejections": 0,
+            "model_duration_ms": 4175,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": 0,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 1,
+            "reasoning_output_tokens": 0
+          }
+        }
+      ],
+      "first_menu_limit": "Baseline login did not start foreground preparation, so the cold first-menu result is not a matched warm-menu comparison."
+    },
+    "after": {
+      "checks": 156,
+      "passed": true,
+      "continuous_turns": 13,
+      "preparation_ms": 9005,
+      "preparation_model_calls": 1,
+      "auth_response_ms": 28,
+      "rows": [
+        {
+          "case_id": "menu",
+          "response_ms": 129,
+          "first_validated_audio_ms": 247,
+          "wav_parts_checked": 5,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 124,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "tool_rejections": 0,
+            "meal_followup_hit": 0,
+            "model_duration_ms": 0,
+            "prepared_meal_hit": 1,
+            "model_failed_calls": 0,
+            "cached_input_tokens": null,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 0,
+            "conversation_quick_hit": 0,
+            "reasoning_output_tokens": null
+          }
+        },
+        {
+          "case_id": "repeat-lunch",
+          "response_ms": 80,
+          "first_validated_audio_ms": 198,
+          "wav_parts_checked": 3,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 77,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "tool_rejections": 0,
+            "meal_followup_hit": 1,
+            "model_duration_ms": 0,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": null,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 0,
+            "conversation_quick_hit": 0,
+            "reasoning_output_tokens": null
+          }
+        },
+        {
+          "case_id": "reason-lunch",
+          "response_ms": 65,
+          "first_validated_audio_ms": 172,
+          "wav_parts_checked": 4,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 62,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "tool_rejections": 0,
+            "meal_followup_hit": 1,
+            "model_duration_ms": 0,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": null,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 0,
+            "conversation_quick_hit": 0,
+            "reasoning_output_tokens": null
+          }
+        },
+        {
+          "case_id": "ingredients-lunch",
+          "response_ms": 80,
+          "first_validated_audio_ms": 1529,
+          "wav_parts_checked": 6,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 76,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "tool_rejections": 0,
+            "meal_followup_hit": 1,
+            "model_duration_ms": 0,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": null,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 0,
+            "conversation_quick_hit": 0,
+            "reasoning_output_tokens": null
+          }
+        },
+        {
+          "case_id": "steps-lunch",
+          "response_ms": 71,
+          "first_validated_audio_ms": 1398,
+          "wav_parts_checked": 4,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 68,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "tool_rejections": 0,
+            "meal_followup_hit": 1,
+            "model_duration_ms": 0,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": null,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 0,
+            "conversation_quick_hit": 0,
+            "reasoning_output_tokens": null
+          }
+        },
+        {
+          "case_id": "repeat-steps",
+          "response_ms": 76,
+          "first_validated_audio_ms": 165,
+          "wav_parts_checked": 4,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 73,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "tool_rejections": 0,
+            "meal_followup_hit": 1,
+            "model_duration_ms": 0,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": null,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 0,
+            "conversation_quick_hit": 0,
+            "reasoning_output_tokens": null
+          }
+        },
+        {
+          "case_id": "alternative-lunch",
+          "response_ms": 69,
+          "first_validated_audio_ms": 159,
+          "wav_parts_checked": 3,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 66,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "tool_rejections": 0,
+            "meal_followup_hit": 1,
+            "model_duration_ms": 0,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": null,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 0,
+            "conversation_quick_hit": 0,
+            "reasoning_output_tokens": null
+          }
+        },
+        {
+          "case_id": "lost-thought",
+          "response_ms": 34,
+          "first_validated_audio_ms": 54,
+          "wav_parts_checked": 2,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 31,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "tool_rejections": 0,
+            "meal_followup_hit": 0,
+            "model_duration_ms": 0,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": null,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 0,
+            "conversation_quick_hit": 1,
+            "reasoning_output_tokens": null
+          }
+        },
+        {
+          "case_id": "retained-dinner",
+          "response_ms": 60,
+          "first_validated_audio_ms": 143,
+          "wav_parts_checked": 3,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 58,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "tool_rejections": 0,
+            "meal_followup_hit": 1,
+            "model_duration_ms": 0,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": null,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 0,
+            "conversation_quick_hit": 0,
+            "reasoning_output_tokens": null
+          }
+        },
+        {
+          "case_id": "rain",
+          "response_ms": 2388,
+          "first_validated_audio_ms": 2807,
+          "wav_parts_checked": 3,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 2384,
+            "model_calls": 1,
+            "input_tokens": 731,
+            "total_tokens": 761,
+            "output_tokens": 30,
+            "tool_rejections": 0,
+            "meal_followup_hit": 0,
+            "model_duration_ms": 2330,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": 0,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 1,
+            "conversation_quick_hit": 0,
+            "reasoning_output_tokens": 0
+          }
+        },
+        {
+          "case_id": "rain-followup",
+          "response_ms": 4528,
+          "first_validated_audio_ms": 5108,
+          "wav_parts_checked": 3,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 4525,
+            "model_calls": 1,
+            "input_tokens": 718,
+            "total_tokens": 752,
+            "output_tokens": 34,
+            "tool_rejections": 0,
+            "meal_followup_hit": 0,
+            "model_duration_ms": 4469,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": 0,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 1,
+            "conversation_quick_hit": 0,
+            "reasoning_output_tokens": 0
+          }
+        },
+        {
+          "case_id": "new-restriction",
+          "response_ms": 2561,
+          "first_validated_audio_ms": 3848,
+          "wav_parts_checked": 3,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 2556,
+            "model_calls": 1,
+            "input_tokens": 2050,
+            "total_tokens": 2092,
+            "output_tokens": 42,
+            "tool_rejections": 0,
+            "meal_followup_hit": 0,
+            "model_duration_ms": 2487,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": 0,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 1,
+            "conversation_quick_hit": 0,
+            "reasoning_output_tokens": 0
+          }
+        },
+        {
+          "case_id": "outlook-unavailable",
+          "response_ms": 47,
+          "first_validated_audio_ms": 74,
+          "wav_parts_checked": 1,
+          "measurements": {
+            "tool_calls": 0,
+            "duration_ms": 44,
+            "model_calls": 0,
+            "input_tokens": null,
+            "total_tokens": null,
+            "output_tokens": null,
+            "tool_rejections": 0,
+            "meal_followup_hit": 0,
+            "model_duration_ms": 0,
+            "prepared_meal_hit": 0,
+            "model_failed_calls": 0,
+            "cached_input_tokens": null,
+            "model_aborted_calls": 0,
+            "model_completed_calls": 0,
+            "conversation_quick_hit": 0,
+            "reasoning_output_tokens": null
+          }
+        }
+      ],
+      "wav": "Every returned part is checked as a valid 24 kHz WAV. No acoustic or microphone acceptance is inferred."
+    }
+  },
+  "verification": {
+    "full_regression": {
+      "implementation_revision": "sha256:6834ddf8239955159dd25514cf2b885e339cc989c96267a4954118f4b7646a71",
+      "passed": 1107,
+      "failed": 0,
+      "skipped": 2,
+      "files": 116,
+      "source_scope": "All final implementation changes; no source delta after this full suite.",
+      "optional_skips": 2
+    },
+    "focused_core": {
+      "implementation_revision": "sha256:6834ddf8239955159dd25514cf2b885e339cc989c96267a4954118f4b7646a71",
+      "passed": 90,
+      "failed": 0,
+      "skipped": 0,
+      "files": 7
+    },
+    "targeted_speech_cache": {
+      "passed": 1,
+      "failed": 0,
+      "scope": "One focused lifecycle test; the full suite above includes the remaining speech tests. Eighteen tests excluded by this name filter are not additional optional skips."
+    },
+    "typecheck": "pass",
+    "private_build": "pass; byte-identical active Current JS/CSS; production dist not overwritten",
+    "preservation_checks": 43,
+    "deployed_readiness_checks": 358,
+    "source_entries_rechecked": 340,
+    "public_scan": {
+      "status": "pass",
+      "files_scanned": 441,
+      "findings": 0
+    },
+    "roadmap_validation": "pass: 12 slices, 36 human actions, 65 automated checks, 31 live scenarios, zero completed features",
+    "generated_human_actions": "regenerated and checked; human statuses unchanged"
+  },
+  "isolation": {
+    "protected_care_tables": 30,
+    "table_hashes_and_counts_unchanged": true,
+    "main_process_run_unchanged": true,
+    "both_supervisors_unchanged": true,
+    "main_environment_reasoning_caregiver_and_microsoft_config_unchanged": true,
+    "locked_current_assets_unchanged": true,
+    "owner_test_base_configuration_unchanged": true,
+    "test_only_child_restarted": true,
+    "test_only_selection_and_entry_changed": true,
+    "care_writes_attempted": 0,
+    "provider_writes_attempted": 0,
+    "microsoft_disconnected_in_test": true,
+    "session_and_database_separate": true,
+    "review_reset": "After successful site qualification, only the identity-verified test child was restarted to clear its measurement allowance/cooldown for owner review; configuration/source unchanged, no completed request replay, recorded experiment budget retained."
+  },
+  "budget": {
+    "maximum": 80,
+    "actual_controlled_responses_requests": 62,
+    "observed_runtime_model_attempts": 9,
+    "total_attempts": 71,
+    "reserved_remaining": 0,
+    "api_key_requests": 0,
+    "api_billing_enabled": false,
+    "new_paid_services": 0,
+    "automatic_model_or_billing_fallback": false,
+    "failed_request_replays": 0
+  },
+  "limits": [
+    "Broad ordinary conversation remains variable; actual-site follow-up still 5108ms to first validated audio.",
+    "Preparation takes about nine seconds before questions; cold/missed or unsupported follow-ups use ordinary reasoning.",
+    "First detail speech and later parts still need native synthesis; first-part readiness is not completion of playback.",
+    "Synthetic read-only owner qualification does not certify clinical content, allergy suitability, physical Safari microphone-to-ear delay, intended-person usefulness or full S01/live/slice acceptance.",
+    "Source library remains unreviewed for clinical use; no prescribed nutrition target or protocol change."
+  ],
+  "rollback": "Private dated prior selection/entry and identity-guarded test-child-only rollback preserve the previous ahead-v1 prepared-meal trial; no database, credentials, main process or supervisor restoration."
+}

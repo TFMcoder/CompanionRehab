@@ -6,6 +6,8 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { LocalSpeech, kokoroPronunciationInput, validateSpeechText, validateWav } from '../src/server/local-speech.js';
 import {outlookUnavailableReply} from '../src/shared/fixed-speech.js';
+import {dialogueChatReplies} from '../src/server/dialogue-replies.js';
+import {splitSpeechParts} from '../src/shared/speech-parts.js';
 
 const dirs: string[] = [];
 function fakeWav() {
@@ -17,7 +19,7 @@ function fakeWav() {
   return wav;
 }
 
-async function makeService(responseDelay = 5,latencyTrial=false) {
+async function makeService(responseDelay = 5,latencyTrial=false,dialogueTrial=false) {
   const dir = await mkdtemp(resolve(tmpdir(), 'nancy-local-speech-'));
   dirs.push(dir);
   const script = resolve(dir, 'fake-worker.mjs');
@@ -48,7 +50,7 @@ createInterface({input:process.stdin}).on('line', line => {
 });
 `, 'utf8');
   const spec = (kind: string) => ({ executable: process.execPath, args: [script, kind], cwd: dir, env: process.env });
-  return new LocalSpeech({ latencyTrial,workerSpecs: { kokoro: spec('kokoro'), asr: spec('asr') } });
+  return new LocalSpeech({ latencyTrial,dialogueTrial,workerSpecs: { kokoro: spec('kokoro'), asr: spec('asr') } });
 }
 
 // Run lifecycle failures in a real Node process, where an unobserved startup
@@ -129,6 +131,14 @@ afterEach(async () => {
 });
 
 describe('LocalSpeech input bounds and worker lifecycle', () => {
+  it('warms only the selected public dialogue parts in separate defensive memory, keeping private text uncached',async()=>{
+    expect(()=>new LocalSpeech({dialogueTrial:true})).toThrow('requires');
+    const service=await makeService(5,true,true);
+    try{await service.primeNavigation();const first=splitSpeechParts(dialogueChatReplies.lost,72)[0],a=await service.synthesize(first),b=await service.synthesize(first);expect(a).toEqual(b);a.writeInt16LE(99,44);expect(await service.synthesize(first)).toEqual(b);
+      expect(await service.synthesize('Private meal preference.')).not.toEqual(await service.synthesize('Private meal preference.'));
+      const stop=new AbortController();stop.abort();await expect(service.synthesize(first,stop.signal)).rejects.toMatchObject({name:'AbortError'});
+    }finally{await service.close();}
+  });
   it('prepares only an allowlisted public reply in the trial and never caches arbitrary care speech',async()=>{
     const baseline=await makeService(),trial=await makeService(5,true);
     try{
