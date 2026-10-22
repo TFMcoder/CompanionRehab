@@ -29,6 +29,7 @@ import {clientDestinations,type ConversationPurpose} from '../shared/client-navi
 import type {NancySuggestions,NancySuggestionCommand} from './nancy-suggestions.js';
 import {prepareTurnContext,preparedFacts,preparedTools,preparedRecipeFacts,preparedGuidance,preparedSelection,type RecipeContinuity} from './prepared-context.js';
 import {preparedFactReply} from './prepared-answers.js';
+import {quickReadReply,quickReadGuidance} from './quick-reads.js';
 
 export interface ConversationReply { session_id: string; reply_id: string; text: string; speech_parts: number; changed: boolean; acknowledgement_required?: boolean; navigate?: ClientView; transcript?: string; nutrition_refs?: Array<{ document_id:string; path:string; sha256:string; items:string[] }> }
 export interface ConversationTurnMetric {
@@ -196,7 +197,7 @@ export class ConversationService {
     private observeTurn?: (metric: ConversationTurnMetric) => void,
     private observeCall?: (metric: InferenceCallMetric) => void,
     private requests?: RequestConversationService, private features?:LocalFeatures, private microsoftEligible?:(session:Session)=>Promise<boolean>,private microsoft?:MicrosoftService,private suggestions?:NancySuggestions,
-    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120) {
+    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false) {
     this.expectedReasoning=validateReasoningProfile(expectedReasoning);
     if(![120,72].includes(speechPartSize))throw new RangeError('Unknown speech-part size.');
     this.timer = setInterval(() => { for (const [id, state] of this.sessions) if (state.expires < Date.now()) this.endState(id, state); }, 30000); this.timer.unref();
@@ -209,9 +210,9 @@ export class ConversationService {
     let revision = this.requests ? createHash('sha256').update(scope.grant_revision + ':' + await this.requests.authorityRevision(session)).digest('hex') : scope.grant_revision;
     if(this.features)revision=createHash('sha256').update(revision+':'+await this.features.authorityRevision(session)).digest('hex');
     if(this.microsoft)revision=createHash('sha256').update(revision+':'+await this.microsoft.authorityRevision(session)).digest('hex');
-    const experiment=this.expectedReasoning!==selectedReasoning||this.prepareContext||this.speechPartSize!==120;
+    const experiment=this.expectedReasoning!==selectedReasoning||this.prepareContext||this.speechPartSize!==120||this.quickReads;
     if(experiment&&scope.actor_id!==this.ownerId)throw new ApiError(403,'experiment_owner_only','Reasoning experiments are limited to the owner’s practice copy.');
-    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}`:'') });
+    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}`:'') });
     if(experiment&&(binding.route_id!=='chatgpt_plan_owner_practice'||binding.qualification!=='owner_practice'))throw new ApiError(403,'experiment_owner_only','Reasoning experiments require the owner practice connection.');
     return binding;
   }
@@ -619,7 +620,7 @@ export class ConversationService {
         const sharedInstructions = 'You are Nancy, a warm, practical AI companion. You are speaking with the authenticated '+state.binding.active_role+' about the client’s authorized shared views and requests. Be brief, ask one question at a time and use plain speech. You may discuss only data returned by the scoped tools. Do not infer general client care, appointment details, private rehab notes or other unshared facts. Navigation does not grant permissions; available destinations are limited to the navigate tool. Never configure grants or approve protocols, scoring rules or operations through a model tool. Keep responses under 500 characters except exact readbacks.'+'\n'+freshContextInstruction+(workspace?'\n'+requestPolicy:'')+(this.features?'\n'+sharedLocalWorkflowPolicy:'');
         let changed = false; let navigate: ClientView | undefined;
         if(preparation){
-          const factual=preparedFactReply(text,preparation,today,!!this.microsoft);
+          const factual=preparedFactReply(text,preparation,today,!!this.microsoft)??(this.quickReads?quickReadReply(text,preparation,!!this.microsoft):undefined);
           if(factual){
             reply=this.reply(id,state,factual);
             if(this.prepareSpeech){
@@ -632,7 +633,8 @@ export class ConversationService {
         for (let round = 0; round < 5 && !reply; round++) {
           await this.validateScope(session, state);
           ensureOpen();
-          const modelInstructions = (clientRole ? preparation&&preparation.mode!=='full'?preparedGuidance(text,preparation.mode,reference.authorityContext().text,guidance):composeNancyGuidance(guidance, reference.authorityContext().text)+'\nThe client interface has Tasks, Meals, Groceries, Progress and Ask for Help, plus Ways to use Nancy and Suggestions for Nancy. All client changes happen through reviewed voice commands; never ask them to type, use a dropdown, open settings or edit a form. Ask for Help starts a conversation, not a call or message; never claim someone has been contacted without a verified authorized communication receipt. Product feedback about Nancy belongs in prepare_nancy_suggestion, separate from care preferences or significant-event notes, and only saves after exact spoken review and confirmation.' : sharedInstructions)+(outlookContext||outlookStatus.reviewed_writes_enabled?'\n'+microsoftConversationPolicy:'');
+          let modelInstructions = (clientRole ? preparation&&preparation.mode!=='full'?preparedGuidance(text,preparation.mode,reference.authorityContext().text,guidance):composeNancyGuidance(guidance, reference.authorityContext().text)+'\nThe client interface has Tasks, Meals, Groceries, Progress and Ask for Help, plus Ways to use Nancy and Suggestions for Nancy. All client changes happen through reviewed voice commands; never ask them to type, use a dropdown, open settings or edit a form. Ask for Help starts a conversation, not a call or message; never claim someone has been contacted without a verified authorized communication receipt. Product feedback about Nancy belongs in prepare_nancy_suggestion, separate from care preferences or significant-event notes, and only saves after exact spoken review and confirmation.' : sharedInstructions)+(outlookContext||outlookStatus.reviewed_writes_enabled?'\n'+microsoftConversationPolicy:'');
+          if(this.quickReads&&clientRole&&preparation&&preparation.mode!=='full')modelInstructions+=quickReadGuidance;
           instructionChars = Math.max(instructionChars, modelInstructions.length);
           let streamed = '', draft: PreparedSpeech | undefined;
           const prepare = (delta: string) => {

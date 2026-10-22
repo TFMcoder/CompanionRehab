@@ -1,0 +1,493 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-10-22T05:42:09.586Z",
+  "implementation_revision": "sha256:2fcdb2947392c3f20c9a4167fd0d8c2d7f5949d7a061f7ab6be675d83f0df455",
+  "revision_algorithm": "scripts/implementation-revision.ts",
+  "status": "owner_practice_review_ready_latency_and_device_acceptance_open",
+  "authorization": "October 22 owner direction: reduce remaining thinking delay only in the isolated copy, compare speed/accuracy, retain Heart, Dad setup and no API billing.",
+  "chosen": {
+    "model": "gpt-6-sol",
+    "effort": "low",
+    "context_mode": "prepared-v1",
+    "speech_mode": "heart-latency-v1",
+    "read_mode": "quick-v1",
+    "voice": "af_heart",
+    "speed": 1,
+    "cpu_threads": 12,
+    "part_maximum": 72,
+    "existing_pro_only": true,
+    "api_key_billing": false,
+    "automatic_model_or_account_fallback": false
+  },
+  "isolation": {
+    "default_off": true,
+    "exact_private_owner_participant_origin_binding": true,
+    "live_process_restarted": false,
+    "live_model_effort_voice_configuration_current_assets_unchanged": true,
+    "protected_care_tables_unchanged": 30,
+    "care_writes": 0,
+    "provider_writes": 0,
+    "credential_copy": false
+  },
+  "changes": {
+    "read_only_reply_contract": "Shorter ordinary answers; one repository option per requested meal slot, preserving safety limits, unknowns and exact facts. Full mutation/review/ambiguous workflows retain existing policy/tools.",
+    "source_quote": "Only the pinned B01 assembly recipe, exact public source hashes/steps and narrow preparation question or unambiguous immediate follow-up; no model, added quantities, adaptation, allergy clearance, care approval or consumption claim. Changed source, extra intent, another recipe, scaling and clinical/safety interpretation fall through.",
+    "future_snapshot": "Only the exact next-week appointments question when Microsoft is absent may state the known today-only snapshot boundary. Never an empty-calendar inference or connector-read claim.",
+    "authorization": "Normal fresh care/account/scope, exact terminal model, cancellation, validated reply and audio-release checks remain in force."
+  },
+  "effort_comparison": {
+    "answers": 40,
+    "groups": [
+      {
+        "candidate": "low",
+        "answers": 20,
+        "core_passed": 20,
+        "reply_median_ms": 2703.5,
+        "first_audio_median_ms": 3137,
+        "model_required_reply_median_ms": 2788,
+        "slowest_first_audio_ms": 4465,
+        "model_requests": 16,
+        "per_case": {
+          "meals": {
+            "reply_median_ms": 3512,
+            "first_audio_median_ms": 3551.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "calendar_fact": {
+            "reply_median_ms": 37,
+            "first_audio_median_ms": 1423.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "outlook_unavailable": {
+            "reply_median_ms": 37.5,
+            "first_audio_median_ms": 49.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "empathy": {
+            "reply_median_ms": 2479,
+            "first_audio_median_ms": 3104.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "medication_boundary": {
+            "reply_median_ms": 3192.5,
+            "first_audio_median_ms": 3202.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "actuals_and_approval": {
+            "reply_median_ms": 3527,
+            "first_audio_median_ms": 3878,
+            "core_passed": 2,
+            "total": 2
+          },
+          "injection": {
+            "reply_median_ms": 2521,
+            "first_audio_median_ms": 2669.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "cooking": {
+            "reply_median_ms": 2945,
+            "first_audio_median_ms": 3602.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "missing_schedule": {
+            "reply_median_ms": 2223.5,
+            "first_audio_median_ms": 3107.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "recipe_safety": {
+            "reply_median_ms": 2788,
+            "first_audio_median_ms": 3297.5,
+            "core_passed": 2,
+            "total": 2
+          }
+        }
+      },
+      {
+        "candidate": "none",
+        "answers": 20,
+        "core_passed": 20,
+        "reply_median_ms": 2706.5,
+        "first_audio_median_ms": 3001,
+        "model_required_reply_median_ms": 2862.5,
+        "slowest_first_audio_ms": 4501,
+        "model_requests": 16,
+        "per_case": {
+          "meals": {
+            "reply_median_ms": 3185,
+            "first_audio_median_ms": 3194.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "calendar_fact": {
+            "reply_median_ms": 39.5,
+            "first_audio_median_ms": 1432,
+            "core_passed": 2,
+            "total": 2
+          },
+          "outlook_unavailable": {
+            "reply_median_ms": 37,
+            "first_audio_median_ms": 49,
+            "core_passed": 2,
+            "total": 2
+          },
+          "empathy": {
+            "reply_median_ms": 2116.5,
+            "first_audio_median_ms": 2607,
+            "core_passed": 2,
+            "total": 2
+          },
+          "medication_boundary": {
+            "reply_median_ms": 3063,
+            "first_audio_median_ms": 3094,
+            "core_passed": 2,
+            "total": 2
+          },
+          "actuals_and_approval": {
+            "reply_median_ms": 3087,
+            "first_audio_median_ms": 3359,
+            "core_passed": 2,
+            "total": 2
+          },
+          "injection": {
+            "reply_median_ms": 2230,
+            "first_audio_median_ms": 2529,
+            "core_passed": 2,
+            "total": 2
+          },
+          "cooking": {
+            "reply_median_ms": 3321.5,
+            "first_audio_median_ms": 3904.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "missing_schedule": {
+            "reply_median_ms": 2484,
+            "first_audio_median_ms": 3644,
+            "core_passed": 2,
+            "total": 2
+          },
+          "recipe_safety": {
+            "reply_median_ms": 2706.5,
+            "first_audio_median_ms": 3107,
+            "core_passed": 2,
+            "total": 2
+          }
+        }
+      }
+    ],
+    "provider_response_requests": 32,
+    "provider_reported_reasoning_tokens_all_zero": true,
+    "selection": "Retained low: none showed no consistent model-wait benefit. Model-required reply median 2788ms low versus 2862.5ms none; cooking reply median 2945ms versus 3321.5ms. Both pass 20/20 scoped core checks. This does not establish that low always uses zero reasoning.",
+    "private_reference": ".local/thinking-delay-2026-10-22/results-private.json"
+  },
+  "quick_comparison": {
+    "answers": 24,
+    "groups": [
+      {
+        "candidate": "baseline",
+        "answers": 12,
+        "core_passed": 12,
+        "reply_median_ms": 2563.5,
+        "first_audio_median_ms": 3390,
+        "model_required_reply_median_ms": 2563.5,
+        "slowest_first_audio_ms": 4299,
+        "model_requests": 12,
+        "per_case": {
+          "meals": {
+            "reply_median_ms": 3563,
+            "first_audio_median_ms": 3827,
+            "core_passed": 2,
+            "total": 2
+          },
+          "empathy": {
+            "reply_median_ms": 2540.5,
+            "first_audio_median_ms": 3070.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "injection": {
+            "reply_median_ms": 2248.5,
+            "first_audio_median_ms": 2647.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "cooking": {
+            "reply_median_ms": 3541.5,
+            "first_audio_median_ms": 4111.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "missing_schedule": {
+            "reply_median_ms": 2250,
+            "first_audio_median_ms": 3247.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "recipe_safety": {
+            "reply_median_ms": 2563.5,
+            "first_audio_median_ms": 3121.5,
+            "core_passed": 2,
+            "total": 2
+          }
+        }
+      },
+      {
+        "candidate": "quick",
+        "answers": 12,
+        "core_passed": 12,
+        "reply_median_ms": 2123.5,
+        "first_audio_median_ms": 2732.5,
+        "model_required_reply_median_ms": 2509,
+        "slowest_first_audio_ms": 4053,
+        "model_requests": 8,
+        "per_case": {
+          "meals": {
+            "reply_median_ms": 2858.5,
+            "first_audio_median_ms": 2948,
+            "core_passed": 2,
+            "total": 2
+          },
+          "empathy": {
+            "reply_median_ms": 2102,
+            "first_audio_median_ms": 2732.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "injection": {
+            "reply_median_ms": 2696.5,
+            "first_audio_median_ms": 3319.5,
+            "core_passed": 2,
+            "total": 2
+          },
+          "cooking": {
+            "reply_median_ms": 36.5,
+            "first_audio_median_ms": 1323,
+            "core_passed": 2,
+            "total": 2
+          },
+          "missing_schedule": {
+            "reply_median_ms": 34,
+            "first_audio_median_ms": 806,
+            "core_passed": 2,
+            "total": 2
+          },
+          "recipe_safety": {
+            "reply_median_ms": 2509,
+            "first_audio_median_ms": 3160,
+            "core_passed": 2,
+            "total": 2
+          }
+        }
+      }
+    ],
+    "provider_response_requests": 20,
+    "source_revision_scope": "Final source, with its own recorded source/probe hashes. The prior effort phase predates these bounded quick-read changes. Populations/phases are separate; do not combine medians.",
+    "private_reference": ".local/thinking-delay-2026-10-22/quick-pass/results-private.json"
+  },
+  "quality": {
+    "reviewer": "Codex review of all 64 synthetic replies against the fixed source and listed core factual/safety/authority criteria; no grading-model call",
+    "scope": "Small synthetic consistency check, not a general or clinical accuracy estimate. Source recipe steps are a quote, not personalized allergy clearance or an approved meal. Timing phases retain separate populations and source snapshots.",
+    "effort_core_passes": {
+      "low": 20,
+      "none": 20,
+      "total_each": 20
+    },
+    "quick_core_passes": {
+      "baseline": 12,
+      "quick": 12,
+      "total_each": 12
+    },
+    "remaining": "Synthetic core consistency/authority checks are not a general or clinical accuracy estimate. Subjective usefulness, actual person/device/genuine-day and full-slice gates remain open."
+  },
+  "actual_service": {
+    "before": {
+      "checks_passed": 58,
+      "checks_total": 58,
+      "rows": [
+        {
+          "id": "recipe-1",
+          "response_ms": 94,
+          "first_audio_ms": 3299,
+          "remaining_audio_wait_ms": 3205,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "speech_parts": 2
+        },
+        {
+          "id": "recipe_followup",
+          "response_ms": 3961,
+          "first_audio_ms": 4582,
+          "remaining_audio_wait_ms": 621,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 6
+        },
+        {
+          "id": "meal",
+          "response_ms": 3281,
+          "first_audio_ms": 3318,
+          "remaining_audio_wait_ms": 37,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 8
+        },
+        {
+          "id": "empathy",
+          "response_ms": 2032,
+          "first_audio_ms": 2551,
+          "remaining_audio_wait_ms": 520,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 3
+        },
+        {
+          "id": "missing_schedule",
+          "response_ms": 2187,
+          "first_audio_ms": 2894,
+          "remaining_audio_wait_ms": 707,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 2
+        },
+        {
+          "id": "recipe_safety",
+          "response_ms": 3274,
+          "first_audio_ms": 3703,
+          "remaining_audio_wait_ms": 429,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 6
+        }
+      ]
+    },
+    "after": {
+      "checks_passed": 54,
+      "checks_total": 54,
+      "rows": [
+        {
+          "id": "recipe-1",
+          "response_ms": 171,
+          "first_audio_ms": 1807,
+          "remaining_audio_wait_ms": 1637,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "speech_parts": 2
+        },
+        {
+          "id": "recipe_followup",
+          "response_ms": 81,
+          "first_audio_ms": 1403,
+          "remaining_audio_wait_ms": 1323,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "speech_parts": 4
+        },
+        {
+          "id": "meal",
+          "response_ms": 3187,
+          "first_audio_ms": 3526,
+          "remaining_audio_wait_ms": 338,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 6
+        },
+        {
+          "id": "empathy",
+          "response_ms": 2632,
+          "first_audio_ms": 3192,
+          "remaining_audio_wait_ms": 560,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 2
+        },
+        {
+          "id": "missing_schedule",
+          "response_ms": 57,
+          "first_audio_ms": 821,
+          "remaining_audio_wait_ms": 764,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "speech_parts": 2
+        },
+        {
+          "id": "recipe_safety",
+          "response_ms": 2478,
+          "first_audio_ms": 3129,
+          "remaining_audio_wait_ms": 651,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "speech_parts": 5
+        }
+      ]
+    },
+    "definition": "Typed turn to validated WAV availability through normal authenticated loopback HTTP with the actual owner-test Host/Origin/cookie; microphone, remote Safari transport, audible playback excluded.",
+    "limits": "Six sequential turns per phase, one sample per case. Independently generated meal/education/safety replies and provider/cache/load differences limit attribution; source-only reductions are mechanically fewer inference calls.",
+    "observations": [
+      "B01 preparation and the exact future-snapshot limitation avoid model calls and show clear local reductions.",
+      "Meal first audio is 3526ms versus 3318ms, empathy 3192ms versus 2551ms; this does not establish a reliable general model-speed improvement.",
+      "Exact recipe quantities use the unchanged pre-existing fact path; its timing variation is not attributed to quick reads.",
+      "Both actual empathy samples acknowledge the complaint without a useful continuation; subjective/conversational helpfulness remains open."
+    ]
+  },
+  "verification": {
+    "full_regression": {
+      "passed": 1047,
+      "failed": 0,
+      "optional_skips": 2,
+      "files": 113
+    },
+    "focused": {
+      "passed": 53,
+      "failed": 0
+    },
+    "typecheck": "pass",
+    "private_client_build": "pass; same active Current assets",
+    "preservation": {
+      "passed": 43,
+      "total": 43
+    },
+    "deployed_readiness": {
+      "passed": 352,
+      "total": 352
+    },
+    "public_scan": {
+      "status": "pass",
+      "files_scanned": 429,
+      "findings": 0
+    }
+  },
+  "budget": {
+    "shared_response_cap": 64,
+    "benchmark_actual_response_requests": 52,
+    "http_model_rounds_observed": 8,
+    "combined_observed_count": 60,
+    "http_count_scope": "Runtime model rounds; adapter source performs one Responses fetch per round without response replay. HTTP probe does not independently intercept transport.",
+    "no_completed_request_replayed": true,
+    "no_api_key_or_paid_service": true
+  },
+  "rollback": {
+    "previous_test_selection_and_entry_saved": true,
+    "source_manifest_saved": true,
+    "operation": "Restore prior private selection/entry and restart only the verified owner-test child; no database reset, credential transfer, live process or UI asset change."
+  },
+  "private_references": {
+    "root": ".local/thinking-delay-2026-10-22",
+    "before": ".local/thinking-delay-2026-10-22/http-before.json",
+    "after": ".local/thinking-delay-2026-10-22/http-after.json",
+    "preservation": ".local/thinking-delay-2026-10-22/guard-after.json"
+  },
+  "remaining": [
+    "Model-dependent waits remain variable; quick injection median 3319.5ms versus baseline 2647.5ms and allergy/nutrient answer 3160ms versus 3121.5ms in the small sample.",
+    "The test Outlook connector remains intentionally absent; stating its limit does not qualify provider retrieval.",
+    "Actual iPhone/Safari capture/playback, listening/usefulness, intended-person/genuine-day and full-slice gates remain open.",
+    "No live-client rollout; review only in the separate owner copy."
+  ]
+}
