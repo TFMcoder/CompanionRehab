@@ -143,11 +143,14 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     const {authority,role,scope_key}=await sessionScope(session);
     const connection=!!authority && !!role && ['client','family_friend','administrator'].includes(role) ? await voiceAccess(session) : null;
     const voiceEligible=!!connection;
+    // Only the privately enabled owner test service performs work; never delay sign-in on preparation.
+    if(voiceEligible)void conversation?.prepareMeals?.(session).catch(()=>{});
     return {authenticated:true,actor_id:session.user_id,role,participant_id:authority?.client_id??null,
       scope_key,
       voice_eligible:voiceEligible,voice_connection:connection?.connection??null,voice_unavailable_reason:voiceEligible?null:'A qualified Nancy voice connection is not yet available for this account. You can use the buttons.',
       task_requests_available:!!taskRequests,local_features_available:!!features,microsoft_available:await microsoft?.eligible(session)??false};
   });
+  app.get('/api/conversation/preparation',async request=>conversation?.mealPreparationStatus?.(sessions.get(request)!)??{state:'off'});
   app.post('/api/auth/logout', async (request, reply) => {
     const session = sessions.get(request)!;
     revoked.revoke(session.session_id, (session.issued_at+sessionLifetimeSeconds(session))*1000);

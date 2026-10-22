@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-10-22T18:00:17.746Z",
+  "implementation_revision": "sha256:2ebd297e57bfbedf6a4529c0d02e8e876f671e03cf76dbcbfb32318fe07de9ca",
+  "revision_algorithm": "scripts/implementation-revision.ts",
+  "status": "owner_practice_review_ready_warm_meal_path_qualified_cold_and_device_latency_open",
+  "authorization": "October 22: prepare meal recommendations ahead in the separate owner test copy; test speed and accuracy; Heart, Dad setup and no API billing unchanged.",
+  "selected": {
+    "model": "gpt-6-sol",
+    "effort": "low",
+    "voice": "af_heart",
+    "speed": 1,
+    "cpu_threads": 12,
+    "speech_part_maximum": 72,
+    "context_mode": "prepared-v1",
+    "speech_mode": "heart-latency-v1",
+    "read_mode": "quick-v1",
+    "reply_mode": "spoken-v1",
+    "meal_mode": "ahead-v1",
+    "existing_owner_pro_only": true,
+    "api_key_billing": false,
+    "model_or_account_fallback": false
+  },
+  "behavior": {
+    "trigger": "Authenticated foreground page/session read in the privately enabled owner copy only; no new recurring job.",
+    "model": "One no-tool selection of bounded public recipe IDs; strict category/schema/exclusion validation, server rendering of source titles and actual ingredient-group reasons.",
+    "audio": "Prepare exact first Heart parts for single slots and combined menu before readiness; release only a final authorized reply.",
+    "cache": "Memory only, exact login/actor/client/role/grant/policy/account binding, local date, relevant fresh care/preferences/handoffs, source hashes/material. Ten-minute expiry. First neutral user question only, consumed once.",
+    "invalidation": "Changed facts, source, scope, expiry, logout and close discard drafts; retries and audio recheck fresh context. New constraints, details, actions, alternatives, later turns and unrelated chat miss.",
+    "budget": "At most four preparation attempts per process, at least ten minutes apart; failures/aborts count, no automatic provider retry. Deliberate restart resets this bounded experimental counter.",
+    "cold": "Unfinished or unavailable preparation uses the existing conversation path. Cold latency and arbitrary conversation delay are not solved."
+  },
+  "comparison": {
+    "implementation_revision": "sha256:79da5bede280fa0502f8a85bbac56a57314da075958aa9a8548dfd031c6b9740",
+    "source_scope": "Before the final selected-ID provenance and independent prepared-turn retry checks. The final policy explicitly permits general ideas when restrictions are unknown and adds bounded failure codes; these changes receive a distinct real three-case qualification plus full regression and final HTTP. Rendering/model/request/speech settings are unchanged.",
+    "answers": 21,
+    "actual_responses_requests": 26,
+    "repetitions_per_core_case": 2,
+    "source_and_factual_core_pass": {
+      "baseline": 8,
+      "prepared": 8,
+      "total_per_path": 8
+    },
+    "first_audio_median_ms": {
+      "baseline": 3916,
+      "prepared": 88.5
+    },
+    "preparation_ms": {
+      "median": 6285.5,
+      "minimum": 4902,
+      "maximum": 7076
+    },
+    "by_case": [
+      {
+        "case": "three-meals",
+        "answers_per_path": 2,
+        "baseline_first_audio_median_ms": 4640.5,
+        "prepared_first_audio_median_ms": 91.5
+      },
+      {
+        "case": "breakfast",
+        "answers_per_path": 2,
+        "baseline_first_audio_median_ms": 3956,
+        "prepared_first_audio_median_ms": 90
+      },
+      {
+        "case": "lunch",
+        "answers_per_path": 2,
+        "baseline_first_audio_median_ms": 3818,
+        "prepared_first_audio_median_ms": 99
+      },
+      {
+        "case": "dinner",
+        "answers_per_path": 2,
+        "baseline_first_audio_median_ms": 3429,
+        "prepared_first_audio_median_ms": 82.5
+      }
+    ],
+    "misses": [
+      {
+        "case": "new-restriction",
+        "preparation_state": "ready",
+        "prepared_meal_hit": 0,
+        "first_audio_ms": 3023
+      },
+      {
+        "case": "changed-saved-preferences",
+        "preparation_state": "ready",
+        "prepared_meal_hit": 0,
+        "first_audio_ms": 4876
+      },
+      {
+        "case": "vegetarian-unresolved",
+        "preparation_state": "unavailable",
+        "prepared_meal_hit": 0,
+        "first_audio_ms": 5044
+      },
+      {
+        "case": "milk-allergy-unresolved",
+        "preparation_state": "unavailable",
+        "prepared_meal_hit": 0,
+        "first_audio_ms": 3863
+      },
+      {
+        "case": "ordinary-conversation",
+        "preparation_state": "ready",
+        "prepared_meal_hit": 0,
+        "first_audio_ms": 2429
+      }
+    ],
+    "accuracy": "All eight warm and eight existing answers manually reviewed against fixed source/constraint/no-write/plain-speech criteria. Five miss cases preserve new/saved restrictions, withhold unresolved vegetarian dinner and milk-allergy breakfast, and retain useful frustration conversation. These are narrow synthetic checks, not clinical or general accuracy estimates."
+  },
+  "final_policy_qualification": {
+    "implementation_revision": "sha256:836c3424963da806a43c85b59c8c4db14ed211dc537a7471ad1066ae79ba8568",
+    "requests": 3,
+    "cases": [
+      {
+        "case": "known-restrictions-final",
+        "status": "completed",
+        "preparation_state": "ready",
+        "preparation_ms": 5373,
+        "first_audio_ms": 130,
+        "prepared_meal_hit": 1,
+        "preparation_failure": null
+      },
+      {
+        "case": "unknown-restrictions-final",
+        "status": "completed",
+        "preparation_state": "ready",
+        "preparation_ms": 5159,
+        "first_audio_ms": 102,
+        "prepared_meal_hit": 1,
+        "preparation_failure": null
+      },
+      {
+        "case": "milk-allergy-final",
+        "status": "expected-unavailable",
+        "preparation_state": "unavailable",
+        "preparation_ms": 2530,
+        "first_audio_ms": null,
+        "prepared_meal_hit": null,
+        "preparation_failure": "incomplete_selection"
+      }
+    ],
+    "interpretation": "Two distinct final-policy ready cases cover known restrictions and the generic profile; incompatible milk allergy remains unavailable. Scoped source and no-write criteria pass. These are separate from the earlier repeated benchmark."
+  },
+  "actual_service": {
+    "before": {
+      "checks_passed": 30,
+      "checks_total": 30,
+      "rows": [
+        {
+          "case": "three-meals",
+          "response_ms": 3242,
+          "first_audio_ms": 4613,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "prepared_meal_hit": null,
+          "speech_parts": 7
+        },
+        {
+          "case": "breakfast",
+          "response_ms": 3278,
+          "first_audio_ms": 3767,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "prepared_meal_hit": null,
+          "speech_parts": 5
+        }
+      ],
+      "preparations": []
+    },
+    "after": {
+      "checks_passed": 94,
+      "checks_total": 94,
+      "rows": [
+        {
+          "case": "three-meals-warm",
+          "response_ms": 79,
+          "first_audio_ms": 178,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "prepared_meal_hit": 1,
+          "speech_parts": 5
+        },
+        {
+          "case": "new-restriction",
+          "response_ms": 3198,
+          "first_audio_ms": 3591,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "prepared_meal_hit": 0,
+          "speech_parts": 4
+        },
+        {
+          "case": "ordinary-conversation",
+          "response_ms": 2657,
+          "first_audio_ms": 3004,
+          "model_calls": 1,
+          "tool_calls": 0,
+          "prepared_meal_hit": 0,
+          "speech_parts": 3
+        },
+        {
+          "case": "exact-recipe",
+          "response_ms": 50,
+          "first_audio_ms": 1685,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "prepared_meal_hit": 0,
+          "speech_parts": 2
+        },
+        {
+          "case": "outlook-unavailable",
+          "response_ms": 47,
+          "first_audio_ms": 73,
+          "model_calls": 0,
+          "tool_calls": 0,
+          "prepared_meal_hit": 0,
+          "speech_parts": 1
+        }
+      ],
+      "preparations": [
+        {
+          "duration_ms": 5526,
+          "model_duration_ms": 2421,
+          "model_calls": 1,
+          "auth_response_ms": 28,
+          "input_tokens": 2862,
+          "output_tokens": 23
+        }
+      ]
+    },
+    "definition": "Authenticated owner-test loopback HTTP with actual Host/Origin/cookie. Typed request to validated 24kHz first WAV; every speech part checked. One website sample per case; the final menu wording is distinct after the reconciled race and is not a paired replay. Neither Safari network/microphone nor audible onset measured.",
+    "actual_answer_review": "All five final site replies manually checked: warm source menu, honest inability to match egg/milk-free source breakfasts with an explicitly outside-library alternative and clarification, useful frustration continuation, exact B01 quantities, unavailable Outlook. Not clinical validation."
+  },
+  "verification": {
+    "full_regression": {
+      "implementation_revision": "sha256:836c3424963da806a43c85b59c8c4db14ed211dc537a7471ad1066ae79ba8568",
+      "source_scope": "Full policy/telemetry regression before the final conservative numeric/negation matcher and ready-draft cancellation race fix; final 63 affected checks and actual HTTP cover that delta.",
+      "passed": 1078,
+      "failed": 0,
+      "optional_skips": 2,
+      "files": 115
+    },
+    "focused": {
+      "implementation_revision": "sha256:2ebd297e57bfbedf6a4529c0d02e8e876f671e03cf76dbcbfb32318fe07de9ca",
+      "passed": 63,
+      "failed": 0,
+      "files": 6
+    },
+    "typecheck": "pass",
+    "private_build": "pass; byte-identical Current active JavaScript/CSS",
+    "preservation_checks": 43,
+    "deployed_readiness_checks": 356,
+    "public_scan": {
+      "status": "pass",
+      "files_scanned": 437,
+      "findings": 0
+    },
+    "initial_test_findings": "Sandbox initially prevented test collection and database access; unrestricted scoped runs qualified them. A failure/cancellation classification and stale prepared-turn retry were caught and repaired before the final full suite. The first actual-site preparation completed inference but failed validation; its one call and numeric usage are reconciled, original reply content is unknown, and it is not replayed. A repeated-auth cancellation race then caused one cold turn; that completed call is reconciled, lost first-audio timing remains null, and the final website uses a distinct menu request after the race fix. Unknown-restriction handling and bounded failure diagnostics receive distinct final-policy cases. No failed provider request or completed measurement was replayed.",
+    "roadmap_validation": "pass: 12 slices, 36 human actions, 64 automated checks, 31 live scenarios, zero completed features",
+    "generated_human_actions": "regenerated and checked; human statuses unchanged"
+  },
+  "isolation": {
+    "main_process_and_run_unchanged": true,
+    "both_supervisors_unchanged": true,
+    "live_and_test_protected_care_tables_unchanged": 30,
+    "live_configuration_and_current_assets_unchanged": true,
+    "only_verified_owner_test_child_restarted": true,
+    "care_writes": 0,
+    "provider_care_writes": 0,
+    "credential_copy": false,
+    "microsoft_in_test": "disabled",
+    "dad_rollout": false
+  },
+  "budget": {
+    "initial_benchmark_actual_responses": 26,
+    "final_policy_actual_responses": 3,
+    "benchmark_total_actual_responses": 29,
+    "first_site_preparation_failed_observed": 1,
+    "page_poll_cold_turn_observed": 1,
+    "runtime_model_attempts_observed": 8,
+    "total_observed": 37,
+    "overall_cap": 48,
+    "unused": 11,
+    "api_key_billing": false,
+    "unreconciled_reservation": false
+  },
+  "limits": [
+    "Preparation takes several seconds before the question; cold/missed/later-turn requests retain normal delay.",
+    "Strict first-turn grammar and one-use draft deliberately limit coverage; constraints are not inferred away.",
+    "The source library is unreviewed general guidance. No prescribed diet, clinical suitability, allergy clearance or verified product label.",
+    "No physical iPhone/Safari microphone, lock-screen/background speech, audible acceptance, intended-person or genuine-day acceptance.",
+    "No completed feature slice, migration, push or main/client rollout."
+  ],
+  "rollback": "Prior exact owner selection and entry preserved privately under the dated trial directory; restore only those files and restart only the identity-verified test child. No care or credential restore."
+}
