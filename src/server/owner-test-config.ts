@@ -22,13 +22,17 @@ export const ownerTestSchema=z.object({
 export type OwnerTestSettings=z.infer<typeof ownerTestSchema>;
 
 const reasoningSelection=z.object({schema_version:z.literal(1),owner_actor_id:z.uuid(),participant_id:z.uuid(),origin:z.url(),
- profile:z.enum(['sol-high','sol-low','sol-none','luna-low','sol61-low'])}).strict();
+ profile:z.enum(['sol-high','sol-low','sol-none','luna-low','sol61-low']),context_mode:z.literal('prepared-v1').optional()}).strict();
 /** Private startup-only selection. Main, browser input and caregiver routing never read it. */
 export function ownerTestReasoning(settings:OwnerTestSettings,selection?:unknown){
  if(selection===undefined)return reasoningCandidates['sol-high'];
  const chosen=reasoningSelection.parse(selection);
  if(chosen.owner_actor_id!==settings.owner_actor_id||chosen.participant_id!==settings.participant_id||chosen.origin!==settings.origin)throw Error('Reasoning selection must match this exact owner test copy.');
  return reasoningCandidates[chosen.profile];
+}
+export function ownerTestPreparation(settings:OwnerTestSettings,selection?:unknown){
+ ownerTestReasoning(settings,selection);
+ return selection!==undefined&&reasoningSelection.parse(selection).context_mode==='prepared-v1';
 }
 
 export function ownerTestIndex(html:string){

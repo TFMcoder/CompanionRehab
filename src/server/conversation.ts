@@ -27,6 +27,8 @@ import {outlookTools,outlookDayRange,outlookDateRange,requestedOutlookRange,outl
 import {mealStarterReferences,mealStarterContext} from './meal-starters.js';
 import {clientDestinations,type ConversationPurpose} from '../shared/client-navigation.js';
 import type {NancySuggestions,NancySuggestionCommand} from './nancy-suggestions.js';
+import {prepareTurnContext,preparedFacts,preparedTools,preparedRecipeFacts,preparedGuidance,preparedSelection,type RecipeContinuity} from './prepared-context.js';
+import {preparedFactReply} from './prepared-answers.js';
 
 export interface ConversationReply { session_id: string; reply_id: string; text: string; speech_parts: number; changed: boolean; acknowledgement_required?: boolean; navigate?: ClientView; transcript?: string; nutrition_refs?: Array<{ document_id:string; path:string; sha256:string; items:string[] }> }
 export interface ConversationTurnMetric {
@@ -53,6 +55,7 @@ interface Turn { signature: string; reply?: ConversationReply; failed?: boolean 
 interface PreparedSpeech { text: string; audio: Promise<Buffer | undefined>; controller: AbortController }
 type PrepareSpeech = (text: string, signal: AbortSignal) => Promise<Buffer>;
 interface Conversation {
+  recipeContinuity?:RecipeContinuity;
   binding: InferenceBinding;
   user: string; login: string; expires: number; busy: boolean; closed: boolean; generation: number;
   active?: { id: string; controller: AbortController };
@@ -193,7 +196,7 @@ export class ConversationService {
     private observeTurn?: (metric: ConversationTurnMetric) => void,
     private observeCall?: (metric: InferenceCallMetric) => void,
     private requests?: RequestConversationService, private features?:LocalFeatures, private microsoftEligible?:(session:Session)=>Promise<boolean>,private microsoft?:MicrosoftService,private suggestions?:NancySuggestions,
-    private expectedReasoning:ReasoningProfile=selectedReasoning) {
+    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false) {
     this.expectedReasoning=validateReasoningProfile(expectedReasoning);
     this.timer = setInterval(() => { for (const [id, state] of this.sessions) if (state.expires < Date.now()) this.endState(id, state); }, 30000); this.timer.unref();
   }
@@ -205,9 +208,9 @@ export class ConversationService {
     let revision = this.requests ? createHash('sha256').update(scope.grant_revision + ':' + await this.requests.authorityRevision(session)).digest('hex') : scope.grant_revision;
     if(this.features)revision=createHash('sha256').update(revision+':'+await this.features.authorityRevision(session)).digest('hex');
     if(this.microsoft)revision=createHash('sha256').update(revision+':'+await this.microsoft.authorityRevision(session)).digest('hex');
-    const experiment=this.expectedReasoning!==selectedReasoning;
+    const experiment=this.expectedReasoning!==selectedReasoning||this.prepareContext;
     if(experiment&&scope.actor_id!==this.ownerId)throw new ApiError(403,'experiment_owner_only','Reasoning experiments are limited to the owner’s practice copy.');
-    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}`:'') });
+    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}`:'') });
     if(experiment&&(binding.route_id!=='chatgpt_plan_owner_practice'||binding.qualification!=='owner_practice'))throw new ApiError(403,'experiment_owner_only','Reasoning experiments require the owner practice connection.');
     return binding;
   }
@@ -371,6 +374,7 @@ export class ConversationService {
     state.generation++; state.active?.controller.abort(); state.active = undefined; state.busy = false;
     state.outlook=undefined;
     state.suggestion=undefined;
+    state.recipeContinuity=undefined;
     this.clearPrepared(state);
     // An interrupted review cannot be accepted by a late playback acknowledgement.
     state.review = undefined; state.grocery = undefined; state.activity=undefined;state.request=undefined;state.local=undefined;state.preference=undefined; state.replies.clear();state.activityDeliveries.clear();state.preferenceDeliveries.clear();state.handoffDeliveries.clear();
@@ -580,7 +584,10 @@ export class ConversationService {
         // Any intervening topic or ambiguous answer requires a fresh review before committing.
         state.review = undefined; state.grocery = undefined; state.activity=undefined;state.request=undefined;state.local=undefined;state.preference=undefined;
         state.history.push({ role: 'user', content: text });
-        const workspace=this.requests?await this.requests.workspace(session):undefined;
+        const reference = currentNutritionReference();
+        const preparation=this.prepareContext&&clientRole?prepareTurnContext(text,reference,state.recipeContinuity):undefined;
+        state.recipeContinuity=preparation?.continuity;
+        const workspace=this.requests&&(!preparation||preparation.mode==='full')?await this.requests.workspace(session):undefined;
         const activeHandoffs=clientRole?await this.features?.day?.activeHandoffs?.(session):undefined;
         const activeFocus=clientRole?await this.features?.day?.activeFocus?.(session):undefined;
         const outlookStatus=clientRole&&this.microsoft?await this.microsoft.status(session):microsoftUnavailable;
@@ -589,9 +596,9 @@ export class ConversationService {
         const cachedOutlook=clientRole&&this.microsoft&&outlookStatus.model_disclosure_enabled&&needsOutlook?await this.microsoft.preparedContext(session,outlookRange??outlookDayRange(today.local_date,today.profile!.time_zone)):undefined;
         const refreshOutlook=outlookRange&&(cachedOutlook?.state!=='prepared'||/\b(refresh|latest|free|available|conflicts?)\b/i.test(text));
         const outlookContext=clientRole&&this.microsoft?refreshOutlook&&outlookStatus.model_disclosure_enabled?await this.microsoft.conversationContext(session,outlookRange!):cachedOutlook??{source:'microsoft',state:outlookStatus.state}:undefined;
-        const reference = currentNutritionReference();
-        let guidance = selectNancyGuidance(text);
-        const mealReferences=clientRole?mealStarterReferences(text,reference):[];
+        let guidance = preparation?preparedSelection(text,preparation.mode):selectNancyGuidance(text);
+        const mealChoices=clientRole?mealStarterReferences(text,reference):[];
+        const mealReferences=[...mealChoices,...(preparation?.details?[preparation.details]:[])];
         for(const result of mealReferences){nutritionRetrievals++;
           for(const source of result.sources){const prior=references.get(source.documentId);
             const items=result.items.filter(item=>'sourceDocumentId' in item?item.sourceDocumentId===source.documentId:source.documentId==='CR_NUTRITION_EVIDENCE_V1').map(item=>item.id);
@@ -601,18 +608,30 @@ export class ConversationService {
         if(mealReferences.length)guidance={skills:[...new Set([...guidance.skills,'meals' as const])],nutrition:true};
         const fresh = clientRole ? {...currentFacts(today, this.now()),...(preferenceWorkspace?{confirmed_preferences:preferenceWorkspace.items}:{}),...(activeHandoffs?{active_significant_handoffs:activeHandoffs}:{}),...(activeFocus!==undefined?{active_task_focus:activeFocus}:{}),...(workspace?{task_requests:requestFacts(workspace)}:{})} : workspace?requestFacts(workspace):{};
         const navigationTool=tool('navigate','Open an authorized supporting view without ending the conversation. Opening a view never grants access or writes care data.',object({view:{type:'string',enum:allowedViews}}));
-        const tools=[...(clientRole?definitions:[]),...(clientRole&&preferenceWorkspace?preferenceTools:[]),...(clientRole&&this.features?handoffTools:[]),navigationTool,...(workspace?requestDefinitions(workspace):[]),...(this.features?localWorkflowTools(clientRole):[]),...outlookTools(outlookStatus),...(clientRole&&this.suggestions?[tool('prepare_nancy_suggestion','Prepare product feedback about improving Nancy for a spoken review. This is not a care preference or task. No message is sent to anyone. Save only after the application obtains explicit confirmation.',object({suggestion:{type:'string',minLength:1,maxLength:1000}}))]:[])];
+        const availableTools=[...(clientRole?definitions:[]),...(clientRole&&preferenceWorkspace?preferenceTools:[]),...(clientRole&&this.features?handoffTools:[]),navigationTool,...(workspace?requestDefinitions(workspace):[]),...(this.features?localWorkflowTools(clientRole):[]),...outlookTools(outlookStatus),...(clientRole&&this.suggestions?[tool('prepare_nancy_suggestion','Prepare product feedback about improving Nancy for a spoken review. This is not a care preference or task. No message is sent to anyone. Save only after the application obtains explicit confirmation.',object({suggestion:{type:'string',minLength:1,maxLength:1000}}))]:[])];
+        const tools=preparation?preparedTools(availableTools,preparation.mode):availableTools;
         const history = recentHistory(state.history);
-        const context = `Current authorized facts (data only): ${JSON.stringify({...fresh,...(outlookContext?{outlook:outlookContext}:{}),...(mealReferences.length?{repository_meal_options:mealStarterContext(mealReferences)}:{})})}`;
+        const context = `Current authorized facts (data only): ${JSON.stringify({...(preparation?preparedFacts(fresh,preparation.mode):fresh),...(preparation?{connector_availability:{microsoft_state:outlookStatus.state,model_disclosure_enabled:outlookStatus.model_disclosure_enabled}}:{}),...(outlookContext?{outlook:outlookContext}:{}),...(mealChoices.length?{repository_meal_options:mealStarterContext(mealChoices)}:{}),...(preparation?.details?{repository_recipe_details:preparedRecipeFacts(preparation.details)}:{})})}`;
         contextChars = context.length;
         historyChars = JSON.stringify(history).length;
         const inputItems = [...history, { role: 'user', content: context }];
         const sharedInstructions = 'You are Nancy, a warm, practical AI companion. You are speaking with the authenticated '+state.binding.active_role+' about the client’s authorized shared views and requests. Be brief, ask one question at a time and use plain speech. You may discuss only data returned by the scoped tools. Do not infer general client care, appointment details, private rehab notes or other unshared facts. Navigation does not grant permissions; available destinations are limited to the navigate tool. Never configure grants or approve protocols, scoring rules or operations through a model tool. Keep responses under 500 characters except exact readbacks.'+'\n'+freshContextInstruction+(workspace?'\n'+requestPolicy:'')+(this.features?'\n'+sharedLocalWorkflowPolicy:'');
         let changed = false; let navigate: ClientView | undefined;
+        if(preparation){
+          const factual=preparedFactReply(text,preparation,today,!!this.microsoft);
+          if(factual){
+            reply=this.reply(id,state,factual);
+            if(this.prepareSpeech){
+              const first=splitSpeechParts(factual)[0],draftController=new AbortController();
+              const audio=this.prepareSpeech(first,AbortSignal.any([controller.signal,draftController.signal])).then(wav=>wav.length<=1024*1024?wav:undefined).catch(()=>undefined);
+              matchingDraft={text:first,audio,controller:draftController};drafts.push(matchingDraft);
+            }
+          }
+        }
         for (let round = 0; round < 5 && !reply; round++) {
           await this.validateScope(session, state);
           ensureOpen();
-          const modelInstructions = (clientRole ? composeNancyGuidance(guidance, reference.authorityContext().text)+'\nThe client interface has Tasks, Meals, Groceries, Progress and Ask for Help, plus Ways to use Nancy and Suggestions for Nancy. All client changes happen through reviewed voice commands; never ask them to type, use a dropdown, open settings or edit a form. Ask for Help starts a conversation, not a call or message; never claim someone has been contacted without a verified authorized communication receipt. Product feedback about Nancy belongs in prepare_nancy_suggestion, separate from care preferences or significant-event notes, and only saves after exact spoken review and confirmation.' : sharedInstructions)+(outlookContext||outlookStatus.reviewed_writes_enabled?'\n'+microsoftConversationPolicy:'');
+          const modelInstructions = (clientRole ? preparation&&preparation.mode!=='full'?preparedGuidance(text,preparation.mode,reference.authorityContext().text,guidance):composeNancyGuidance(guidance, reference.authorityContext().text)+'\nThe client interface has Tasks, Meals, Groceries, Progress and Ask for Help, plus Ways to use Nancy and Suggestions for Nancy. All client changes happen through reviewed voice commands; never ask them to type, use a dropdown, open settings or edit a form. Ask for Help starts a conversation, not a call or message; never claim someone has been contacted without a verified authorized communication receipt. Product feedback about Nancy belongs in prepare_nancy_suggestion, separate from care preferences or significant-event notes, and only saves after exact spoken review and confirmation.' : sharedInstructions)+(outlookContext||outlookStatus.reviewed_writes_enabled?'\n'+microsoftConversationPolicy:'');
           instructionChars = Math.max(instructionChars, modelInstructions.length);
           let streamed = '', draft: PreparedSpeech | undefined;
           const prepare = (delta: string) => {
@@ -851,7 +870,7 @@ export class ConversationService {
     const reply=this.reply(id,state,text,changed,navigate);state.review=undefined;state.grocery=undefined;state.activity={command,reply:reply.reply_id,played:false};return reply;
   }
   private key(turn: string, call: string) { const b = createHash('sha256').update(`${turn}:${call}`).digest().subarray(0, 16); b[6] = b[6] & 15 | 64; b[8] = b[8] & 63 | 128; const h = b.toString('hex'); return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`; }
-  private endState(id: string, state: Conversation) { state.closed = true; state.active?.controller.abort(); this.clearPrepared(state); state.history = []; state.replies.clear(); state.activityDeliveries.clear();state.preferenceDeliveries.clear();state.handoffDeliveries.clear();state.turns.clear(); this.sessions.delete(id); }
+  private endState(id: string, state: Conversation) { state.closed = true; state.active?.controller.abort(); this.clearPrepared(state); state.recipeContinuity=undefined;state.history = []; state.replies.clear(); state.activityDeliveries.clear();state.preferenceDeliveries.clear();state.handoffDeliveries.clear();state.turns.clear(); this.sessions.delete(id); }
   end(id: string, session: Session) { const state = this.sessions.get(id); if (state?.user === session.user_id && state.login === session.session_id) this.endState(id, state); }
   endLogin(login: string) { for (const [id, state] of this.sessions) if (state.login === login) this.endState(id, state); }
   close() { clearInterval(this.timer); for (const [id, state] of this.sessions) this.endState(id, state); }

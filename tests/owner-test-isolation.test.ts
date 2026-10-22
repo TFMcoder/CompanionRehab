@@ -2,7 +2,7 @@ import {describe,it,expect,vi} from 'vitest';
 import {randomBytes,randomUUID} from 'node:crypto';
 import {createApp} from '../src/server/app.js';
 import {configFromEnv} from '../src/server/config.js';
-import {ownerTestSchema,ownerTestIndex,ownerTestReasoning} from '../src/server/owner-test-config.js';
+import {ownerTestSchema,ownerTestIndex,ownerTestReasoning,ownerTestPreparation} from '../src/server/owner-test-config.js';
 import {sealSession,type Session} from '../src/server/session.js';
 import {SessionRevocations} from '../src/server/revocations.js';
 import type {CareService} from '../src/server/care-access.js';
@@ -15,6 +15,9 @@ describe('isolated owner test contract',()=>{
   const config=ownerTestSchema.parse(settings()),selection={schema_version:1,owner_actor_id:config.owner_actor_id,participant_id:config.participant_id,origin:config.origin,profile:'sol-none'};
   expect(ownerTestReasoning(config)).toEqual({model:'gpt-6-sol',effort:'high'});
   expect(ownerTestReasoning(config,selection)).toEqual({model:'gpt-6-sol',effort:'none'});
+  expect(ownerTestPreparation(config)).toBe(false);expect(ownerTestPreparation(config,selection)).toBe(false);
+  expect(ownerTestPreparation(config,{...selection,context_mode:'prepared-v1'})).toBe(true);
+  expect(()=>ownerTestPreparation(config,{...selection,context_mode:'unreviewed'})).toThrow();
   for(const change of [{owner_actor_id:randomUUID()},{participant_id:randomUUID()},{origin:'https://synthetic.example:8443'},{profile:'anything'},{api_key:'synthetic'}])expect(()=>ownerTestReasoning(config,{...selection,...change})).toThrow();
  });
  it('accepts a separate local database, restricted role and independent synthetic profile',()=>{expect(ownerTestSchema.parse(settings())).toMatchObject({database_name:'nancy_owner_test',port:8788});});

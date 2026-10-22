@@ -1,0 +1,513 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-10-22T04:30:48.391Z",
+  "implementation_revision": "sha256:dcadc4fd46e1e7b0d9f3444143bcbe8bdee3427b850a282bd9e1f655068a3f1d",
+  "status": "owner_practice_review_ready_latency_open",
+  "authorization": "October 22 owner direction: prepare relevant context and remove unnecessary lookups only in the separate test copy, retest, keep Dad unchanged and incur no API billing.",
+  "production": {
+    "model": "gpt-6-sol",
+    "requested_effort": "high",
+    "restarted": false,
+    "configuration_unchanged": true,
+    "care_records_unchanged": true,
+    "current_assets_unchanged": true
+  },
+  "practice": {
+    "model": "gpt-6-sol",
+    "requested_effort": "low",
+    "context_mode": "prepared-v1",
+    "voice": "af_heart",
+    "route": "chatgpt_plan_owner_practice",
+    "existing_pro_only": true,
+    "api_key_billing": false,
+    "outlook_service": false,
+    "real_person_writes": 0,
+    "provider_writes": 0
+  },
+  "implementation": {
+    "default_off": true,
+    "exact_private_owner_participant_origin_selection": true,
+    "alternate_actor_or_caregiver_refused": true,
+    "recipe_prefetch": "Bounded public repository index and at most two exact recipe details; one-source immediate follow-ups, invalidated on source identity/topic/scope change.",
+    "personal_facts": "Fresh care-service facts and authorization on every turn; no persistent participant cache.",
+    "read_only_requests": "Relevant facts and intersected capabilities; core-only ordinary conversation; unknown, ambiguous, write and broad/mixed workflow requests retain the full existing path.",
+    "local_answers": "Unambiguous saved local appointment time/duration, exact named recipe ingredient quantities, and known disconnected test Outlook state. No model, care change, inferred approval or empty-calendar claim.",
+    "speech": "Same selected Heart. Prepare matching speech while final authorization completes; release only validated reply IDs. Shorter separate meal sentences, no placeholder or interruption feature.",
+    "main_reads_no_test_selector": true
+  },
+  "phases": [
+    {
+      "phase": "/initial",
+      "completed_answers": 48,
+      "provider_response_requests": 51,
+      "source_revision": "sha256:07ad1be35012c858d1d3607a2392b7709f8f745254cc3e7065360b825792ded1",
+      "groups": [
+        {
+          "candidate": "baseline",
+          "completed": 24,
+          "median_audio_ms": 5009,
+          "slowest_audio_ms": 9428,
+          "model_requests": 27,
+          "input_tokens": 201768,
+          "by_case": [
+            {
+              "case": "empathy",
+              "median_audio_ms": 3719,
+              "model_requests": 3,
+              "mean_input_tokens": 7915
+            },
+            {
+              "case": "meals",
+              "median_audio_ms": 5320,
+              "model_requests": 3,
+              "mean_input_tokens": 7893
+            },
+            {
+              "case": "calendar_fact",
+              "median_audio_ms": 5341,
+              "model_requests": 3,
+              "mean_input_tokens": 7915
+            },
+            {
+              "case": "outlook_unavailable",
+              "median_audio_ms": 3578,
+              "model_requests": 3,
+              "mean_input_tokens": 7914
+            },
+            {
+              "case": "medication_boundary",
+              "median_audio_ms": 3572,
+              "model_requests": 3,
+              "mean_input_tokens": 7011
+            },
+            {
+              "case": "actuals_and_approval",
+              "median_audio_ms": 5281,
+              "model_requests": 3,
+              "mean_input_tokens": 6513
+            },
+            {
+              "case": "injection",
+              "median_audio_ms": 3972,
+              "model_requests": 3,
+              "mean_input_tokens": 6512
+            },
+            {
+              "case": "exact_recipe",
+              "median_audio_ms": 9401,
+              "model_requests": 6,
+              "mean_input_tokens": 15583
+            }
+          ],
+          "core_passed": 24,
+          "core_total": 24
+        },
+        {
+          "candidate": "prepared",
+          "completed": 24,
+          "median_audio_ms": 5254,
+          "slowest_audio_ms": 8972,
+          "model_requests": 24,
+          "input_tokens": 105258,
+          "by_case": [
+            {
+              "case": "empathy",
+              "median_audio_ms": 2911,
+              "model_requests": 3,
+              "mean_input_tokens": 747
+            },
+            {
+              "case": "meals",
+              "median_audio_ms": 6377,
+              "model_requests": 3,
+              "mean_input_tokens": 7912
+            },
+            {
+              "case": "calendar_fact",
+              "median_audio_ms": 5949,
+              "model_requests": 3,
+              "mean_input_tokens": 1662
+            },
+            {
+              "case": "outlook_unavailable",
+              "median_audio_ms": 3112,
+              "model_requests": 3,
+              "mean_input_tokens": 1661
+            },
+            {
+              "case": "medication_boundary",
+              "median_audio_ms": 3651,
+              "model_requests": 3,
+              "mean_input_tokens": 7030
+            },
+            {
+              "case": "actuals_and_approval",
+              "median_audio_ms": 4801,
+              "model_requests": 3,
+              "mean_input_tokens": 6532
+            },
+            {
+              "case": "injection",
+              "median_audio_ms": 2623,
+              "model_requests": 3,
+              "mean_input_tokens": 1665
+            },
+            {
+              "case": "exact_recipe",
+              "median_audio_ms": 6200,
+              "model_requests": 3,
+              "mean_input_tokens": 7877
+            }
+          ],
+          "core_passed": 21,
+          "core_total": 24
+        }
+      ],
+      "private_reference": ".local/context-preload-2026-10-22/results-private.json"
+    },
+    {
+      "phase": "/final-pass",
+      "completed_answers": 32,
+      "provider_response_requests": 28,
+      "source_revision": "sha256:dee7737cc670bcf25ca6518d22c0f7e2d62568b4cc7b528fc018f30e6ba343f2",
+      "groups": [
+        {
+          "candidate": "baseline",
+          "completed": 16,
+          "median_audio_ms": 4552,
+          "slowest_audio_ms": 8879,
+          "model_requests": 18,
+          "input_tokens": 134512,
+          "by_case": [
+            {
+              "case": "empathy",
+              "median_audio_ms": 3493.5,
+              "model_requests": 2,
+              "mean_input_tokens": 7915
+            },
+            {
+              "case": "meals",
+              "median_audio_ms": 5515.5,
+              "model_requests": 2,
+              "mean_input_tokens": 7893
+            },
+            {
+              "case": "calendar_fact",
+              "median_audio_ms": 6426,
+              "model_requests": 2,
+              "mean_input_tokens": 7915
+            },
+            {
+              "case": "outlook_unavailable",
+              "median_audio_ms": 3333,
+              "model_requests": 2,
+              "mean_input_tokens": 7914
+            },
+            {
+              "case": "medication_boundary",
+              "median_audio_ms": 4630.5,
+              "model_requests": 2,
+              "mean_input_tokens": 7011
+            },
+            {
+              "case": "actuals_and_approval",
+              "median_audio_ms": 4251,
+              "model_requests": 2,
+              "mean_input_tokens": 6513
+            },
+            {
+              "case": "injection",
+              "median_audio_ms": 3983,
+              "model_requests": 2,
+              "mean_input_tokens": 6512
+            },
+            {
+              "case": "exact_recipe",
+              "median_audio_ms": 8516.5,
+              "model_requests": 4,
+              "mean_input_tokens": 15583
+            }
+          ],
+          "core_passed": 16,
+          "core_total": 16
+        },
+        {
+          "candidate": "prepared",
+          "completed": 16,
+          "median_audio_ms": 3055.5,
+          "slowest_audio_ms": 6027,
+          "model_requests": 10,
+          "input_tokens": 36540,
+          "by_case": [
+            {
+              "case": "empathy",
+              "median_audio_ms": 3197.5,
+              "model_requests": 2,
+              "mean_input_tokens": 747
+            },
+            {
+              "case": "meals",
+              "median_audio_ms": 5535,
+              "model_requests": 2,
+              "mean_input_tokens": 2296
+            },
+            {
+              "case": "calendar_fact",
+              "median_audio_ms": 1912.5,
+              "model_requests": 0,
+              "mean_input_tokens": 0
+            },
+            {
+              "case": "outlook_unavailable",
+              "median_audio_ms": 1557,
+              "model_requests": 0,
+              "mean_input_tokens": 0
+            },
+            {
+              "case": "medication_boundary",
+              "median_audio_ms": 3321,
+              "model_requests": 2,
+              "mean_input_tokens": 7030
+            },
+            {
+              "case": "actuals_and_approval",
+              "median_audio_ms": 5372.5,
+              "model_requests": 2,
+              "mean_input_tokens": 6532
+            },
+            {
+              "case": "injection",
+              "median_audio_ms": 3308,
+              "model_requests": 2,
+              "mean_input_tokens": 1665
+            },
+            {
+              "case": "exact_recipe",
+              "median_audio_ms": 2631,
+              "model_requests": 0,
+              "mean_input_tokens": 0
+            }
+          ],
+          "core_passed": 16,
+          "core_total": 16
+        }
+      ],
+      "private_reference": ".local/context-preload-2026-10-22/final-pass/results-private.json"
+    },
+    {
+      "phase": "/meal-pass",
+      "completed_answers": 6,
+      "provider_response_requests": 6,
+      "source_revision": "sha256:5831576d70e0d11a2ffc7f20c12d88f2084f31a9d89dd7d78f3d38939dac6c23",
+      "groups": [
+        {
+          "candidate": "baseline",
+          "completed": 3,
+          "median_audio_ms": 5200,
+          "slowest_audio_ms": 5484,
+          "model_requests": 3,
+          "input_tokens": 23679,
+          "by_case": [
+            {
+              "case": "meals",
+              "median_audio_ms": 5200,
+              "model_requests": 3,
+              "mean_input_tokens": 7893
+            }
+          ],
+          "core_passed": 3,
+          "core_total": 3
+        },
+        {
+          "candidate": "prepared",
+          "completed": 3,
+          "median_audio_ms": 4563,
+          "slowest_audio_ms": 5131,
+          "model_requests": 3,
+          "input_tokens": 7053,
+          "by_case": [
+            {
+              "case": "meals",
+              "median_audio_ms": 4563,
+              "model_requests": 3,
+              "mean_input_tokens": 2351
+            }
+          ],
+          "core_passed": 3,
+          "core_total": 3
+        }
+      ],
+      "private_reference": ".local/context-preload-2026-10-22/meal-pass/results-private.json"
+    }
+  ],
+  "quality": {
+    "reviewer": "Codex review against fixed synthetic facts and core safety/source/authority criteria; no grading-model call",
+    "scope": "Core consistency and style review of these synthetic answers, not a general or clinical accuracy estimate. Provider/cache/load differences and small samples remain material.",
+    "initial_findings": [
+      {
+        "issue": "Three thin-context calendar answers double-converted the supplied local timestamp, returning 12:30–13:00 rather than 16:30–17:00.",
+        "outcome": "Initial version not deployed. Final unambiguous local lookups use saved instants plus participant-zone formatting; wrong title/date/omission/ambiguity falls through."
+      },
+      {
+        "issue": "Initial preparation reduced input but did not improve the overall median. Stored-preference wording and a negative save clause still kept unnecessarily broad tools.",
+        "outcome": "Read-only classification refined conservatively; full write/ambiguous workflows retained."
+      }
+    ],
+    "final_matched_core": {
+      "baseline_passed": 16,
+      "prepared_passed": 16,
+      "total_each": 16
+    },
+    "final_meal_core": {
+      "baseline_passed": 3,
+      "prepared_passed": 3,
+      "total_each": 3
+    },
+    "no_clinical_or_full_slice_acceptance": true
+  },
+  "timing": {
+    "definition": "Typed turn to first validated waveform available; physical capture/ASR, remote browser transport and audible playback excluded.",
+    "final_matched_median_ms": {
+      "baseline": 4552,
+      "prepared": 3055.5
+    },
+    "final_matched_slowest_ms": {
+      "baseline": 8879,
+      "prepared": 6027
+    },
+    "matched_provider_requests_per_16_answers": {
+      "baseline": 18,
+      "prepared": 10
+    },
+    "meal_retest_median_ms": {
+      "baseline": 5200,
+      "prepared": 4563
+    },
+    "revision_scope": "Both controlled passes precede final conservative unknown/action fallback refinements. The matched pass also precedes shorter meal wording, which the separate meal pass measures; that meal request retains its wording and route in the deployed version. Full regression and normal HTTP checks qualify the final source. Do not combine phases into a new aggregate or claim all site/phone turns take three seconds.",
+    "limits": "Small samples, provider load, cache hits, wording and local speech generation vary. Medication and actual-report workflows retain full context; their varying waits are not all caused by this optimization.",
+    "actual_site_samples": [
+      {
+        "case": "meal",
+        "response_ms": 4917,
+        "first_audio_ms": 6389,
+        "model_calls": 1,
+        "tool_calls": 0,
+        "nutrition_retrievals": 4
+      },
+      {
+        "case": "empathy",
+        "response_ms": 2430,
+        "first_audio_ms": 4003,
+        "model_calls": 1,
+        "tool_calls": 0,
+        "nutrition_retrievals": 0
+      },
+      {
+        "case": "recipe",
+        "response_ms": 83,
+        "first_audio_ms": 4068,
+        "model_calls": 0,
+        "tool_calls": 0,
+        "nutrition_retrievals": 1
+      },
+      {
+        "case": "recipe_followup",
+        "response_ms": 4159,
+        "first_audio_ms": 8493,
+        "model_calls": 1,
+        "tool_calls": 0,
+        "nutrition_retrievals": 1
+      },
+      {
+        "case": "outlook_unavailable",
+        "response_ms": 119,
+        "first_audio_ms": 2365,
+        "model_calls": 0,
+        "tool_calls": 0,
+        "nutrition_retrievals": 0
+      }
+    ],
+    "latency_solved": false
+  },
+  "verification": {
+    "full_regression": {
+      "passed": 1027,
+      "failed": 0,
+      "optional_skips": 2,
+      "files": 112,
+      "revision": "sha256:dcadc4fd46e1e7b0d9f3444143bcbe8bdee3427b850a282bd9e1f655068a3f1d",
+      "private_reference": ".local/probes/prepared-context-full-tests.json"
+    },
+    "typecheck": "pass",
+    "client_build": "pass into a private output directory; active UI assets unchanged",
+    "normal_http": {
+      "passed": 35,
+      "total": 35,
+      "turns": 5,
+      "recipe_quantities_without_inference": true,
+      "recipe_followup_complete_context_one_model_call_no_tool": true,
+      "unavailable_outlook_without_inference": true,
+      "private_reference": ".local/context-preload-2026-10-22/runtime-http.json"
+    },
+    "priority_diagnostic": {
+      "local_only_turns": 4,
+      "model_requests": 0,
+      "checks_passed": 27,
+      "rows": [
+        {
+          "priority": "BelowNormal",
+          "first_audio_ms": 1847
+        },
+        {
+          "priority": "Normal",
+          "first_audio_ms": 1779
+        },
+        {
+          "priority": "Normal",
+          "first_audio_ms": 1759
+        },
+        {
+          "priority": "BelowNormal",
+          "first_audio_ms": 1786
+        }
+      ],
+      "outcome": "No material improvement established by two paired observations; original BelowNormal restored. No persistent scheduling change, no live-process adjustment.",
+      "private_reference": ".local/context-preload-2026-10-22/priority-runtime-http.json"
+    },
+    "preservation": {
+      "checks_passed": 56,
+      "checks_total": 56,
+      "protected_care_tables": 30,
+      "live_process_and_supervisors_unchanged": true,
+      "test_app_restarted_only": true,
+      "both_sites_and_speech_ready": true,
+      "private_reference": ".local/context-preload-2026-10-22/final-preservation.json"
+    },
+    "public_scan": {
+      "status": "pass",
+      "files_scanned": 422,
+      "findings": 0
+    }
+  },
+  "budget": {
+    "maximum_response_requests": 100,
+    "actual_response_requests": 88,
+    "benchmark_response_requests": 85,
+    "runtime_response_requests": 3,
+    "diagnostic_response_requests": 0,
+    "no_completed_request_replayed": true,
+    "no_api_key_or_fallback": true
+  },
+  "rollback": {
+    "prior_sol_low_selection_and_entry_saved": true,
+    "source_manifest_saved": true,
+    "operation": "Restore the saved test-only selection/entry and restart only the verified owner-test child. No care/database reset or credential transfer."
+  },
+  "remaining": [
+    "User listening review of the prepared practice copy.",
+    "Normal-site samples remain variable: meal 6.4 seconds and recipe preparation follow-up 8.5 seconds; speech adds material delay. Context preparation alone has not solved conversation latency.",
+    "Actual iPhone/Safari microphone/audible timing, intended-person/genuine-day and full-slice acceptance.",
+    "External Outlook is intentionally absent in the owner copy; this test does not qualify live provider preparation or reconnect."
+  ],
+  "source_revision_scope": "implementation_revision covers the complete 209-file implementation manifest; each phase source_revision hashes its 11 recorded source/probe file hashes, preserving that measured version separately."
+}
