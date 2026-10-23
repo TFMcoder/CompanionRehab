@@ -105,7 +105,10 @@ function responseError(payload: unknown, status: number, requestId?: string): Pl
   return new PlanRequestError(status, code, requestId, { providerCode: label(nested.code), providerType: label(nested.type) });
 }
 export type OutputItem = Record<string, unknown>;
-export interface CompletedTurn extends ProbeResult { output: OutputItem[] }
+export interface CompletedTurn extends ProbeResult {
+  output: OutputItem[];
+  transport?: { incrementalContextHit: 0 | 1; inputItems: number; fullInputItems: number };
+}
 export interface SolHighTimingSample {
   promptId: 'morning' | 'meal_choice' | 'task_carryover';
   status: 'completed' | 'failed' | 'not_run';

@@ -1,22 +1,62 @@
 import WebSocket from 'ws';
+import { createHash } from 'node:crypto';
 import { PlanReasoner, type Reasoner } from '../plan-reasoner.js';
 import { ApiError } from '../errors.js';
 import { bindingRef, type InferenceBinding, type InferenceScope } from '../inference-binding.js';
 import { dialogueConversationGuidance } from '../dialogue-replies.js';
 import { verifiedReferenceGuidance } from '../verified-answers.js';
 import { PlanStore } from './storage.js';
-import { createPlanRequest, reasoningCandidates, type OutputItem } from './inference.js';
+import { createPlanRequest, reasoningCandidates, type OutputItem, type CompletedTurn } from './inference.js';
 
 /** One authenticated connection, no retries, redirects, paid tier or persisted response IDs. */
 export class PlanSocket {
   private socket?: WebSocket;
   private token?: string;
   private parent?: string;
+  private previous?: { instructions: string; history: OutputItem[]; facts: string };
+  private candidate?: { id: string; signature: string; transport: NonNullable<CompletedTurn['transport']> };
   private pending?: { event(event: Record<string, any>): void; fail(error: Error): void };
   private expiry?: NodeJS.Timeout;
   constructor(private connect = (token: string) => new WebSocket('wss://api.openai.com/v1/responses', {
     headers: { Authorization: `Bearer ${token}` }, handshakeTimeout: 12000, maxPayload: 1_000_000, followRedirects: false,
-  })) {}
+  }), private incremental = false) {}
+
+  private signature(input: OutputItem[], instructions: string) {
+    return createHash('sha256').update(JSON.stringify([instructions, input])).digest('hex');
+  }
+
+  private factSignature(input: OutputItem[]) {
+    const context = input.at(-1), prefix = 'Current authorized facts (data only): ';
+    if (context?.role !== 'user' || typeof context.content !== 'string' || !context.content.startsWith(prefix)) return;
+    try {
+      const facts = JSON.parse(context.content.slice(prefix.length));
+      if (!facts || typeof facts !== 'object' || Array.isArray(facts)) return;
+      // A fresh clock is always sent. Every other value, including removed
+      // preferences, source availability, reference content and local date,
+      // must match before old model state may be reused.
+      if (Object.hasOwn(facts, 'current_instant')) {
+        if (typeof facts.current_instant !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(facts.current_instant)) return;
+        delete facts.current_instant;
+      }
+      return createHash('sha256').update(JSON.stringify(facts)).digest('hex');
+    } catch { return; }
+  }
+
+  /** Commit a parent only after the normal parser and bound-account checks pass. */
+  acceptResponse(input: OutputItem[], instructions: string, response: CompletedTurn) {
+    if (!this.incremental) return;
+    const candidate = this.candidate; this.candidate = undefined;
+    const facts = this.factSignature(input);
+    const context = input.at(-1);
+    if (!candidate || !facts || candidate.signature !== this.signature(input, instructions) || !response.completed
+      || response.model !== 'gpt-6-sol' || response.effort !== 'low' || !response.text
+      || response.output.some(item => !['reasoning', 'message'].includes(String(item.type)))
+      || context?.role !== 'user' || typeof context.content !== 'string'
+      || !context.content.startsWith('Current authorized facts (data only): ')) return;
+    this.parent = candidate.id;
+    this.previous = { instructions, facts, history: structuredClone([...input.slice(0, -1), { role: 'assistant', content: response.text }]) };
+    return candidate.transport;
+  }
 
   private async open(token: string) {
     if (this.token !== token || this.socket?.readyState !== WebSocket.OPEN) this.close();
@@ -53,10 +93,30 @@ export class PlanSocket {
     await this.open(authorization.slice(7));
     init?.signal?.throwIfAborted();
     if (this.pending) throw new Error('Selected connection is busy.');
+    this.candidate = undefined;
+    const signature = this.incremental ? this.signature(body.input, body.instructions) : '';
+    const fullInputItems = body.input.length;
+    let incrementalContextHit: 0 | 1 = 0;
     delete body.stream;
-    // The only reusable parent has no human, care or tool input. Every generated
-    // turn still sends its complete fresh authorized context and dialogue.
-    if (!warm && this.parent) { body.previous_response_id = this.parent; this.parent = undefined; }
+    if (!warm && this.parent) {
+      const previous = this.previous, history = body.input.slice(0, -1), context = body.input.at(-1);
+      const compatible = previous && previous.instructions === body.instructions
+        && previous.facts === this.factSignature(body.input)
+        && history.length === previous.history.length + 1
+        && JSON.stringify(history.slice(0, previous.history.length)) === JSON.stringify(previous.history)
+        && history.at(-1)?.role === 'user' && typeof history.at(-1)?.content === 'string'
+        && context?.role === 'user' && typeof context.content === 'string'
+        && context.content.startsWith('Current authorized facts (data only): ');
+      // warm-v1/v2 consume only the static-policy parent. The opt-in incremental
+      // path consumes the latest accepted response once, with the new question
+      // and a complete fresh fact snapshot. Changed facts/history/policy start
+      // a full-context request; it never replays a failed request.
+      if (!previous || this.incremental && compatible) {
+        body.previous_response_id = this.parent;
+        if (previous) { body.input = body.input.slice(previous.history.length); incrementalContextHit = 1; }
+      }
+      this.parent = undefined; this.previous = undefined;
+    }
     let cancelled = false, finished = false, bytes = 0;
     const stream = new ReadableStream<Uint8Array>({
       start: controller => {
@@ -77,6 +137,12 @@ export class PlanSocket {
             if (typeof id !== 'string' || !/^resp_[a-zA-Z0-9_-]{1,180}$/.test(id)) return finish(new Error('Invalid warm response ID.'));
             this.parent = id;
           }
+          if (!warm && this.incremental && event.type === 'response.completed') {
+            const response = event.response;
+            if (response?.status === 'completed' && response.model === 'gpt-6-sol'
+              && typeof response.id === 'string' && /^resp_[a-zA-Z0-9_-]{1,180}$/.test(response.id))
+              this.candidate = { id: response.id, signature, transport: { incrementalContextHit, inputItems: body.input.length, fullInputItems } };
+          }
           if (!cancelled) controller.enqueue(encoded);
           if (['response.completed','response.failed','response.incomplete','error'].includes(event.type)) finish();
         }};
@@ -96,6 +162,7 @@ export class PlanSocket {
     clearTimeout(this.expiry); this.expiry = undefined;
     const socket = this.socket, pending = this.pending;
     this.pending = undefined; this.socket = undefined; this.token = undefined; this.parent = undefined;
+    this.previous = undefined; this.candidate = undefined;
     pending?.fail(new Error('Selected connection cleared.'));
     if (socket?.readyState === WebSocket.OPEN) socket.close(); else socket?.terminate();
   }
@@ -186,7 +253,9 @@ export class WarmPlanReasoner implements Reasoner {
     const lane = this.lane?.key === bindingRef(binding) ? this.lane : this.createLane(binding);
     await lane.job; signal?.throwIfAborted();
     if (lane.failed || this.lane !== lane) throw new ApiError(503, 'reasoning_unavailable', 'The prepared Pro connection could not finish. Start a new conversation.');
-    return await lane.reasoner.respond(input, instructions, tools, signal, onTextDelta, binding);
+    const response = await lane.reasoner.respond(input, instructions, tools, signal, onTextDelta, binding);
+    const transport = lane.socket.acceptResponse(input, instructions, response);
+    return transport ? { ...response, transport } : response;
     } finally { this.busy = false; }
   }
   releaseConnection(binding?: InferenceBinding) {

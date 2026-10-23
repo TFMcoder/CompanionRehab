@@ -916,7 +916,9 @@ export class ConversationService {
             const usage = sumInferenceUsage([callUsage]); usages.push(usage);
             try { this.observeCall?.({ conversation_id: id, turn_id: turnId, actor_id: session.user_id,
               outcome: callOutcome, stage: 'model', model_call_index: modelCalls, duration_ms: Math.round(duration),
-              policy_version: NANCY_POLICY_VERSION, binding_ref: bindingRef(state.binding), ...this.usageMetric(usage) }); } catch { /* Metadata cannot change a care response. */ }
+              policy_version: NANCY_POLICY_VERSION, binding_ref: bindingRef(state.binding), ...this.usageMetric(usage),
+              ...(response?.transport ? { incremental_context_hit: response.transport.incrementalContextHit,
+                input_items: response.transport.inputItems, full_input_items: response.transport.fullInputItems } : {}) }); } catch { /* Metadata cannot change a care response. */ }
           }
           await this.validateScope(session, state);
           ensureOpen();

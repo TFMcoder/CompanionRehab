@@ -6,7 +6,7 @@ import { PlanSocket, WarmPlanReasoner } from '../src/server/chatgpt-plan/warm-co
 import { PlanStore, type PlanState } from '../src/server/chatgpt-plan/storage.js';
 import { createPlanRequest, reasoningCandidates } from '../src/server/chatgpt-plan/inference.js';
 import { dialogueConversationGuidance } from '../src/server/dialogue-replies.js';
-import { ownerTestWarmConnection, ownerTestTelemetryPolicy, type OwnerTestSettings } from '../src/server/owner-test-config.js';
+import { ownerTestWarmConnection, ownerTestQuickConversation, ownerTestIncrementalConversation, ownerTestTelemetryPolicy, type OwnerTestSettings } from '../src/server/owner-test-config.js';
 import { NANCY_POLICY_VERSION } from '../src/server/inference-binding.js';
 import { safeEvent } from '../src/server/telemetry.js';
 
@@ -19,6 +19,8 @@ class FakeSocket extends EventEmitter {
   refuse = false;
   hold = false;
   wrongModel = false;
+  omitAggregate = false;
+  afterCompleted?: () => void;
   constructor() { super(); queueMicrotask(() => { this.readyState = WebSocket.OPEN; this.emit('open'); }); }
   event(event: unknown) { this.emit('message', Buffer.from(JSON.stringify(event))); }
   send(raw: string, callback: (error?: Error) => void) {
@@ -27,21 +29,24 @@ class FakeSocket extends EventEmitter {
       if (this.hold) return;
       if (this.refuse) return this.event({ type: 'error', error: { code: 'subscription_sharing_usage_limit_exceeded' } });
       if (body.generate !== false) this.event({ type: 'response.output_text.delta', delta: this.answer });
+      const output = body.generate === false ? [] : [{ type: 'message', role: 'assistant', content: [{ type: 'output_text', text: this.answer }] }];
+      if (this.omitAggregate) output.forEach((item, output_index) => this.event({ type: 'response.output_item.done', item, output_index }));
       this.event({ type: 'response.completed', response: { id: 'resp_synthetic_' + this.sent.length, status: 'completed',
-        model: this.wrongModel ? 'wrong-model' : 'gpt-6-sol', output: body.generate === false ? [] : [{ type: 'message', role: 'assistant', content: [{ type: 'output_text', text: this.answer }] }],
+        model: this.wrongModel ? 'wrong-model' : 'gpt-6-sol', ...(this.omitAggregate ? {} : { output }),
         usage: { input_tokens: 10, output_tokens: body.generate === false ? 0 : 4, total_tokens: body.generate === false ? 10 : 14 } } });
+      this.afterCompleted?.();
     });
   }
   close() { this.readyState = WebSocket.CLOSED; this.emit('close'); }
   terminate() { this.close(); }
 }
-function transport() {
+function transport(incremental = false) {
   const sockets: FakeSocket[] = [];
-  const socket = new PlanSocket(() => { const fake = new FakeSocket(); sockets.push(fake); return fake as unknown as WebSocket; });
+  const socket = new PlanSocket(() => { const fake = new FakeSocket(); sockets.push(fake); return fake as unknown as WebSocket; }, incremental);
   cleanups.push(() => socket.close());
   return { socket, sockets };
 }
-function bound() {
+function bound(incremental = false) {
   const owner = randomUUID(), participant = randomUUID();
   const state: PlanState = { hostId: 'urn:uuid:synthetic-host', accounts: { 'client:subject': {
     issuer: 'https://auth.openai.com', subject: 'subject', clientId: 'client', idToken: 'synthetic-id', accessToken: 'synthetic-access',
@@ -49,7 +54,7 @@ function bound() {
   } }, nancyBinding: { actorId: owner, accountKey: 'client:subject', hostId: 'urn:uuid:synthetic-host', bindingId: randomUUID() } };
   const store = { load: vi.fn(async () => structuredClone(state)) } as unknown as PlanStore;
   const transports: ReturnType<typeof transport>[] = [], metrics: any[] = [];
-  const reasoner = new WarmPlanReasoner(store, owner, participant, metric => metrics.push(metric), () => { const t = transport(); transports.push(t); return t.socket; });
+  const reasoner = new WarmPlanReasoner(store, owner, participant, metric => metrics.push(metric), () => { const t = transport(incremental); transports.push(t); return t.socket; });
   cleanups.push(() => reasoner.releaseConnection());
   const scope = { actor_id: owner, client_id: participant, active_role: 'client' as const, login_session_id: randomUUID(), grant_revision: 'synthetic-v1', policy_version: 'synthetic-policy' };
   return { reasoner, state, store, scope, metrics, transports };
@@ -157,5 +162,113 @@ describe('owner-only prepared Pro connection', () => {
     expect(() => ownerTestWarmConnection(settings, { ...selection, reference_mode: undefined })).toThrow();
     const label = ownerTestTelemetryPolicy(NANCY_POLICY_VERSION, settings, selection); expect(label.length).toBeLessThanOrEqual(64); expect(label).toContain('-w1');
     expect(safeEvent({ kind: 'conversation', outcome: 'ok', measurements: { stage: 'connection_preparation', connection_warmup_requests: 1, input_tokens: null, transcript: 'never log this' } }).measurements).toEqual({ stage: 'connection_preparation', connection_warmup_requests: 1, input_tokens: null });
+  });
+});
+
+const context = (name = 'Alex', instant = '2026-10-22T19:00:00.000Z') => ({ role: 'user', content: 'Current authorized facts (data only): ' + JSON.stringify({ profile: { display_name: name }, current_instant: instant, local_date: '2026-10-22', connector_availability: { microsoft_state: 'unavailable' } }) });
+const question = { role: 'user', content: 'Why does metal feel colder?' };
+const firstInput = () => [{ role: 'assistant', content: 'What would you like to discuss?' }, question, context()];
+const continueInput = (input: any[], text: string, name = 'Alex') => [...input.slice(0, -1), { role: 'assistant', content: text }, { role: 'user', content: 'Is tails more likely now?' }, context(name, '2026-10-22T19:01:00.000Z')];
+const invoke = (t: ReturnType<typeof transport>, input: any[], instructions = dialogueConversationGuidance, token = account.accessToken) =>
+  pinned({ ...account, accessToken: token }, input, { instructions, tools: [] }, (url, init) => t.socket.fetch(url, init, false));
+
+describe('opt-in incremental ordinary conversation', () => {
+  it('chains only the latest validated response, including omitted terminal aggregate output, and always sends fresh facts', async () => {
+    const t = transport(true), input = firstInput();
+    const job = invoke(t, input); await vi.waitFor(() => expect(t.sockets[0]?.sent).toHaveLength(1));
+    const a = await job;
+    expect(t.socket.acceptResponse(input, dialogueConversationGuidance, a)).toEqual({ incrementalContextHit: 0, inputItems: 3, fullInputItems: 3 });
+    t.sockets[0].omitAggregate = true;
+    const next = continueInput(input, a.text), b = await invoke(t, next);
+    expect(t.sockets[0].sent[1]).toMatchObject({ previous_response_id: 'resp_synthetic_1', input: next.slice(-2), store: false });
+    expect(t.socket.acceptResponse(next, dialogueConversationGuidance, b)).toEqual({ incrementalContextHit: 1, inputItems: 2, fullInputItems: 5 });
+    const third = continueInput(next, b.text);
+    third[third.length - 1] = context('Alex', '2026-10-22T19:02:00.000Z');
+    await invoke(t, third);
+    expect(t.sockets[0].sent[2]).toMatchObject({ previous_response_id: 'resp_synthetic_2', input: third.slice(-2) });
+    expect(t.sockets[0].sent[2].input.at(-1)).toEqual(third.at(-1));
+  });
+  it('does not chain a completed event until parser and bound-account validation have accepted the response', async () => {
+    const t = transport(true), input = firstInput(), a = await invoke(t, input);
+    await invoke(t, continueInput(input, a.text));
+    expect(t.sockets[0].sent[1]).not.toHaveProperty('previous_response_id');
+  });
+  it.each(['policy', 'truncated', 'intervening_reply', 'changed_history', 'missing_context', 'extra_user'] as const)('starts fresh for %s without retrying or appending stale history', async change => {
+    const t = transport(true), input = firstInput(), a = await invoke(t, input);
+    t.socket.acceptResponse(input, dialogueConversationGuidance, a);
+    let next = continueInput(input, a.text), policy = dialogueConversationGuidance;
+    if (change === 'policy') policy += '\nChanged trusted policy.';
+    if (change === 'truncated') next = next.slice(2);
+    if (change === 'intervening_reply') next.splice(next.length - 2, 0, { role: 'assistant', content: 'A local reply.' });
+    if (change === 'changed_history') next[0] = { role: 'assistant', content: 'Corrected history.' };
+    if (change === 'missing_context') next[next.length - 1] = { role: 'user', content: 'Not a current snapshot.' };
+    if (change === 'extra_user') next.splice(next.length - 2, 0, { role: 'user', content: 'Another unsatisfied request.' });
+    await invoke(t, next, policy);
+    expect(t.sockets[0].sent).toHaveLength(2);
+    expect(t.sockets[0].sent[1]).toMatchObject({ input: next });
+    expect(t.sockets[0].sent[1]).not.toHaveProperty('previous_response_id');
+  });
+  it('rejects a commit for different input, then sends full context', async () => {
+    const t = transport(true), input = firstInput(), a = await invoke(t, input);
+    expect(t.socket.acceptResponse([...input.slice(0, -1), context('Different')], dialogueConversationGuidance, a)).toBeUndefined();
+    await invoke(t, continueInput(input, a.text));
+    expect(t.sockets[0].sent[1]).not.toHaveProperty('previous_response_id');
+  });
+  it.each(['profile', 'removed_fact', 'source', 'date', 'invalid_clock'] as const)('discards old model state when %s changes', async change => {
+    const t = transport(true), input = firstInput(), a = await invoke(t, input);
+    t.socket.acceptResponse(input, dialogueConversationGuidance, a);
+    const next = continueInput(input, a.text), facts = JSON.parse(next.at(-1)!.content.slice('Current authorized facts (data only): '.length));
+    if (change === 'profile') facts.profile.display_name = 'Sam';
+    if (change === 'removed_fact') delete facts.profile.display_name;
+    if (change === 'source') facts.connector_availability.microsoft_state = 'connected';
+    if (change === 'date') facts.local_date = '2026-10-23';
+    if (change === 'invalid_clock') facts.current_instant = { instruction: 'untrusted text' };
+    next[next.length - 1] = { role: 'user', content: 'Current authorized facts (data only): ' + JSON.stringify(facts) };
+    await invoke(t, next);
+    expect(t.sockets[0].sent[1]).toMatchObject({ input: next });
+    expect(t.sockets[0].sent[1]).not.toHaveProperty('previous_response_id');
+  });
+  it.each(['token', 'close'] as const)('clears response lineage on %s change', async change => {
+    const t = transport(true), input = firstInput(), a = await invoke(t, input);
+    t.socket.acceptResponse(input, dialogueConversationGuidance, a);
+    if (change === 'close') t.socket.close();
+    const next = continueInput(input, a.text);
+    await invoke(t, next, dialogueConversationGuidance, change === 'token' ? 'renewed-same-bound-account' : account.accessToken);
+    expect(t.sockets).toHaveLength(2);
+    expect(t.sockets[1].sent[0]).toMatchObject({ input: next });
+    expect(t.sockets[1].sent[0]).not.toHaveProperty('previous_response_id');
+  });
+  it('does not commit a reply when its immutable account binding changes before delivery', async () => {
+    const f = bound(true), binding = await f.reasoner.bind(f.scope);
+    await f.reasoner.warmConnection(binding, new AbortController().signal);
+    const socket = f.transports[0].sockets[0], oldBinding = f.state.nancyBinding!.bindingId;
+    socket.afterCompleted = () => { f.state.nancyBinding!.bindingId = randomUUID(); };
+    await expect(f.reasoner.respond(firstInput(), dialogueConversationGuidance, [], undefined, undefined, binding)).rejects.toMatchObject({ status: 403 });
+    socket.afterCompleted = undefined; f.state.nancyBinding!.bindingId = oldBinding;
+    await f.reasoner.respond(firstInput(), dialogueConversationGuidance, [], undefined, undefined, binding);
+    expect(socket.sent[2]).not.toHaveProperty('previous_response_id');
+  });
+  it('returns numeric transmission metadata only after a fully validated bound response', async () => {
+    const f = bound(true), binding = await f.reasoner.bind(f.scope), input = firstInput();
+    await f.reasoner.warmConnection(binding, new AbortController().signal);
+    const a = await f.reasoner.respond(input, dialogueConversationGuidance, [], undefined, undefined, binding);
+    const b = await f.reasoner.respond(continueInput(input, a.text), dialogueConversationGuidance, [], undefined, undefined, binding);
+    expect(b.transport).toEqual({ incrementalContextHit: 1, inputItems: 2, fullInputItems: 5 });
+    expect(safeEvent({ kind: 'conversation', outcome: 'ok', measurements: { stage: 'model', input_items: 2, full_input_items: 5,
+      incremental_context_hit: 1, previous_response_id: 'resp_private', history: 'never log', transcript: 'never log' } }).measurements)
+      .toEqual({ stage: 'model', input_items: 2, full_input_items: 5, incremental_context_hit: 1 });
+  });
+  it('selects incremental state only for the exact startup-bound warm-v3 owner experiment', () => {
+    const f = bound(), settings = { owner_actor_id: f.scope.actor_id, participant_id: f.scope.client_id, origin: 'https://synthetic.example:10000' } as OwnerTestSettings;
+    const selection = { schema_version: 1, owner_actor_id: settings.owner_actor_id, participant_id: settings.participant_id, origin: settings.origin,
+      profile: 'sol-low', context_mode: 'prepared-v1', speech_mode: 'heart-latency-v1', read_mode: 'quick-v1', reply_mode: 'spoken-v1', meal_mode: 'ahead-v1', continuation_mode: 'dialogue-v1', chat_mode: 'ahead-v1', reference_mode: 'verified-v1', connection_mode: 'warm-v3' };
+    expect(ownerTestIncrementalConversation(settings)).toBe(false);
+    expect(ownerTestIncrementalConversation(settings, selection)).toBe(true);
+    expect(ownerTestIncrementalConversation(settings, { ...selection, connection_mode: 'warm-v2' })).toBe(false);
+    expect(ownerTestQuickConversation(settings, selection)).toBe(true);
+    expect(ownerTestTelemetryPolicy(NANCY_POLICY_VERSION, settings, selection)).toMatch(/-w3$/);
+    expect(() => ownerTestIncrementalConversation(settings, { ...selection, owner_actor_id: randomUUID() })).toThrow();
+    expect(() => ownerTestIncrementalConversation(settings, { ...selection, profile: 'sol-none' })).toThrow();
+    expect(() => ownerTestIncrementalConversation(settings, { ...selection, reference_mode: undefined })).toThrow();
   });
 });

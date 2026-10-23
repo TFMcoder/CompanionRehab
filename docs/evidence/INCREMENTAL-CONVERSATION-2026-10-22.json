@@ -1,0 +1,251 @@
+{
+  "recorded_at": "2026-10-23T02:41:58.951Z",
+  "implementation_revision": "sha256:a247f03bd5ce641d65bec043aada86e3ea6d8d1939af28770fb6537786984e30",
+  "status": "candidate_rejected_previous_configuration_restored",
+  "selected_mode": "warm-v2",
+  "rejected_mode": "warm-v3",
+  "scope": "Exact isolated synthetic owner/client/origin; Sol-low and pinned Heart unchanged; main/Dad process/settings/data unchanged; existing bound Pro only, no API billing.",
+  "method": {
+    "first_audio": "Typed input to first completed, validated native Heart WAV; warmup/preparation measured separately. Not microphone-to-listening latency.",
+    "tests_builds_during_timing": false,
+    "care_writes": false,
+    "candidate": "Retain latest fully validated ordinary response on the same bound connection. Send new question plus complete fresh facts/time; reset on changed/removed non-clock facts, history, policy, token, date, source or scope. No automatic retry, fallback or unvalidated early speech.",
+    "first_turn": "Existing static-policy warmup is common to both paths. Incremental reuse affects only subsequent compatible turns."
+  },
+  "phases": {
+    "invalid_harness": {
+      "answers": 32,
+      "attempts": 36,
+      "excluded_from_comparison": true,
+      "reason": "Omitted terminal aggregate output was not collected from completed output-item events; subsequent requests did not exercise incremental transmission. All attempts retained and counted."
+    },
+    "preliminary_corrected": {
+      "source": "Private prototype over previous source, before final strict fact-reset guard; not final-source evidence.",
+      "attempts": 20,
+      "current": {
+        "answers": 8,
+        "first_audio_median_ms": 1973.5,
+        "first_audio_worst_ms": 2535,
+        "first_text_median_ms": 1145
+      },
+      "candidate": {
+        "answers": 8,
+        "first_audio_median_ms": 1819.5,
+        "first_audio_worst_ms": 2175,
+        "first_text_median_ms": 1066
+      },
+      "manual_accuracy_pass": 16
+    },
+    "final_controlled": {
+      "revision": "sha256:a247f03bd5ce641d65bec043aada86e3ea6d8d1939af28770fb6537786984e30",
+      "attempts": 10,
+      "current": {
+        "answers": 4,
+        "first_audio_median_ms": 1838,
+        "first_audio_worst_ms": 2001,
+        "first_text_median_ms": 1010.5
+      },
+      "candidate": {
+        "answers": 4,
+        "first_audio_median_ms": 2383.5,
+        "first_audio_worst_ms": 3121,
+        "first_text_median_ms": 1488.5
+      },
+      "manual_accuracy_pass": 8,
+      "reused_questions": {
+        "current": {
+          "answers": 2,
+          "first_audio_median_ms": 1763.5,
+          "first_audio_worst_ms": 1881,
+          "first_text_median_ms": 1019.5
+        },
+        "candidate": {
+          "answers": 2,
+          "first_audio_median_ms": 1861.5,
+          "first_audio_worst_ms": 1961,
+          "first_text_median_ms": 1065
+        }
+      },
+      "cases": [
+        {
+          "case_id": "metal",
+          "current_first_audio_ms": 1795,
+          "candidate_first_audio_ms": 3121
+        },
+        {
+          "case_id": "coin",
+          "current_first_audio_ms": 1881,
+          "candidate_first_audio_ms": 1961
+        },
+        {
+          "case_id": "unknown",
+          "current_first_audio_ms": 1646,
+          "candidate_first_audio_ms": 1762
+        },
+        {
+          "case_id": "fresh",
+          "current_first_audio_ms": 2001,
+          "candidate_first_audio_ms": 2806
+        }
+      ],
+      "incremental_requests": 2,
+      "changed_fact_resets": 1,
+      "warmups": [
+        {
+          "variant": "current",
+          "duration_ms": 936,
+          "usage": {
+            "inputTokens": 411,
+            "outputTokens": 0,
+            "totalTokens": 411,
+            "cachedInputTokens": 0,
+            "reasoningOutputTokens": 0
+          }
+        },
+        {
+          "variant": "incremental",
+          "duration_ms": 1125,
+          "usage": {
+            "inputTokens": 411,
+            "outputTokens": 0,
+            "totalTokens": 411,
+            "cachedInputTokens": 0,
+            "reasoningOutputTokens": 0
+          }
+        }
+      ]
+    },
+    "actual_http": {
+      "before_checks": 21,
+      "candidate_checks": 24,
+      "before_attempts": 5,
+      "candidate_attempts": 5,
+      "reserved_each": 17,
+      "manual_accuracy_pass": 4,
+      "cases": [
+        {
+          "case_id": "compass",
+          "before_first_audio_ms": 5712,
+          "candidate_first_audio_ms": 3059,
+          "before_model_ms": 1913,
+          "candidate_model_ms": 2790
+        },
+        {
+          "case_id": "coin",
+          "before_first_audio_ms": 2774,
+          "candidate_first_audio_ms": 1990,
+          "before_model_ms": 1735,
+          "candidate_model_ms": 1807
+        }
+      ],
+      "candidate_transmission": [
+        {
+          "incremental_context_hit": 0,
+          "input_items": 3,
+          "full_input_items": 3,
+          "input_tokens": 581,
+          "output_tokens": 39,
+          "cached_input_tokens": 0
+        },
+        {
+          "incremental_context_hit": 1,
+          "input_items": 2,
+          "full_input_items": 5,
+          "input_tokens": 785,
+          "output_tokens": 36,
+          "cached_input_tokens": 0
+        }
+      ],
+      "candidate_preparation": [
+        {
+          "outcome": "ok",
+          "stage": "connection_preparation",
+          "duration_ms": 891,
+          "model_calls": 0,
+          "connection_warmup_requests": 1,
+          "input_tokens": 411,
+          "output_tokens": 0
+        },
+        {
+          "outcome": "ok",
+          "stage": "conversation_preparation",
+          "duration_ms": 8185,
+          "model_calls": 1,
+          "connection_warmup_requests": 0,
+          "input_tokens": 762,
+          "output_tokens": 138
+        },
+        {
+          "outcome": "ok",
+          "stage": "conversation_preparation",
+          "duration_ms": 6796,
+          "model_calls": 1,
+          "connection_warmup_requests": 0,
+          "input_tokens": 821,
+          "output_tokens": 118
+        }
+      ]
+    }
+  },
+  "decision": {
+    "outcome": "reject",
+    "reason": "Final exact-source comparison does not confirm reliable improvement, including both genuinely reused questions. The favourable actual-site audio sample does not have faster model duration. Restore the previous test configuration; general thinking/first-turn delay remains open.",
+    "rolled_back": true,
+    "restored_selection_and_entry_byte_identical": true,
+    "no_further_provider_requests": true
+  },
+  "verification": {
+    "regressions": {
+      "passed": 1252,
+      "failed": 0,
+      "optional_skips": 2,
+      "files": 120
+    },
+    "focused": {
+      "passed": 159,
+      "failed": 0,
+      "files": 7
+    },
+    "typecheck": true,
+    "private_current_build_identical": true,
+    "protected_care_tables": 30,
+    "preservation_checks": 43,
+    "restored_source_and_readiness_checks": 368,
+    "manifest_entries": 348,
+    "rollback": "Executed against only the verified test child; prior selection and entry restored byte-for-byte and checked. Both supervisors and main app/run unchanged.",
+    "person_device_full_slice": "awaiting_live_test",
+    "roadmap_validation": {
+      "passed": true,
+      "slices": 12,
+      "human_actions": 36,
+      "automated_checks": 71,
+      "live_scenarios": 31,
+      "completed_features": 0,
+      "human_view_generated_and_checked": true,
+      "human_states_unchanged": true
+    },
+    "public_boundary": {
+      "passed": true,
+      "files_scanned": 461,
+      "findings": 0
+    }
+  },
+  "request_budget": {
+    "maximum": 80,
+    "attempted": 76,
+    "controlled": 66,
+    "runtime_observed": 10,
+    "runtime_reserved": 0,
+    "closed": true,
+    "closed_at": "2026-10-23T02:40:11.583Z",
+    "unused": 4
+  },
+  "private_evidence_ref": ".local/incremental-chat-2026-10-22/ (ignored; complete manifests, raw synthetic answers, exact bindings and runtime observations)",
+  "limitations": [
+    "Small synthetic sample, no uniform speed/quality or clinical/person/device acceptance.",
+    "First/reset request timing differences cannot be attributed to incremental reuse.",
+    "The prototype gain did not reproduce in the final source; no new speed improvement is claimed.",
+    "Warmup/continuation costs are outside timed answers and included in all-attempt accounting.",
+    "store:false and process-memory IDs do not establish remote retention or residency guarantees."
+  ]
+}
