@@ -1,0 +1,127 @@
+{
+  "recorded_at": "2026-10-23T15:32:19.963Z",
+  "implementation_revision": "sha256:cf39729b498510609de3a55959dcb702668a5f6a3bb1fa48bcf1f46aab9f47a2",
+  "status": "engineering_verified_awaiting_phone_test",
+  "authorization": "Owner requested guided Safari voice testing in the isolated owner copy over Wi-Fi/cellular, retaining Heart, Dad and no API billing. The owner identified an iPhone 14 Pro Max; iOS version is unknown.",
+  "deployment": {
+    "page": "/safari-test.html on existing owner HTTPS origin",
+    "normal_test_home_unchanged": true,
+    "only_verified_owner_child_restarted": true,
+    "both_supervisors_unchanged": true,
+    "dad_process_assets_configuration_unchanged": true,
+    "model_voice_selection_unchanged": true,
+    "selected_test": "existing Sol-low/warm-v2, prepared context, Heart",
+    "production": "existing Sol-high/Heart, no restart or deployment",
+    "ingress_inspected_read_only": true,
+    "existing_owner_public_funnel": true,
+    "proxy_only_to_owner_test": true,
+    "owner_child_restarts": 2
+  },
+  "method": {
+    "same_voice_path": true,
+    "no_automatic_microphone_or_conversation": true,
+    "scenarios": [
+      "opening",
+      "breakfast",
+      "ingredient",
+      "general",
+      "followup",
+      "schedule",
+      "pause",
+      "resume"
+    ],
+    "automatic": "Detected speech end, endpointing, complete reply request, first-WAV headers/download/decode, owner audio-preparation Server-Timing and Web Audio scheduling. Numeric ASR/model/whole-turn telemetry is correlated by submitted turn ID.",
+    "manual": "The I hear her answer tap includes human reaction time and is stored separately. It is not a calibrated acoustic onset. Audible-response ground truth remains null.",
+    "network": "User chooses Wi-Fi/cellular and browser/audio condition. The page cannot prove network type. Same scenario order and device/output; repeat with reversed network order before causal conclusions.",
+    "correctness": "Human rates transcription, answer, responsiveness and a bounded problem code. The schedule scenario expects the deliberately disconnected owner Outlook limit; it does not qualify a working connector.",
+    "pause_lock": "Existing 900 ms endpointing and disabled acoustic interruption preserved. Deliberate pause and lock/resume can fail; failures/missing observations are retained rather than converted to successes."
+  },
+  "privacy": {
+    "storage": "ignored owner-only private directory; no care ledger writes by the study",
+    "new_retained_content": "fixed scenario IDs, numeric stages, fixed-choice ratings and lifecycle events only",
+    "transcript_audio_arbitrary_notes_credentials": false,
+    "displayed_text": "Current transcription/reply displayed for checking, not stored in study results. Normal authorized Nancy/Pro processing remains unchanged; no new provider-retention guarantee.",
+    "expiry_days": 14,
+    "cleanup_hours_while_running": 1,
+    "max_passes": 64,
+    "max_samples_per_pass": 16,
+    "max_events_per_pass": 48,
+    "authority": "Fresh server-derived owner actor, client role, synthetic participant, login and grant revision on each route; sample delivery also verifies retained reply authority. No client-supplied actor/account/role.",
+    "replay": "Identical pass/sample/event submissions are idempotent; changed reused payloads rejected; explicit rating edits supported."
+  },
+  "verification": {
+    "regressions": {
+      "passed": 1266,
+      "failed": 0,
+      "optional_skips": 2,
+      "files": 123
+    },
+    "focused": {
+      "passed": 55,
+      "failed": 0
+    },
+    "typecheck_pass": true,
+    "separate_build_pass": true,
+    "production_assets_not_built_or_written": true,
+    "protected_tables_unchanged": 30,
+    "preservation_checks": 43,
+    "readiness_source_checks": 371,
+    "http_checks": 19,
+    "desktop_browser": "Actual deployed page visibly loads the signed-in Before you start controls. No desktop microphone/conversation was started, and this is not Safari/device acceptance.",
+    "initial_checks": "An early test-only mock typing error was corrected. The first sandbox Vitest attempt could not create its temporary cache and executed zero tests; that incomplete report is retained privately. Final focused and full runs pass on the qualified revision.",
+    "roadmap_validation": {
+      "passed": true,
+      "slices": 12,
+      "human_actions": 36,
+      "automated_checks": 73,
+      "live_scenarios": 32,
+      "completed_features": 0,
+      "human_view_generated_and_checked": true,
+      "human_completion_unchanged": true
+    },
+    "public_boundary": {
+      "passed": true,
+      "files_scanned": 475,
+      "findings": 0
+    },
+    "refinement": "Manual hearing-tap control remains in the sticky header, each pass clears old diagnostic queues, and failed timing saves can finish as explicit missing-observation events. Final focused/typecheck/build/full suite and deployed checks repeated on this revision; prior passing source/evidence retained privately."
+  },
+  "accounting": {
+    "observed_owner_preparation_requests": 2,
+    "explicit_benchmark_requests": 0,
+    "engineering_conversations_started": 0,
+    "engineering_phone_passes_created": 0,
+    "usage": {
+      "input_tokens": 5826,
+      "output_tokens": 70,
+      "total_tokens": 5896,
+      "cached_input_tokens": 2688,
+      "reasoning_output_tokens": 0
+    },
+    "correction": "Initial zero-provider-call assumption was wrong: existing authenticated-session/page access starts the already-enabled foreground meal preload. Two actual Pro model calls are counted from numeric telemetry. No new benchmark was run. This is retrospective accounting; no new predeclared request-cap guard was in place for that existing preparation.",
+    "normal_preparation": "Foreground meal preparation remains enabled on page/session access, before Talk. It is separate from microphone capture and starting a conversation. Phone turns and their normal preparation use the same immutable owner Pro route; actual usage/unknowns remain in telemetry.",
+    "engineering_accounting_closed": true,
+    "remaining_reserved_requests": 0,
+    "api_key_or_billing_change": false,
+    "paid_service_purchase": false,
+    "no_model_fallback": true
+  },
+  "rollback": "Private previous owner client and changed existing source backups retained; rollback is scoped to the owner page/process. Dad is not a rollback target.",
+  "live": {
+    "status": "awaiting_live_test",
+    "wifi_phone_observed": false,
+    "cellular_phone_observed": false,
+    "ios_version": null,
+    "speed_gain_claimed": false,
+    "human_actions_completed": false,
+    "intended_person_device_full_slice_complete": false
+  },
+  "private_evidence_ref": ".local/safari-voice-2026-10-23/ and .local/owner-test/safari-study/ (ignored; exact bindings/process identities and any future tester results stay private)",
+  "limitations": [
+    "No actual phone result exists yet.",
+    "Manual taps include reaction time; scheduled playback is not audibility.",
+    "Whole-turn/model/audio-preparation values overlap; do not add them as independent stages.",
+    "A single paired Wi-Fi/cellular pass cannot establish reliable percentiles or a causal network effect.",
+    "This is an owner test instrument, not a production design or completed S01 acceptance."
+  ]
+}

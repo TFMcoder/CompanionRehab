@@ -3,6 +3,13 @@ import { SpeechActivityGate } from './speech-activity';
 import { reportVoiceTiming, voiceTimingMetric, type VoiceTiming } from './voice-timing';
 import type {ConversationPurpose} from '../shared/client-navigation';
 import {keepConversationAwake} from './conversation-awake';
+import type {ClientVoiceMetric} from '../shared/client-voice-metrics';
+import type {SafariDetail} from '../shared/safari-study';
+
+export interface VoiceObservation {
+  conversation_id:string;turn_id:string|null;metric:ClientVoiceMetric;detail:SafariDetail;
+  input_at:number;speech_ended_at:number|null;
+}
 
 export type LocalVoiceState = 'connecting' | 'thinking' | 'listening' | 'speaking' | 'closing' | 'stopped' | 'error';
 export interface LocalVoiceOptions {
@@ -13,6 +20,8 @@ export interface LocalVoiceOptions {
   onTranscript: (speaker: 'you' | 'nancy', text: string) => void;
   onChange: () => void;
   onNavigate: (view: string) => void;
+  /** Optional owner-study observer; failure must never hold up or cancel voice. No text/audio. */
+  onObservation?: (observation:VoiceObservation) => void;
 }
 export interface LocalVoiceHandle { stop: () => Promise<void>; sendText: (text: string) => Promise<void>; interrupt: () => void }
 
@@ -141,14 +150,17 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     });
   };
   const handle: LocalVoiceHandle = { stop, sendText: text => sendText(text), interrupt };
-  const speak = async (replyId: string, speechParts: number | undefined, ticket: number, opening: boolean, onPlayback?: () => void) => {
+  const speak = async (replyId: string, speechParts: number | undefined, ticket: number, opening: boolean, onPlayback?: (detail:SafariDetail) => void) => {
     assertTurn(ticket);
     if (!replyId || !sessionId) throw new Error('Nancy did not return an audio reply.');
     options.onState(opening ? 'connecting' : 'thinking', opening ? 'Preparing Nancy’s greeting…' : 'Preparing Nancy’s reply…');
     const count = speechParts ?? 1;
     if (!Number.isInteger(count) || count < 1 || count > 32) throw new Error('Nancy returned an invalid audio reply.');
     const turnSignal = AbortSignal.any([signal, replyController.signal]);
+    let firstDetail:SafariDetail={audio_headers_ms:null,audio_download_ms:null,audio_decode_ms:null,audio_preparation_server_ms:null,audio_bytes:null,
+      sample_rate:context.sampleRate,context_state:'unknown'};
     const getPart = async (part: number) => {
+      const fetchAt=performance.now();
       const query = `turn_id=${encodeURIComponent(replyId)}${speechParts === undefined ? '' : `&part=${part}`}`;
       const response = await fetch(`/api/conversation/${encodeURIComponent(sessionId!)}/speech?${query}`, {
         credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.any([turnSignal, AbortSignal.timeout(60_000)]),
@@ -158,8 +170,15 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
         notifyAuthorizationFailure(response.status,body.error?.code);
         throw new ApiError(response.status,body.error?.code??'audio_unavailable','Nancy audio could not play. The reply is available as text.');
       }
+      const headersAt=performance.now();
       const bytes = await response.arrayBuffer(); assertTurn(ticket);
-      const audio = await context.decodeAudioData(bytes); assertTurn(ticket); return audio;
+      const receivedAt=performance.now();
+      const audio = await context.decodeAudioData(bytes); assertTurn(ticket);
+      const serverTiming=response.headers?.get('Server-Timing')?.match(/(?:^|,)\s*nancy_audio;dur=([0-9]+(?:\.[0-9]+)?)(?:,|$)/);
+      if(part===0)firstDetail={audio_headers_ms:Math.round(headersAt-fetchAt),audio_download_ms:Math.round(receivedAt-headersAt),audio_preparation_server_ms:serverTiming?Number(serverTiming[1]):null,
+        audio_decode_ms:Math.round(performance.now()-receivedAt),audio_bytes:bytes.byteLength,sample_rate:context.sampleRate,
+        context_state:['running','suspended','interrupted','closed'].includes(context.state)?context.state as SafariDetail['context_state']:'unknown'};
+      return audio;
     };
     let current = await getPart(0);
     for (let part = 0; part < count; part++) {
@@ -175,7 +194,7 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
         };
         options.onState('speaking', 'Nancy is speaking. Your turn is next.');
         node.start();
-        if (part === 0) onPlayback?.();
+        if (part === 0) onPlayback?.(firstDetail);
       });
       assertTurn(ticket);
       if (next) { const fetched = await next; if ('error' in fetched) throw fetched.error; current = fetched.audio; }
@@ -196,8 +215,12 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     // A lost request leaves the server's exact command available for recovery.
     if(reply.acknowledgement_required&&sessionId)
       void api.conversationReceived(sessionId,reply.reply_id,signal).catch(()=>undefined);
-    try { await speak(reply.reply_id, reply.speech_parts, ticket, opening, timing ? () => {
-      if (sessionId) reportVoiceTiming(sessionId, voiceTimingMetric(timing, reply, performance.now(), context.outputLatency), signal);
+    try { await speak(reply.reply_id, reply.speech_parts, ticket, opening, timing ? detail => {
+      const metric=voiceTimingMetric(timing,reply,performance.now(),context.outputLatency);
+      if (sessionId) {
+        reportVoiceTiming(sessionId,metric,signal);
+        try{options.onObservation?.({conversation_id:sessionId,turn_id:timing.turnId??null,metric,detail,input_at:timing.inputAt,speech_ended_at:timing.speechEndedAt});}catch{/* Study observations cannot interrupt voice. */}
+      }
     } : undefined); }
     catch (error) { if (closed || ticket === generation) throw error; return; }
     if (!closed && ticket === generation) startListening();
@@ -212,7 +235,8 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     options.onState('thinking', 'Nancy is thinking…');
     try {
       await interruptBarrier; assertTurn(ticket);
-      const reply = await api.conversationAudio(sessionId, base64(audio), crypto.randomUUID(), turnSignal);
+      timing.turnId=crypto.randomUUID();
+      const reply = await api.conversationAudio(sessionId, base64(audio), timing.turnId, turnSignal);
       await applyReply(reply, ticket, false, false, timing);
     } catch {
       if (!closed && !interruptionFailed && ticket === generation) startListening('That turn was not confirmed. Check the displayed plan before trying again.');
@@ -228,7 +252,8 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     options.onTranscript('you', value); options.onState('thinking', 'Nancy is thinking…');
     try {
       await interruptBarrier; assertTurn(ticket);
-      await applyReply(await api.conversationTurn(sessionId, value, crypto.randomUUID(), turnSignal), ticket, true, false, timing);
+      timing.turnId=crypto.randomUUID();
+      await applyReply(await api.conversationTurn(sessionId, value, timing.turnId, turnSignal), ticket, true, false, timing);
     } catch {
       if (!closed && !interruptionFailed && ticket === generation) startListening('That turn was not confirmed. Check the displayed plan before trying again.');
     }

@@ -75,6 +75,15 @@ describe('local Nancy voice', () => {
     context.source!.onended?.();const handle=await starting;await handle.stop();
   });
 
+  it('reports optional owner-study transfer/decode observations without content and isolates observer failures',async()=>{
+    const observe=vi.fn((_value:unknown)=>{throw new Error('Study storage offline');});
+    const starting=startLocalVoice({onState:vi.fn(),onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn(),onObservation:observe});
+    await vi.waitFor(()=>expect(context.source).toBeDefined());expect(observe).toHaveBeenCalledTimes(1);
+    expect(observe.mock.calls[0][0]).toMatchObject({conversation_id:'s1',turn_id:null,metric:{audible_response_ms:null},detail:{audio_bytes:8,sample_rate:48000}});
+    expect(JSON.stringify(observe.mock.calls)).not.toContain('Good morning');
+    context.source!.onended?.();const handle=await starting;await handle.stop();
+  });
+
   it('continues audio when the optional metric transport fails synchronously', async () => {
     vi.mocked(fetch).mockImplementation((url)=>{if(String(url).endsWith('/timing'))throw new Error('Diagnostic offline');
       return Promise.resolve({ok:true,arrayBuffer:async()=>new ArrayBuffer(8)} as Response);});

@@ -1,6 +1,7 @@
 import type { ClientVoiceMetric } from '../shared/client-voice-metrics';
 
 export interface VoiceTiming {
+  turnId?:string;
   inputMode: ClientVoiceMetric['input_mode'];
   inputAt: number;
   speechEndedAt: number | null;

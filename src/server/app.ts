@@ -27,13 +27,14 @@ import { TaskRequestService } from './task-requests.js';
 import { taskRequestCommandSchema, taskRequestDraftSchema } from '../shared/task-request-contracts.js';
 import { createLocalFeatures, registerLocalFeatures, type LocalFeatures } from './local-features.js';
 import { registerClientVoiceMetrics } from './client-voice-metrics.js';
+import {registerSafariStudy,type SafariStudy} from './safari-study.js';
 import {registerMicrosoftRoutes,microsoftCallbackPath} from './microsoft/routes.js';
 import {createMicrosoftRuntime} from './microsoft/runtime.js';
 import type {MicrosoftService} from './microsoft/service.js';
 import {NancySuggestions} from './nancy-suggestions.js';
 
 type RequestService = Pick<TaskRequestService, 'workspace'|'review'|'command'|'receipt'|'authorityRevision'>;
-export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; taskRequests?: RequestService; features?:LocalFeatures; microsoft?:MicrosoftService|null; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog } = {}) {
+export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; taskRequests?: RequestService; features?:LocalFeatures; microsoft?:MicrosoftService|null; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog;safariStudy?:SafariStudy } = {}) {
   const app = Fastify({ logger: false, bodyLimit: 100000, trustProxy: false, requestTimeout: 120000, genReqId: () => randomUUID(), requestIdHeader: false });
   const care: CareService = dependencies.care || (config.databaseUrl ? new LocalCare({ connectionString: config.databaseUrl }) : new Supabase(config));
   const voice = dependencies.voice || new VoiceService(config, care);
@@ -106,6 +107,10 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     active.count++; limits.set(key, active);
     if (active.count > maximum) throw new ApiError(429, 'rate_limited', 'Please wait a minute before trying again.');
   };
+  if(dependencies.safariStudy){
+    if(config.sessionCookieName!=='nancy_test_session'||!care.authority||!conversation)throw Error('Owner study requires the isolated authenticated voice runtime.');
+    registerSafariStudy(app,{study:dependencies.safariStudy,synthetic:config.synthetic===true,sessions,authority:s=>care.authority!(s),conversation,limit});
+  }
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof ZodError) return reply.code(400).send({ error: { code: 'invalid_input', message: 'Check the information and choices, then try again.' } });
     if (error instanceof ApiError) {
@@ -286,6 +291,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     finally { if (speaking.get(key) === controller) speaking.delete(key); }
   });
   app.get('/api/conversation/:id/speech', async (request, reply) => {
+    const speechRequestAt=performance.now();
     const id = conversationId(request), session = sessions.get(request)!;
     const { turn_id, part } = z.object({ turn_id: uuid, part: z.coerce.number().int().min(0).max(31).optional() }).strict().parse(request.query);
     const { conversation, speech } = localConversation();
@@ -311,6 +317,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     }
     const parts=splitSpeechParts(fullText,conversation.speechPartSize);
     void conversation.prepareConversation(id,session,turn_id,part===0||part===undefined&&parts.length===1?audio:undefined,part===undefined||part===parts.length-1).catch(()=>{});
+    if(dependencies.safariStudy)reply.header('Server-Timing',`nancy_audio;dur=${(performance.now()-speechRequestAt).toFixed(1)}`);
     return reply.type('audio/wav').send(audio);
   });
   app.post('/api/conversation/:id/played', async request => {
