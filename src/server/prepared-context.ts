@@ -18,7 +18,7 @@ export function warmRecipeCatalogue(reference:NutritionReference){
  }catalogues.set(reference,catalogue);}
  return catalogue;
 }
-export function prepareTurnContext(text:string,reference:NutritionReference,previous?:RecipeContinuity):TurnPreparation{
+export function prepareTurnContext(text:string,reference:NutritionReference,previous?:RecipeContinuity,broadConversation=false):TurnPreparation{
  const catalogue=warmRecipeCatalogue(reference),normalized=normalize(text);
  const ids=/\brecipes?\b/i.test(text)?[...new Set((text.match(/\b[BLSD]\d{2}\b/gi)??[]).map(id=>id.toUpperCase()))]:[];
  const named=catalogue.filter(recipe=>(' '+normalized+' ').includes(' '+normalize(recipe.title)+' ')).map(recipe=>recipe.id);
@@ -40,8 +40,10 @@ export function prepareTurnContext(text:string,reference:NutritionReference,prev
  const schedule=/\b(calendar|outlook|appointments?|meetings?|schedule|tasks?|inbox|emails?|messages?)\b/i.test(text);
  const ambiguous=/^(?:yes|no|okay|ok|that one|this one|do that|same|more|tell me more|something else)[.!? ]*$/i.test(text.trim());
  const readQuestion=/\b(what|when|where|how|which|why|should|can|could|quote|look up|tell me|check|show|recommend|suggest|ideas?|options?)\b/i.test(text);
- const ordinary=/\b(pauses?|slow|slowness|wait|waiting|train of thought|i feel)\b/i.test(text)||/^(?:hi|hello|thanks|thank you|good morning|good evening)[.!? ]*$/i.test(text.trim())||/^(?:what (?:is|are)|why|explain|tell me about|how does)\b/i.test(text.trim());
- const mode:PreparationMode=action||ambiguous||food&&schedule||discovery&&!food||!readQuestion&&(food||schedule)?'full':details&&!discovery?'recipe':food?'meals':schedule?'schedule':ordinary?'conversation':'full';
+ const broader=broadConversation&&(/^(?:(?:please|nancy)[, ]+)*(?:(?:can|could|would) you\b|(?:is|are|do|does|can|could|would|what|why|how|where|when|which|explain|describe)\b|tell me (?:about|why|how|a |an |one ))/i.test(text.trim())||/\?\s*$/.test(text));
+ const clinical=broadConversation&&/\b(medic\w*|metformin|insulin|dos\w*|diagnos\w*|treat\w*|symptoms?|diabet\w*|chest pain|trouble breathing|shortness of breath|blood (?:sugar|pressure)|allerg\w*|poison\w*)\b/i.test(text);
+ const ordinary=broader||/\b(pauses?|slow|slowness|wait|waiting|train of thought|i feel)\b/i.test(text)||/^(?:hi|hello|thanks|thank you|good morning|good evening)[.!? ]*$/i.test(text.trim())||/^(?:what (?:is|are)|why|explain|tell me about|how does)\b/i.test(text.trim());
+ const mode:PreparationMode=action||ambiguous||clinical||food&&schedule||discovery&&!food&&!broader||!readQuestion&&(food||schedule)?'full':details&&!discovery?'recipe':food?'meals':schedule?'schedule':ordinary?'conversation':'full';
  return{mode,...(details?{details,continuity:{reference,ids:details.items.map(recipe=>recipe.id)}}:{})};
 }
 /** Retain fresh safety/identity context; omit unrelated workflow detail from read-only questions. */

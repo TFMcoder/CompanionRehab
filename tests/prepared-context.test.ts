@@ -11,6 +11,15 @@ import{preparedFactReply}from'../src/server/prepared-answers.js';
 import type{Today}from'../src/shared/contracts.js';
 const reference=currentNutritionReference();
 describe('owner-only prepared context',()=>{
+ it.each(['Could you explain why metal feels cold?','Is sunlight white? Why is the sky blue instead of violet?','A fair coin landed heads five times. Is tails more likely next?','Tell me a very short story about a patient little robot.','Does a compass point exactly to the North Pole?','Can you describe how a zipper works?'])('broadens only opted-in read-only conversation forms: %s',text=>{
+  expect(prepareTurnContext(text,reference,undefined,true).mode).toBe('conversation');
+ });
+ it.each(['Can you add a calendar event?','Could you save what I ate?','Is this medication dose safe?','Should I double metformin?','Why am I having chest pain?','What are my blood sugar targets?','Tell me another dinner idea','Can you check my Outlook next week?','What tasks and meals do I have?','Yes'])('keeps care, clinical, connector and ambiguous workflows with broader questions: %s',text=>{
+  expect(prepareTurnContext(text,reference,undefined,true).mode).not.toBe('conversation');
+ });
+ it('leaves the existing classifier unchanged when the experiment is absent',()=>{
+  for(const text of ['Could you explain a zipper?','Is sunlight white?','Tell me a very short story.'])expect(prepareTurnContext(text,reference).mode).toBe('full');
+ });
  it('warms only a bounded public catalogue and retrieves named exact recipes before inference',()=>{
   expect(warmRecipeCatalogue(reference)).toBe(warmRecipeCatalogue(reference));
   for(const recipe of warmRecipeCatalogue(reference)){

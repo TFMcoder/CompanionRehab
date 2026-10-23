@@ -11,7 +11,7 @@ interface EventRow extends Omit<RuntimeEvent, 'measurements'> { id: string; reco
 interface LogDatabase { query(sql: string, params?: any[]): Promise<unknown> }
 const durationKeys = new Set(['duration_ms','model_duration_ms','speech_ms','context_duration_ms','tool_duration_ms','first_text_delta_ms','first_speakable_ms']);
 const clientDurationKeys = new Set(['endpointing_ms','request_ms','reply_to_playback_start_ms','input_to_playback_start_ms','speech_end_to_playback_start_ms','reported_output_latency_ms','audible_response_ms']);
-const countKeys = new Set(['model_calls','model_completed_calls','model_failed_calls','model_aborted_calls','model_call_index','tool_calls','tool_rejections','input_chars','nutrition_retrievals','status_code','audio_bytes','input_items','instruction_chars','history_chars','context_chars','prepared_meal_hit','meal_followup_hit','conversation_quick_hit','prepared_conversation_hit','conversation_followup_routed','prepared_candidates','verified_reference_hit','verified_reference_context']);
+const countKeys = new Set(['model_calls','model_completed_calls','model_failed_calls','model_aborted_calls','model_call_index','tool_calls','tool_rejections','input_chars','nutrition_retrievals','status_code','audio_bytes','input_items','instruction_chars','history_chars','context_chars','prepared_meal_hit','meal_followup_hit','conversation_quick_hit','prepared_conversation_hit','conversation_followup_routed','prepared_candidates','verified_reference_hit','verified_reference_context','connection_warmup_requests']);
 const usageKeys = new Set(['input_tokens','output_tokens','total_tokens','cached_input_tokens','reasoning_output_tokens']);
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -33,7 +33,7 @@ export function safeEvent(input: RuntimeEvent): EventRow {
     if (key === 'preparation_failure' && typeof value === 'string' && ['invalid_selection','incomplete_selection','conflicting_selection','model_failed','model_invalid','speech_failed','context_changed','cancelled','timeout'].includes(value)) measurements.preparation_failure=value;
     if (key === 'binding_ref' && typeof value === 'string' && (uuid.test(value) || /^sha256:[a-f0-9]{64}$/.test(value))) measurements.binding_ref = value;
     if (key === 'route' && typeof value === 'string' && /^\/api\/[a-z/:_-]{1,90}$/.test(value)) measurements.route = value;
-    if (key === 'stage' && typeof value === 'string' && ['http_ready','speech_ready','speech_warmup','context','model','tools','client_playback','asr','meal_preparation','conversation_preparation'].includes(value)) measurements.stage = value;
+    if (key === 'stage' && typeof value === 'string' && ['http_ready','speech_ready','speech_warmup','context','model','tools','client_playback','asr','meal_preparation','conversation_preparation','connection_preparation'].includes(value)) measurements.stage = value;
     if (key === 'method' && typeof value === 'string' && ['GET','POST','DELETE','PUT','PATCH','HEAD','OPTIONS'].includes(value)) measurements.method = value;
     if (key === 'nutrition_refs' && Array.isArray(value)) measurements.nutrition_refs = value.slice(0, 2).flatMap(ref => {
       if (!ref || typeof ref !== 'object' || !/^[A-Z0-9_]{1,50}$/.test(ref.document_id) || !/^[a-f0-9]{64}$/.test(ref.sha256) || !Array.isArray(ref.items)) return [];

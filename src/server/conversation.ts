@@ -230,10 +230,11 @@ export class ConversationService {
     private observeTurn?: (metric: ConversationTurnMetric) => void,
     private observeCall?: (metric: InferenceCallMetric) => void,
     private requests?: RequestConversationService, private features?:LocalFeatures, private microsoftEligible?:(session:Session)=>Promise<boolean>,private microsoft?:MicrosoftService,private suggestions?:NancySuggestions,
-    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false,private spokenReplies=false,private prepareMealsAhead=false,private observeMealPreparation?:(metric:MealPreparationMetric)=>void,private dialogueReplies=false,private prepareChat=false,private observeChatPreparation?:(metric:ConversationPreparationMetric)=>void,private verifiedReferences=false) {
+    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false,private spokenReplies=false,private prepareMealsAhead=false,private observeMealPreparation?:(metric:MealPreparationMetric)=>void,private dialogueReplies=false,private prepareChat=false,private observeChatPreparation?:(metric:ConversationPreparationMetric)=>void,private verifiedReferences=false,private warmConnection=false) {
     this.expectedReasoning=validateReasoningProfile(expectedReasoning);
     if(prepareChat&&(!dialogueReplies||!prepareMealsAhead||!spokenReplies||!quickReads||!prepareContext||speechPartSize!==72||this.expectedReasoning.model!=='gpt-6-sol'||this.expectedReasoning.effort!=='low'))throw new RangeError('Conversation preparation requires the exact existing owner dialogue trial.');
     if(verifiedReferences&&!prepareChat)throw new RangeError('Verified references require the exact existing owner conversation trial.');
+    if(warmConnection&&(!verifiedReferences||!reasoner.warmConnection||!reasoner.releaseConnection))throw new RangeError('Warm connection requires the exact existing owner reference trial.');
     if(![120,72].includes(speechPartSize))throw new RangeError('Unknown speech-part size.');
     this.timer = setInterval(() => { for (const [id, state] of this.sessions){if(state.expires<Date.now())this.endState(id,state);else if(state.chatDraft&&state.chatDraft.expires<=this.now().getTime())this.clearChatDraft(state);}for(const[login,draft]of this.mealDrafts)if(draft.expires<=this.now().getTime())this.clearMealDraft(login); }, 30000); this.timer.unref();
   }
@@ -247,7 +248,7 @@ export class ConversationService {
     if(this.microsoft)revision=createHash('sha256').update(revision+':'+await this.microsoft.authorityRevision(session)).digest('hex');
     const experiment=this.expectedReasoning!==selectedReasoning||this.prepareContext||this.speechPartSize!==120||this.quickReads||this.spokenReplies||this.prepareMealsAhead||this.dialogueReplies||this.prepareChat;
     if(experiment&&scope.actor_id!==this.ownerId)throw new ApiError(403,'experiment_owner_only','Reasoning experiments are limited to the owner’s practice copy.');
-    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}${this.spokenReplies?':spoken-v1':''}${this.prepareMealsAhead?':meal-ahead-v1':''}${this.dialogueReplies?':dialogue-v1':''}${this.prepareChat?':chat-ahead-v1':''}${this.verifiedReferences?':references-v1-'+verifiedReferenceHash.slice(0,8):''}`:'') });
+    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}${this.spokenReplies?':spoken-v1':''}${this.prepareMealsAhead?':meal-ahead-v1':''}${this.dialogueReplies?':dialogue-v1':''}${this.prepareChat?':chat-ahead-v1':''}${this.verifiedReferences?':references-v1-'+verifiedReferenceHash.slice(0,8):''}${this.warmConnection?':connection-warm-v1':''}`:'') });
     if(experiment&&(binding.route_id!=='chatgpt_plan_owner_practice'||binding.qualification!=='owner_practice'))throw new ApiError(403,'experiment_owner_only','Reasoning experiments require the owner practice connection.');
     return binding;
   }
@@ -477,6 +478,9 @@ export class ConversationService {
     this.sessions.set(id, state);
     const text = state.binding.active_role==='client' ? purpose==='help'?`Hi ${today.profile!.display_name}, what would you like a hand with?`:purpose==='suggestions'?`Hi ${today.profile!.display_name}, what would you like to improve about Nancy?`:`Hi ${today.profile!.display_name}, what can I help with?` : `Hi, what can I help with for ${today.profile!.display_name}?`;
     state.history.push({ role: 'assistant', content: text });
+    // Foreground start only. Never wait for preparation before showing/speaking
+    // the greeting, and clear its account-bound connection when this state ends.
+    if(this.warmConnection)void this.reasoner.warmConnection!(binding,new AbortController().signal).catch(()=>{});
     return this.reply(id, state, text);
   }
   async speech(id: string, session: Session, replyId: string) {
@@ -772,7 +776,7 @@ export class ConversationService {
         state.review = undefined; state.grocery = undefined; state.activity=undefined;state.request=undefined;state.local=undefined;state.preference=undefined;
         state.history.push({ role: 'user', content: text });
         const reference = currentNutritionReference();
-        const preparation=this.prepareContext&&clientRole?prepareTurnContext(text,reference,state.recipeContinuity):undefined;
+        const preparation=this.prepareContext&&clientRole?prepareTurnContext(text,reference,state.recipeContinuity,this.warmConnection):undefined;
         const verifiedDirect=this.verifiedReferences&&clientRole?verifiedAnswer(text):undefined;
         if(verifiedDirect&&preparation)preparation.mode='conversation';
         if(this.prepareChat&&priorChat&&chatFollowup&&priorChat.expires>this.now().getTime()&&this.historyKey(state.history.slice(0,-1))===priorChat.historyKey){const snapshot=await this.chatSnapshot(session,today);chatFresh=snapshot.key===priorChat.key&&(!priorChat.verifiedId||priorChat.verifiedHash===verifiedReferenceHash);if(chatFresh&&preparation){preparation.mode='conversation';conversationFollowupRouted=1;}}
@@ -1130,7 +1134,7 @@ export class ConversationService {
     const reply=this.reply(id,state,text,changed,navigate);state.review=undefined;state.grocery=undefined;state.activity={command,reply:reply.reply_id,played:false};return reply;
   }
   private key(turn: string, call: string) { const b = createHash('sha256').update(`${turn}:${call}`).digest().subarray(0, 16); b[6] = b[6] & 15 | 64; b[8] = b[8] & 63 | 128; const h = b.toString('hex'); return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`; }
-  private endState(id: string, state: Conversation) { state.closed = true; state.active?.controller.abort(); this.clearPrepared(state);this.clearChatDraft(state);state.mealThread?.audio.clear();state.mealThread=undefined; state.recipeContinuity=undefined;state.history = []; state.replies.clear(); state.activityDeliveries.clear();state.preferenceDeliveries.clear();state.handoffDeliveries.clear();state.turns.clear(); this.sessions.delete(id); }
+  private endState(id: string, state: Conversation) { state.closed = true; state.active?.controller.abort(); if(this.warmConnection)this.reasoner.releaseConnection?.(state.binding); this.clearPrepared(state);this.clearChatDraft(state);state.mealThread?.audio.clear();state.mealThread=undefined; state.recipeContinuity=undefined;state.history = []; state.replies.clear(); state.activityDeliveries.clear();state.preferenceDeliveries.clear();state.handoffDeliveries.clear();state.turns.clear(); this.sessions.delete(id); }
   end(id: string, session: Session) { const state = this.sessions.get(id); if (state?.user === session.user_id && state.login === session.session_id) this.endState(id, state); }
   endLogin(login: string) { if(this.mealJob?.login===login)this.mealJob.controller.abort();this.clearMealDraft(login);for (const [id, state] of this.sessions) if (state.login === login) this.endState(id, state); }
   close() { this.closed=true;this.mealJob?.controller.abort();for(const login of this.mealDrafts.keys())this.clearMealDraft(login);clearInterval(this.timer); for (const [id, state] of this.sessions) this.endState(id, state); }

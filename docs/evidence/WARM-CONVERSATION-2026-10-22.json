@@ -1,0 +1,573 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-22",
+  "observed_at": "2026-10-23T01:23:53.556Z",
+  "status": "owner_review_candidate_active; original bounded HTTP probe failed, recorded behavior reviewed",
+  "scope": "exact isolated owner practice copy only",
+  "implementation_revision": "sha256:3eabbcc1fbb50d84847839e41320e6aac0adde56f22d533dc3acab3047e141eb",
+  "complete_source_files": 346,
+  "model": "gpt-6-sol",
+  "effort": "low",
+  "voice": {
+    "id": "af_heart",
+    "speed": 1,
+    "checkpoint": "1939ad2a8e416c0acfeecc08a694d14ef25f2231",
+    "unchanged": true
+  },
+  "billing": {
+    "route": "existing owner-bound Pro connection in place",
+    "api_key_used": false,
+    "paid_service_tier": false,
+    "separately_billed_api": false
+  },
+  "method": {
+    "typed_request_to_first_validated_wav": true,
+    "full_final_validation_retained": true,
+    "microphone": false,
+    "asr_measured": false,
+    "physical_playback_or_listening": false,
+    "benchmark_no_concurrent_tests_or_builds": true,
+    "baseline_policy_unchanged": true,
+    "static_reference_coverage_unchanged": 14
+  },
+  "screen": {
+    "kind": "synthetic-direct-model-screen",
+    "coverage": "eight fixed questions outside fourteen whole-question references; two repetitions per path",
+    "voice": "af_heart",
+    "no_api_billing": true,
+    "raw_preliminary_bug": {
+      "kind": "local stream-close race after eight completed HTTP answers; one orphan context-only warmup counted",
+      "provider_retry": false,
+      "partial_baselines_retained": true
+    },
+    "groups": {
+      "http": {
+        "count": 16,
+        "median_ms": 2904,
+        "min_ms": 2492,
+        "worst_ms": 17579,
+        "cases": [
+          {
+            "id": "metal",
+            "repeat": 1,
+            "first_audio_ms": 3126,
+            "model_ms": 2697,
+            "first_text_ms": 1951
+          },
+          {
+            "id": "ice",
+            "repeat": 1,
+            "first_audio_ms": 2767,
+            "model_ms": 2419,
+            "first_text_ms": 1582
+          },
+          {
+            "id": "soap",
+            "repeat": 1,
+            "first_audio_ms": 2969,
+            "model_ms": 2841,
+            "first_text_ms": 2055
+          },
+          {
+            "id": "coin",
+            "repeat": 1,
+            "first_audio_ms": 2571,
+            "model_ms": 2276,
+            "first_text_ms": 1594
+          },
+          {
+            "id": "color",
+            "repeat": 1,
+            "first_audio_ms": 3008,
+            "model_ms": 2747,
+            "first_text_ms": 1845
+          },
+          {
+            "id": "unknown",
+            "repeat": 1,
+            "first_audio_ms": 2721,
+            "model_ms": 2448,
+            "first_text_ms": 1817
+          },
+          {
+            "id": "empathy",
+            "repeat": 1,
+            "first_audio_ms": 2708,
+            "model_ms": 2316,
+            "first_text_ms": 1462
+          },
+          {
+            "id": "story",
+            "repeat": 1,
+            "first_audio_ms": 3429,
+            "model_ms": 2294,
+            "first_text_ms": 1493
+          },
+          {
+            "id": "metal",
+            "repeat": 2,
+            "first_audio_ms": 2492,
+            "model_ms": 2436,
+            "first_text_ms": 1590
+          },
+          {
+            "id": "ice",
+            "repeat": 2,
+            "first_audio_ms": 2615,
+            "model_ms": 2344,
+            "first_text_ms": 1695
+          },
+          {
+            "id": "soap",
+            "repeat": 2,
+            "first_audio_ms": 4224,
+            "model_ms": 3840,
+            "first_text_ms": 2992
+          },
+          {
+            "id": "coin",
+            "repeat": 2,
+            "first_audio_ms": 4879,
+            "model_ms": 4468,
+            "first_text_ms": 3773
+          },
+          {
+            "id": "color",
+            "repeat": 2,
+            "first_audio_ms": 3174,
+            "model_ms": 2502,
+            "first_text_ms": 1684
+          },
+          {
+            "id": "unknown",
+            "repeat": 2,
+            "first_audio_ms": 17579,
+            "model_ms": 17579,
+            "first_text_ms": 1997
+          },
+          {
+            "id": "empathy",
+            "repeat": 2,
+            "first_audio_ms": 2839,
+            "model_ms": 2421,
+            "first_text_ms": 1707
+          },
+          {
+            "id": "story",
+            "repeat": 2,
+            "first_audio_ms": 2761,
+            "model_ms": 2761,
+            "first_text_ms": 1855
+          }
+        ]
+      },
+      "warm": {
+        "count": 16,
+        "median_ms": 2479.5,
+        "min_ms": 1910,
+        "worst_ms": 4118,
+        "cases": [
+          {
+            "id": "metal",
+            "repeat": 1,
+            "first_audio_ms": 2052,
+            "model_ms": 1803,
+            "first_text_ms": 1169,
+            "preparation_ms": 1116
+          },
+          {
+            "id": "ice",
+            "repeat": 1,
+            "first_audio_ms": 2484,
+            "model_ms": 2064,
+            "first_text_ms": 1167,
+            "preparation_ms": 1933
+          },
+          {
+            "id": "soap",
+            "repeat": 1,
+            "first_audio_ms": 2322,
+            "model_ms": 1917,
+            "first_text_ms": 1434,
+            "preparation_ms": 1304
+          },
+          {
+            "id": "coin",
+            "repeat": 1,
+            "first_audio_ms": 2569,
+            "model_ms": 2080,
+            "first_text_ms": 1391,
+            "preparation_ms": 916
+          },
+          {
+            "id": "color",
+            "repeat": 1,
+            "first_audio_ms": 4022,
+            "model_ms": 3672,
+            "first_text_ms": 2747,
+            "preparation_ms": 1180
+          },
+          {
+            "id": "unknown",
+            "repeat": 1,
+            "first_audio_ms": 1910,
+            "model_ms": 1264,
+            "first_text_ms": 848,
+            "preparation_ms": 937
+          },
+          {
+            "id": "empathy",
+            "repeat": 1,
+            "first_audio_ms": 2475,
+            "model_ms": 1834,
+            "first_text_ms": 1156,
+            "preparation_ms": 1290
+          },
+          {
+            "id": "story",
+            "repeat": 1,
+            "first_audio_ms": 1922,
+            "model_ms": 1766,
+            "first_text_ms": 1028,
+            "preparation_ms": 1077
+          },
+          {
+            "id": "metal",
+            "repeat": 2,
+            "first_audio_ms": 2158,
+            "model_ms": 1699,
+            "first_text_ms": 1033,
+            "preparation_ms": 835
+          },
+          {
+            "id": "ice",
+            "repeat": 2,
+            "first_audio_ms": 3543,
+            "model_ms": 3233,
+            "first_text_ms": 2528,
+            "preparation_ms": 1127
+          },
+          {
+            "id": "soap",
+            "repeat": 2,
+            "first_audio_ms": 3686,
+            "model_ms": 3537,
+            "first_text_ms": 2820,
+            "preparation_ms": 878
+          },
+          {
+            "id": "coin",
+            "repeat": 2,
+            "first_audio_ms": 2154,
+            "model_ms": 2130,
+            "first_text_ms": 1040,
+            "preparation_ms": 984
+          },
+          {
+            "id": "color",
+            "repeat": 2,
+            "first_audio_ms": 3880,
+            "model_ms": 3726,
+            "first_text_ms": 2867,
+            "preparation_ms": 975
+          },
+          {
+            "id": "unknown",
+            "repeat": 2,
+            "first_audio_ms": 1947,
+            "model_ms": 1461,
+            "first_text_ms": 1085,
+            "preparation_ms": 881
+          },
+          {
+            "id": "empathy",
+            "repeat": 2,
+            "first_audio_ms": 4118,
+            "model_ms": 4092,
+            "first_text_ms": 2892,
+            "preparation_ms": 3745
+          },
+          {
+            "id": "story",
+            "repeat": 2,
+            "first_audio_ms": 2652,
+            "model_ms": 2260,
+            "first_text_ms": 1174,
+            "preparation_ms": 955
+          }
+        ]
+      }
+    },
+    "manual_accuracy": {
+      "reviewed_answers": 32,
+      "passed": true,
+      "criteria": [
+        "metal conducts heat away faster; no actual temperature difference claimed",
+        "ice lower density from open frozen structure",
+        "soap amphiphilic grease removal",
+        "independent fair coin remains one half",
+        "white sunlight; blue/violet scattering and vision distinction",
+        "unknown favorite song not invented",
+        "conversational pacing suggestions, no saved actions claimed",
+        "short fictional robot story"
+      ]
+    },
+    "improvement_percent": 14.617768595041325
+  },
+  "initial_service": {
+    "revision": "sha256:7128ffaf50759e5606202d2a4dec1e1a5a5a2c96495be814081797e61935acfc",
+    "status": "failed",
+    "completed_answers": 3,
+    "failed_answer_attempts": 1,
+    "rows": [
+      {
+        "id": "metal",
+        "variant": "http",
+        "first_audio_ms": 4067,
+        "response_ms": 3846,
+        "model_calls": 1,
+        "parts": 3
+      },
+      {
+        "id": "coin",
+        "variant": "http",
+        "first_audio_ms": 5432,
+        "response_ms": 4286,
+        "model_calls": 1,
+        "parts": 2
+      },
+      {
+        "id": "metal",
+        "variant": "warm",
+        "first_audio_ms": 1984,
+        "response_ms": 1838,
+        "model_calls": 1,
+        "parts": 3
+      },
+      {
+        "id": "coin",
+        "variant": "warm",
+        "model_calls": 1,
+        "parts": 0
+      }
+    ],
+    "requests": 5,
+    "writes_attempted": 0,
+    "diagnosis": "Successive-turn failure is consistent with reusing a warm response ID after the connection cache advanced; the provider error code was not retained, so this is an inference.",
+    "correction": "Use the static warm response as parent once. Later turns send complete fresh input with no previous_response_id. Do not replay the failed question."
+  },
+  "final_service": {
+    "revision": "sha256:3eabbcc1fbb50d84847839e41320e6aac0adde56f22d533dc3acab3047e141eb",
+    "status": "completed",
+    "rows": [
+      {
+        "id": "zipper",
+        "variant": "http",
+        "first_audio_ms": 2477,
+        "response_ms": 2460,
+        "model_calls": 1,
+        "parts": 3
+      },
+      {
+        "id": "tomato",
+        "variant": "http",
+        "first_audio_ms": 3679,
+        "response_ms": 2868,
+        "model_calls": 1,
+        "parts": 3
+      },
+      {
+        "id": "zipper",
+        "variant": "warm",
+        "first_audio_ms": 1992,
+        "response_ms": 1839,
+        "model_calls": 1,
+        "parts": 3
+      },
+      {
+        "id": "tomato",
+        "variant": "warm",
+        "first_audio_ms": 2494,
+        "response_ms": 1653,
+        "model_calls": 1,
+        "parts": 3
+      }
+    ],
+    "warmups": [
+      {
+        "outcome": "completed",
+        "duration_ms": 921,
+        "model_calls": 0,
+        "connection_warmup_requests": 1,
+        "input_tokens": 411,
+        "output_tokens": 0
+      }
+    ],
+    "requests": 5,
+    "writes_attempted": 0,
+    "manually_reviewed_factual_answers": 4,
+    "manual_review_passed": true
+  },
+  "actual_http": {
+    "original_probe_passed": false,
+    "original_check_count": 30,
+    "recorded_behavior_review_passed": true,
+    "unchanged_functional_check_count": 27,
+    "manual_factual_answers": 4,
+    "manual_factual_checks": {
+      "compass": true,
+      "thunder": true,
+      "why": true,
+      "outlook": true
+    },
+    "original_false_checks": [
+      "outlook_honest",
+      "completed",
+      "request_allowance"
+    ],
+    "corrected_expectation": "This Outlook wording follows the existing model-dependent status route: one Pro call, honest unavailable reply, no connector access or write. It was incorrectly asserted to be a zero-inference source reply.",
+    "rows": [
+      {
+        "id": "compass",
+        "first_audio_ms": 2493,
+        "model_calls": 1,
+        "parts": 3
+      },
+      {
+        "id": "thunder",
+        "first_audio_ms": 1001,
+        "model_calls": 0,
+        "parts": 2
+      },
+      {
+        "id": "why",
+        "first_audio_ms": 1711,
+        "model_calls": 0,
+        "parts": 2
+      },
+      {
+        "id": "outlook",
+        "first_audio_ms": 3659,
+        "model_calls": 1,
+        "parts": 1
+      }
+    ],
+    "observed_requests": 4,
+    "preparations": [
+      {
+        "outcome": "ok",
+        "stage": "connection_preparation",
+        "duration_ms": 1014,
+        "model_calls": 0,
+        "connection_warmup_requests": 1,
+        "input_tokens": 411,
+        "output_tokens": 0
+      },
+      {
+        "outcome": "ok",
+        "stage": "conversation_preparation",
+        "duration_ms": 8620,
+        "model_calls": 1,
+        "connection_warmup_requests": 0,
+        "input_tokens": 760,
+        "output_tokens": 114
+      },
+      {
+        "outcome": "interrupted",
+        "stage": "conversation_preparation",
+        "duration_ms": 1450,
+        "model_calls": 0,
+        "connection_warmup_requests": 0,
+        "input_tokens": null,
+        "output_tokens": null
+      }
+    ],
+    "no_rerun": true,
+    "harness_correction": {
+      "prepared": true,
+      "executed": false,
+      "offline_recorded_event_counter_passed": true,
+      "correct_future_reservation": 4,
+      "original_failure_retained": true
+    }
+  },
+  "verification": {
+    "earlier_transport_revision": "sha256:c8a8b1e84a7e2251c1261d8bd9f4571f377aab27aec6edbabed2b524bdbca047",
+    "earlier_full": {
+      "passed": true,
+      "passed_tests": 1192,
+      "failed_tests": 0,
+      "optional_skips": 2,
+      "files": 119
+    },
+    "final_full": {
+      "passed": true,
+      "passed_tests": 1209,
+      "failed_tests": 0,
+      "optional_skips": 2,
+      "files": 119
+    },
+    "final_focused": {
+      "passed": true,
+      "passed_tests": 134,
+      "failed_tests": 0,
+      "optional_skips": 0,
+      "files": 6
+    },
+    "typecheck": true,
+    "private_build": true,
+    "private_build_same_current_assets": true,
+    "care_and_configuration": {
+      "passed": true,
+      "checks": 43,
+      "protected_care_tables": 30
+    },
+    "deployed_source_and_readiness": {
+      "passed": true,
+      "checks": 364
+    },
+    "dad_app_process_and_run_unchanged": true,
+    "both_supervisors_unchanged": true,
+    "only_test_child_restarted": true,
+    "owner_login_and_pro_store_hashes_unchanged": true,
+    "public_scan": {
+      "passed": true,
+      "files_scanned": 455,
+      "findings": 0
+    },
+    "roadmap_validation": {
+      "passed": true,
+      "slices": 12,
+      "human_actions": 36,
+      "automated_checks": 69,
+      "live_scenarios": 31,
+      "completed_features": 0,
+      "human_view_generated_and_checked": true,
+      "human_states_unchanged": true
+    }
+  },
+  "request_accounting": {
+    "planned_maximum": 64,
+    "attempted": 65,
+    "controlled": 61,
+    "runtime_observed": 4,
+    "overrun": 1,
+    "closed": true,
+    "reason": "Unexpected additional model-dependent Outlook status request; no further provider testing"
+  },
+  "rollback": {
+    "prepared": true,
+    "executed": false,
+    "restores": "previous exact owner-only selection and entry; only verified test child restarted; no database or credential restore"
+  },
+  "remaining_gates": [
+    "Unfamiliar question latency remains variable; no universal sub-two-second result",
+    "Original HTTP probe and planned request-cap assertions failed; retained, no retrospective pass",
+    "No person/device/audibility/clinical/genuine-day or full-slice completion"
+  ],
+  "private_evidence_ref": ".local/novel-questions-2026-10-22 (ignored; no transcripts, audio, actor IDs or credentials published)",
+  "source_refs": [
+    "https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations",
+    "https://developers.openai.com/api/docs/guides/websocket-mode"
+  ]
+}
