@@ -22,7 +22,7 @@ export const ownerTestSchema=z.object({
 export type OwnerTestSettings=z.infer<typeof ownerTestSchema>;
 
 const reasoningSelection=z.object({schema_version:z.literal(1),owner_actor_id:z.uuid(),participant_id:z.uuid(),origin:z.url(),
- profile:z.enum(['sol-high','sol-low','sol-none','luna-low','sol61-low']),context_mode:z.literal('prepared-v1').optional(),speech_mode:z.literal('heart-latency-v1').optional(),read_mode:z.literal('quick-v1').optional(),reply_mode:z.literal('spoken-v1').optional(),meal_mode:z.literal('ahead-v1').optional(),continuation_mode:z.literal('dialogue-v1').optional(),chat_mode:z.literal('ahead-v1').optional(),reference_mode:z.literal('verified-v1').optional(),connection_mode:z.literal('warm-v1').optional()}).strict().superRefine((value,ctx)=>{
+ profile:z.enum(['sol-high','sol-low','sol-none','luna-low','sol61-low']),context_mode:z.literal('prepared-v1').optional(),speech_mode:z.literal('heart-latency-v1').optional(),read_mode:z.literal('quick-v1').optional(),reply_mode:z.literal('spoken-v1').optional(),meal_mode:z.literal('ahead-v1').optional(),continuation_mode:z.literal('dialogue-v1').optional(),chat_mode:z.literal('ahead-v1').optional(),reference_mode:z.literal('verified-v1').optional(),connection_mode:z.enum(['warm-v1','warm-v2']).optional()}).strict().superRefine((value,ctx)=>{
  if(value.speech_mode&&(value.profile!=='sol-low'||value.context_mode!=='prepared-v1'))ctx.addIssue({code:'custom',message:'Speech trial requires the existing prepared Sol-low owner copy.'});
  if(value.read_mode&&(!value.speech_mode||value.profile!=='sol-low'||value.context_mode!=='prepared-v1'))ctx.addIssue({code:'custom',message:'Quick reads require the existing prepared Sol-low/Heart owner trial.'});
  if(value.reply_mode&&value.read_mode!=='quick-v1')ctx.addIssue({code:'custom',message:'Spoken replies require the existing prepared Sol-low/Heart/quick-read owner trial.'});
@@ -73,12 +73,16 @@ export function ownerTestVerifiedReferences(settings:OwnerTestSettings,selection
 }
 export function ownerTestWarmConnection(settings:OwnerTestSettings,selection?:unknown){
  ownerTestReasoning(settings,selection);
- return selection!==undefined&&reasoningSelection.parse(selection).connection_mode==='warm-v1';
+ return selection!==undefined&&['warm-v1','warm-v2'].includes(reasoningSelection.parse(selection).connection_mode??'');
+}
+export function ownerTestQuickConversation(settings:OwnerTestSettings,selection?:unknown){
+ ownerTestReasoning(settings,selection);
+ return selection!==undefined&&reasoningSelection.parse(selection).connection_mode==='warm-v2';
 }
 /** Bounded diagnostic label. Keep it within telemetry's existing 64-character whitelist. */
 export function ownerTestTelemetryPolicy(base:string,settings:OwnerTestSettings,selection?:unknown){
  const profile=ownerTestReasoning(settings,selection);
- const tag=ownerTestWarmConnection(settings,selection)?`${base}-test-sol-low-h1-a1-d1-c1-r1-w1`:ownerTestMealsAhead(settings,selection)?`${base}-test-sol-low-heart1-ahead1${ownerTestDialogue(settings,selection)?'-dialog1':''}${ownerTestChatPreparation(settings,selection)?'-chat1':''}${ownerTestVerifiedReferences(settings,selection)?'-r1':''}`:`${base}-test-${profile.model}-${profile.effort}${ownerTestPreparation(settings,selection)?'-prep1':''}${ownerTestSpeech(settings,selection)?'-heart1':''}${ownerTestQuickReads(settings,selection)?'-read1':''}${ownerTestSpokenReplies(settings,selection)?'-talk1':''}`;
+ const tag=ownerTestWarmConnection(settings,selection)?`${base}-test-sol-low-h1-a1-d1-c1-r1-${ownerTestQuickConversation(settings,selection)?'w2':'w1'}`:ownerTestMealsAhead(settings,selection)?`${base}-test-sol-low-heart1-ahead1${ownerTestDialogue(settings,selection)?'-dialog1':''}${ownerTestChatPreparation(settings,selection)?'-chat1':''}${ownerTestVerifiedReferences(settings,selection)?'-r1':''}`:`${base}-test-${profile.model}-${profile.effort}${ownerTestPreparation(settings,selection)?'-prep1':''}${ownerTestSpeech(settings,selection)?'-heart1':''}${ownerTestQuickReads(settings,selection)?'-read1':''}${ownerTestSpokenReplies(settings,selection)?'-talk1':''}`;
  if(!/^[a-z][a-z0-9_.-]{0,63}$/i.test(tag))throw Error('Owner test diagnostic policy exceeds its safe bound.');
  return tag;
 }

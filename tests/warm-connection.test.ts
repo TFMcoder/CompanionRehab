@@ -84,6 +84,11 @@ describe('owner-only prepared Pro connection', () => {
     await expect(f.reasoner.respond([], dialogueConversationGuidance, [], undefined, undefined, binding)).rejects.toMatchObject({ status: 403 });
     expect(f.transports[0].sockets[0].sent).toHaveLength(1);
   });
+  it('associates warmup accounting with the actual conversation even before its first model turn', async () => {
+    const f = bound(), binding = await f.reasoner.bind(f.scope), conversationId = randomUUID();
+    await f.reasoner.warmConnection(binding, new AbortController().signal, conversationId);
+    expect(f.metrics[0]).toMatchObject({ conversation_id: conversationId, actor_id: f.scope.actor_id, connection_warmup_requests: 1 });
+  });
   it('clears the prior connection on grant, session or policy changes', async () => {
     const f = bound(), binding = await f.reasoner.bind(f.scope);
     await f.reasoner.warmConnection(binding, new AbortController().signal);

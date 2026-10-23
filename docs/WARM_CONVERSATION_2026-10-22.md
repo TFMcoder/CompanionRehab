@@ -1,5 +1,7 @@
 # Owner-copy unfamiliar-question latency — October 22, 2026
 
+**Follow-up:** The active owner candidate is now warm-v2. A fresh S01-AUTO27 HTTP run passes 31 checks within its conservative reservation; the failed run below remains historical and unchanged. See [remaining-reply repair](REPLY_TAIL_2026-10-22.md).
+
 The separate owner test copy now uses an opt-in warm Pro connection and a broader read-only conversation route. This accelerates unfamiliar questions without extending the fourteen-answer reference pack. Sol-low, the selected Heart voice and speaking speed, the locked Current interface, Dad’s running process/settings/data and the exact caregiver route are preserved. No API key, paid service tier, new subscription, local model installation or API billing was used.
 
 The candidate is active at the existing owner test URL on port 10000. It is an engineering review candidate, not a completed slice or a Dad rollout. The original actual-HTTP probe remains **failed** for its status-call expectation and request reservation; the accurate recorded replies were reviewed separately. S01-AUTO27 retains that failure.

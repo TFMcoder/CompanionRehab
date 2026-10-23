@@ -6,7 +6,7 @@ import type { InferenceBinding, InferenceScope } from './inference-binding.js';
 import type { ResolveCaregiverInference } from './caregiver-inference.js';
 
 export interface Reasoner {
-  warmConnection?(binding: InferenceBinding, signal: AbortSignal): Promise<void>;
+  warmConnection?(binding: InferenceBinding, signal: AbortSignal, conversationId?: string): Promise<void>;
   releaseConnection?(binding?: InferenceBinding): void;
   bind(scope: InferenceScope): Promise<InferenceBinding>;
   respond(input: OutputItem[], instructions: string, tools: OutputItem[], signal?: AbortSignal,

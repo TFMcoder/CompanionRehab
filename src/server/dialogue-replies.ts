@@ -10,11 +10,15 @@ export const dialogueChatReplies={
  lost:'That’s frustrating. Tell me one word or idea you remember, and we can pick it up from there.',
  bored:'We could talk about music or a favourite memory. What sounds good?',
  lonely:'I’m here with you. Would you like to tell me about someone or something you miss?',
+ pace:'We can take one idea at a time. What would you like to talk about?',
 } as const;
 export function isSimpleGreeting(text:string){return /^(?:hi|hello|good morning|good evening)(?: nancy)?$/.test(clean(text));}
 /** Exact whole messages only: additional facts, symptoms and care intent cannot be swallowed. */
-export function dialogueChatReply(text:string){
+export function dialogueChatReply(text:string,paceControl=false){
  const question=clean(text);
+ if(paceControl&&(/^(?:(?:can|could) (?:we|you) |please )?(?:slow down|go (?:a little )?slower|take (?:it |this |the conversation )?one (?:thing|idea) at a time)(?: please)?$/.test(question)
+  ||/^(?:one (?:thing|idea) at a time)(?: please)?$/.test(question)
+  ||/^i feel (?:discouraged|overwhelmed|frustrated) when (?:a|the|our|this) conversation (?:moves|goes) too (?:quickly|fast)(?: how (?:can|could) we make it easier)?$/.test(question)))return dialogueChatReplies.pace;
  if(isSimpleGreeting(text))return dialogueChatReplies.greeting;
  if(/^(?:thanks|thank you)(?: nancy)?$/.test(question))return dialogueChatReplies.thanks;
  if(/^(?:i(?:'ve| have)? lost my train of thought|i lost what i was saying|i forgot what i was saying|these (?:long )?pauses are frustrating(?: i lose my train of thought while waiting(?: for you)?)?)$/.test(question))return dialogueChatReplies.lost;

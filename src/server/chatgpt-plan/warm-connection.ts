@@ -102,6 +102,7 @@ export class PlanSocket {
 }
 
 export interface ConnectionPreparationMetric {
+  conversation_id?: string;
   stage: 'connection_preparation'; actor_id: string; binding_ref: string;
   outcome: 'completed' | 'failed' | 'interrupted'; duration_ms: number;
   model_calls: 0; connection_warmup_requests: 1;
@@ -142,7 +143,7 @@ export class WarmPlanReasoner implements Reasoner {
     this.lane = lane; return lane;
   }
   /** Only known trusted instructions are prepared; no question, private facts or answer prediction. */
-  async warmConnection(binding: InferenceBinding, signal: AbortSignal) {
+  async warmConnection(binding: InferenceBinding, signal: AbortSignal, conversationId?: string) {
     this.assertScope(binding);
     if (this.attempts >= 18 || this.busy) return;
     const lane = this.createLane(binding); lane.warming = true; this.attempts++;
@@ -161,7 +162,7 @@ export class WarmPlanReasoner implements Reasoner {
         if (signal.aborted || lane.controller.signal.aborted) outcome = 'interrupted';
       } finally {
         lane.warming = false;
-        try { this.observe?.({ stage: 'connection_preparation', actor_id: binding.actor_id, binding_ref: bindingRef(binding),
+        try { this.observe?.({ ...(conversationId?{conversation_id:conversationId}:{}), stage: 'connection_preparation', actor_id: binding.actor_id, binding_ref: bindingRef(binding),
           outcome, duration_ms: Math.round(performance.now() - started), model_calls: 0, connection_warmup_requests: 1,
           input_tokens: usage?.inputTokens ?? null, output_tokens: usage?.outputTokens ?? null, total_tokens: usage?.totalTokens ?? null,
           cached_input_tokens: usage?.cachedInputTokens ?? null, reasoning_output_tokens: usage?.reasoningOutputTokens ?? null }); } catch { /* Numeric diagnostics cannot affect access. */ }

@@ -1,0 +1,650 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-22",
+  "observed_at": "2026-10-23T01:56:43.905Z",
+  "status": "exact owner warm-v2 review candidate active; repaired actual HTTP probe passes",
+  "implementation_revision": "sha256:d4f38eb5fed5bca4f43f688847b3907bbca1eba6ad6272b91bcc65ba27a350d3",
+  "complete_source_files": 348,
+  "scope": "exact isolated owner practice copy only",
+  "model": "gpt-6-sol",
+  "effort": "low",
+  "voice": {
+    "id": "af_heart",
+    "speed": 1,
+    "checkpoint": "1939ad2a8e416c0acfeecc08a694d14ef25f2231",
+    "settings_unchanged": true
+  },
+  "billing": {
+    "route": "existing owner-bound Pro in place",
+    "api_key": false,
+    "paid_tier": false,
+    "separately_billed_api": false
+  },
+  "method": {
+    "typed_request_to_first_validated_wav": true,
+    "microphone": false,
+    "asr_measured": false,
+    "physical_playback_or_listening": false,
+    "full_final_authority_validation_retained": true,
+    "no_test_or_build_load_during_timing": true
+  },
+  "rejected_public_prefix": {
+    "underlying_modules_revision": "sha256:3eabbcc1fbb50d84847839e41320e6aac0adde56f22d533dc3acab3047e141eb",
+    "harness": "private direct comparison; same Sol-low/Heart; eight cases twice per path, reverse path order",
+    "groups": {
+      "warm": {
+        "count": 16,
+        "median_ms": 2416.5,
+        "worst_ms": 3567,
+        "min_ms": 1757,
+        "cached_input_tokens": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "rows": [
+          {
+            "id": "metal",
+            "repeat": 1,
+            "first_audio_ms": 2489,
+            "first_text_ms": 1086,
+            "model_ms": 1956,
+            "preparation_ms": 1365,
+            "input_tokens": 532,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "ice",
+            "repeat": 1,
+            "first_audio_ms": 2297,
+            "first_text_ms": 947,
+            "model_ms": 1675,
+            "preparation_ms": 2442,
+            "input_tokens": 527,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "soap",
+            "repeat": 1,
+            "first_audio_ms": 2791,
+            "first_text_ms": 1459,
+            "model_ms": 2062,
+            "preparation_ms": 789,
+            "input_tokens": 528,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "coin",
+            "repeat": 1,
+            "first_audio_ms": 2320,
+            "first_text_ms": 1270,
+            "model_ms": 1908,
+            "preparation_ms": 997,
+            "input_tokens": 537,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "color",
+            "repeat": 1,
+            "first_audio_ms": 2897,
+            "first_text_ms": 1627,
+            "model_ms": 2472,
+            "preparation_ms": 911,
+            "input_tokens": 537,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "unknown",
+            "repeat": 1,
+            "first_audio_ms": 2399,
+            "first_text_ms": 1509,
+            "model_ms": 2104,
+            "preparation_ms": 1187,
+            "input_tokens": 526,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "empathy",
+            "repeat": 1,
+            "first_audio_ms": 2766,
+            "first_text_ms": 1588,
+            "model_ms": 2359,
+            "preparation_ms": 2262,
+            "input_tokens": 537,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "story",
+            "repeat": 1,
+            "first_audio_ms": 2547,
+            "first_text_ms": 1371,
+            "model_ms": 2110,
+            "preparation_ms": 799,
+            "input_tokens": 532,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "metal",
+            "repeat": 2,
+            "first_audio_ms": 3567,
+            "first_text_ms": 2572,
+            "model_ms": 3242,
+            "preparation_ms": 891,
+            "input_tokens": 532,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "ice",
+            "repeat": 2,
+            "first_audio_ms": 2128,
+            "first_text_ms": 872,
+            "model_ms": 1859,
+            "preparation_ms": 926,
+            "input_tokens": 527,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "soap",
+            "repeat": 2,
+            "first_audio_ms": 2434,
+            "first_text_ms": 1196,
+            "model_ms": 2146,
+            "preparation_ms": 1932,
+            "input_tokens": 528,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "coin",
+            "repeat": 2,
+            "first_audio_ms": 2461,
+            "first_text_ms": 1227,
+            "model_ms": 1956,
+            "preparation_ms": 833,
+            "input_tokens": 537,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "color",
+            "repeat": 2,
+            "first_audio_ms": 2066,
+            "first_text_ms": 1014,
+            "model_ms": 1800,
+            "preparation_ms": 935,
+            "input_tokens": 537,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "unknown",
+            "repeat": 2,
+            "first_audio_ms": 1955,
+            "first_text_ms": 1133,
+            "model_ms": 1520,
+            "preparation_ms": 839,
+            "input_tokens": 526,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "empathy",
+            "repeat": 2,
+            "first_audio_ms": 2360,
+            "first_text_ms": 1025,
+            "model_ms": 1926,
+            "preparation_ms": 1421,
+            "input_tokens": 537,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "story",
+            "repeat": 2,
+            "first_audio_ms": 1757,
+            "first_text_ms": 944,
+            "model_ms": 1757,
+            "preparation_ms": 833,
+            "input_tokens": 532,
+            "cached_input_tokens": 0
+          }
+        ]
+      },
+      "references": {
+        "count": 16,
+        "median_ms": 2376.5,
+        "worst_ms": 5441,
+        "min_ms": 2005,
+        "cached_input_tokens": [
+          0,
+          0,
+          0,
+          0,
+          1664,
+          1664,
+          0,
+          1664,
+          1664,
+          1664,
+          0,
+          0,
+          0,
+          1664,
+          0,
+          1664
+        ],
+        "rows": [
+          {
+            "id": "metal",
+            "repeat": 1,
+            "first_audio_ms": 2520,
+            "first_text_ms": 1153,
+            "model_ms": 1771,
+            "preparation_ms": 1163,
+            "input_tokens": 1860,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "ice",
+            "repeat": 1,
+            "first_audio_ms": 2163,
+            "first_text_ms": 995,
+            "model_ms": 1707,
+            "preparation_ms": 902,
+            "input_tokens": 1855,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "soap",
+            "repeat": 1,
+            "first_audio_ms": 3475,
+            "first_text_ms": 2244,
+            "model_ms": 2911,
+            "preparation_ms": 1032,
+            "input_tokens": 1856,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "coin",
+            "repeat": 1,
+            "first_audio_ms": 2692,
+            "first_text_ms": 1427,
+            "model_ms": 2053,
+            "preparation_ms": 1116,
+            "input_tokens": 1865,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "color",
+            "repeat": 1,
+            "first_audio_ms": 2539,
+            "first_text_ms": 1205,
+            "model_ms": 2049,
+            "preparation_ms": 958,
+            "input_tokens": 1865,
+            "cached_input_tokens": 1664
+          },
+          {
+            "id": "unknown",
+            "repeat": 1,
+            "first_audio_ms": 2005,
+            "first_text_ms": 1076,
+            "model_ms": 1448,
+            "preparation_ms": 931,
+            "input_tokens": 1854,
+            "cached_input_tokens": 1664
+          },
+          {
+            "id": "empathy",
+            "repeat": 1,
+            "first_audio_ms": 2129,
+            "first_text_ms": 910,
+            "model_ms": 1803,
+            "preparation_ms": 1039,
+            "input_tokens": 1865,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "story",
+            "repeat": 1,
+            "first_audio_ms": 2068,
+            "first_text_ms": 880,
+            "model_ms": 1684,
+            "preparation_ms": 896,
+            "input_tokens": 1860,
+            "cached_input_tokens": 1664
+          },
+          {
+            "id": "metal",
+            "repeat": 2,
+            "first_audio_ms": 2202,
+            "first_text_ms": 1033,
+            "model_ms": 1674,
+            "preparation_ms": 970,
+            "input_tokens": 1860,
+            "cached_input_tokens": 1664
+          },
+          {
+            "id": "ice",
+            "repeat": 2,
+            "first_audio_ms": 2278,
+            "first_text_ms": 1089,
+            "model_ms": 1897,
+            "preparation_ms": 909,
+            "input_tokens": 1855,
+            "cached_input_tokens": 1664
+          },
+          {
+            "id": "soap",
+            "repeat": 2,
+            "first_audio_ms": 2332,
+            "first_text_ms": 1582,
+            "model_ms": 2054,
+            "preparation_ms": 1006,
+            "input_tokens": 1856,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "coin",
+            "repeat": 2,
+            "first_audio_ms": 2815,
+            "first_text_ms": 1388,
+            "model_ms": 2069,
+            "preparation_ms": 908,
+            "input_tokens": 1865,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "color",
+            "repeat": 2,
+            "first_audio_ms": 2421,
+            "first_text_ms": 1079,
+            "model_ms": 1916,
+            "preparation_ms": 1646,
+            "input_tokens": 1865,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "unknown",
+            "repeat": 2,
+            "first_audio_ms": 2244,
+            "first_text_ms": 1375,
+            "model_ms": 1766,
+            "preparation_ms": 971,
+            "input_tokens": 1854,
+            "cached_input_tokens": 1664
+          },
+          {
+            "id": "empathy",
+            "repeat": 2,
+            "first_audio_ms": 5441,
+            "first_text_ms": 4201,
+            "model_ms": 4921,
+            "preparation_ms": 989,
+            "input_tokens": 1865,
+            "cached_input_tokens": 0
+          },
+          {
+            "id": "story",
+            "repeat": 2,
+            "first_audio_ms": 2531,
+            "first_text_ms": 1285,
+            "model_ms": 1900,
+            "preparation_ms": 1188,
+            "input_tokens": 1860,
+            "cached_input_tokens": 1664
+          }
+        ]
+      }
+    },
+    "median_gain_ms": 40,
+    "requests": 64,
+    "subjects_reviewed": 32,
+    "subject_matter_core_review_passed": true,
+    "product_capability_caveat": "At least two generated pacing responses implied an unqualified spoken pause control. The selected fixed pacing reply avoids that claim.",
+    "integration_prototype_revision": "sha256:3e60cf6d5046a8626a1df78682c09ecd4a96f07eef75f06cd3cde9e477fba35b",
+    "integration_prototype_executed": false,
+    "integration_prototype_retained": false,
+    "selected": false,
+    "reason": "Only 40ms median improvement, with slowest reply worsening 3.567→5.441s despite observed 1664 cached input tokens; no reliable improvement in remaining slow replies."
+  },
+  "final_service": {
+    "revision": "sha256:d4f38eb5fed5bca4f43f688847b3907bbca1eba6ad6272b91bcc65ba27a350d3",
+    "status": "completed",
+    "rows": [
+      {
+        "id": "outlook",
+        "variant": "warm-v1",
+        "first_audio_ms": 4741,
+        "model_calls": 1,
+        "parts": 1
+      },
+      {
+        "id": "pace",
+        "variant": "warm-v1",
+        "first_audio_ms": 2204,
+        "model_calls": 1,
+        "parts": 2
+      },
+      {
+        "id": "outlook",
+        "variant": "warm-v2",
+        "first_audio_ms": 56,
+        "model_calls": 0,
+        "parts": 1
+      },
+      {
+        "id": "pace",
+        "variant": "warm-v2",
+        "first_audio_ms": 51,
+        "model_calls": 0,
+        "parts": 2
+      }
+    ],
+    "warmups": [
+      {
+        "duration_ms": 1410,
+        "model_calls": 0,
+        "warmup_requests": 1,
+        "input_tokens": 411,
+        "output_tokens": 0
+      },
+      {
+        "duration_ms": 1059,
+        "model_calls": 0,
+        "warmup_requests": 1,
+        "input_tokens": 411,
+        "output_tokens": 0
+      }
+    ],
+    "requests": 4,
+    "care_writes": 0,
+    "selected_reply_accuracy_review_passed": true
+  },
+  "actual_http": {
+    "passed": true,
+    "checks": 31,
+    "rows": [
+      {
+        "id": "compass",
+        "first_audio_ms": 2455,
+        "model_calls": 1,
+        "parts": 3
+      },
+      {
+        "id": "pace",
+        "first_audio_ms": 66,
+        "model_calls": 0,
+        "parts": 2
+      },
+      {
+        "id": "outlook",
+        "first_audio_ms": 73,
+        "model_calls": 0,
+        "parts": 1
+      },
+      {
+        "id": "color",
+        "first_audio_ms": 2088,
+        "model_calls": 1,
+        "parts": 3
+      }
+    ],
+    "manual_factual_review": {
+      "compass": true,
+      "pace": true,
+      "outlook": true,
+      "color": true
+    },
+    "observed_runtime_requests": 5,
+    "reserved_requests": 27,
+    "accounting": {
+      "known_attempts": 5,
+      "unknown_events": 0,
+      "attempted": 5
+    },
+    "preparations": [
+      {
+        "outcome": "ok",
+        "stage": "connection_preparation",
+        "duration_ms": 984,
+        "model_calls": 0,
+        "warmup_requests": 1,
+        "input_tokens": 411,
+        "output_tokens": 0
+      },
+      {
+        "outcome": "ok",
+        "stage": "conversation_preparation",
+        "duration_ms": 7172,
+        "model_calls": 1,
+        "warmup_requests": 0,
+        "input_tokens": 759,
+        "output_tokens": 136
+      },
+      {
+        "outcome": "interrupted",
+        "stage": "conversation_preparation",
+        "duration_ms": 1970,
+        "model_calls": 1,
+        "warmup_requests": 0,
+        "input_tokens": null,
+        "output_tokens": null
+      }
+    ],
+    "old_failed_run_unchanged": true
+  },
+  "cold_speech_component": {
+    "voice": "af_heart",
+    "speed": 1,
+    "model_loaded_before_timing": true,
+    "target_audio_not_prepared": true,
+    "component_only": true,
+    "request_or_asr_included": false,
+    "microphone": false,
+    "audible": false,
+    "provider_requests": 0,
+    "rows": [
+      {
+        "id": "outlook",
+        "first_uncached_synthesis_ms": 813,
+        "bytes": 193244
+      },
+      {
+        "id": "pace",
+        "first_uncached_synthesis_ms": 816,
+        "bytes": 198044
+      }
+    ]
+  },
+  "verification": {
+    "full": {
+      "passed": true,
+      "passed_tests": 1233,
+      "failed_tests": 0,
+      "optional_skips": 2,
+      "files": 120
+    },
+    "focused": {
+      "passed": true,
+      "passed_tests": 140,
+      "failed_tests": 0,
+      "optional_skips": 0,
+      "files": 7
+    },
+    "typecheck": true,
+    "private_build": true,
+    "identical_current_client_assets": true,
+    "care_and_configuration": {
+      "passed": true,
+      "checks": 43,
+      "protected_tables": 30
+    },
+    "source_and_readiness": {
+      "passed": true,
+      "checks": 366
+    },
+    "dad_app_process_and_run_unchanged": true,
+    "both_supervisors_unchanged": true,
+    "only_test_child_restarted": true,
+    "public_scan": {
+      "passed": true,
+      "files_scanned": 459,
+      "findings": 0
+    },
+    "roadmap_validation": {
+      "passed": true,
+      "slices": 12,
+      "human_actions": 36,
+      "automated_checks": 70,
+      "live_scenarios": 31,
+      "completed_features": 0,
+      "human_view_generated_and_checked": true,
+      "human_states_unchanged": true
+    }
+  },
+  "request_accounting": {
+    "maximum": 96,
+    "attempted": 73,
+    "controlled": 68,
+    "runtime_observed": 5,
+    "reserved": 0,
+    "closed": true,
+    "unused": 23
+  },
+  "rollback": {
+    "prepared": true,
+    "executed": false,
+    "scope": "previous exact warm-v1 selection and Current entry; verified test child only; no database/credential restore"
+  },
+  "remaining_gates": [
+    "Variable general-model waits remain unresolved; rejected cache is not deployed",
+    "Physical-device/microphone/audibility, person, clinical, genuine-day and full-slice acceptance remain open",
+    "Known replies are measured after local speech warmup; cold speech synthesis component is separately recorded"
+  ],
+  "private_evidence_ref": ".local/reply-tail-2026-10-22 (ignored; no raw transcripts, audio, actor/account IDs or credentials published)",
+  "source_refs": [
+    "https://developers.openai.com/api/docs/guides/prompt-caching",
+    "https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations"
+  ],
+  "archived_prior_contract_result": {
+    "test_id": "S01-AUTO27",
+    "outcome": "fail",
+    "implementation_revision": "sha256:3eabbcc1fbb50d84847839e41320e6aac0adde56f22d533dc3acab3047e141eb",
+    "executed_at": "2026-10-23T01:23:53.556Z",
+    "environment": "local_synthetic",
+    "data_origin": "synthetic",
+    "observed_by": "Codex final full/focused regressions, controlled Pro/Heart comparisons, manual factual review, actual isolated HTTP, retained failed probe and read-only preservation checks",
+    "evidence_ref": "docs/evidence/WARM-CONVERSATION-2026-10-22.json",
+    "notes": "Product behavior is review-ready: 1209 regressions pass, zero failures, two optional skips; 134 focused checks pass; typecheck/private identical-Current build pass. Screen 16/path first audio median 2.904→2.4795s; final two-case service 3.078→2.243s, actual new compass question 2.493s. Thirty care tables and Dad/Heart/Current unchanged; 364 source/readiness checks pass. Original HTTP probe remains FAILED: Outlook reply was honest but used one existing-route Pro call rather than the asserted zero, and runtime use was 4 versus reserved 3, making 65 actual requests against the planned 64. No further provider testing. All four recorded HTTP answers pass manual factual review and 27 other functional checks pass; this review does not erase the failed probe/cap. Initial successive-turn warm-parent failure was fixed and final two-turn native test passes. Only test child restarted, no API billing, no person/device/clinical/full-slice completion."
+  },
+  "archival_note": "The canonical test_results array stores one current result per test ID. The prior failed result is archived here, its original evidence is unchanged, and commit ecec270 retains its original canonical record. The current pass is a fresh actual run."
+}
