@@ -11,6 +11,7 @@ export const reasoningCandidates = Object.freeze({
   'sol-low': Object.freeze({ model: 'gpt-6-sol', effort: 'low' }),
   'sol-none': Object.freeze({ model: 'gpt-6-sol', effort: 'none' }),
   'luna-low': Object.freeze({ model: 'gpt-6-luna', effort: 'low' }),
+  'luna-none': Object.freeze({ model: 'gpt-6-luna', effort: 'none' }),
   'sol61-low': Object.freeze({ model: 'gpt-6.1-sol', effort: 'low' }),
 } as const);
 export type ReasoningProfile = Readonly<{model: string; effort: string}>;

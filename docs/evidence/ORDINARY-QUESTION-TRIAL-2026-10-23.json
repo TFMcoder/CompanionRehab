@@ -1,0 +1,239 @@
+{
+  "recorded_at": "2026-10-23T14:53:06.539Z",
+  "implementation_revision": "sha256:a78f74c8be2ea1831f7899dd37cbf352990a164d627576caad7f8ee251490379",
+  "status": "no_candidate_qualified_no_deployment",
+  "selected_test_mode": "warm-v2",
+  "scope": "Isolated owner test identity/database and synthetic questions; original owner and Dad configuration/data unchanged. No experiment selected in either running app. Heart and Current unchanged. No API key/purchase/billing change or separately billed API fallback.",
+  "method": {
+    "first_audio": "Typed synthetic input to first completed validated native Heart WAV. Not microphone-to-listening latency. Static preparation, speech priming and local model loading are separate.",
+    "speech": {
+      "voice": "af_heart",
+      "speed": 1,
+      "test_cpu_threads": 12,
+      "speech_part_characters": 72
+    },
+    "tests_or_builds_during_timings": false,
+    "model_final_validation": true,
+    "care_scope": "Existing owner-bound Pro account and synthetic participant. Local probes separately authorize owner/client/login/grants and recheck the immutable owner binding before and after requests. No care commands, connector actions or private recipient inference.",
+    "comparison": "Sol-low versus Luna-none uses the same nine cases, two repetitions, reversed profile order on repetition two and identical trusted guidance/fake facts. The first two local probes use those same nine questions. Standalone public probe has a different twelve-question set and a narrower protocol; its aggregate is not a matched comparison to the nine-case Pro set."
+  },
+  "phases": {
+    "pro_model_comparison": {
+      "attempts": 40,
+      "current": {
+        "answers": 18,
+        "first_audio_median_ms": 1924.5,
+        "first_audio_worst_ms": 3090
+      },
+      "candidate": {
+        "answers": 18,
+        "first_audio_median_ms": 1980.5,
+        "first_audio_worst_ms": 2938
+      },
+      "manual_factual_checks": {
+        "answers": 36,
+        "passed": 36
+      },
+      "decision": "reject: median is slightly worse; no reliable general-question speed gain"
+    },
+    "local_small": {
+      "model": "Qwen3.5-0.8B Q8_0",
+      "thinking_budget": 0,
+      "requests": 19,
+      "answers": 18,
+      "first_audio_median_ms": 930.5,
+      "first_audio_worst_ms": 1296,
+      "startup_ms": 6684,
+      "decision": "reject_accuracy",
+      "observed_failures": [
+        "Returned the question instead of explaining eclipses.",
+        "Incorrect 10-cent arithmetic answer.",
+        "Answered about the assistant’s own favourite rather than the user’s unknown favourite.",
+        "Invented that it did not rain at the user’s house."
+      ],
+      "cleanup": "Original signal-termination exitCode check reported false; independent CIM/port check verified helper stopped. Raw result retained; later probes use signalCode too."
+    },
+    "local_larger_context": {
+      "model": "Qwen3.5-2B Q5_K_M",
+      "thinking_budget": 64,
+      "requests": 19,
+      "answers": 18,
+      "first_audio_median_ms": 1584,
+      "first_audio_worst_ms": 4220,
+      "startup_ms": 10736,
+      "headroom": {
+        "free_ram_mib": 1980,
+        "free_gpu_mib": 2288
+      },
+      "decision": "reject_accuracy",
+      "observed_failures": [
+        "Incorrect 10-cent arithmetic answer in both repetitions.",
+        "Confused assistant identity with the synthetic participant in both injection-case replies."
+      ]
+    },
+    "local_public_only": {
+      "model": "Qwen3.5-2B Q5_K_M",
+      "thinking_budget": 0,
+      "requests": 25,
+      "answers": 24,
+      "first_audio_median_ms": 1473,
+      "first_audio_worst_ms": 1772,
+      "startup_ms": 5133,
+      "headroom": {
+        "free_ram_mib": 1610,
+        "free_gpu_mib": 2292
+      },
+      "decision": "reject_accuracy",
+      "protocol": "Standalone impersonal explanations, no private context or dialogue history; math/personal/current/clinical/action exclusions checked before generation. No static answers added.",
+      "observed_failures": [
+        "Salt explanation adds the incorrect causal claim that ice melts when it gets too cold to freeze.",
+        "Flask explanation overstates that heat can pass only by radiation; whole flasks still have conductive paths."
+      ],
+      "removed_from_public_source": true
+    },
+    "pro_fast_compatibility": {
+      "completed_fast_answers": 0,
+      "comparison_attempts": 8,
+      "supplemental_standard_answers": 6,
+      "supplemental_standard_factual_pass": 6,
+      "websocket_preparation": "failed; generic mapped error does not establish exact provider cause",
+      "http_attempts": 1,
+      "http_status": 400,
+      "actual_service_tier": null,
+      "decision": "not_qualified",
+      "requested_service_tier": "fast",
+      "provider_diagnostic": {
+        "code": null,
+        "type": null,
+        "param": null,
+        "unsupported_tier_message": false
+      },
+      "known_documentation": "ChatGPT sign-in Fast mode can use included limits at 2.5x. Documentation does not establish Fast support for this exact Nancy registration/transport; neither actual test confirmed it. No Fast app setting or billing change was made."
+    }
+  },
+  "local_artifacts": {
+    "runtime": "llama.cpp b11669",
+    "runtime_commit": "620d2225cc436ab0b001e3200e590e3b286ef9ab",
+    "runtime_archive_sha256": "2c07574e7bde71321cb785282b20cc821e951132149eeceeea32ddebdbf0598e",
+    "runtime_license": "MIT",
+    "small_model_commit": "807dfd9a6fadbf703207aac3bfb0b2b3040d077c",
+    "small_model_sha256": "37ae482d336108d23516fa35e8e0c4126688d81018b87178a18d752a1357814f",
+    "larger_model_commit": "7d26695454df6de5fbcce2e58681e62dae06ce43",
+    "larger_model_sha256": "3f50d5f830873c22d33558f69eb2c34aa59858f37e7a58a982aae88bb38ebe88",
+    "model_license": "Apache-2.0",
+    "device": "Vulkan1/NVIDIA RTX 4050",
+    "cpu_threads": 2,
+    "priority": "low",
+    "api_bind": "127.0.0.1 only, ephemeral private authentication, no web UI, offline, logging disabled",
+    "credential_environment": "allowlist only; no Pro credentials passed to child",
+    "cleanup": {
+      "helpers_stopped": 3,
+      "listener_closed": true,
+      "services_or_tasks_added": 0
+    },
+    "artifacts_location": "ignored private workspace cache; no system install or model download in public repository"
+  },
+  "usage": {
+    "pro_attempts": {
+      "maximum": 80,
+      "attempted": 49,
+      "controlled": 49,
+      "runtime_observed": 0,
+      "runtime_reserved": 0,
+      "closed": true,
+      "closed_at": "2026-10-23T14:40:34.319Z",
+      "unused": 31
+    },
+    "local_attempts": {
+      "initial_maximum": 40,
+      "revised_maximum": 80,
+      "attempted": 63,
+      "closed": true,
+      "closed_at": "2026-10-23T14:40:34.322Z",
+      "unused": 17,
+      "provider_requests": 0,
+      "revision_reason": "The separately approved third local experiment added standalone public explanations; earlier raw-context probes stayed within their original 40 combined attempts."
+    },
+    "pro_successful_usage_observations": 47,
+    "pro_observed_subtotal": {
+      "input_tokens": 23936,
+      "output_tokens": 1461,
+      "total_tokens": 25397
+    },
+    "pro_all_attempt_tokens": null,
+    "pro_unknown_usage_attempts": 2,
+    "unknown_reason": "Failed Fast context preparation and direct HTTP request do not have known consumption. They are still counted once each. Local aggregate token usage is unknown because preparation usage was not captured.",
+    "local_all_attempt_tokens": null
+  },
+  "preservation": {
+    "care_tables_checked": 30,
+    "all_care_tables_unchanged": true,
+    "configuration_assets_unchanged": true,
+    "original_guard": {
+      "passed": false,
+      "checks": 43,
+      "failed": [
+        "live_process",
+        "live_supervisor",
+        "test_supervisor"
+      ]
+    },
+    "process_continuity": {
+      "passed": false,
+      "reason": "Host boot at 2026-10-23 09:39:32 Toronto, after all comparison/compatibility probes completed overnight. Both supervisors restarted around 09:40. No experiment command restarted either app or supervisor; original continuity failures are retained, not relabeled.",
+      "last_boot_toronto": "2026-10-23T09:39:32.5-04:00"
+    },
+    "current_readiness": {
+      "all_checks": 373,
+      "functional_ready": true,
+      "strict_pass": false,
+      "continuity_pass": false,
+      "failed": [
+        "live_supervisor_same",
+        "live_expected_process",
+        "test_supervisor_same",
+        "test_expected_process"
+      ],
+      "mode": "warm-v2",
+      "selection_and_entry_match_previous_verified_backup": true,
+      "both_apps_heart_current_ready": true
+    }
+  },
+  "verification": {
+    "regressions": {
+      "passed": 1255,
+      "failed": 0,
+      "optional_skips": 2,
+      "files": 121
+    },
+    "typecheck_pass": true,
+    "private_current_build_identical": true,
+    "manifest_entries": 349,
+    "preliminary_typecheck_failure": "Excess-property syntax in a new negative test; corrected before final typecheck and full regression. No production logic change from this correction.",
+    "roadmap_validation": {
+      "passed": true,
+      "slices": 12,
+      "human_actions": 36,
+      "automated_checks": 72,
+      "live_scenarios": 31,
+      "completed_features": 0,
+      "human_view_generated_and_checked": true,
+      "human_states_unchanged": true
+    },
+    "intended_person_device_full_slice": "awaiting_live_test",
+    "public_boundary": {
+      "passed": true,
+      "files_scanned": 464,
+      "findings": 0
+    }
+  },
+  "code_change": "One comparison-only Luna/none profile, plus tests for unchanged production Sol/high and rejection as a whole owner care runtime. Local policy prototypes archived privately and removed. No app selection, authentication, routing, care, voice or UI change.",
+  "private_evidence_ref": ".local/ordinary-model-2026-10-22/ (ignored; full source manifests, synthetic responses and exact bindings retained privately)",
+  "limitations": [
+    "No acceptable speed improvement was delivered; latency remains open.",
+    "Local timing gains do not qualify incorrect content for deployment.",
+    "New candidates were not enabled in the actual website; no actual-device or human live acceptance is claimed.",
+    "Model loading, context preparation and speech warmup are excluded from answer timing and reported separately.",
+    "Local first-text timing may include empty initial content events in the first two raw probes; it is not used to claim real-word latency. First-audio and completed-response measurements remain the reported outcome."
+  ]
+}
