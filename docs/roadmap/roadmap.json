@@ -2,7 +2,7 @@
   "$schema": "./roadmap.schema.json",
   "roadmap_id": "companion-rehab",
   "schema_version": "1.8.0",
-  "updated_at": "2026-10-24T05:16:48.483Z",
+  "updated_at": "2026-10-24T06:03:04.923Z",
   "planning_status": "ready_for_implementation",
   "implementation_status": "in_progress",
   "source_of_truth": "docs/roadmap/roadmap.json",
@@ -79,7 +79,8 @@
     "October 22 explicit direction: try a different approach to general questions in the isolated owner copy, compare actual speed and accuracy, keep Heart/Dad unchanged and no API billing. Incremental state reuse is measured, rejected after final retest and rolled back; do not represent it as an accepted speedup.",
     "October 22–23 explicit direction: try another approach for new general questions in the isolated owner copy and retest speed/accuracy, keeping Heart/Dad unchanged and no API billing. Reject faster incorrect local output and unconfirmed Fast transport; do not represent this trial as a delivered speedup.",
     "October 23 explicit direction: set up Safari voice tests in the separate owner copy and guide the owner through Wi-Fi/cellular testing on the reported iPhone 14 Pro Max. Keep Heart, Dad and no API billing; separate manual hearing observations from browser scheduling and actual phone acceptance from engineering checks.",
-    "October 24 owner direction: preserve the committed Nancy/Safari checkpoint and set up a standalone Asana sandbox first for exploration. Prepare an owner-only ordinary free workspace/project with clearly synthetic, unassigned tasks and basic views; do not connect either Nancy copy, provision OAuth/API tokens/webhooks, invite others, copy real care records or purchase a plan in this step. Actual account sign-in is still required."
+    "October 24 owner direction: preserve the committed Nancy/Safari checkpoint and set up a standalone Asana sandbox first for exploration. Prepare an owner-only ordinary free workspace/project with clearly synthetic, unassigned tasks and basic views; do not connect either Nancy copy, provision OAuth/API tokens/webhooks, invite others, copy real care records or purchase a plan in this step. Actual account sign-in is still required.",
+    "October 24 owner completed the requested Asana sign-in. The authorized standalone sandbox is provisioned and native task/date workflows are verified with synthetic records only; Nancy connection and paid features remain outside this step."
   ],
   "constraints": {
     "budget": {
@@ -261,9 +262,9 @@
     {
       "id": "I-ASANA",
       "status": "unresolved",
-      "default": "Asana access is unavailable for the October 6 client-readiness trial. Keep the S06 dedicated project and scoped identity plan; no connection or outbound task update is enabled. October 24: standalone sandbox setup is authorized before any Nancy integration. Twelve synthetic fixture tasks and a free-plan layout are prepared, but the browser is signed out and no account/workspace/project or import is verified. OAuth/live connector acceptance remains unresolved.",
+      "default": "Asana access is unavailable for the October 6 client-readiness trial. Keep the S06 dedicated project and scoped identity plan; no connection or outbound task update is enabled. October 24: standalone sandbox setup is authorized before any Nancy integration. The owner signed in and a separate one-member workspace/private project is created with 12 verified synthetic tasks and basic views. The actual standalone account is verified privately; no intended production integration project or OAuth route is selected. OAuth/live connector acceptance remains unresolved.",
       "needed_for": "S06 live integration; does not block S01-S05",
-      "question": "Sign in to the intended existing Asana account for the standalone sandbox. After exploration, separately identify and authorize the intended integration identity/project and scoped OAuth; no Nancy connection is authorized by this standalone step.",
+      "question": "Standalone sandbox sign-in/provisioning is complete. After exploration, separately identify and authorize the intended integration identity/project and scoped OAuth; no Nancy connection is authorized by this standalone step.",
       "resolution_ref": null
     },
     {
@@ -3423,6 +3424,15 @@
           ],
           "scenario": "Distinguish browser login expiry from actual durable account/grant/provider invalidation; preserve consent during temporary refresh failure and fail closed for damaged tokens. Exercise wider local dates/DST, prepared-context expiry/resource isolation, bounded actual PostgreSQL lock waits, drained concurrent reads, and reviewed additive migrations 019/020 with restore/rollback.",
           "expected": "Expired local sessions cannot erase an otherwise authorized connector or disclose cached content. Actual revocation still clears credentials/context. Reads and failures stay bounded; no write is retried or new account/scope is introduced."
+        },
+        {
+          "id": "S06-AUTO9",
+          "criterion_ids": [
+            "S06-AC01",
+            "S06-AC03"
+          ],
+          "scenario": "Validate a standalone synthetic Asana import fixture: twelve labelled tasks, unique fixture identifiers, six named sections, blank assignees, duplicate/undated cases, documented date format and no paid custom columns/contact details.",
+          "expected": "Local fixture checks and independent CSV parsing pass. This is setup evidence only, not OAuth, Nancy ingestion, client approval or writeback acceptance."
         }
       ],
       "live_tests": [
@@ -3543,6 +3553,20 @@
             "Ask for tomorrow and an explicitly dated coming-week interval, verify a bounded selected-resource read and source freshness, then observe ordinary local-session renewal without losing Outlook. Qualify actual provider refresh/revocation and preparation separately."
           ],
           "expected": "Live Outlook is demonstrably available across the requested dates under the unchanged exact account/grant, and ordinary Nancy authentication expiry no longer disconnects it. Until observed the recovery gate remains awaiting_live_test."
+        },
+        {
+          "id": "S06-LIVE10",
+          "criterion_ids": [
+            "S06-AC01",
+            "S06-AC03"
+          ],
+          "data_policy": "disposable_live",
+          "steps": [
+            "After the owner signs in, create a separate ordinary workspace with one member and a private project using basic list/board/calendar views, without adding people, paid features or Nancy credentials.",
+            "Import the reviewed synthetic fixture once; verify twelve tasks in six named sections, distinct duplicate-title tasks, undated records, native descriptions/dates and owner-private access.",
+            "Complete NSBX-008, complete then reopen NSBX-012, and reschedule NSBX-009 to October 28, 2026; reload and verify retained states and the actual calendar. Record export/tool limitations and the native zero-task empty column honestly."
+          ],
+          "expected": "The standalone Asana exploration environment is usable with actual disposable provider readback, while Nancy, care records, credentials, paid commitments and existing Asana records are outside the change. No OAuth, Nancy integration, genuine-household/client or full-slice acceptance is inferred."
         }
       ],
       "story_refs": [
@@ -3551,14 +3575,14 @@
         "S02",
         "S04"
       ],
-      "implementation_revision": "sha256:453a56aa48646f01e2aeecd28af36fa623431c97dde5cd733e8c2776ad62fb85",
+      "implementation_revision": "sha256:cf39729b498510609de3a55959dcb702668a5f6a3bb1fa48bcf1f46aab9f47a2",
       "blockers": [
         "October 19 merge-preparation engineering qualification passes 963 full regressions (one optional skip), 219 disposable-PostgreSQL matrix checks and 67 actual HTTP recovery/restore checks. Current design is owner-approved and locked. These scoped results do not pass broader unrun live/canonical scenarios. See docs/evidence/MERGE-PREP-2026-10-19.json.",
         "October 19 simplified-client timeline adds a bounded selected-calendar-only read, without Inbox retrieval. Current full regression, focused and actual PostgreSQL checks pass; the deployed authenticated timeline displays the already-authorized test event. Existing account/credential/config hashes and nine care tables are unchanged. Removed client Outlook settings do not remove the connection or authorize new writes. Earlier S06 live receipts remain historical and are not replayed. See docs/evidence/CLIENT-INTERFACE-2026-10-19.json.",
         "October 19 scoped checkpoint is deployed: selected Calendar/Inbox in Nancy reasoning and exact reviewed new email/invitation actions reuse completed the intended client-only Microsoft setup. Two specifically requested disposable live actions are provider-verified, durable receipts survive reopening, and Nancy retrieves the new event time. Nine existing care tables are unchanged. See docs/evidence/OUTLOOK-CONVERSATIONS-2026-10-19.json.",
         "Full S06 still requires S02 dependency completion, Asana, mail draft editing, calendar update/cancel, genuine intended-person/device/workflow acceptance and real authorization-loss/disconnect recovery. S06-H03 remains in_progress. The original Entra workflow row stays Not reviewed despite independently verified actual grants; do not repeat consent or change reviewer policy to clear the old marker.",
         "October 21 live Outlook token/resource selections were already erased by an authorization-failure path. The repaired code must not recreate credentials from backups: interactive intended-client reconnect and exact resource selection/read remain necessary. Existing tenant consent is preserved; S06-LIVE9 is awaiting_live_test.",
-        "October 24 standalone Asana sandbox preparation is complete locally, but actual account sign-in and provider provisioning remain pending. This is separate from a Nancy integration and completes no S06 acceptance gate. See docs/ASANA_SANDBOX_2026-10-24.md."
+        "October 24 standalone Asana exploration workspace/project is provisioned and provider-verified with 12 synthetic tasks, owner-only membership and basic views. OAuth, intended production identity/project, Nancy ingestion/writeback/recovery and genuine household/full-slice gates remain open. See docs/ASANA_SANDBOX_2026-10-24.md."
       ],
       "test_results": [
         {
@@ -3681,6 +3705,28 @@
           "observed_by": "Codex deployed readiness and private connection-state inspection; actual person/provider interaction pending",
           "evidence_ref": "docs/evidence/LIVE-TEST-REPAIRS-2026-10-21.json",
           "notes": "The live service is repaired and ready, but the existing token is absent and state is reconnect_required. Interactive approved-client sign-in/resource selection and actual bounded reads remain necessary. Existing tenant consent/assignment/scopes are preserved."
+        },
+        {
+          "test_id": "S06-AUTO9",
+          "outcome": "pass",
+          "implementation_revision": "sha256:cf39729b498510609de3a55959dcb702668a5f6a3bb1fa48bcf1f46aab9f47a2",
+          "executed_at": "2026-10-24T05:16:04.314Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex static fixture validation and authenticated Asana browser UI",
+          "evidence_ref": "docs/evidence/ASANA-SANDBOX-2026-10-24.json",
+          "notes": "Ten fixture structural checks and an independent Python CSV parse pass. Source remains the previously qualified revision; no application code change or broad regression rerun is claimed."
+        },
+        {
+          "test_id": "S06-LIVE10",
+          "outcome": "pass",
+          "implementation_revision": "sha256:cf39729b498510609de3a55959dcb702668a5f6a3bb1fa48bcf1f46aab9f47a2",
+          "executed_at": "2026-10-24T06:03:04.923Z",
+          "environment": "live_real_services",
+          "data_origin": "disposable_live",
+          "observed_by": "Codex static fixture validation and authenticated Asana browser UI",
+          "evidence_ref": "docs/evidence/ASANA-SANDBOX-2026-10-24.json",
+          "notes": "Actual owner-signed-in Asana creation: separate one-member workspace, private one-member project, one successful 12-task import and six named sections. Completion/reopen/reschedule survive reload; native calendar has ten dated tasks plus two undated entries. No trial opt-in, payment, invitations, API token or Nancy connection. Export download is unconfirmed after tool timeout; a native empty Untitled column remains outside the six named sections. Full S06 and human completion are not claimed."
         }
       ],
       "human_actions": [
@@ -3701,7 +3747,7 @@
             "Prepare exact account/project/scopes and confirm free-plan capability.",
             "Configure mappings, allowlists, webhooks, renewal and reconciliation using existing authorized access."
           ],
-          "expected_evidence": "Private Asana project/identity/consent references and working scoped authorization. October 24 standalone sandbox exploration is authorized first; it does not complete this OAuth/integration action. Account sign-in and actual sandbox creation remain pending; see docs/ASANA_SANDBOX_2026-10-24.md.",
+          "expected_evidence": "Private Asana project/identity/consent references and working scoped authorization. October 24 standalone sandbox exploration is authorized first; it does not complete this OAuth/integration action. Account sign-in, private one-member sandbox/project creation and 12-task disposable UI checks are complete; OAuth/Nancy integration acceptance remains pending; see docs/ASANA_SANDBOX_2026-10-24.md.",
           "related_input_ids": [
             "I-ASANA"
           ],
