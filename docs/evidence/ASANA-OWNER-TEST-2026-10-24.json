@@ -1,0 +1,111 @@
+{
+  "recorded_at": "2026-10-24T16:55:19.565Z",
+  "status": "read_only_owner_test_connection_verified",
+  "implementation_revision": "sha256:6e141a589466ae0de14b1b62eacbb5b033e4a148cdb73b6f81ebe807e318fff6",
+  "scope": "Owner-only synthetic Asana sandbox to existing separate Nancy test copy; no live client rollout or full S06 acceptance.",
+  "authorization": {
+    "explicit_owner_direction": true,
+    "api_terms_and_exact_read_connection_approved": true,
+    "requested_scopes": [
+      "projects:read",
+      "tasks:read",
+      "users:read"
+    ],
+    "distribution": "Existing sandbox workspace only; no public listing",
+    "provider_scope_limit": "Account-level resource read permissions; Nancy separately pins the account, workspace and project.",
+    "credentials": "Encrypted locally; exact references and payloads excluded from this repository"
+  },
+  "engineering": {
+    "focused": {
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0
+    },
+    "regression": {
+      "passed": 1290,
+      "failed": 0,
+      "skipped": 2,
+      "files": 124
+    },
+    "typecheck": "pass",
+    "separate_owner_page_build": "pass; active Current client assets not rebuilt",
+    "migration": "Actual restricted owner PostgreSQL only; three additive tables; repeated setup succeeds without care writes",
+    "reuse": [
+      "RU-HTTP bounded transport/error validation",
+      "RU-RECEIPT atomic actor/grant-bound payload receipt and audit",
+      "RU-RECOVERY retained source/version and same-command replay",
+      "RU-ACCESS-TESTS host/origin/account/login/client/grant isolation"
+    ],
+    "deployed_readiness": {
+      "passed": true,
+      "checks": 8,
+      "source_files": 359
+    },
+    "public_boundary": {
+      "passed": true,
+      "files": 489,
+      "findings": 0,
+      "actual_secret_and_private_reference_check": true
+    },
+    "roadmap_validation": {
+      "passed": true,
+      "slices": 12,
+      "human_actions": 36,
+      "automated_checks": 75,
+      "live_scenarios": 34,
+      "completed_features": 0
+    }
+  },
+  "actual_provider": {
+    "oauth": "Browser authorization, PKCE and same-login finish pass with the existing selected owner.",
+    "project_membership": "Verified through the selected workspace project-ID collection, avoiding additional workspace-object permissions.",
+    "source_tasks": 12,
+    "dated_sources": 10,
+    "undated_sources": 2,
+    "duplicate_titles": "Two separate task identities retained.",
+    "completed_sources_at_finish": 1,
+    "reviewed_practice_additions": 3,
+    "accepted_plan_or_performed_activity_created": false,
+    "authenticated_http_assertions": 50,
+    "assertions_passed": true,
+    "repeat_import": "Twelve retained, zero duplicates or additional local task definitions.",
+    "live_source_changes": "One disposable imported source rescheduled/completed then restored/reopened; both changes observed and local schedule retained.",
+    "local_source_change_review": "Changed sources remain flagged; automatic apply/writeback is not implemented.",
+    "durability": "Connection, twelve sources, three task mappings and saved receipt replay survive owner restart and browser reload.",
+    "token_renewal": "Actual OAuth refresh/read succeeds after forcing only local refresh eligibility. Actual provider expiry/revocation was not induced.",
+    "source_notes": "Sandbox project/instruction descriptions now reflect the owner-only read connection."
+  },
+  "preservation": {
+    "passed": true,
+    "checks": 53,
+    "original_care_tables_compared": 30,
+    "authorized_practice_delta": {
+      "task_definitions": 3,
+      "audit_events": 3,
+      "new_connector_tables": 3
+    },
+    "existing_care_records_unchanged": true,
+    "dad_process_and_both_supervisors_unchanged": true,
+    "only_owner_children_restarted": true,
+    "owner_child_restart_requests": 6,
+    "locked_current_assets_unchanged": true,
+    "owner_reasoning_selection_and_heart_unchanged": true,
+    "safari_page_unchanged": true,
+    "microsoft_configuration_unchanged": true,
+    "observed_owner_inference_events": 0,
+    "api_funded_reasoning_enabled": false,
+    "paid_service_or_invitation_added": false
+  },
+  "historical_failures": {
+    "oauth": "Four initial browser returns failed to finish; safe diagnostics identify project-read HTTP 403 for the instrumented attempts. Compact workspace references still fail; scoped workspace-project validation succeeds without more permissions.",
+    "tests": "Initial sandboxed Vitest cache rename failed before tests ran. Disposable test audit cleanup and SQL date assertions were corrected; intermediate reports retained privately. Final counts above are the qualified source."
+  },
+  "remaining": [
+    "Manual import and reviewed planning choices only; no signed webhook, background Asana schedule or provider task writeback.",
+    "Automatic application of external changes, real provider revocation/expiry, broader recovery and production two-user account/project qualification remain open.",
+    "S02 dependency, genuine household/client/person/device acceptance and full S06 gates remain open.",
+    "Existing iPhone Safari voice test remains awaiting_live_test; this checkpoint does not measure or claim a speech latency improvement."
+  ],
+  "evidence_policy": "Only sanitized results here. Exact provider IDs, credentials, source rows, screenshots and SQL evidence stay in ignored local storage.",
+  "private_evidence_ref": "Ignored local Asana owner-test verification bundle; available to the owner on this computer."
+}

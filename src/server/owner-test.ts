@@ -22,6 +22,7 @@ import {createPlanRequest} from './chatgpt-plan/inference.js';
 import {warmRecipeCatalogue} from './prepared-context.js';
 import {currentNutritionReference} from './nutrition-reference.js';
 import {SafariStudy,readSafariStages} from './safari-study.js';
+import {ownerAsanaRuntime} from './owner-asana-runtime.js';
 
 const settings=ownerTestSchema.parse(JSON.parse(await readFile(join(ownerTestDirectory,'config.json'),'utf8')));
 let selection:unknown;
@@ -67,6 +68,7 @@ const speech=new LocalSpeech({latencyTrial,dialogueTrial:dialogue});
 const record=(metric:ConversationTurnMetric|InferenceCallMetric|MealPreparationMetric|ConversationPreparationMetric)=>{const {actor_id,conversation_id,turn_id,outcome,...measurements}=metric;runtimeLog.record({kind:'conversation',actor_id,conversation_id,turn_id,outcome:outcome==='completed'?'ok':outcome==='failed'?'error':'interrupted',measurements:{...measurements,policy_version:telemetryPolicy}});};
 const conversation=new ConversationService(care,reasoner,settings.owner_actor_id,undefined,(text,signal)=>speech.synthesize(text,signal),record,record,taskRequests,features,()=>Promise.resolve(false),undefined,new NancySuggestions(care.pool),reasoningProfile,prepareContext,latencyTrial?72:120,quickReads,spokenReplies,mealsAhead,record,dialogue,chatAhead,record,verifiedReferences,warmConnection,quickConversation);
 const app=await createApp(config,{care,speech,conversation,runtimeLog,taskRequests,features,microsoft:null,staticRoot:join(ownerTestDirectory,'client'),revocations:new SessionRevocations(join(ownerTestDirectory,'revoked-sessions.json')),
+  ownerAsana:await ownerAsanaRuntime(settings,care,ownerTestDirectory),
   safariStudy:new SafariStudy(join(ownerTestDirectory,'safari-study'),settings.owner_actor_id,settings.participant_id,undefined,async samples=>{
     await runtimeLog.flush();return readSafariStages(care.pool,settings.owner_actor_id,samples);
   })});

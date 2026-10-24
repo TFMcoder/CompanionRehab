@@ -1,6 +1,6 @@
 # Human actions by implementation stage
 
-Updated: 10/24/2026 06:03:04. Generated from the canonical roadmap; all statuses below come from that file.
+Updated: 2026-10-24. Generated from the canonical roadmap; all statuses below come from that file.
 
 Source: [roadmap.json](roadmap/roadmap.json), in each slice's human_actions array. Edit the JSON, then run the renderer; do not maintain a separate checklist here. See [ROADMAP.md](ROADMAP.md) for feature scope and live tests.
 
@@ -385,7 +385,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
 - [ ] **S06-H01: Authorize the dedicated Asana connection**
 
-  Owner: **account_owner**. Status: **pending**. Requirement: **required**.
+  Owner: **account_owner**. Status: **in_progress**. Requirement: **required**.
 
   **When:** Before live Asana reads/writes.
   **Blocks:** Completing this feature slice.
@@ -397,9 +397,9 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Agent prepares or handles:** Prepare exact account/project/scopes and confirm free-plan capability. Configure mappings, allowlists, webhooks, renewal and reconciliation using existing authorized access.
 
-  **Completion evidence:** Private Asana project/identity/consent references and working scoped authorization. October 24 standalone sandbox exploration is authorized first; it does not complete this OAuth/integration action. Account sign-in, private one-member sandbox/project creation and 12-task disposable UI checks are complete; OAuth/Nancy integration acceptance remains pending; see docs/ASANA_SANDBOX_2026-10-24.md.
+  **Completion evidence:** Private identity/project/consent references and working scoped authorization. October 24 owner-only sandbox OAuth and ingestion are actually verified after explicit API Terms/read-scope approval. Production intended two-user identity/project and broader S06 acceptance remain unresolved; do not repeat completed sandbox sign-in/consent. See docs/ASANA_OWNER_TEST_2026-10-24.md.
 
-  **Linked inputs/tests:** I-ASANA, S06-LIVE1, S06-LIVE2.
+  **Linked inputs/tests:** I-ASANA, S06-LIVE1, S06-LIVE2, S06-LIVE11.
 
 - [ ] **S06-H02: Use a genuine household task end to end**
 

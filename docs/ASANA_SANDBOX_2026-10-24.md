@@ -1,5 +1,7 @@
 # Standalone Asana sandbox — October 24, 2026
 
+Subsequent October 24 instruction: the owner authorized connecting this sandbox to the separate Nancy test copy. That read-only checkpoint is implemented and verified in [the owner integration record](ASANA_OWNER_TEST_2026-10-24.md). The standalone-only restrictions below describe the earlier completed setup step; they do not override the later explicit direction. Dad's instance remains outside the connection.
+
 Status: standalone workspace/project provisioned and verified against actual Asana on October 24, 2026. The owner signed in, the private project contains 12 imported synthetic tasks, and native completion/reopening/rescheduling plus list/board/calendar checks pass. Nancy/Safari checkpoint 5c3aa9b and preparation checkpoint 7432fdb are preserved. Nancy, Dad, Heart and billing remain unchanged.
 
 The owner explicitly chose a standalone sandbox first. Do not connect it to either Nancy environment, register a Nancy OAuth app, generate API tokens, install webhooks, invite people, import real household/medical records or configure automation in this step. The optional Asana connection for this chat is separate from a Nancy integration and is not confirmed connected.

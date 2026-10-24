@@ -32,9 +32,10 @@ import {registerMicrosoftRoutes,microsoftCallbackPath} from './microsoft/routes.
 import {createMicrosoftRuntime} from './microsoft/runtime.js';
 import type {MicrosoftService} from './microsoft/service.js';
 import {NancySuggestions} from './nancy-suggestions.js';
+import {registerOwnerAsana,type OwnerAsana} from './owner-asana.js';
 
 type RequestService = Pick<TaskRequestService, 'workspace'|'review'|'command'|'receipt'|'authorityRevision'>;
-export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; taskRequests?: RequestService; features?:LocalFeatures; microsoft?:MicrosoftService|null; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog;safariStudy?:SafariStudy } = {}) {
+export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; taskRequests?: RequestService; features?:LocalFeatures; microsoft?:MicrosoftService|null; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog;safariStudy?:SafariStudy;ownerAsana?:OwnerAsana } = {}) {
   const app = Fastify({ logger: false, bodyLimit: 100000, trustProxy: false, requestTimeout: 120000, genReqId: () => randomUUID(), requestIdHeader: false });
   const care: CareService = dependencies.care || (config.databaseUrl ? new LocalCare({ connectionString: config.databaseUrl }) : new Supabase(config));
   const voice = dependencies.voice || new VoiceService(config, care);
@@ -110,6 +111,10 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   if(dependencies.safariStudy){
     if(config.sessionCookieName!=='nancy_test_session'||!care.authority||!conversation)throw Error('Owner study requires the isolated authenticated voice runtime.');
     registerSafariStudy(app,{study:dependencies.safariStudy,synthetic:config.synthetic===true,sessions,authority:s=>care.authority!(s),conversation,limit});
+  }
+  if(dependencies.ownerAsana){
+    if(config.sessionCookieName!=='nancy_test_session'||!config.synthetic||dependencies.ownerAsana.config.origin!==config.origin)throw Error('Asana sandbox requires the isolated owner test runtime.');
+    registerOwnerAsana(app,dependencies.ownerAsana,sessions,limit);
   }
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof ZodError) return reply.code(400).send({ error: { code: 'invalid_input', message: 'Check the information and choices, then try again.' } });
