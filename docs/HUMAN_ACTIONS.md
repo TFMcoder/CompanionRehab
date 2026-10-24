@@ -1,6 +1,6 @@
 # Human actions by implementation stage
 
-Updated: 10/23/2026 15:35:28. Generated from the canonical roadmap; all statuses below come from that file.
+Updated: 10/24/2026 05:16:48. Generated from the canonical roadmap; all statuses below come from that file.
 
 Source: [roadmap.json](roadmap/roadmap.json), in each slice's human_actions array. Edit the JSON, then run the renderer; do not maintain a separate checklist here. See [ROADMAP.md](ROADMAP.md) for feature scope and live tests.
 
@@ -397,7 +397,7 @@ Routine coding, technical service configuration, database work, synthetic tests 
 
   **Agent prepares or handles:** Prepare exact account/project/scopes and confirm free-plan capability. Configure mappings, allowlists, webhooks, renewal and reconciliation using existing authorized access.
 
-  **Completion evidence:** Private Asana project/identity/consent references and working scoped authorization.
+  **Completion evidence:** Private Asana project/identity/consent references and working scoped authorization. October 24 standalone sandbox exploration is authorized first; it does not complete this OAuth/integration action. Account sign-in and actual sandbox creation remain pending; see docs/ASANA_SANDBOX_2026-10-24.md.
 
   **Linked inputs/tests:** I-ASANA, S06-LIVE1, S06-LIVE2.
 

@@ -2,7 +2,7 @@
   "$schema": "./roadmap.schema.json",
   "roadmap_id": "companion-rehab",
   "schema_version": "1.8.0",
-  "updated_at": "2026-10-23T15:35:28.346Z",
+  "updated_at": "2026-10-24T05:16:48.483Z",
   "planning_status": "ready_for_implementation",
   "implementation_status": "in_progress",
   "source_of_truth": "docs/roadmap/roadmap.json",
@@ -78,7 +78,8 @@
     "October 21 intended-client live-test feedback: preserve Current while making its centered Talk control persistent at the top, remove speech interruption, reduce measured reply/connector waits without changing Sol-high/Heart or billing, correct cyclic pronunciation, retrieve repository type 2 meal references before reasoning, retain only client-reviewed lasting preferences/context, offer optional bounded trusted-device sign-in, and support foreground screen wake lock plus honest Safari permission/lock limits. Reuse the existing scheduler for separately approved read-only morning Outlook preparation; no background inference, outreach, microphone activation or new provider action. Repair local-session expiry erasing Outlook consent; a deleted token requires one interactive client reconnect, not repeated tenant consent. Keep the isolated owner test instance and exact live caregiver binding separate.",
     "October 22 explicit direction: try a different approach to general questions in the isolated owner copy, compare actual speed and accuracy, keep Heart/Dad unchanged and no API billing. Incremental state reuse is measured, rejected after final retest and rolled back; do not represent it as an accepted speedup.",
     "October 22–23 explicit direction: try another approach for new general questions in the isolated owner copy and retest speed/accuracy, keeping Heart/Dad unchanged and no API billing. Reject faster incorrect local output and unconfirmed Fast transport; do not represent this trial as a delivered speedup.",
-    "October 23 explicit direction: set up Safari voice tests in the separate owner copy and guide the owner through Wi-Fi/cellular testing on the reported iPhone 14 Pro Max. Keep Heart, Dad and no API billing; separate manual hearing observations from browser scheduling and actual phone acceptance from engineering checks."
+    "October 23 explicit direction: set up Safari voice tests in the separate owner copy and guide the owner through Wi-Fi/cellular testing on the reported iPhone 14 Pro Max. Keep Heart, Dad and no API billing; separate manual hearing observations from browser scheduling and actual phone acceptance from engineering checks.",
+    "October 24 owner direction: preserve the committed Nancy/Safari checkpoint and set up a standalone Asana sandbox first for exploration. Prepare an owner-only ordinary free workspace/project with clearly synthetic, unassigned tasks and basic views; do not connect either Nancy copy, provision OAuth/API tokens/webhooks, invite others, copy real care records or purchase a plan in this step. Actual account sign-in is still required."
   ],
   "constraints": {
     "budget": {
@@ -260,9 +261,9 @@
     {
       "id": "I-ASANA",
       "status": "unresolved",
-      "default": "Asana access is unavailable for the October 6 client-readiness trial. Keep the S06 dedicated project and scoped identity plan; no connection or outbound task update is enabled.",
+      "default": "Asana access is unavailable for the October 6 client-readiness trial. Keep the S06 dedicated project and scoped identity plan; no connection or outbound task update is enabled. October 24: standalone sandbox setup is authorized before any Nancy integration. Twelve synthetic fixture tasks and a free-plan layout are prepared, but the browser is signed out and no account/workspace/project or import is verified. OAuth/live connector acceptance remains unresolved.",
       "needed_for": "S06 live integration; does not block S01-S05",
-      "question": "When access is available, confirm the dedicated project, identity, free-plan access and OAuth consent for S06.",
+      "question": "Sign in to the intended existing Asana account for the standalone sandbox. After exploration, separately identify and authorize the intended integration identity/project and scoped OAuth; no Nancy connection is authorized by this standalone step.",
       "resolution_ref": null
     },
     {
@@ -3556,7 +3557,8 @@
         "October 19 simplified-client timeline adds a bounded selected-calendar-only read, without Inbox retrieval. Current full regression, focused and actual PostgreSQL checks pass; the deployed authenticated timeline displays the already-authorized test event. Existing account/credential/config hashes and nine care tables are unchanged. Removed client Outlook settings do not remove the connection or authorize new writes. Earlier S06 live receipts remain historical and are not replayed. See docs/evidence/CLIENT-INTERFACE-2026-10-19.json.",
         "October 19 scoped checkpoint is deployed: selected Calendar/Inbox in Nancy reasoning and exact reviewed new email/invitation actions reuse completed the intended client-only Microsoft setup. Two specifically requested disposable live actions are provider-verified, durable receipts survive reopening, and Nancy retrieves the new event time. Nine existing care tables are unchanged. See docs/evidence/OUTLOOK-CONVERSATIONS-2026-10-19.json.",
         "Full S06 still requires S02 dependency completion, Asana, mail draft editing, calendar update/cancel, genuine intended-person/device/workflow acceptance and real authorization-loss/disconnect recovery. S06-H03 remains in_progress. The original Entra workflow row stays Not reviewed despite independently verified actual grants; do not repeat consent or change reviewer policy to clear the old marker.",
-        "October 21 live Outlook token/resource selections were already erased by an authorization-failure path. The repaired code must not recreate credentials from backups: interactive intended-client reconnect and exact resource selection/read remain necessary. Existing tenant consent is preserved; S06-LIVE9 is awaiting_live_test."
+        "October 21 live Outlook token/resource selections were already erased by an authorization-failure path. The repaired code must not recreate credentials from backups: interactive intended-client reconnect and exact resource selection/read remain necessary. Existing tenant consent is preserved; S06-LIVE9 is awaiting_live_test.",
+        "October 24 standalone Asana sandbox preparation is complete locally, but actual account sign-in and provider provisioning remain pending. This is separate from a Nancy integration and completes no S06 acceptance gate. See docs/ASANA_SANDBOX_2026-10-24.md."
       ],
       "test_results": [
         {
@@ -3699,7 +3701,7 @@
             "Prepare exact account/project/scopes and confirm free-plan capability.",
             "Configure mappings, allowlists, webhooks, renewal and reconciliation using existing authorized access."
           ],
-          "expected_evidence": "Private Asana project/identity/consent references and working scoped authorization.",
+          "expected_evidence": "Private Asana project/identity/consent references and working scoped authorization. October 24 standalone sandbox exploration is authorized first; it does not complete this OAuth/integration action. Account sign-in and actual sandbox creation remain pending; see docs/ASANA_SANDBOX_2026-10-24.md.",
           "related_input_ids": [
             "I-ASANA"
           ],
@@ -3775,7 +3777,7 @@
       "reuse_refs": [],
       "implementation_authorization": {
         "decision_ref": "docs/ROADMAP.md",
-        "reason": "October 19 expressly extends the authorized Microsoft increment to selected-resource conversation context and reviewed new email/invitation actions, with two exact disposable live tests. This supersedes the prior initial-read stopping point without waiving S02 dependencies, Asana, intended-person/device or full S06 acceptance."
+        "reason": "October 19 expressly extends the authorized Microsoft increment to selected-resource conversation context and reviewed new email/invitation actions, with two exact disposable live tests. This supersedes the prior initial-read stopping point without waiving S02 dependencies, Asana, intended-person/device or full S06 acceptance. October 24 also authorizes standalone Asana sandbox preparation/provisioning only, with synthetic data and no Nancy connector, OAuth token, webhook, live care change or paid commitment. Integration/full-slice dependencies and live gates remain unchanged."
       }
     },
     {

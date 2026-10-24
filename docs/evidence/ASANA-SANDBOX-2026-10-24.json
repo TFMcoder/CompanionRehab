@@ -1,0 +1,59 @@
+{
+  "recorded_at": "2026-10-24T05:16:04.321Z",
+  "status": "prepared_awaiting_account_sign_in",
+  "checkpoint": "5c3aa9b",
+  "scope": "Standalone synthetic Asana exploration only; no Nancy connection.",
+  "fixture": {
+    "path": "docs/fixtures/asana-standalone-sandbox.csv",
+    "rows": 12,
+    "sections": 6,
+    "validation_passed": true,
+    "checks": {
+      "twelve_tasks": true,
+      "unique_fixture_ids": true,
+      "names_labelled_test": true,
+      "unassigned": true,
+      "no_contact_details": true,
+      "documented_due_date_format": true,
+      "undated_case_present": true,
+      "duplicate_title_case": true,
+      "six_sections": true,
+      "no_paid_columns": true
+    }
+  },
+  "provider": {
+    "account_verified": false,
+    "workspace_created": false,
+    "project_created": false,
+    "imported_tasks_verified": false,
+    "plan_verified": false,
+    "ui_checks": "awaiting_live_test"
+  },
+  "boundaries": {
+    "existing_asana_records_modified": false,
+    "invitations_sent": false,
+    "nancy_connected": false,
+    "oauth_or_api_token_created": false,
+    "paid_plan_or_api_billing_change": false,
+    "care_data_used": false
+  },
+  "research": {
+    "personal": "https://asana.com/pricing",
+    "developer_sandbox": "https://developers.asana.com/docs/developer-sandbox",
+    "csv": "https://help.asana.com/s/article/preparing-data-for-csv-import"
+  },
+  "roadmap_validation": {
+    "passed": true,
+    "slices": 12,
+    "human_actions": 36,
+    "automated_checks": 73,
+    "live_scenarios": 32,
+    "human_reading_view_checked": true,
+    "human_completion_unchanged": true
+  },
+  "public_boundary": {
+    "passed": true,
+    "files_scanned": 478,
+    "findings": 0
+  }
+}
