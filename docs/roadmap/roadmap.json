@@ -1534,7 +1534,7 @@
             "Prepare and test the HTTPS page for iPhone/Safari; separately qualify Safari tab and Home Screen web-app audio/lifecycle behavior before relying on either.",
             "Configure and debug microphone/audio code; provide short test prompts."
           ],
-          "expected_evidence": "Device/browser and actual microphone plus audible observations, first for the sample device preview and then linked to the integrated S01 live evidence. A desktop phone-sized viewport, generated audio or dictated-text mock is insufficient. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. The owner subsequently accepted the faster response for advancing the MVP, while general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required. October 19 client simplification is desktop-browser and engineering-qualified only; actual intended-person/iPhone/Safari acceptance remains awaiting_live_test while the intended client is unavailable. See docs/evidence/CLIENT-INTERFACE-2026-10-19.json. October 19 owner comparison is complete: Current with its top Talk banner is selected and locked; Focus review is disabled. Remaining actual-device sessions qualify the selected Current conversation, including voice state and stopping/recovery. The source/build/desktop restore checks in docs/evidence/FOCUS-UI-2026-10-19.json do not complete this human gate. October 23: the owner reports an iPhone 14 Pro Max for the separate owner Safari study. The guided Wi-Fi/cellular page is deployed and engineering-verified; actual microphone/listening/network results and iOS version remain awaiting_live_test under S01-LIVE4. This is not Dad or full-slice acceptance. See docs/SAFARI_VOICE_TEST_2026-10-23.md.",
+          "expected_evidence": "Device/browser and actual microphone plus audible observations, first for the sample device preview and then linked to the integrated S01 live evidence. A desktop phone-sized viewport, generated audio or dictated-text mock is insufficient. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. The owner subsequently accepted the faster response for advancing the MVP, while general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required. October 19 client simplification is desktop-browser and engineering-qualified only; actual intended-person/iPhone/Safari acceptance remains awaiting_live_test while the intended client is unavailable. See docs/evidence/CLIENT-INTERFACE-2026-10-19.json. October 19 owner comparison is complete: Current with its top Talk banner is selected and locked; Focus review is disabled. Remaining actual-device sessions qualify the selected Current conversation, including voice state and stopping/recovery. The source/build/desktop restore checks in docs/evidence/FOCUS-UI-2026-10-19.json do not complete this human gate. October 23: the owner reports an iPhone 14 Pro Max for the separate owner Safari study. The guided Wi-Fi/cellular page is deployed and engineering-verified; actual microphone/listening/network results and iOS version remain awaiting_live_test under S01-LIVE4. This is not Dad or full-slice acceptance. See docs/SAFARI_VOICE_TEST_2026-10-23.md. October 24: recorded synthetic speech qualifies imported-task server workflows and native Heart output; in-app microphone/audio startup timed out after 20 seconds. No human-audible or physical iPhone acceptance is inferred. See docs/ASANA_VOICE_TEST_2026-10-24.md.",
           "related_input_ids": [
             "I-DEVICE"
           ],
@@ -1751,7 +1751,7 @@
             "Integrate the selected Heart voice with warm local synthesis, coherent sentence delivery, cancellation and the Sol-high/care-command flow. Finish the working day-planning and nutrition conversation before asking for its actual-device trial. Archive alternative-model experiments; do not extend the voice search.",
             "Save only the selected preference and consent state; keep raw samples/audio private or synthetic."
           ],
-          "expected_evidence": "Owner Heart-selection decision is recorded at docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart. Remaining evidence: actual-device conversation delivery and foreground-wake consent references; neither is a new voice-choice gate. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. The owner subsequently accepted the faster response for advancing the MVP, while general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required. The October 19 client simplification removes the foreground wake control; no new wake consent or activation is inferred. Current voice-only interface acceptance remains awaiting_live_test. See docs/evidence/CLIENT-INTERFACE-2026-10-19.json. October 23: the owner reports an iPhone 14 Pro Max for the separate owner Safari study. The guided Wi-Fi/cellular page is deployed and engineering-verified; actual microphone/listening/network results and iOS version remain awaiting_live_test under S01-LIVE4. This is not Dad or full-slice acceptance. See docs/SAFARI_VOICE_TEST_2026-10-23.md.",
+          "expected_evidence": "Owner Heart-selection decision is recorded at docs/architecture/VOICE_MODEL_DECISION_2026-10-05.md#final-owner-decision-heart. Remaining evidence: actual-device conversation delivery and foreground-wake consent references; neither is a new voice-choice gate. The owner reported hearing the integrated conversation and identified opening-state confusion, pronunciation and latency issues. The fixes need a repeat actual-device trial, including speech interruption and false-trigger checks; no full acceptance is claimed. See docs/evidence/S01-VOICE-FEEDBACK-2026-10-05.json. The diagnosed routing/ASR/first-part improvements are deployed and measured in docs/evidence/S01-LATENCY-IMPLEMENTATION-2026-10-05.json. The owner subsequently accepted the faster response for advancing the MVP, while general GPT responses remain variable. Repeat actual iPhone/Safari timing and interruption checks on this revision; generated audio and service estimates do not pass the device gate. No further voice audition is required. The October 19 client simplification removes the foreground wake control; no new wake consent or activation is inferred. Current voice-only interface acceptance remains awaiting_live_test. See docs/evidence/CLIENT-INTERFACE-2026-10-19.json. October 23: the owner reports an iPhone 14 Pro Max for the separate owner Safari study. The guided Wi-Fi/cellular page is deployed and engineering-verified; actual microphone/listening/network results and iOS version remain awaiting_live_test under S01-LIVE4. This is not Dad or full-slice acceptance. See docs/SAFARI_VOICE_TEST_2026-10-23.md. October 24: recorded synthetic speech qualifies imported-task server workflows and native Heart output; in-app microphone/audio startup timed out after 20 seconds. No human-audible or physical iPhone acceptance is inferred. See docs/ASANA_VOICE_TEST_2026-10-24.md.",
           "related_input_ids": [
             "I-VOICE-CHOICE",
             "I-WAKE-CONSENT"
@@ -3294,6 +3294,10 @@
         {
           "id": "S06-T08",
           "description": "Connect the approved synthetic sandbox to the owner test copy only; qualify read-only OAuth, bounded current project imports, reviewed planning choices, identity/version/receipt isolation and unchanged live care/Heart. Keep production OAuth, webhook/writeback and genuine/full-slice gates separate."
+        },
+        {
+          "id": "S06-T09",
+          "description": "Qualify imported task planning, reviewed local reschedule/completion and duplicate-title/source-boundary behavior through recorded speech in the owner test copy. Repair owner-only unsupported-history wording and date-only task display without changing Dad, Heart, provider permissions or API funding. Keep actual phone/genuine/writeback acceptance separate."
         }
       ],
       "contracts": {
@@ -3447,6 +3451,15 @@
           ],
           "scenario": "Exercise owner-only OAuth/browser binding, scoped workspace/project membership, authority changes, bounded pagination/failure, source identity/version and reviewed task addition receipts, dates and token renewal using synthetic providers.",
           "expected": "Only the exact owner test runtime reads/imports the selected sandbox. Repeats are idempotent; stale/completed/removed/foreign sources and changed commands fail closed. No accepted plan/activity or provider write is implied."
+        },
+        {
+          "id": "S06-AUTO11",
+          "criterion_ids": [
+            "S06-AC01",
+            "S06-AC03"
+          ],
+          "scenario": "Exercise trusted owner-only imported-source/history guidance, lower-trust task text, unchanged default prompts, owner-only date-only display versus the default build, care review/receipt enforcement and existing Asana isolation.",
+          "expected": "Only the enabled owner experiment receives fixed source restrictions and date-only preview. Titles cannot become trusted policy; default client behavior, permissions, Heart and external write boundaries stay unchanged."
         }
       ],
       "live_tests": [
@@ -3596,6 +3609,22 @@
             "Verify reload/restart persistence and real OAuth renewal after forcing only local refresh eligibility; compare original care rows/configuration/design/Heart and Dad process, and account for any inference requests."
           ],
           "expected": "Actual sandbox reads and reviewed planning-choice additions work without duplicates, implicit activity/plan changes, scope expansion, live-client change or API-funded reasoning. This bounded checkpoint does not complete genuine household, full OAuth recovery, writeback or full S06 acceptance."
+        },
+        {
+          "id": "S06-LIVE12",
+          "criterion_ids": [
+            "S06-AC01",
+            "S06-AC03"
+          ],
+          "data_policy": "disposable_live",
+          "steps": [
+            "Attempt the normal Talk entry and record actual microphone/audio startup outcome without inferring a physical-device pass.",
+            "Use recorded synthetic speech through the deployed authenticated audio endpoint to read imported task dates, propose/review/accept one task and three practice meals, review/confirm 17:00 rescheduling, and review/confirm one task completion. Validate actual native Heart WAV parts; explicitly label any simulated playback acknowledgement.",
+            "Replay the same completion request, verify one activity/receipt, keep scheduling separate from completion, and require clarification between the two grocery task dates.",
+            "After owner-only wording repair/restart, retest clarification, truthful Nancy-versus-Asana scope and saved completion. Verify the owner-only literal-date UI repair in the actual browser.",
+            "Compare original care rows, exact authorized test deltas, live source versions, Dad runtime/design, Heart/configuration and bounded Pro accounting. Retain actual phone/genuine/writeback gates."
+          ],
+          "expected": "The recorded-speech engineering checkpoint saves exactly reviewed local changes, preserves source identity/dates and does not write back to Asana or change Dad/Heart/API funding. A microphone timeout or simulated playback cannot count as actual iPhone/person acceptance."
         }
       ],
       "story_refs": [
@@ -3604,7 +3633,7 @@
         "S02",
         "S04"
       ],
-      "implementation_revision": "sha256:6e141a589466ae0de14b1b62eacbb5b033e4a148cdb73b6f81ebe807e318fff6",
+      "implementation_revision": "sha256:472876fcbb633d6904fb0b4d9e61507f20db24777a0ec15bdd8c41bfab5d3424",
       "blockers": [
         "October 19 merge-preparation engineering qualification passes 963 full regressions (one optional skip), 219 disposable-PostgreSQL matrix checks and 67 actual HTTP recovery/restore checks. Current design is owner-approved and locked. These scoped results do not pass broader unrun live/canonical scenarios. See docs/evidence/MERGE-PREP-2026-10-19.json.",
         "October 19 simplified-client timeline adds a bounded selected-calendar-only read, without Inbox retrieval. Current full regression, focused and actual PostgreSQL checks pass; the deployed authenticated timeline displays the already-authorized test event. Existing account/credential/config hashes and nine care tables are unchanged. Removed client Outlook settings do not remove the connection or authorize new writes. Earlier S06 live receipts remain historical and are not replayed. See docs/evidence/CLIENT-INTERFACE-2026-10-19.json.",
@@ -3612,7 +3641,8 @@
         "Full S06 still requires S02 dependency completion, Asana, mail draft editing, calendar update/cancel, genuine intended-person/device/workflow acceptance and real authorization-loss/disconnect recovery. S06-H03 remains in_progress. The original Entra workflow row stays Not reviewed despite independently verified actual grants; do not repeat consent or change reviewer policy to clear the old marker.",
         "October 21 live Outlook token/resource selections were already erased by an authorization-failure path. The repaired code must not recreate credentials from backups: interactive intended-client reconnect and exact resource selection/read remain necessary. Existing tenant consent is preserved; S06-LIVE9 is awaiting_live_test.",
         "October 24 standalone Asana exploration workspace/project is provisioned and provider-verified with 12 synthetic tasks, owner-only membership and basic views. OAuth, intended production identity/project, Nancy ingestion/writeback/recovery and genuine household/full-slice gates remain open. See docs/ASANA_SANDBOX_2026-10-24.md.",
-        "October 24 read-only owner Asana checkpoint is verified: twelve sources, three reviewed practice planning choices, idempotent receipts, change-review states, persistence/renewal and 53 preservation checks. Dad/Heart/Current/Safari unchanged and no observed inference/API billing. Production two-user identity, signed webhook, writeback, genuine/client/device and full-slice gates remain; see docs/ASANA_OWNER_TEST_2026-10-24.md."
+        "October 24 read-only owner Asana checkpoint is verified: twelve sources, three reviewed practice planning choices, idempotent receipts, change-review states, persistence/renewal and 53 preservation checks. Dad/Heart/Current/Safari unchanged and no observed inference/API billing. Production two-user identity, signed webhook, writeback, genuine/client/device and full-slice gates remain; see docs/ASANA_OWNER_TEST_2026-10-24.md.",
+        "October 24 imported-task recorded-speech checkpoint passes planning/reschedule/completion, exact retry, ambiguity and source boundaries. Owner-only wording/date display repairs are deployed with original care/Dad/Heart preserved; 16 existing Pro requests and no API billing. Physical microphone/audio startup in the in-app browser timed out after 20 seconds; actual iPhone/Safari and full-slice gates remain open. See docs/ASANA_VOICE_TEST_2026-10-24.md."
       ],
       "test_results": [
         {
@@ -3779,6 +3809,28 @@
           "observed_by": "Codex owner-only Asana engineering and actual disposable provider verification",
           "evidence_ref": "docs/evidence/ASANA-OWNER-TEST-2026-10-24.json",
           "notes": "Actual OAuth and twelve-source imports pass 50 authenticated HTTP assertions, including repeat import, three reviewed additions, receipts/denials, date/completion/reopen and persistence. Actual renewal works after forced local eligibility; 53 preservation checks pass with only three new practice tasks/audit events, no observed inference. Production/genuine/provider-revocation/full-slice gates stay open."
+        },
+        {
+          "test_id": "S06-AUTO11",
+          "outcome": "pass",
+          "implementation_revision": "sha256:472876fcbb633d6904fb0b4d9e61507f20db24777a0ec15bdd8c41bfab5d3424",
+          "executed_at": "2026-10-24T17:51:58.254Z",
+          "environment": "local_synthetic",
+          "data_origin": "synthetic",
+          "observed_by": "Codex synthetic recorded-speech, deployed HTTP/UI and SQL verification",
+          "evidence_ref": "docs/evidence/ASANA-VOICE-2026-10-24.json",
+          "notes": "112 focused and 1295 full regressions pass (2 optional skips), typecheck and isolated owner build pass. Default prompts/UI remain unmodified by the opt-in flags; no provider inference in the automated suite."
+        },
+        {
+          "test_id": "S06-LIVE12",
+          "outcome": "pass",
+          "implementation_revision": "sha256:472876fcbb633d6904fb0b4d9e61507f20db24777a0ec15bdd8c41bfab5d3424",
+          "executed_at": "2026-10-24T17:51:58.254Z",
+          "environment": "live_real_services",
+          "data_origin": "disposable_live",
+          "observed_by": "Codex synthetic recorded-speech, deployed HTTP/UI and SQL verification",
+          "evidence_ref": "docs/evidence/ASANA-VOICE-2026-10-24.json",
+          "notes": "Fifteen actual recorded-speech submissions (one retry) verify one reviewed plan, 17:00 local reschedule and one completion; three post-repair server retests and actual date-display UI checks pass. Command flow at prior source and wording retest revisions are distinguished in the evidence. Seventy-five final audit and nine readiness checks pass; 16/96 observed Pro requests, unknown=0, ledger closed. Browser mic/audio startup timed out; physical iPhone/human audibility and genuine/full-slice gates remain awaiting_live_test."
         }
       ],
       "human_actions": [

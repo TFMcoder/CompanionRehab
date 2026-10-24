@@ -27,7 +27,7 @@ import {outlookTools,outlookDayRange,outlookDateRange,requestedOutlookRange,outl
 import {mealStarterReferences,mealStarterContext} from './meal-starters.js';
 import {clientDestinations,type ConversationPurpose} from '../shared/client-navigation.js';
 import type {NancySuggestions,NancySuggestionCommand} from './nancy-suggestions.js';
-import {prepareTurnContext,preparedFacts,preparedTools,preparedRecipeFacts,preparedGuidance,preparedSelection,type RecipeContinuity} from './prepared-context.js';
+import {prepareTurnContext,preparedFacts,preparedTools,preparedRecipeFacts,preparedGuidance,preparedSelection,ownerImportedTaskGuidance,type RecipeContinuity} from './prepared-context.js';
 import {preparedFactReply} from './prepared-answers.js';
 import {quickReadReply,quickReadGuidance} from './quick-reads.js';
 import {spokenReplyGuidance,isSpokenConversation,isSimpleMealSuggestion} from './spoken-replies.js';
@@ -885,6 +885,8 @@ export class ConversationService {
           if(spoken)modelInstructions=this.dialogueReplies&&preparation?.mode==='conversation'?dialogueConversationGuidance:spoken;
           else if(this.quickReads&&clientRole&&preparation&&preparation.mode!=='full')modelInstructions+=quickReadGuidance;
           if(verifiedFacts.length)modelInstructions+='\n'+verifiedReferenceGuidance;
+          const importedTaskGuidance=this.prepareContext&&clientRole?ownerImportedTaskGuidance(today.tasks):undefined;
+          if(importedTaskGuidance)modelInstructions+='\n'+importedTaskGuidance;
           instructionChars = Math.max(instructionChars, modelInstructions.length);
           let streamed = '', draft: PreparedSpeech | undefined;
           const prepare = (delta: string) => {

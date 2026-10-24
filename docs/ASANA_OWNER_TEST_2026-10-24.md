@@ -2,6 +2,8 @@
 
 October 24, 2026: the owner expressly extended the standalone sandbox into the separate Nancy test copy and approved the Asana API Terms and exactly `projects:read`, `tasks:read`, `users:read`. Actual OAuth and task ingestion are verified. This checkpoint does not connect the live client or complete S06.
 
+Subsequent verification: [recorded-speech planning/reschedule/completion tests](ASANA_VOICE_TEST_2026-10-24.md) now include a reviewed practice plan and one synthetic completed task, plus owner-only source/history guidance and date-only display repairs. Asana remains read-only. Actual phone microphone/audibility acceptance is still pending.
+
 ## Review and use
 
 Open `/asana-test.html` on the existing owner test HTTPS origin (port 10000). It uses the existing tester login, independent test cookie and synthetic participant. The normal Current home, Safari guide and Heart settings are preserved. The review page starts no microphone, conversation or meal preparation, and imports need no model call.

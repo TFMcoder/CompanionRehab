@@ -1,0 +1,126 @@
+{
+  "recorded_at": "2026-10-24T17:51:58.254Z",
+  "status": "recorded_speech_passed_phone_pending",
+  "implementation_revision": "sha256:472876fcbb633d6904fb0b4d9e61507f20db24777a0ec15bdd8c41bfab5d3424",
+  "baseline_command_flow_revision": "sha256:6e141a589466ae0de14b1b62eacbb5b033e4a148cdb73b6f81ebe807e318fff6",
+  "repaired_server_retest_revision": "sha256:3cc8972c75c19d3c56f03718df2968925c7e10f5840b59752b0a035d769cd439",
+  "scope": "Owner-only synthetic imported tasks through the deployed voice endpoints; reviewed Nancy planning/activity writes, with Asana read-only, Heart and Dad preserved.",
+  "actual_voice_test": {
+    "submitted_recorded_speech_requests": 15,
+    "distinct_input_fixtures": 12,
+    "exact_duplicate_completion_request": 1,
+    "actual_server_conversations": 2,
+    "input": "Locally generated synthetic speech; no person or phone microphone recording.",
+    "speech_recognition": "Actual deployed local ASR on the same audio endpoint used by Talk to Nancy.",
+    "reasoning": "Existing exact owner Pro / selected Sol-low route; no model change or API fallback.",
+    "speech_output": "Actual selected native Heart reply parts, all validated as 24 kHz WAV.",
+    "playback_acknowledgement": "Simulated by the engineering harness after WAV retrieval; not human-audible playback evidence.",
+    "planned_task_count": 1,
+    "planned_meal_count": 3,
+    "rescheduled_local_time": "17:00 America/Toronto on 2026-10-24",
+    "scheduled_instant": "2026-10-24T21:00:00.000Z",
+    "completion_records_created": 1,
+    "meal_actuals_created": 0,
+    "source_task_changes": 0,
+    "duplicate_titles": "Clarification requested; neither dated grocery task altered.",
+    "persistence": "Saved completion read back after owner restart; exact imported local source/plan/activity mapping verified.",
+    "baseline_flow": "Actual planning, confirmation, reschedule and completion ran before the wording repair; care command logic did not change.",
+    "repaired_server_retest": "Three actual recorded-speech requests verify duplicate-title clarification, explicit Nancy-only scope, no unsupported apology and saved completion."
+  },
+  "browser_and_phone": {
+    "talk_button": "Reached normal microphone/audio startup.",
+    "observed_browser_failure": "Microphone or audio permission did not finish within 20 seconds.",
+    "physical_iphone_microphone": "awaiting_live_test",
+    "human_audibility": "unobserved",
+    "phone_wifi_cellular_acceptance": "awaiting_live_test",
+    "live_iphone_reply_received": false,
+    "final_ui": "Actual practice Tasks view shows both distinct grocery dates, the one completed imported task and three planned meals."
+  },
+  "repairs": {
+    "wording": "Fixed trusted imported-task/history restrictions are appended only under the existing owner preparation experiment. Default prompts remain unchanged; source text stays lower trust.",
+    "date_display": "Owner-only compile flag shows literal date-only task dates; default behavior, layout and CSS are preserved.",
+    "provider_writes": "Nancy plan/activity saves do not update Asana; no Asana write permissions or write tools were added.",
+    "historical_failures": "Original unsupported apology and omitted date display remain documented. Initial new UI tests had a long-date assertion/Testing Library option error, corrected before deployment."
+  },
+  "verification": {
+    "focused": {
+      "passed": 112,
+      "failed": 0,
+      "skipped": 0
+    },
+    "regression": {
+      "passed": 1295,
+      "failed": 0,
+      "skipped": 2,
+      "files": 124
+    },
+    "typecheck": "pass",
+    "isolated_owner_build": "pass; live build output not written",
+    "final_audit": {
+      "passed": true,
+      "checks": 75
+    },
+    "actual_http_and_source_readiness": {
+      "passed": true,
+      "checks": 9
+    },
+    "source_manifest_files": 360,
+    "public_boundary": {
+      "passed": true,
+      "files": 492,
+      "findings": 0,
+      "actual_credential_and_private_reference_check": true
+    },
+    "roadmap": {
+      "passed": true,
+      "automated_checks": 76,
+      "live_scenarios": 35,
+      "completed_features": 0
+    }
+  },
+  "preservation": {
+    "dad_process_and_both_supervisors_unchanged": true,
+    "only_owner_child_restarted": 1,
+    "heart_and_model_selection_unchanged": true,
+    "dad_current_assets_unchanged": true,
+    "owner_current_layout_and_css_unchanged": true,
+    "owner_index": "Reviewed date-only preview deployed; prior index retained privately for rollback.",
+    "safari_guide_unchanged": true,
+    "original_rows_in_care_tables_compared": 30,
+    "original_rows_unchanged": true,
+    "authorized_practice_deltas": {
+      "daily_checkins": 1,
+      "day_plan_proposals": 1,
+      "accepted_day_plan_versions": 1,
+      "command_receipts": 3,
+      "domain_events": 5,
+      "activity_records": 1
+    },
+    "additional_append_only_activity_receipts": 2,
+    "asana_source_tasks_and_mappings_unchanged": true,
+    "source_writeback": false
+  },
+  "inference_accounting": {
+    "maximum": 96,
+    "observed_requests": 16,
+    "unknown_events": 0,
+    "closed": true,
+    "request_stages": {
+      "meal_preparation": 2,
+      "connection_preparation": 2,
+      "asr": 14,
+      "model": 12
+    },
+    "initial_turn_reservation": 14,
+    "amendment": "Three wording retest turns reserved after 11 observed requests; the overall 96-request cap was unchanged.",
+    "ui_review": "A bounded meal-preparation allowance was reserved before normal-page reloads; final observed request count includes the review window.",
+    "api_billing_enabled": false
+  },
+  "remaining": [
+    "Physical microphone/audio permission and actual iPhone/Safari speech capture/playback are unverified; the owner phone question remains unanswered at this record.",
+    "This is not genuine household activity, completed S01/S02/S06 acceptance or a successful Wi-Fi/cellular study.",
+    "Production Asana identity, provider writeback, signed webhooks and real revocation/recovery remain separate gates.",
+    "Synthetic endpoint timings are not phone latency; no speed gain is claimed."
+  ],
+  "private_evidence_ref": "Ignored local Asana voice verification bundle, including only synthetic input/audio/transcript fixtures, numeric accounting, SQL checks and screenshots. No credential, real-care payload or provider identifier is published."
+}

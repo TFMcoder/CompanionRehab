@@ -1,6 +1,13 @@
 import type {NutritionReference,NutritionRecipe,NutritionReferenceResult,RecipeSummary} from './nutrition-reference.js';
 import {composeNancyGuidance,selectNancyGuidance,type NancyGuidance} from './nancy-skills.js';
 import type {OutputItem} from './chatgpt-plan/inference.js';
+import type {Task} from '../shared/contracts.js';
+
+/** Fixed trusted restrictions, enabled only by the existing owner preparation trial. */
+export function ownerImportedTaskGuidance(tasks:readonly Task[]){
+ if(!tasks.some(task=>task.time_hint==='Asana sandbox'))return;
+ return 'Imported Asana task copies: Nancy planning and activity tools save changes in Nancy only. They do not update Asana; claim an external task update only with a separate successful provider write receipt. Explain this plainly when asked. Refer to earlier actions or statements only when supported by recent history or saved receipts. Do not invent a prior mistake or an apology for something that did not happen.';
+}
 
 export type PreparationMode='full'|'conversation'|'meals'|'recipe'|'schedule';
 export interface RecipeContinuity {reference:NutritionReference;ids:string[]}

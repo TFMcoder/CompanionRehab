@@ -174,8 +174,12 @@ function displayedTasks(today: Today) {
   return today.tasks.map(task => accepted.get(task.id) ?? task);
 }
 
+declare const __NANCY_OWNER_TASK_DATES__: boolean;
 function taskTiming(task: Today['tasks'][number], today: Today) {
-  if (!task.scheduled_time) return 'No time set';
+  if (!task.scheduled_time) {
+    const ownerPreview=typeof __NANCY_OWNER_TASK_DATES__!=='undefined'&&__NANCY_OWNER_TASK_DATES__;
+    return ownerPreview&&task.scheduled_date?`${task.scheduled_date===today.local_date?'Today':formatDay(task.scheduled_date,today.profile!.time_zone)} · No time set`:'No time set';
+  }
   const date = task.scheduled_date ?? today.local_date;
   return `${date === today.local_date ? 'Today' : formatDay(date, today.profile!.time_zone)} at ${task.scheduled_time}`;
 }

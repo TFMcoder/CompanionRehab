@@ -11,6 +11,14 @@ import {clientBackend,clientDay,clientResponse} from './helpers/client-interface
 afterEach(()=>{cleanup();vi.resetAllMocks();vi.unstubAllGlobals();window.history.replaceState(null,'','/');});
 function voice(){let options!:Parameters<typeof startLocalVoice>[0];const handle={stop:vi.fn(async()=>{}),interrupt:vi.fn(),sendText:vi.fn(async()=>{})};vi.mocked(startLocalVoice).mockImplementation(async input=>{options=input;input.onReady?.(handle);input.onState('listening');return handle;});return {handle,options:()=>options};}
 describe('October 19 client interface contract',()=>{
+ it.each([true,false])('shows date-only duplicate task dates only in the owner build: %s',async preview=>{
+  if(preview)vi.stubGlobal('__NANCY_OWNER_TASK_DATES__',true);
+  const today=structuredClone(clientDay);today.tasks=[{id:'grocery-one',title:'[TEST] Pick up groceries',time_hint:'Asana sandbox',scheduled_date:'2026-10-26',scheduled_time:null},{id:'grocery-two',title:'[TEST] Pick up groceries',time_hint:'Asana sandbox',scheduled_date:'2026-10-28',scheduled_time:null},{id:'undated',title:'[TEST] Task with no date',time_hint:'Asana sandbox',scheduled_date:null,scheduled_time:null}];
+  clientBackend({today});render(<App/>);fireEvent.click(await screen.findByRole('button',{name:'Tasks'}));
+  const rows=within(screen.getByRole('region',{name:'Tasks'})).getAllByRole('listitem');expect(rows[0]).toHaveTextContent('No time set');expect(rows[1]).toHaveTextContent('No time set');
+  if(preview){expect(rows[0]).toHaveTextContent('Monday, October 26');expect(rows[1]).toHaveTextContent('Wednesday, October 28');}else{expect(rows[0]).not.toHaveTextContent('October 26');expect(rows[1]).not.toHaveTextContent('October 28');}
+  expect(rows[2]).not.toHaveTextContent(/Oct/);expect(rows[2]).toHaveTextContent('No time set');expect(startLocalVoice).not.toHaveBeenCalled();
+ });
  it('shows exactly the five requested tabs and no setup, subscription, wake or manual-entry clutter',async()=>{
   clientBackend({local:true,microsoft:true});const view=render(<App/>);const nav=await screen.findByRole('navigation',{name:'My Day views'});
   expect(within(nav).getAllByRole('button').map(b=>b.textContent)).toEqual(['Tasks','Meals','Groceries','Progress','Ask for Help']);
