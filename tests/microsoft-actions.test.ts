@@ -126,6 +126,9 @@ describe('reviewed Outlook actions and conversation disclosure',()=>{
   expect(f.graph.createMailDraft).not.toHaveBeenCalled();expect(f.graph.createCalendarEvent).not.toHaveBeenCalled();
  });
  it('enforces HTTP authentication, origin and strict typed review/confirm before writing',async()=>{
+  // Cookie age and the injected care/provider clocks must describe the same
+  // synthetic day; otherwise this fixture expires seven real days after Oct19.
+  vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(now);
   const f=await fixture(),config=configFromEnv({PUBLIC_ORIGIN:'http://localhost:8787',DATABASE_URL:'postgresql://localhost/synthetic',SESSION_KEY:randomBytes(32).toString('base64')});
   const app=await createApp(config,{care:f.care,microsoft:f.service,revocations:new SessionRevocations()});
   const headers={host:'localhost:8787',origin:'http://localhost:8787',cookie:'nancy_session='+sealSession(f.session,config.sessionKey!)};
@@ -137,6 +140,6 @@ describe('reviewed Outlook actions and conversation disclosure',()=>{
    expect(f.graph.createMailDraft).not.toHaveBeenCalled();
    const confirmed=await app.inject({method:'POST',url:'/api/microsoft/actions/confirm',headers,payload:{action_id:review.action_id,review_token:review.review_token}});expect(confirmed.statusCode,confirmed.body).toBe(200);expect(confirmed.json().state).toBe('verified');
    const receipt=await app.inject({url:'/api/microsoft/actions/'+review.action_id,headers});expect(receipt.statusCode).toBe(200);expect(receipt.json().state).toBe('verified');expect(receipt.body).not.toMatch(/ciphertext|synthetic-access-token|Exact body/);
-  }finally{await app.close();}
+  }finally{await app.close();vi.useRealTimers();}
  });
 });

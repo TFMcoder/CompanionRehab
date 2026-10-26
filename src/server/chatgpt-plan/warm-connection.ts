@@ -1,12 +1,13 @@
 import WebSocket from 'ws';
 import { createHash } from 'node:crypto';
 import { PlanReasoner, type Reasoner } from '../plan-reasoner.js';
+import type { ResolveCaregiverInference } from '../caregiver-inference.js';
 import { ApiError } from '../errors.js';
 import { bindingRef, type InferenceBinding, type InferenceScope } from '../inference-binding.js';
 import { dialogueConversationGuidance } from '../dialogue-replies.js';
 import { verifiedReferenceGuidance } from '../verified-answers.js';
 import { PlanStore } from './storage.js';
-import { createPlanRequest, reasoningCandidates, type OutputItem, type CompletedTurn } from './inference.js';
+import { attachInferenceUsage, createPlanRequest, inferenceUsageFromError, reasoningCandidates, type OutputItem, type CompletedTurn } from './inference.js';
 
 /** One authenticated connection, no retries, redirects, paid tier or persisted response IDs. */
 export class PlanSocket {
@@ -179,39 +180,105 @@ export interface ConnectionPreparationMetric {
 type Lane = { key: string; socket: PlanSocket; reasoner: PlanReasoner; controller: AbortController;
   warming: boolean; failed: boolean; job?: Promise<void> };
 
-/** Explicit owner-copy ordinary-chat transport. Care/tool requests retain HTTP. */
+/** Explicit runtime-only qualification for one already-authorized caregiver route.
+ * The resolver retains the existing account/host/grant authority; the second
+ * callback rechecks the separately pinned client release. Neither grants access
+ * on its own, and no browser or model input can provide these runtime options. */
+export interface WarmCaregiverAuthorization {
+  actorId: string;
+  clientId: string;
+  caregiver: ResolveCaregiverInference;
+  authorizeBinding: (binding: InferenceBinding) => Promise<void>;
+}
+
+/** Qualified ordinary-chat transport. Default access remains owner-copy only.
+ * A separately approved exact caregiver runtime may use the same transport;
+ * care/tool requests retain HTTP and the same immutable account binding. */
 export class WarmPlanReasoner implements Reasoner {
   private base: PlanReasoner;
   private lane?: Lane;
   private attempts = 0;
   private busy = false;
+  private readonly caregiverAuthorization?: Readonly<WarmCaregiverAuthorization>;
+  private readonly issuedBindings = new Set<string>();
   constructor(private store: PlanStore, private owner: string, private participant: string,
-    private observe?: (metric: ConnectionPreparationMetric) => void, private socketFactory = () => new PlanSocket()) {
-    this.base = new PlanReasoner(store, owner, createPlanRequest(reasoningCandidates['sol-low']));
+    private observe?: (metric: ConnectionPreparationMetric) => void, private socketFactory = () => new PlanSocket(),
+    caregiverAuthorization?: WarmCaregiverAuthorization) {
+    if (caregiverAuthorization) {
+      const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+      if (!uuid.test(caregiverAuthorization.actorId) || !uuid.test(caregiverAuthorization.clientId)
+        || caregiverAuthorization.actorId === owner || caregiverAuthorization.clientId !== participant
+        || typeof caregiverAuthorization.caregiver !== 'function' || typeof caregiverAuthorization.authorizeBinding !== 'function'
+        || Object.keys(caregiverAuthorization).some(key => !['actorId','clientId','caregiver','authorizeBinding'].includes(key)))
+        throw new RangeError('Prepared caregiver access requires one exact client and fresh authorization.');
+      this.caregiverAuthorization = Object.freeze({ ...caregiverAuthorization });
+    }
+    this.base = new PlanReasoner(store, owner, createPlanRequest(reasoningCandidates['sol-low']), undefined, this.caregiverAuthorization?.caregiver);
   }
   available() { return this.base.available(); }
   async bind(scope: InferenceScope) {
     this.assertScope(scope);
-    return this.base.bind(scope);
+    const binding = await this.base.bind(scope);
+    await this.assertAuthorizedBinding(binding, false);
+    if (this.caregiverAuthorization) {
+      const key = bindingRef(binding);
+      if (this.lane && this.lane.key !== key) this.releaseConnection();
+      if (!this.issuedBindings.has(key) && this.issuedBindings.size >= 128)
+        this.issuedBindings.delete(this.issuedBindings.values().next().value!);
+      this.issuedBindings.add(key);
+    }
+    return binding;
   }
   private assertScope(scope: InferenceScope) {
-    if (scope.actor_id !== this.owner || scope.client_id !== this.participant || scope.active_role !== 'client')
-      throw new ApiError(403, 'experiment_owner_only', 'This connection is limited to the exact owner practice copy.');
+    if (scope.actor_id !== (this.caregiverAuthorization?.actorId ?? this.owner)
+      || scope.client_id !== this.participant || scope.active_role !== 'client')
+      throw new ApiError(403, 'experiment_owner_only', this.caregiverAuthorization
+        ? 'This prepared connection is limited to the exact caregiver-authorized client.'
+        : 'This connection is limited to the exact owner practice copy.');
+  }
+  private assertRoute(binding: InferenceBinding) {
+    this.assertScope(binding);
+    if (this.caregiverAuthorization) {
+      if (binding.route_id !== 'chatgpt_plan_caregiver' || binding.qualification !== 'caregiver_authorized'
+        || binding.account_owner_actor_id !== this.owner || !binding.authorization_ref)
+        throw new ApiError(403, 'caregiver_authorization_changed', 'The exact caregiver connection is required. Start a new conversation.');
+    } else if (binding.route_id !== 'chatgpt_plan_owner_practice' || binding.qualification !== 'owner_practice')
+      throw new ApiError(403, 'experiment_owner_only', 'The exact owner practice connection is required.');
+  }
+  private async assertAuthorizedBinding(binding: InferenceBinding, requireIssued = true) {
+    this.assertRoute(binding);
+    const configured = this.caregiverAuthorization;
+    if (!configured) return;
+    const key = bindingRef(binding);
+    if (requireIssued && !this.issuedBindings.has(key))
+      throw new ApiError(403, 'reasoning_binding_changed', 'Start a new bound conversation.');
+    try {
+      const authorization = await configured.caregiver(binding), state = await this.store.load();
+      if (!authorization || authorization.ownerActorId !== this.owner
+        || authorization.accountBindingId !== binding.account_binding_id || authorization.hostId !== state.hostId
+        || authorization.authorizationRef !== binding.authorization_ref || state.nancyBinding?.actorId !== this.owner
+        || state.nancyBinding.bindingId !== binding.account_binding_id || state.nancyBinding.hostId !== state.hostId)
+        throw new ApiError(403, 'caregiver_authorization_changed', 'The caregiver connection or access changed. Start a new conversation.');
+      await configured.authorizeBinding(binding);
+    } catch (error) {
+      this.issuedBindings.delete(key);
+      this.releaseConnection(binding);
+      throw error;
+    }
   }
   private createLane(binding: InferenceBinding) {
-    this.assertScope(binding);
-    if (binding.route_id !== 'chatgpt_plan_owner_practice' || binding.qualification !== 'owner_practice')
-      throw new ApiError(403, 'experiment_owner_only', 'The exact owner practice connection is required.');
+    this.assertRoute(binding);
     this.releaseConnection();
     const socket = this.socketFactory(), pinned = createPlanRequest(reasoningCandidates['sol-low']);
     const lane: Lane = { key: bindingRef(binding), socket, controller: new AbortController(), warming: false, failed: false,
       reasoner: new PlanReasoner(this.store, this.owner, (account, input, options, _fetcher, timing, signal) =>
-        pinned(account, input, options, (url, init) => socket.fetch(url, init, lane.warming), timing, signal)) };
+        pinned(account, input, options, (url, init) => socket.fetch(url, init, lane.warming), timing, signal),
+      undefined, this.caregiverAuthorization?.caregiver) };
     this.lane = lane; return lane;
   }
   /** Only known trusted instructions are prepared; no question, private facts or answer prediction. */
   async warmConnection(binding: InferenceBinding, signal: AbortSignal, conversationId?: string) {
-    this.assertScope(binding);
+    await this.assertAuthorizedBinding(binding);
     if (this.attempts >= 18 || this.busy) return;
     const lane = this.createLane(binding); lane.warming = true; this.attempts++;
     const started = performance.now();
@@ -221,15 +288,17 @@ export class WarmPlanReasoner implements Reasoner {
         const response = await lane.reasoner.respond([], dialogueConversationGuidance, [],
           AbortSignal.any([signal, lane.controller.signal, AbortSignal.timeout(12000)]), undefined, binding);
         usage = response.usage;
+        await this.assertAuthorizedBinding(binding);
         if (response.text || response.output.length) throw new Error('Context-only preparation generated output.');
         if (this.lane !== lane) throw new Error('Prepared connection changed.');
         outcome = 'completed';
-      } catch {
+      } catch (error) {
+        usage ??= inferenceUsageFromError(error);
         lane.failed = true; lane.socket.close();
         if (signal.aborted || lane.controller.signal.aborted) outcome = 'interrupted';
       } finally {
         lane.warming = false;
-        try { this.observe?.({ ...(conversationId?{conversation_id:conversationId}:{}), stage: 'connection_preparation', actor_id: binding.actor_id, binding_ref: bindingRef(binding),
+        try { this.observe?.({ ...(conversationId ? { conversation_id: conversationId } : {}), stage: 'connection_preparation', actor_id: binding.actor_id, binding_ref: bindingRef(binding),
           outcome, duration_ms: Math.round(performance.now() - started), model_calls: 0, connection_warmup_requests: 1,
           input_tokens: usage?.inputTokens ?? null, output_tokens: usage?.outputTokens ?? null, total_tokens: usage?.totalTokens ?? null,
           cached_input_tokens: usage?.cachedInputTokens ?? null, reasoning_output_tokens: usage?.reasoningOutputTokens ?? null }); } catch { /* Numeric diagnostics cannot affect access. */ }
@@ -240,22 +309,33 @@ export class WarmPlanReasoner implements Reasoner {
   async respond(input: OutputItem[], instructions: string, tools: OutputItem[], signal?: AbortSignal,
     onTextDelta?: (delta: string) => void, binding?: InferenceBinding) {
     if (!binding) throw new ApiError(403, 'reasoning_binding_changed', 'Start a new conversation.');
-    this.assertScope(binding);
+    await this.assertAuthorizedBinding(binding);
     if (this.busy) throw new ApiError(409, 'reasoning_busy', 'Nancy is finishing another response.');
     this.busy = true;
+    let completed: CompletedTurn | undefined;
     try {
-    const ordinary = !tools.length && (instructions === dialogueConversationGuidance || instructions === dialogueConversationGuidance + '\n' + verifiedReferenceGuidance);
-    if (!ordinary) {
-      if(this.lane && this.lane.key !== bindingRef(binding))this.releaseConnection();
-      await this.lane?.job;
-      return await this.base.respond(input, instructions, tools, signal, onTextDelta, binding);
-    }
-    const lane = this.lane?.key === bindingRef(binding) ? this.lane : this.createLane(binding);
-    await lane.job; signal?.throwIfAborted();
-    if (lane.failed || this.lane !== lane) throw new ApiError(503, 'reasoning_unavailable', 'The prepared Pro connection could not finish. Start a new conversation.');
-    const response = await lane.reasoner.respond(input, instructions, tools, signal, onTextDelta, binding);
-    const transport = lane.socket.acceptResponse(input, instructions, response);
-    return transport ? { ...response, transport } : response;
+      const ordinary = !tools.length && (instructions === dialogueConversationGuidance || instructions === dialogueConversationGuidance + '\n' + verifiedReferenceGuidance);
+      if (!ordinary) {
+        if (this.lane && this.lane.key !== bindingRef(binding)) this.releaseConnection();
+        await this.lane?.job;
+        await this.assertAuthorizedBinding(binding); signal?.throwIfAborted();
+        completed = await this.base.respond(input, instructions, tools, signal, onTextDelta, binding);
+        await this.assertAuthorizedBinding(binding); signal?.throwIfAborted();
+        return completed;
+      }
+      const lane = this.lane?.key === bindingRef(binding) ? this.lane : this.createLane(binding);
+      await lane.job; signal?.throwIfAborted();
+      await this.assertAuthorizedBinding(binding);
+      if (lane.failed || this.lane !== lane) throw new ApiError(503, 'reasoning_unavailable', 'The prepared Pro connection could not finish. Start a new conversation.');
+      const response = await lane.reasoner.respond(input, instructions, tools, signal, onTextDelta, binding);
+      completed = response;
+      await this.assertAuthorizedBinding(binding); signal?.throwIfAborted();
+      const transport = lane.socket.acceptResponse(input, instructions, response);
+      return transport ? { ...response, transport } : response;
+    } catch (error) {
+      if (this.caregiverAuthorization) this.releaseConnection(binding);
+      if (completed && error && typeof error === 'object') attachInferenceUsage(error, completed.usage);
+      throw error;
     } finally { this.busy = false; }
   }
   releaseConnection(binding?: InferenceBinding) {

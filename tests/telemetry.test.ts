@@ -8,6 +8,17 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 describe('operational metadata', () => {
+  it('retains an opaque policy hash alongside the original policy version and binding', () => {
+    const policyRef='sha256:'+'a'.repeat(64),bindingRef='sha256:'+'b'.repeat(64);
+    expect(safeEvent({kind:'conversation',outcome:'ok',measurements:{
+      policy_version:'nancy-2026-10-21-v6',policy_ref:policyRef,binding_ref:bindingRef,
+    }}).measurements).toEqual({policy_version:'nancy-2026-10-21-v6',policy_ref:policyRef,binding_ref:bindingRef});
+  });
+  it.each([undefined,null,42,'private client approval text','a'.repeat(64),'sha256:'+'a'.repeat(63),
+    'sha256:'+'a'.repeat(65),'sha256:'+'g'.repeat(64),'sha256:'+'A'.repeat(64),'sha256:'+'a'.repeat(64)+'\n'])
+    ('rejects malformed or human-readable policy references %j', policyRef => {
+      expect(safeEvent({kind:'conversation',outcome:'ok',measurements:{policy_ref:policyRef}}).measurements).toEqual({});
+    });
   it('distinguishes activity reviews and saves without retaining arbitrary action text', () => {
     for (const outcome of ['none','review_prepared','saved','rejected','unconfirmed']) {
       expect(safeEvent({kind:'conversation',outcome:'ok',measurements:{activity_outcome:outcome,tool_rejections:1}}).measurements)

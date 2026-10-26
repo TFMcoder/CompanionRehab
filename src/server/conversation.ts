@@ -35,8 +35,9 @@ import {mealSlots,preparedMealSlots,mealPreparationMaterial,mealPreparationKey,p
 import {conversationFollowup,canPrepareConversation,validatePreparedConversation,conversationPreparationPolicy,type ConversationFollowup,type PreparedConversationAnswers} from './conversation-preparation.js';
 import {dialogueChatReply,dialogueConversationGuidance,dialogueMealPreparationPolicy,validateDialogueMeals,mealFollowup,mealFollowupReply,type MealThread,type MealFollowup} from './dialogue-replies.js';
 import {verifiedAnswer,verifiedCard,verifiedSourceQuestion,verifiedSourceReply,verifiedReferenceContext,verifiedReferenceGuidance,verifiedReferenceHash,type VerifiedAnswer,type VerifiedReference} from './verified-answers.js';
-import type {OwnerSessionRenewal} from './owner-session-renewal.js';
+import type {SessionRenewal} from './owner-session-renewal.js';
 import {ownerAsanaBoundaryQuestion,ownerAsanaBoundaryReply} from './owner-asana-boundary.js';
+import {clientRolloutSettings,type ClientRolloutAuthorizer} from './client-rollout.js';
 
 export interface ConversationReply { session_id: string; reply_id: string; text: string; speech_parts: number; changed: boolean; acknowledgement_required?: boolean; navigate?: ClientView; transcript?: string; nutrition_refs?: Array<{ document_id:string; path:string; sha256:string; items:string[] }>;reference_sources?:VerifiedReference[] }
 export interface ConversationTurnMetric {
@@ -232,10 +233,13 @@ export class ConversationService {
     private observeTurn?: (metric: ConversationTurnMetric) => void,
     private observeCall?: (metric: InferenceCallMetric) => void,
     private requests?: RequestConversationService, private features?:LocalFeatures, private microsoftEligible?:(session:Session)=>Promise<boolean>,private microsoft?:MicrosoftService,private suggestions?:NancySuggestions,
-    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false,private spokenReplies=false,private prepareMealsAhead=false,private observeMealPreparation?:(metric:MealPreparationMetric)=>void,private dialogueReplies=false,private prepareChat=false,private observeChatPreparation?:(metric:ConversationPreparationMetric)=>void,private verifiedReferences=false,private warmConnection=false,private quickConversation=false,private ownerSessionRenewal?:OwnerSessionRenewal,private ownerAsanaBoundary?:(session:Session)=>Promise<{read_only:true}>) {
+    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false,private spokenReplies=false,private prepareMealsAhead=false,private observeMealPreparation?:(metric:MealPreparationMetric)=>void,private dialogueReplies=false,private prepareChat=false,private observeChatPreparation?:(metric:ConversationPreparationMetric)=>void,private verifiedReferences=false,private warmConnection=false,private quickConversation=false,private ownerSessionRenewal?:SessionRenewal,private ownerAsanaBoundary?:(session:Session)=>Promise<{read_only:true}>,private clientRollout?:ClientRolloutAuthorizer) {
     this.expectedReasoning=validateReasoningProfile(expectedReasoning);
     if(ownerSessionRenewal&&ownerSessionRenewal.ownerId!==ownerId)throw new RangeError('Session maintenance must retain the exact owner account.');
     if(ownerAsanaBoundary&&!prepareContext)throw new RangeError('Asana boundary replies require the owner preparation route.');
+    if(clientRollout&&(this.expectedReasoning.model!==clientRolloutSettings.model||this.expectedReasoning.effort!==clientRolloutSettings.effort
+      ||!prepareContext||speechPartSize!==72||!quickReads||!spokenReplies||!prepareMealsAhead||!dialogueReplies||!prepareChat||!verifiedReferences||!warmConnection||!quickConversation||ownerAsanaBoundary))
+      throw new RangeError('Client rollout requires the exact selected qualified profile without an owner sandbox adapter.');
     if(prepareChat&&(!dialogueReplies||!prepareMealsAhead||!spokenReplies||!quickReads||!prepareContext||speechPartSize!==72||this.expectedReasoning.model!=='gpt-6-sol'||this.expectedReasoning.effort!=='low'))throw new RangeError('Conversation preparation requires the exact existing owner dialogue trial.');
     if(verifiedReferences&&!prepareChat)throw new RangeError('Verified references require the exact existing owner conversation trial.');
     if(warmConnection&&(!verifiedReferences||!reasoner.warmConnection||!reasoner.releaseConnection))throw new RangeError('Warm connection requires the exact existing owner reference trial.');
@@ -252,9 +256,11 @@ export class ConversationService {
     if(this.features)revision=createHash('sha256').update(revision+':'+await this.features.authorityRevision(session)).digest('hex');
     if(this.microsoft)revision=createHash('sha256').update(revision+':'+await this.microsoft.authorityRevision(session)).digest('hex');
     const experiment=this.expectedReasoning!==selectedReasoning||this.prepareContext||this.speechPartSize!==120||this.quickReads||this.spokenReplies||this.prepareMealsAhead||this.dialogueReplies||this.prepareChat;
-    if(experiment&&scope.actor_id!==this.ownerId)throw new ApiError(403,'experiment_owner_only','Reasoning experiments are limited to the owner’s practice copy.');
-    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}${this.spokenReplies?':spoken-v1':''}${this.prepareMealsAhead?':meal-ahead-v1':''}${this.dialogueReplies?':dialogue-v1':''}${this.prepareChat?':chat-ahead-v1':''}${this.verifiedReferences?':references-v1-'+verifiedReferenceHash.slice(0,8):''}${this.warmConnection?':connection-warm-v1':''}${this.quickConversation?':source-pace-v1':''}${this.ownerAsanaBoundary?':asana-boundary-v1':''}`:'') });
-    if(experiment&&(binding.route_id!=='chatgpt_plan_owner_practice'||binding.qualification!=='owner_practice'))throw new ApiError(403,'experiment_owner_only','Reasoning experiments require the owner practice connection.');
+    const rollout=experiment&&scope.actor_id!==this.ownerId?await this.clientRollout?.authorizeScope({...scope,grant_revision:revision,policy_version:NANCY_POLICY_VERSION}):undefined;
+    if(experiment&&scope.actor_id!==this.ownerId&&!rollout)throw new ApiError(403,'experiment_owner_only','Reasoning experiments are limited to the owner’s practice copy.');
+    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: rollout?.policyVersion??(NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}${this.spokenReplies?':spoken-v1':''}${this.prepareMealsAhead?':meal-ahead-v1':''}${this.dialogueReplies?':dialogue-v1':''}${this.prepareChat?':chat-ahead-v1':''}${this.verifiedReferences?':references-v1-'+verifiedReferenceHash.slice(0,8):''}${this.warmConnection?':connection-warm-v1':''}${this.quickConversation?':source-pace-v1':''}${this.ownerAsanaBoundary?':asana-boundary-v1':''}`:'')) });
+    if(rollout)await this.clientRollout!.authorizeBinding(binding);
+    else if(experiment&&(binding.route_id!=='chatgpt_plan_owner_practice'||binding.qualification!=='owner_practice'))throw new ApiError(403,'experiment_owner_only','Reasoning experiments require the owner practice connection.');
     return binding;
   }
   private async validateScope(session: Session, state?: Conversation) {
@@ -331,7 +337,8 @@ export class ConversationService {
   private clearMealDraft(login:string){const draft=this.mealDrafts.get(login);draft?.controller.abort();draft?.audio.clear();this.mealDrafts.delete(login);}
   private async mealSnapshot(session:Session,today?:Today){
     const binding=await this.validateScope(session);
-    if(binding.actor_id!==this.ownerId||binding.active_role!=='client'||binding.route_id!=='chatgpt_plan_owner_practice'||binding.qualification!=='owner_practice')throw new ApiError(403,'experiment_owner_only','Meal preparation is limited to the owner test copy.');
+    if(binding.actor_id!==this.ownerId&&this.clientRollout)await this.clientRollout.authorizeBinding(binding);
+    else if(binding.actor_id!==this.ownerId||binding.active_role!=='client'||binding.route_id!=='chatgpt_plan_owner_practice'||binding.qualification!=='owner_practice')throw new ApiError(403,'experiment_owner_only','Meal preparation is limited to the owner test copy.');
     const day=today??await this.authorize(session);
     const facts={profile:day.profile,local_date:day.local_date,intake_timing:day.intake_timing,meal_options:day.meal_options,checkin:day.checkin,activity_ledger:day.activity_ledger,
       confirmed_preferences:(await this.care.preferences?.(session))?.items,

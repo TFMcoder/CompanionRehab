@@ -13,7 +13,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import { SessionRevocations } from './revocations.js';
 import type { CareService } from './care-access.js';
 import { LocalCare } from './local-care.js';
-import type { ConversationService } from './conversation.js';
+import type { ConversationRuntime } from './conversation-router.js';
 import type { LocalSpeech } from './local-speech.js';
 import { groceryInput } from '../shared/contracts.js';
 import { priorityContext } from '../shared/priority-context.js';
@@ -34,14 +34,18 @@ import type {MicrosoftService} from './microsoft/service.js';
 import {NancySuggestions} from './nancy-suggestions.js';
 import {registerOwnerAsana,type OwnerAsana} from './owner-asana.js';
 import type {OwnerSessionRenewal} from './owner-session-renewal.js';
+import type {ClientSessionRenewal} from './client-session-renewal.js';
 
 type RequestService = Pick<TaskRequestService, 'workspace'|'review'|'command'|'receipt'|'authorityRevision'>;
-export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; taskRequests?: RequestService; features?:LocalFeatures; microsoft?:MicrosoftService|null; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog;safariStudy?:SafariStudy;ownerAsana?:OwnerAsana;ownerSessionRenewal?:OwnerSessionRenewal } = {}) {
+export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationRuntime; speech?: LocalSpeech; clientSpeech?:{actorId:string;speech:LocalSpeech}; taskRequests?: RequestService; features?:LocalFeatures; microsoft?:MicrosoftService|null; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog;safariStudy?:SafariStudy;ownerAsana?:OwnerAsana;ownerSessionRenewal?:OwnerSessionRenewal;clientSessionRenewal?:ClientSessionRenewal } = {}) {
   const app = Fastify({ logger: false, bodyLimit: 100000, trustProxy: false, requestTimeout: 120000, genReqId: () => randomUUID(), requestIdHeader: false });
   const care: CareService = dependencies.care || (config.databaseUrl ? new LocalCare({ connectionString: config.databaseUrl }) : new Supabase(config));
   const voice = dependencies.voice || new VoiceService(config, care);
   const conversation = dependencies.conversation;
   const speech = dependencies.speech;
+  const speechFor=(session:Session)=>dependencies.clientSpeech?.actorId===session.user_id?dependencies.clientSpeech.speech:speech!;
+  if(dependencies.clientSpeech&&(!dependencies.clientSessionRenewal||dependencies.clientSpeech.actorId!==dependencies.clientSessionRenewal.clientActorId))
+    throw Error('Selected client speech requires the same exact client session route.');
   const taskRequests = dependencies.taskRequests ?? (care instanceof LocalCare ? new TaskRequestService(care.pool) : undefined);
   const features=dependencies.features??(care instanceof LocalCare?createLocalFeatures(care.pool):undefined);
   const microsoft=Object.hasOwn(dependencies,'microsoft')?dependencies.microsoft??undefined:(care instanceof LocalCare?await createMicrosoftRuntime(config,care.pool):undefined);
@@ -68,9 +72,14 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   }, 60000); limiter.unref();
   const cookieOptions = { httpOnly: true, secure: config.origin.startsWith('https:'), sameSite: 'strict' as const, path: '/', maxAge: 7 * 86400 };
   const sessionCookieName=z.enum(['nancy_session','nancy_test_session']).parse(config.sessionCookieName??'nancy_session');
-  const ownerSessionRenewal=dependencies.ownerSessionRenewal;
-  if(ownerSessionRenewal&&(!config.synthetic||!care.authority||sessionCookieName!=='nancy_test_session'||config.planUserId!==ownerSessionRenewal.ownerId||config.port!==8788||new URL(config.origin).protocol!=='https:'||new URL(config.origin).port!=='10000'))
+  const clientSessionRenewal=dependencies.clientSessionRenewal;
+  const ownerSessionRenewal=dependencies.ownerSessionRenewal??clientSessionRenewal;
+  if(dependencies.ownerSessionRenewal&&clientSessionRenewal)throw Error('Select only one qualified session maintenance route.');
+  if(dependencies.ownerSessionRenewal&&(!config.synthetic||!care.authority||sessionCookieName!=='nancy_test_session'||config.planUserId!==dependencies.ownerSessionRenewal.ownerId||config.port!==8788||new URL(config.origin).protocol!=='https:'||new URL(config.origin).port!=='10000'))
     throw Error('Session maintenance requires the isolated synthetic owner runtime.');
+  if(clientSessionRenewal&&(!care.authority||sessionCookieName!=='nancy_session'||config.planUserId!==clientSessionRenewal.ownerId||config.port!==8787||config.origin!==clientSessionRenewal.origin))
+    throw Error('Client session maintenance requires the exact selected care runtime.');
+  const renewalFor=(session:Session)=>dependencies.ownerSessionRenewal??(clientSessionRenewal?.handles(session)?clientSessionRenewal:undefined);
   const releaseOwnerRequest=new WeakMap<FastifyRequest,()=>void>();
   const incomingOwnerCredentials=new WeakMap<FastifyRequest,{access:string;refresh:string}>();
   if(ownerSessionRenewal){
@@ -80,7 +89,8 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
       if(!session||!incoming||reply.statusCode>=400)return payload;
       if(request.method==='POST'&&request.routeOptions.url==='/api/auth/logout')return payload;
       try{
-        await ownerSessionRenewal.authorize(care,session);
+        const renewal=renewalFor(session);if(!renewal)return payload;
+        await renewal.authorize(care,session);
         // Review/scope constraints are request-local and still checked on SQL.
         await care.authority?.(session);
         if(revoked.has(session.session_id))throw new ApiError(401,'unauthorized','Please sign in.');
@@ -112,26 +122,27 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
       const current = openSession(request.cookies[sessionCookieName], config.sessionKey!);
       if (!current || revoked.has(current.session_id)) {if(current)await microsoft?.invalidateSession(current);throw new ApiError(401, 'unauthorized', 'Please sign in.');}
       const incomingAccess=current.access_token,incomingRefresh=current.refresh_token;
+      const renewal=renewalFor(current);
       let session:Session;
-      try{session=ownerSessionRenewal?await ownerSessionRenewal.authorize(care,current):await care.authorize(current);}catch(error){await microsoft?.invalidateSession(current);throw error;}
-      if(ownerSessionRenewal){
+      try{session=renewal?await renewal.authorize(care,current):await care.authorize(current);}catch(error){await microsoft?.invalidateSession(current);throw error;}
+      if(renewal){
         // Coalesced renewal results may share an object. Give every HTTP request
         // its own mutable token holder and reviewed-authority boundary.
         session={...session};incomingOwnerCredentials.set(request,{access:incomingAccess,refresh:incomingRefresh});
       }
       sessions.set(request, session);
-      if(ownerSessionRenewal){
-        const release=ownerSessionRenewal.track(session);releaseOwnerRequest.set(request,release);
+      if(renewal){
+        const release=renewal.track(session);releaseOwnerRequest.set(request,release);
         reply.raw.once('close',release);
       }
-      if (ownerSessionRenewal?session.access_token!==incomingAccess||session.refresh_token!==incomingRefresh:session!==current)setSession(reply,session);
+      if (renewal?session.access_token!==incomingAccess||session.refresh_token!==incomingRefresh:session!==current)setSession(reply,session);
       const expectedScope=request.headers['x-nancy-scope'];
       if(expectedScope!==undefined){
         const currentScope=await sessionScope(session);
         if(typeof expectedScope!=='string'||expectedScope!==currentScope.scope_key)
           throw new ApiError(403,'scope_changed','Your account view changed. Sign in and review this change.');
         if(currentScope.authority){
-          if(ownerSessionRenewal)session.reviewed_authority=currentScope.authority;
+          if(renewal)session.reviewed_authority=currentScope.authority;
           else sessions.set(request,{...session,reviewed_authority:currentScope.authority});
         }
       }
@@ -160,7 +171,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     if (error && typeof error === 'object' && 'statusCode' in error && error.statusCode === 413) return reply.code(413).send({ error: { code: 'too_large', message: 'That request is too large.' } });
     return reply.code(500).send({ error: { code: 'unexpected', message: 'Nancy could not finish that request. A save may be unconfirmed; check the plan before trying again.' } });
   });
-  const localSpeechReady = () => !!conversation && speech?.readiness().kokoro === 'ready' && speech.readiness().asr === 'ready';
+  const localSpeechReady = () => !!conversation && !!speech && [speech,...(dependencies.clientSpeech?[dependencies.clientSpeech.speech]:[])].every(service=>service.readiness().kokoro==='ready'&&service.readiness().asr==='ready');
   const voiceAccess = async (session: Session) => {
     if (config.voiceTransport === 'local' && conversation?.voiceAccess) return conversation.voiceAccess(session);
     // Existing legacy/fixture routes remain owner-only; absence never widens access.
@@ -324,7 +335,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     reply.raw.once('close', () => { if (!reply.raw.writableFinished) { controller.abort(); conversation.cancelTurn(id, session, turn_id); } });
     try { return await conversation.turn(id, session, turn_id, async () => {
       const asrStarted = performance.now(); let outcome: 'ok'|'error' = 'error';
-      try { const text = await speech.transcribe(audio, controller.signal); outcome = 'ok'; return text; }
+      try { const text = await speechFor(session).transcribe(audio, controller.signal); outcome = 'ok'; return text; }
       finally { dependencies.runtimeLog?.record({kind: 'conversation', outcome, actor_id: session.user_id, conversation_id: id, turn_id,
         measurements: {stage: 'asr', duration_ms: performance.now() - asrStarted}}); }
     }, createHash('sha256').update(audio).digest('hex')); }
@@ -336,7 +347,8 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     const { turn_id, part } = z.object({ turn_id: uuid, part: z.coerce.number().int().min(0).max(31).optional() }).strict().parse(request.query);
     const { conversation, speech } = localConversation();
     const fullText = await conversation.speech(id, session, turn_id);
-    const text = part === undefined ? fullText : splitSpeechParts(fullText,conversation.speechPartSize)[part];
+    const partSize=conversation.speechPartSizeFor?.(session)??conversation.speechPartSize;
+    const text = part === undefined ? fullText : splitSpeechParts(fullText,partSize)[part];
     if (!text) throw new ApiError(404, 'reply_part_missing', 'That part of the reply is unavailable.');
     const cacheKey = `${session.session_id}:${id}:${turn_id}:${part ?? 'full'}`;
     let audio = audioCache.get(cacheKey);
@@ -348,14 +360,14 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
       reply.raw.once('close', () => { if (!reply.raw.writableFinished) controller.abort(); });
       try {
         audio = await conversation.preparedAudio(id, session, turn_id, text, controller.signal)
-          ?? await speech.synthesize(text, controller.signal);
+          ?? await speechFor(session).synthesize(text, controller.signal);
         await conversation.speech(id, session, turn_id);
       }
       finally { if (speaking.get(key) === controller) speaking.delete(key); }
       audioCache.set(cacheKey, audio);
       while (audioCache.size > 4) audioCache.delete(audioCache.keys().next().value!);
     }
-    const parts=splitSpeechParts(fullText,conversation.speechPartSize);
+    const parts=splitSpeechParts(fullText,partSize);
     void conversation.prepareConversation(id,session,turn_id,part===0||part===undefined&&parts.length===1?audio:undefined,part===undefined||part===parts.length-1).catch(()=>{});
     if(dependencies.safariStudy)reply.header('Server-Timing',`nancy_audio;dur=${(performance.now()-speechRequestAt).toFixed(1)}`);
     return reply.type('audio/wav').send(audio);
@@ -434,6 +446,6 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
       return reply.type(mime[extname(path)]).send(await readFile(path));
     } catch { return reply.code(404).type('text/plain').send('This page is unavailable.'); }
   });
-  app.addHook('onClose', async () => { clearInterval(limiter); for (const controller of speaking.values()) controller.abort(); audioCache.clear(); conversation?.close(); await speech?.close(); await voice.close(); await dependencies.runtimeLog?.close(); await care.close?.(); });
+  app.addHook('onClose', async () => { clearInterval(limiter); for (const controller of speaking.values()) controller.abort(); audioCache.clear(); conversation?.close(); await speech?.close(); await dependencies.clientSpeech?.speech.close(); await voice.close(); await dependencies.runtimeLog?.close(); await care.close?.(); });
   return app;
 }

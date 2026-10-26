@@ -4,6 +4,7 @@ import {sessionLifetimeSeconds} from './session.js';
 import {ApiError} from './errors.js';
 
 interface ActiveLogin {requests:Set<Session>;generation:number;authorizing:number}
+export type SessionRenewal = Pick<OwnerSessionRenewal, 'ownerId' | 'track' | 'authorize' | 'authorizeConversation'>;
 /** Request-local credential propagation for the separately qualified owner copy.
  * Incoming cookies still pass the care service's ordinary authorization first.
  * Only requests already authorized for this exact login receive a peer renewal;

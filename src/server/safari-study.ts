@@ -69,7 +69,7 @@ export class SafariStudy {
 }
 
 export function registerSafariStudy(app:FastifyInstance,options:{study:SafariStudy;synthetic:boolean;sessions:WeakMap<FastifyRequest,Session>;
-  authority:(session:Session)=>Promise<CareAuthority>;conversation:ConversationService;limit:(request:FastifyRequest,key:string,max:number)=>void}){
+  authority:(session:Session)=>Promise<CareAuthority>;conversation:Pick<ConversationService,'speech'>;limit:(request:FastifyRequest,key:string,max:number)=>void}){
   if(!options.synthetic)throw Error('Safari study is restricted to the synthetic owner runtime.');
   const cleanup=setInterval(()=>{void options.study.maintain().catch(()=>{});},3600_000);cleanup.unref();
   app.addHook('onClose',async()=>{clearInterval(cleanup);});

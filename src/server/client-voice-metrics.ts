@@ -8,7 +8,7 @@ import { ApiError } from './errors.js';
 
 /** Same authenticated session/reply authority as speech; a browser cannot assign an actor. */
 export function registerClientVoiceMetrics(app: FastifyInstance, options: {
-  sessions: WeakMap<FastifyRequest, Session>; conversation?: ConversationService; runtimeLog?: RuntimeLog;
+  sessions: WeakMap<FastifyRequest, Session>; conversation?: Pick<ConversationService,'speech'>; runtimeLog?: RuntimeLog;
   limit: (request: FastifyRequest, key: string, maximum: number) => void;
 }) {
   const recorded = new Set<string>();

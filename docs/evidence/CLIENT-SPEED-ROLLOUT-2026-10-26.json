@@ -1,0 +1,187 @@
+{
+  "recorded_at": "2026-10-26T19:50:44.555Z",
+  "participant_local_date": "2026-10-26",
+  "status": "client_release_deployed_engineering_pass_physical_acceptance_open",
+  "implementation_revision": "sha256:7be4ac25cb9623ec5e6478c7e003c188dcccbf197fc314c16d24700f5fd05f53",
+  "scope": "Exact existing caregiver-authorized client route only, using the owner-selected fastest previously qualified profile. Heart, Current, other actors, care records, provider permissions and the separate owner copy are preserved.",
+  "prior_repairs": {
+    "commit": "425e58330063cd1496c45edf4f44ecdcc7ded9d5",
+    "pushed_test_branch": true,
+    "main_merge": false
+  },
+  "authorization": {
+    "initial_automatic_review_rejection_retained": true,
+    "new_informed_exact_route_test_rollout_approval": true,
+    "fresh_automatic_review_allowed_implementation": true,
+    "same_actual_client_actor_participant": true,
+    "same_account_owner_account_binding_host_grants": true,
+    "actual_speaker_identity_preserved": true,
+    "provider_exception_claimed": false,
+    "other_people_routes_widened": false
+  },
+  "profile": {
+    "model": "gpt-6-sol",
+    "reasoning_effort": "low",
+    "context": "prepared-v1",
+    "meal": "ahead-v1",
+    "conversation_continuation": "dialogue-v1",
+    "chat_preparation": "ahead-v1",
+    "verified_references": "verified-v1",
+    "connection": "warm-v2",
+    "incremental_conversation": false,
+    "voice": "Kokoro Heart",
+    "speaking_speed_changed": false,
+    "speech_part_size": 72,
+    "locked_current_design": true,
+    "targeted_client_only": true,
+    "other_main_actors_sol_high_and_default_speech": true,
+    "care_only_credential_renewal_independent_of_inference": true,
+    "owner_asana_or_practice_data_promoted": false,
+    "silent_api_model_account_fallback": false
+  },
+  "verification": {
+    "targeted_regression": {
+      "passed": 146,
+      "failed": 0,
+      "files": 6,
+      "execution": "Separate focused run; overlapping tests are included in the full regression total and not added to it."
+    },
+    "typecheck": "pass",
+    "safe_build": "pass",
+    "initial_full_regression": {
+      "passed": 1511,
+      "failed": 1,
+      "skipped": 2,
+      "failure": "A seven-day Outlook fixture aged past its fixed date range; the test now uses a controlled clock and its focused check passes. Original failed result retained privately."
+    },
+    "final_full_regression": {
+      "status": "pass",
+      "passed": 1512,
+      "failed": 0,
+      "skipped": 2,
+      "files": 134
+    },
+    "actual_postgresql_http_fixture": {
+      "passed": 47,
+      "failed": 0,
+      "http_requests": 33,
+      "fake_model_calls": 6,
+      "external_provider_calls": 0,
+      "owned_fixture_removed": true,
+      "actual_care_database_opened": false,
+      "reviewed_plan_acceptance_reschedule_completion_and_retry": true,
+      "voice_revocation_care_buttons_and_grant_denial": true
+    },
+    "actual_pro_qualification": {
+      "checks_passed": 26,
+      "requests": 6,
+      "static_policy_preparation": 1,
+      "ordinary_websocket_questions": 3,
+      "synthetic_care_context_http_questions": 1,
+      "repository_meal_preparation": 1,
+      "all_generated_responses_completed_selected_profile": true,
+      "public_synthetic_facts_only": true,
+      "actual_care_context_sent": false,
+      "actual_person_speech": false,
+      "actual_care_session": false,
+      "care_writes": 0,
+      "tool_execution_or_provider_mutation": false,
+      "numeric_usage_known": true,
+      "meal_ids_source_exclusion_and_carbohydrate_facts_checked": true,
+      "clinical_suitability_established": false
+    },
+    "actual_https_readiness": {
+      "checks_passed": 12,
+      "http_requests": 26,
+      "existing_client_credential_identity_and_login": true,
+      "authenticated_client_scope": true,
+      "exact_fast_voice_policy": true,
+      "native_heart_workers_ready": true,
+      "model_requests": 0,
+      "conversation_started": false,
+      "engineering_login_closed": true
+    },
+    "rollback_and_deployed_asset_references": {
+      "checks_passed": 557,
+      "manifest_files": 527,
+      "manifest_build_files": 3,
+      "retained_original_asset_files": 16,
+      "public_https_get_requests": 3,
+      "all_public_html_assets_match_frozen_manifest": true,
+      "selected_entry_dependency_pins_and_source_hashes_verified": true,
+      "snapshot_prior_pointer_and_selection_absent": true,
+      "fallback_source_and_guarded_rollback_helper_exist": true,
+      "live_rollback_or_restore_executed": false,
+      "model_requests": 0
+    }
+  },
+  "timing": {
+    "method": "Direct selected-provider response duration only; excludes microphone, local speech, Safari playback and smartphone networks. No matched before/after speed claim.",
+    "generated_response_samples_ms": [
+      1514,
+      1840,
+      2285,
+      1958,
+      2568
+    ],
+    "static_policy_preparation_ms": 2966,
+    "end_to_end_phone_speed_gain_established": false
+  },
+  "preservation": {
+    "stage": "postactivation",
+    "encrypted_care_backup_verified": true,
+    "schema_pending_migrations": 0,
+    "protected_original_files": 70,
+    "protected_original_files_unchanged": true,
+    "client_tables_checked": 66,
+    "owner_tables_checked": 69,
+    "original_main_assets_unchanged": true,
+    "owner_release_settings_assets_and_asana_preserved": true,
+    "microsoft_configuration_and_permissions_preserved": true,
+    "postactivation_result": "pass",
+    "all_original_care_and_configuration_rows_unchanged": true,
+    "operational_exceptions": [
+      "Client and owner numeric runtime events advance.",
+      "One new engineering client-login session was created and closed."
+    ],
+    "original_client_sessions_unchanged": 34,
+    "new_engineering_client_sessions_closed": 1,
+    "existing_device_sessions_revoked": false
+  },
+  "deployment": {
+    "deployed_source_build_files": 527,
+    "activated": true,
+    "deliberate_client_child_restarts": 1,
+    "actual_matching_release_asset_verification": "pass",
+    "external_host_boot_observed_at": "2026-10-26T19:25:38.500Z",
+    "process_continuity_claim_across_host_boot": false,
+    "previous_assets_configuration_release_retained": true,
+    "verified_rollback_references": "pass; previous absence snapshot and retained original source/assets checked; live rollback not executed",
+    "outlook_actual_reconnection": "reconnect_required",
+    "final_runtime_readiness": "pass",
+    "main_supervisor_preserved": true,
+    "owner_service_continuous_relative_to_fresh_activation_baseline": true,
+    "care_migration": false
+  },
+  "accounting": {
+    "maximum": 64,
+    "observed_existing_pro_requests": 6,
+    "unknown_requests": 0,
+    "engineering_ledger_closed": true,
+    "api_billing": false,
+    "new_paid_service": false
+  },
+  "acceptance": {
+    "actual_intended_person": "awaiting_live_test",
+    "physical_microphone_capture": "awaiting_live_test",
+    "human_audible_heart": "awaiting_live_test",
+    "iphone_safari_wifi_cellular": "awaiting_live_test",
+    "genuine_day_planning": "awaiting_live_test",
+    "outlook_reconnect": "reconnect_required",
+    "full_slice": "awaiting_live_test",
+    "human_action_completed": false,
+    "feature_slice_completed": false,
+    "closed_browser_or_locked_phone_speech_promised": false
+  },
+  "private_evidence": "Full qualification, authorization, encrypted backup, preservation and deployment records remain in ignored local storage. No private care contents, credentials or identities are included here."
+}

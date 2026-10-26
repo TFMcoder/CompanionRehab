@@ -29,6 +29,7 @@ export function safeEvent(input: RuntimeEvent): EventRow {
     // Persist missing token observations explicitly. Invalid values cannot become estimates or zero.
     if (usageKeys.has(key)) measurements[key] = typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null;
     if (key === 'policy_version' && typeof value === 'string' && /^[a-z][a-z0-9_.-]{0,63}$/i.test(value)) measurements.policy_version = value;
+    if (key === 'policy_ref' && typeof value === 'string' && value.length === 71 && /^sha256:[a-f0-9]{64}$/.test(value)) measurements.policy_ref = value;
     if (key === 'activity_outcome' && typeof value === 'string' && ['none','review_prepared','saved','rejected','unconfirmed'].includes(value)) measurements.activity_outcome = value;
     if (key === 'preparation_failure' && typeof value === 'string' && ['invalid_selection','incomplete_selection','conflicting_selection','model_failed','model_invalid','speech_failed','context_changed','cancelled','timeout'].includes(value)) measurements.preparation_failure=value;
     if (key === 'binding_ref' && typeof value === 'string' && (uuid.test(value) || /^sha256:[a-f0-9]{64}$/.test(value))) measurements.binding_ref = value;
