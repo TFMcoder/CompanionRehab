@@ -9,10 +9,11 @@
   "scripts": {
     "dev": "tsx watch src/server/index.ts",
     "build": "vite build --configLoader runner",
+    "build:check": "tsx scripts/build-check.ts",
     "start": "tsx src/server/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --configLoader runner",
-    "check": "npm run typecheck && npm test && npm run build",
+    "check": "npm run typecheck && npm test && npm run build:check",
     "scan:public": "tsx scripts/check-public-boundary.ts",
     "readiness": "tsx scripts/readiness.ts",
     "readiness:openai": "tsx scripts/check-openai.ts",
@@ -22,13 +23,13 @@
   },
   "dependencies": {
     "@fastify/cookie": "11.0.2",
-    "fastify": "5.12.5",
+    "fastify": "5.12.7",
     "jose": "6.2.12",
     "pg": "8.16.3",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "ws": "8.22.0",
-    "zod": "4.1.12"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.3.14",
@@ -42,7 +43,7 @@
     "jsdom": "26.1.0",
     "tsx": "4.20.6",
     "typescript": "5.9.3",
-    "vite": "7.3.6",
-    "vitest": "4.1.11"
+    "vite": "7.3.7",
+    "vitest": "4.1.12"
   }
 }

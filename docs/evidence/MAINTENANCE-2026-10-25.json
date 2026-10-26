@@ -1,0 +1,113 @@
+{
+  "recorded_at": "2026-10-25T22:32:10.975Z",
+  "status": "owner_test_maintenance_deployed",
+  "implementation_revision": "sha256:5a9a3c51961ddbfa4f7b0d999b84662456d9d01cb3f2a0b9dec7fdb85dba55ff",
+  "fixes": [
+    {
+      "id": "F01",
+      "name": "Security dependencies",
+      "result": "Patched isolated owner dependencies and transitive fast-uri versions; installed candidate npm audit reports zero advisories. Original Dad packages preserved.",
+      "versions": {
+        "fastify": "5.12.7",
+        "zod": "4.6.7",
+        "vite": "7.3.7",
+        "vitest": "4.1.12",
+        "fast_uri": [
+          "3.1.9",
+          "4.2.3"
+        ]
+      }
+    },
+    {
+      "id": "F02",
+      "name": "Session renewal",
+      "result": "Exact owner request sessions propagate validated credential rotations and return replacement cookies. Detached preparation uses fresh non-renewing authority; intentional logout remains successful. Concurrent rotation, stale incoming cookies and revocation remain checked. Default runtime path is unchanged."
+    },
+    {
+      "id": "F03",
+      "name": "Audio lifecycle",
+      "result": "Owner build stops cleanly if audio suspends/interruption closes its clock or a microphone track ends; releases resources and offers a clear restart message without acknowledging unheard playback. Default client behavior and Heart unchanged."
+    },
+    {
+      "id": "F04",
+      "name": "Safe verification build",
+      "result": "npm run check ends with build:check into ignored .local/check-build. Production build remains a separate explicit operation; installation in the shared live checkout is documented as deployment-sensitive."
+    },
+    {
+      "id": "F05",
+      "name": "Migration replay guard",
+      "result": "Historical initializer requires --initialize-empty, checks every target before writes, and refuses populated/application-object targets. Established-database instructions point to the guarded additive upgrader."
+    },
+    {
+      "id": "F06",
+      "name": "Asana recovery identity",
+      "result": "Explicit encrypted format-3 owner backup retains nonsecret import mappings and receipts atomically with care records. OAuth credentials/sessions excluded; ordinary formats1/2 unchanged. Restore requires an isolated empty disconnected target; reconnect/replay cannot create another copy."
+    },
+    {
+      "id": "F07",
+      "name": "Safari sample attribution",
+      "result": "New speech from listening or idle-grace closing is bound to the selected scenario; preparation cannot relabel that turn and opening observations remain separate."
+    }
+  ],
+  "verification": {
+    "full_regression": {
+      "passed": 1348,
+      "failed": 0,
+      "skipped": 2,
+      "files": 129
+    },
+    "typecheck": "pass",
+    "builds": "pass",
+    "installed_owner_dependency_advisories": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "actual_postgresql": {
+      "checks": 27,
+      "passed": true,
+      "implementation_revision": "sha256:041c9ff876a1980a34dfc015657485bef08d770e489a92df9efcbafe9c2252ca",
+      "recovery_implementation_bytes_unchanged_in_final": true,
+      "temporary_databases_created_and_removed": 2,
+      "actual_provider_calls": 0
+    },
+    "actual_owner_http": {
+      "passed": true,
+      "checks": 26
+    },
+    "preservation": {
+      "passed": true,
+      "checks": 70,
+      "care_tables_unchanged": 30,
+      "asana_tables_unchanged": 3
+    }
+  },
+  "deployment": {
+    "owner_pinned_source_and_dependencies": true,
+    "owner_client_pages": 3,
+    "owner_child_restarted": 1,
+    "owner_supervisor_preserved": true,
+    "dad_process_assets_configuration_and_installed_packages_unchanged": true,
+    "heart_voice_model_speed_and_workers_unchanged": true,
+    "existing_reasoning_model_and_account_binding_unchanged": true,
+    "original_owner_pages_retained_privately": true,
+    "github_push_or_merge": false
+  },
+  "accounting": {
+    "maximum": 48,
+    "existing_pro_requests": 0,
+    "unknown_events": 0,
+    "closed": true,
+    "api_billing_enabled": false
+  },
+  "historical_failures": "The npm lockfile-only operation unexpectedly rewrote hidden installed-tree metadata, while installed package code stayed unchanged. The preservation guard caught it; the metadata was reconstructed and restored to the exact initial SHA-256 before all package installation moved to the isolated owner release. Failed regression fixtures and the detached-preparation before-repair401 remain private; no Dad restart or package code replacement occurred.",
+  "remaining": [
+    "Physical microphone permission, actual iPhone/Safari speech capture, human audibility and genuine-day/full-slice acceptance remain open. These fixes do not mark those gates complete.",
+    "Dad intentionally retains the prior deployed code/packages until a separate promotion decision.",
+    "The actual SQL recovery probe used a synthetic provider; no production Asana writeback/consent/identity gate is inferred."
+  ],
+  "private_evidence_ref": "Ignored owner maintenance bundle: exact full tests/typecheck/build/audit, pinned source manifest and active-entry proof, original page backups, read-only care/config/assets/package hashes, actual PostgreSQL probe and verified cleanup, and bounded numeric request accounting. No credential, transcript, raw care payload or provider identifier published."
+}

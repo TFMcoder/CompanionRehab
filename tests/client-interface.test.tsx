@@ -11,6 +11,14 @@ import {clientBackend,clientDay,clientResponse} from './helpers/client-interface
 afterEach(()=>{cleanup();vi.resetAllMocks();vi.unstubAllGlobals();window.history.replaceState(null,'','/');});
 function voice(){let options!:Parameters<typeof startLocalVoice>[0];const handle={stop:vi.fn(async()=>{}),interrupt:vi.fn(),sendText:vi.fn(async()=>{})};vi.mocked(startLocalVoice).mockImplementation(async input=>{options=input;input.onReady?.(handle);input.onState('listening');return handle;});return {handle,options:()=>options};}
 describe('October 19 client interface contract',()=>{
+ it('offers a startup audio gesture only when requested and cancels it with Stop',async()=>{
+  let options!:Parameters<typeof startLocalVoice>[0];vi.mocked(startLocalVoice).mockImplementation(input=>{options=input;return new Promise(()=>{});});
+  clientBackend();render(<App/>);fireEvent.click(await screen.findByRole('button',{name:'Talk to Nancy'}));
+  await waitFor(()=>expect(options).toBeDefined());expect(screen.queryByRole('button',{name:'Enable sound'})).not.toBeInTheDocument();
+  const resume=vi.fn();act(()=>options.onAudioUnlock?.(resume));fireEvent.click(screen.getByRole('button',{name:'Enable sound'}));expect(resume).toHaveBeenCalledOnce();
+  fireEvent.click(screen.getByRole('button',{name:'Stop voice'}));expect(screen.queryByRole('button',{name:'Enable sound'})).not.toBeInTheDocument();
+  act(()=>options.onAudioUnlock?.(resume));expect(screen.queryByRole('button',{name:'Enable sound'})).not.toBeInTheDocument();expect(options.signal?.aborted).toBe(true);
+ });
  it.each([true,false])('shows date-only duplicate task dates only in the owner build: %s',async preview=>{
   if(preview)vi.stubGlobal('__NANCY_OWNER_TASK_DATES__',true);
   const today=structuredClone(clientDay);today.tasks=[{id:'grocery-one',title:'[TEST] Pick up groceries',time_hint:'Asana sandbox',scheduled_date:'2026-10-26',scheduled_time:null},{id:'grocery-two',title:'[TEST] Pick up groceries',time_hint:'Asana sandbox',scheduled_date:'2026-10-28',scheduled_time:null},{id:'undated',title:'[TEST] Task with no date',time_hint:'Asana sandbox',scheduled_date:null,scheduled_time:null}];

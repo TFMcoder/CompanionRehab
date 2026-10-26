@@ -1,0 +1,64 @@
+{
+  "recorded_at": "2026-10-24T23:02:34.224Z",
+  "status": "engineering_repair_deployed_awaiting_live_test",
+  "implementation_revision": "sha256:8941f85e846bfc52e047347730596280b1fb670a4b82affc832243165fc16be0",
+  "scope": "Only the separate owner test build: normal Talk to Nancy and the existing Safari study. Heart, Dad, all care records, provider permissions, models and billing preserved.",
+  "changes": [
+    "Separate microphone readiness from actual AudioContext running state instead of depending on the first resume promise.",
+    "Prime a one-sample silent output during the original gesture and resume again after microphone capture, which may interrupt audio.",
+    "Offer an explicit Enable sound gesture while audio remains suspended; keep Stop and late-grant cleanup.",
+    "Show whether audio is ready, the microphone grant is pending, or the page needs foreground focus. Give microphone prompts up to sixty seconds; audio after capture remains bounded to twenty seconds. No server conversation starts before both are ready.",
+    "Compile these changes only into the owner build; preserve the existing default startup. Keep the Current layout and date-only task display."
+  ],
+  "verification": {
+    "focused": {
+      "passed": 50,
+      "failed": 0
+    },
+    "regression": {
+      "passed": 1306,
+      "failed": 0,
+      "skipped": 2
+    },
+    "typecheck": "pass",
+    "isolated_owner_build": "pass",
+    "preservation_and_actual_http": {
+      "passed": true,
+      "checks": 53
+    }
+  },
+  "browser_observations": {
+    "normal_https_page": "Actual deployed owner page reports audio ready and the browser microphone grant pending, including the final build. No opening server conversation, physical speech capture or audible Heart playback is claimed.",
+    "native_chrome": "Foreground test could not start: computer-use app approval timed out. The Chrome browser connection later became unavailable.",
+    "remaining": "The browser microphone prompt must be completed on the device. The owner was asked to allow it and leave the test page open; no result is inferred while unanswered.",
+    "physical_iphone_safari": "awaiting_live_test",
+    "human_audibility": "unobserved",
+    "fakes_or_permission_bypasses": false
+  },
+  "preservation": {
+    "care_tables_unchanged": 30,
+    "both_app_processes_and_supervisors_unchanged": true,
+    "heart_and_model_settings_unchanged": true,
+    "dad_active_assets_unchanged": true,
+    "owner_pages_updated": 2,
+    "owner_original_pages_retained_for_rollback": true,
+    "server_restarts": 0,
+    "provider_or_microphone_permission_changes": false
+  },
+  "inference_accounting": {
+    "maximum": 64,
+    "reserved_maximum": 51,
+    "observed_requests": 2,
+    "unknown_events": 0,
+    "closed": true,
+    "api_billing_enabled": false
+  },
+  "historical_failures": "The initial synthetic microphone denial test exposed DOMException identity loss, corrected before deployment. Initial test error-result typing was also corrected; both failed outputs remain private. Earlier generic browser timeouts remain in the Asana test record.",
+  "sources": [
+    "https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/resume",
+    "https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Best_practices",
+    "https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia",
+    "https://www.w3.org/TR/mediacapture-streams/"
+  ],
+  "private_evidence_ref": "Ignored owner startup bundle: original page backups, deployed hashes, exact regression reports, read-only database/file/process checks, numeric request accounting and actual browser screenshots. No credential, transcript or raw care payload is public."
+}

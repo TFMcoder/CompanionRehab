@@ -35,6 +35,7 @@ import {mealSlots,preparedMealSlots,mealPreparationMaterial,mealPreparationKey,p
 import {conversationFollowup,canPrepareConversation,validatePreparedConversation,conversationPreparationPolicy,type ConversationFollowup,type PreparedConversationAnswers} from './conversation-preparation.js';
 import {dialogueChatReply,dialogueConversationGuidance,dialogueMealPreparationPolicy,validateDialogueMeals,mealFollowup,mealFollowupReply,type MealThread,type MealFollowup} from './dialogue-replies.js';
 import {verifiedAnswer,verifiedCard,verifiedSourceQuestion,verifiedSourceReply,verifiedReferenceContext,verifiedReferenceGuidance,verifiedReferenceHash,type VerifiedAnswer,type VerifiedReference} from './verified-answers.js';
+import type {OwnerSessionRenewal} from './owner-session-renewal.js';
 
 export interface ConversationReply { session_id: string; reply_id: string; text: string; speech_parts: number; changed: boolean; acknowledgement_required?: boolean; navigate?: ClientView; transcript?: string; nutrition_refs?: Array<{ document_id:string; path:string; sha256:string; items:string[] }>;reference_sources?:VerifiedReference[] }
 export interface ConversationTurnMetric {
@@ -230,8 +231,9 @@ export class ConversationService {
     private observeTurn?: (metric: ConversationTurnMetric) => void,
     private observeCall?: (metric: InferenceCallMetric) => void,
     private requests?: RequestConversationService, private features?:LocalFeatures, private microsoftEligible?:(session:Session)=>Promise<boolean>,private microsoft?:MicrosoftService,private suggestions?:NancySuggestions,
-    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false,private spokenReplies=false,private prepareMealsAhead=false,private observeMealPreparation?:(metric:MealPreparationMetric)=>void,private dialogueReplies=false,private prepareChat=false,private observeChatPreparation?:(metric:ConversationPreparationMetric)=>void,private verifiedReferences=false,private warmConnection=false,private quickConversation=false) {
+    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false,private spokenReplies=false,private prepareMealsAhead=false,private observeMealPreparation?:(metric:MealPreparationMetric)=>void,private dialogueReplies=false,private prepareChat=false,private observeChatPreparation?:(metric:ConversationPreparationMetric)=>void,private verifiedReferences=false,private warmConnection=false,private quickConversation=false,private ownerSessionRenewal?:OwnerSessionRenewal) {
     this.expectedReasoning=validateReasoningProfile(expectedReasoning);
+    if(ownerSessionRenewal&&ownerSessionRenewal.ownerId!==ownerId)throw new RangeError('Session maintenance must retain the exact owner account.');
     if(prepareChat&&(!dialogueReplies||!prepareMealsAhead||!spokenReplies||!quickReads||!prepareContext||speechPartSize!==72||this.expectedReasoning.model!=='gpt-6-sol'||this.expectedReasoning.effort!=='low'))throw new RangeError('Conversation preparation requires the exact existing owner dialogue trial.');
     if(verifiedReferences&&!prepareChat)throw new RangeError('Verified references require the exact existing owner conversation trial.');
     if(warmConnection&&(!verifiedReferences||!reasoner.warmConnection||!reasoner.releaseConnection))throw new RangeError('Warm connection requires the exact existing owner reference trial.');
@@ -255,7 +257,7 @@ export class ConversationService {
   }
   private async validateScope(session: Session, state?: Conversation) {
     try {
-    await this.care.authorize(session);
+    if(this.ownerSessionRenewal)await this.ownerSessionRenewal.authorizeConversation(this.care,session);else await this.care.authorize(session);
     const bound = await this.getBinding(session);
     if (session.user_id !== this.ownerId && (bound.qualification !== 'caregiver_authorized' || bound.account_owner_actor_id !== this.ownerId))
       throw new ApiError(403, 'reasoning_not_linked', 'Nancy’s ChatGPT connection is not linked to this sign-in. The day views remain available.');
@@ -281,6 +283,7 @@ export class ConversationService {
   /** Authenticated foreground audio consumption only; no timer, outreach, writes or retry. */
   async prepareConversation(id:string,session:Session,replyId:string,firstAudio?:Buffer,lastPartReady=false):Promise<void>{
     if(!this.prepareChat||this.closed)return;
+    if(this.ownerSessionRenewal)session={...session};
     const state=this.state(id,session),draft=state.chatDraft;
     if(!draft||draft.replyId!==replyId)return;
     if(firstAudio&&firstAudio.length<=1024*1024)draft.audio.set(splitSpeechParts(state.replies.get(replyId)!,this.speechPartSize)[0],Buffer.from(firstAudio));
@@ -337,6 +340,7 @@ export class ConversationService {
   /** Foreground authenticated-page preparation only. No scheduler, care writes, retries or API fallback. */
   async prepareMeals(session:Session):Promise<void>{
     if(!this.prepareMealsAhead||this.closed)return;
+    if(this.ownerSessionRenewal)session={...session};
     if(this.mealJob)return this.mealJob.done;
     if(this.chatJob)return;
     if([...this.sessions.values()].some(state=>state.busy))return;

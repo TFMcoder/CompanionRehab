@@ -16,6 +16,7 @@ export function SafariStudyPage(){
   const [browser,setBrowser]=useState<SafariRunInput['browser']>('safari'),[condition,setCondition]=useState<SafariRunInput['condition']>('new_page');
   const [voiceState,setVoiceState]=useState<LocalVoiceState>('stopped'),[voiceMessage,setVoiceMessage]=useState(''),[transcript,setTranscript]=useState(''),[reply,setReply]=useState('');
   const [sample,setSample]=useState<StoredSample|null>(null),[rating,setRating]=useState<SafariRating>(defaults),[saved,setSaved]=useState(false);
+  const [audioUnlock,setAudioUnlock]=useState<(()=>void)|null>(null);
   const voice=useRef<LocalVoiceHandle|null>(null),controller=useRef<AbortController|null>(null),active=useRef(false),observation=useRef<VoiceObservation|null>(null);
   const latest=useRef({session,run,step});latest.current={session,run,step};
   const observations=useRef(new Map<string,Promise<unknown>>()),failed=useRef(new Map<string,StoredSample>());
@@ -36,7 +37,7 @@ export function SafariStudyPage(){
       const prior=sessionStorage.getItem(runKey);if(prior){try{const found=await request<Result>('/'+prior);setRun(found);setNetwork(found.setup.network);setStep(0);}catch{sessionStorage.removeItem(runKey);}}
     }catch(error){setIssue(error instanceof Error?error.message:'Please sign in to the test account.');}finally{setLoading(false);}
   }
-  async function stop(){controller.current?.abort();await voice.current?.stop();voice.current=null;active.current=false;}
+  async function stop(){active.current=false;setAudioUnlock(null);controller.current?.abort();await voice.current?.stop();voice.current=null;}
   const event=(kind:'page_hidden'|'page_visible'|'no_reply'|'permission_error'|'voice_error'|'unexpected_navigation')=>{
     const current=latest.current;if(!current.run||current.run.completed)return;
     void request('/'+current.run.id+'/event',{id:crypto.randomUUID(),scenario_id:safariScenarios[current.step].id,kind})
@@ -62,10 +63,11 @@ export function SafariStudyPage(){
     observations.current.set(item.id,saving);
   }
   async function talk(){if(active.current)return;active.current=true;scenarioAtRequest.current=latest.current.step;setIssue('');controller.current=new AbortController();
-    try{await startLocalVoice({signal:controller.current.signal,onReady:h=>{voice.current=h;},
-      onState:(state,message)=>{if(state==='thinking'&&phase.current==='listening')scenarioAtRequest.current=latest.current.step;
+    const signal=controller.current.signal;
+    try{await startLocalVoice({signal,onAudioUnlock:resume=>{if(active.current&&!signal.aborted)setAudioUnlock(()=>resume);},onReady:h=>{voice.current=h;},
+      onState:(state,message)=>{if(state==='thinking'&&(phase.current==='listening'||phase.current==='closing'))scenarioAtRequest.current=latest.current.step;
         if(state==='thinking'){setSample(null);observation.current=null;setRating(defaults);setSaved(false);}
-        phase.current=state;setVoiceState(state);setVoiceMessage(message??'');if(state==='stopped'||state==='error')active.current=false;},
+        phase.current=state;setVoiceState(state);setVoiceMessage(message??'');if(state==='stopped'||state==='error'){active.current=false;setAudioUnlock(null);}},
       onTranscript:(speaker,text)=>speaker==='you'?setTranscript(text):setReply(text),onChange:()=>{},onNavigate:()=>event('unexpected_navigation'),onObservation:observe});
     }catch(error){active.current=false;const message=error instanceof Error?error.message:'Voice did not start.';setIssue(message);event(/permission/i.test(message)?'permission_error':'voice_error');}}
   function heard(){const seen=observation.current;if(!seen||!sample)return;const at=performance.now(),elapsed=(from:number|null)=>from===null||at<from||at-from>300_000?null:Math.round(at-from);
@@ -87,6 +89,7 @@ export function SafariStudyPage(){
   return <main className="study">
     <header className="study-head"><p>Nancy · Your practice copy</p><h1>Phone voice test</h1><p>Heart voice · Your existing plan · Practice data</p>
       {session&&run&&!run.completed&&<button className="primary" disabled={busy} onClick={()=>void (active.current?stop():talk())}>{['stopped','error'].includes(voiceState)?'Talk to Nancy':'Stop Nancy'}</button>}
+      {audioUnlock&&voiceState==='connecting'&&<button onClick={audioUnlock}>Enable sound</button>}
       {session&&run&&!run.completed&&<button className="primary heard" disabled={!sample||rating.heard_after_input_ms!==null} onClick={heard}>I hear her answer</button>}
       <p role="status">{voiceMessage}</p></header>
     {issue&&<p role="alert" className="issue">{issue}</p>}

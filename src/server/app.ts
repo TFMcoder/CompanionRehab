@@ -33,9 +33,10 @@ import {createMicrosoftRuntime} from './microsoft/runtime.js';
 import type {MicrosoftService} from './microsoft/service.js';
 import {NancySuggestions} from './nancy-suggestions.js';
 import {registerOwnerAsana,type OwnerAsana} from './owner-asana.js';
+import type {OwnerSessionRenewal} from './owner-session-renewal.js';
 
 type RequestService = Pick<TaskRequestService, 'workspace'|'review'|'command'|'receipt'|'authorityRevision'>;
-export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; taskRequests?: RequestService; features?:LocalFeatures; microsoft?:MicrosoftService|null; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog;safariStudy?:SafariStudy;ownerAsana?:OwnerAsana } = {}) {
+export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationService; speech?: LocalSpeech; taskRequests?: RequestService; features?:LocalFeatures; microsoft?:MicrosoftService|null; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog;safariStudy?:SafariStudy;ownerAsana?:OwnerAsana;ownerSessionRenewal?:OwnerSessionRenewal } = {}) {
   const app = Fastify({ logger: false, bodyLimit: 100000, trustProxy: false, requestTimeout: 120000, genReqId: () => randomUUID(), requestIdHeader: false });
   const care: CareService = dependencies.care || (config.databaseUrl ? new LocalCare({ connectionString: config.databaseUrl }) : new Supabase(config));
   const voice = dependencies.voice || new VoiceService(config, care);
@@ -67,6 +68,27 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   }, 60000); limiter.unref();
   const cookieOptions = { httpOnly: true, secure: config.origin.startsWith('https:'), sameSite: 'strict' as const, path: '/', maxAge: 7 * 86400 };
   const sessionCookieName=z.enum(['nancy_session','nancy_test_session']).parse(config.sessionCookieName??'nancy_session');
+  const ownerSessionRenewal=dependencies.ownerSessionRenewal;
+  if(ownerSessionRenewal&&(!config.synthetic||!care.authority||sessionCookieName!=='nancy_test_session'||config.planUserId!==ownerSessionRenewal.ownerId||config.port!==8788||new URL(config.origin).protocol!=='https:'||new URL(config.origin).port!=='10000'))
+    throw Error('Session maintenance requires the isolated synthetic owner runtime.');
+  const releaseOwnerRequest=new WeakMap<FastifyRequest,()=>void>();
+  const incomingOwnerCredentials=new WeakMap<FastifyRequest,{access:string;refresh:string}>();
+  if(ownerSessionRenewal){
+    app.addHook('onResponse',async request=>{releaseOwnerRequest.get(request)?.();releaseOwnerRequest.delete(request);});
+    app.addHook('onSend',async(request,reply,payload)=>{
+      const session=sessions.get(request),incoming=incomingOwnerCredentials.get(request);
+      if(!session||!incoming||reply.statusCode>=400)return payload;
+      if(request.method==='POST'&&request.routeOptions.url==='/api/auth/logout')return payload;
+      try{
+        await ownerSessionRenewal.authorize(care,session);
+        // Review/scope constraints are request-local and still checked on SQL.
+        await care.authority?.(session);
+        if(revoked.has(session.session_id))throw new ApiError(401,'unauthorized','Please sign in.');
+        if(session.access_token!==incoming.access||session.refresh_token!==incoming.refresh)setSession(reply,session);
+      }catch(error){conversation?.endLogin(session.session_id);throw error;}
+      return payload;
+    });
+  }
   const setSession = (reply: FastifyReply, session: Session) => reply.setCookie(sessionCookieName, sealSession(session, config.sessionKey!), {...cookieOptions,maxAge:sessionLifetimeSeconds(session)});
   const sessionScope=async(session:Session)=>{
     const authority=await care.authority?.(session);
@@ -89,16 +111,29 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
       if (missingConfig(config).length) throw new ApiError(503, 'not_configured', 'The care service has not been connected yet.');
       const current = openSession(request.cookies[sessionCookieName], config.sessionKey!);
       if (!current || revoked.has(current.session_id)) {if(current)await microsoft?.invalidateSession(current);throw new ApiError(401, 'unauthorized', 'Please sign in.');}
+      const incomingAccess=current.access_token,incomingRefresh=current.refresh_token;
       let session:Session;
-      try{session=await care.authorize(current);}catch(error){await microsoft?.invalidateSession(current);throw error;}
+      try{session=ownerSessionRenewal?await ownerSessionRenewal.authorize(care,current):await care.authorize(current);}catch(error){await microsoft?.invalidateSession(current);throw error;}
+      if(ownerSessionRenewal){
+        // Coalesced renewal results may share an object. Give every HTTP request
+        // its own mutable token holder and reviewed-authority boundary.
+        session={...session};incomingOwnerCredentials.set(request,{access:incomingAccess,refresh:incomingRefresh});
+      }
       sessions.set(request, session);
-      if (session !== current) setSession(reply, session);
+      if(ownerSessionRenewal){
+        const release=ownerSessionRenewal.track(session);releaseOwnerRequest.set(request,release);
+        reply.raw.once('close',release);
+      }
+      if (ownerSessionRenewal?session.access_token!==incomingAccess||session.refresh_token!==incomingRefresh:session!==current)setSession(reply,session);
       const expectedScope=request.headers['x-nancy-scope'];
       if(expectedScope!==undefined){
         const currentScope=await sessionScope(session);
         if(typeof expectedScope!=='string'||expectedScope!==currentScope.scope_key)
           throw new ApiError(403,'scope_changed','Your account view changed. Sign in and review this change.');
-        if(currentScope.authority)sessions.set(request,{...session,reviewed_authority:currentScope.authority});
+        if(currentScope.authority){
+          if(ownerSessionRenewal)session.reviewed_authority=currentScope.authority;
+          else sessions.set(request,{...session,reviewed_authority:currentScope.authority});
+        }
       }
     }
   });

@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '../src/client/api';
 import { startLocalVoice, wavPcm16, type LocalVoiceHandle } from '../src/client/local-voice';
 
-class FakeAudioContext {
+class FakeAudioContext extends EventTarget {
+  state = 'running';
   sampleRate = 48_000;
   destination = {};
   gain = { value: 1 };
@@ -16,6 +17,7 @@ class FakeAudioContext {
   createScriptProcessor() { return this.processor; }
   createChannelMerger() { return { connect: vi.fn(), disconnect: vi.fn() }; }
   createGain() { return { gain: this.gain, connect: vi.fn(), disconnect: vi.fn() }; }
+  createBuffer() { return {}; }
   createBufferSource() {
     const source = { buffer: null, connect: vi.fn(), disconnect: vi.fn(), start: vi.fn(), stop: vi.fn(() => source.onended?.()), onended: undefined as (() => void) | undefined };
     this.source = source;
@@ -26,12 +28,14 @@ class FakeAudioContext {
 describe('local Nancy voice', () => {
   let context: FakeAudioContext;
   let stopTrack: ReturnType<typeof vi.fn>;
+  let track: EventTarget & {readyState:string;stop:ReturnType<typeof vi.fn>;getSettings:()=>{echoCancellation:boolean}};
   beforeEach(() => {
     context = new FakeAudioContext();
     stopTrack = vi.fn();
+    track = Object.assign(new EventTarget(),{readyState:'live',stop:stopTrack,getSettings:()=>({echoCancellation:true})});
     Object.defineProperty(window, 'isSecureContext', { configurable: true, value: true });
     vi.stubGlobal('AudioContext', class extends FakeAudioContext { constructor() { super(); context = this; } });
-    Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: stopTrack }], getAudioTracks: () => [{ getSettings: () => ({echoCancellation:true}) }] })) } });
+    Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [track], getAudioTracks: () => [track] })) } });
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) })));
     vi.spyOn(api, 'conversationStart').mockResolvedValue({ session_id: 's1', text: 'Good morning.', reply_id: 'r1' });
     vi.spyOn(api, 'conversationPlayed').mockResolvedValue({ ok: true });
@@ -40,6 +44,62 @@ describe('local Nancy voice', () => {
     vi.spyOn(api, 'conversationInterrupt').mockResolvedValue({ ok: true });
   });
   afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+  it.each(['suspended','interrupted','closed'])('ends the owner conversation when greeting audio becomes %s without acknowledging unheard playback',async state=>{
+    vi.stubGlobal('__NANCY_OWNER_VOICE_STARTUP__',true);
+    const onState=vi.fn();
+    const starting=startLocalVoice({onState,onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()});
+    const result=starting.then(()=>null,error=>error as Error);
+    await vi.waitFor(()=>expect(onState).toHaveBeenCalledWith('speaking','Nancy is speaking. Your turn is next.'));
+    context.state=state;context.dispatchEvent(new Event('statechange'));
+    expect((await result)?.message).toContain('audio paused');
+    expect(onState).toHaveBeenLastCalledWith('error',expect.stringContaining('audio paused'));
+    expect(api.conversationPlayed).not.toHaveBeenCalled();expect(api.conversationEnd).toHaveBeenCalledOnce();
+    expect(stopTrack).toHaveBeenCalledOnce();expect(context.close).toHaveBeenCalledOnce();
+  });
+  it('ends an owner reply suspended after the greeting and does not acknowledge that reply',async()=>{
+    vi.stubGlobal('__NANCY_OWNER_VOICE_STARTUP__',true);
+    const onState=vi.fn();const starting=startLocalVoice({onState,onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()});
+    await vi.waitFor(()=>expect(onState).toHaveBeenCalledWith('speaking','Nancy is speaking. Your turn is next.'));
+    context.source!.onended?.();const handle=await starting;
+    vi.spyOn(api,'conversationTurn').mockResolvedValue({text:'A later reply.',reply_id:'r2'});
+    const first=context.source;const turn=handle.sendText('Read my saved task');
+    await vi.waitFor(()=>expect(context.source).not.toBe(first));
+    context.state='suspended';context.dispatchEvent(new Event('statechange'));await turn;
+    expect(api.conversationPlayed).toHaveBeenCalledTimes(1);expect(api.conversationPlayed).toHaveBeenCalledWith('s1','r1',expect.any(AbortSignal));
+    expect(onState).toHaveBeenLastCalledWith('error',expect.stringContaining('audio paused'));expect(stopTrack).toHaveBeenCalledOnce();
+    await handle.stop();expect(api.conversationEnd).toHaveBeenCalledOnce();
+  });
+  it('ends owner voice when the acquired microphone track ends and detaches lifecycle handlers on Stop',async()=>{
+    vi.stubGlobal('__NANCY_OWNER_VOICE_STARTUP__',true);
+    const onState=vi.fn();const starting=startLocalVoice({onState,onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()});
+    await vi.waitFor(()=>expect(onState).toHaveBeenCalledWith('speaking','Nancy is speaking. Your turn is next.'));
+    context.source!.onended?.();const handle=await starting;
+    track.readyState='ended';track.dispatchEvent(new Event('ended'));
+    await vi.waitFor(()=>expect(api.conversationEnd).toHaveBeenCalledOnce());
+    expect(onState).toHaveBeenLastCalledWith('error',expect.stringContaining('microphone disconnected'));
+    expect(stopTrack).toHaveBeenCalledOnce();expect(context.close).toHaveBeenCalledOnce();
+    const calls=onState.mock.calls.length;
+    context.state='suspended';context.dispatchEvent(new Event('statechange'));track.dispatchEvent(new Event('ended'));await handle.stop();
+    expect(onState.mock.calls).toHaveLength(calls);expect(api.conversationEnd).toHaveBeenCalledOnce();
+  });
+  it('keeps ordinary voice startup and lifecycle unchanged when the owner flag is absent',async()=>{
+    const onState=vi.fn();const starting=startLocalVoice({onState,onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()});
+    await vi.waitFor(()=>expect(onState).toHaveBeenCalledWith('speaking','Nancy is speaking. Your turn is next.'));
+    context.state='suspended';context.dispatchEvent(new Event('statechange'));track.dispatchEvent(new Event('ended'));
+    expect(api.conversationEnd).not.toHaveBeenCalled();expect(onState).toHaveBeenLastCalledWith('speaking','Nancy is speaking. Your turn is next.');
+    context.source!.onended?.();const handle=await starting;await handle.stop();expect(stopTrack).toHaveBeenCalledOnce();
+  });
+  it('starts owner voice after a microphone grant recovers audio while the original resume is pending',async()=>{
+    vi.stubGlobal('__NANCY_OWNER_VOICE_STARTUP__',true);
+    vi.stubGlobal('AudioContext',class extends FakeAudioContext {constructor(){super();context=this;this.state='suspended';
+      this.resume.mockImplementationOnce(()=>new Promise<undefined>(()=>{})).mockImplementation(async()=>{this.state='running';this.dispatchEvent(new Event('statechange'));});
+    }});
+    const onState=vi.fn(),unlock=vi.fn();
+    const starting=startLocalVoice({onState,onAudioUnlock:unlock,onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()});
+    await vi.waitFor(()=>expect(onState).toHaveBeenCalledWith('speaking','Nancy is speaking. Your turn is next.'));
+    expect(context.resume).toHaveBeenCalledTimes(2);expect(api.conversationStart).toHaveBeenCalledOnce();
+    context.source!.onended?.();const handle=await starting;await handle.stop();expect(stopTrack).toHaveBeenCalledOnce();expect(context.close).toHaveBeenCalledOnce();
+  });
   it.each([{status:401,code:'unauthorized',event:'nancy:session-expired'},{status:403,code:'scope_changed',event:'nancy:scope-changed'}])('stops microphone and conversation on speech $status',async({status,code,event})=>{
     const states:string[]=[],notify=vi.fn();window.addEventListener(event,notify);
     const starting=startLocalVoice({onState:s=>states.push(s),onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()});

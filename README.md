@@ -9,11 +9,13 @@ Nancy helps a participant plan the day through **Talk to Nancy**, a read-only da
 **Preliminary client trial:** the active authenticated My Day interface uses a separate database prepared without sample care records. Talk to Nancy uses the selected Heart voice and Sol-high reasoning. The earlier audition/preview is excluded from the product build. Follow the [client trial guide](docs/CLIENT_TRIAL.md); genuine participant consent, intended-user account eligibility and physical iPhone/Safari acceptance remain open.
 
 ```powershell
-npm ci
 npm run scan:public
 npm run check
-npm start
 ```
+
+`npm run check` builds into ignored verification output and does not publish to the active client directory. Run installation and maintenance checks in an isolated checkout/release when this computer is serving a live client: `npm ci` or `npm install` in the live checkout replaces dependencies used on its next restart. `npm run build` remains an explicit production build and must be treated as deployment when the service uses `dist/client`; it is not part of routine verification. Start the service only through the selected local runbook after reviewing its database and runtime identity.
+
+The owner maintenance copy uses its own pinned dependencies and source under ignored `.local/owner-test/releases/`, selected by a validated private owner-only release pointer. Dad's entry does not read that pointer. The existing root `node_modules` and Dad's active assets remain separate from owner patch qualification; the workspace's updated manifest/lockfile describes the maintenance candidate, not a silent upgrade of the live installation.
 
 Open the configured `PUBLIC_ORIGIN` after following the local runbook (`http://localhost:8787` for a local-only setup). The application reads `.env.local` and ignored `.local/runtime/local-care.env`; old Supabase/Realtime scripts remain historical references, not a runtime fallback. Keep credentials and records in ignored private storage. The temporary authenticated HTTPS route is owner-authorized; its current address is stored privately and depends on this computer staying online.
 

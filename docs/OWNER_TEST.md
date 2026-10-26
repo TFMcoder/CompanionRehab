@@ -26,6 +26,20 @@ The October 21 owner-authorized [speed/quality comparison](REASONING_COMPARISON_
 
 The test route can be taken offline independently with `tailscale funnel --https=10000 off`. This preserves test records and the other routes; it does not stop the Windows task. Stop or remove only the named test task after separately checking its recorded process identity. Never stop the shared PostgreSQL cluster or live Nancy task to manage a test copy.
 
+## Owner import recovery
+
+The ordinary care backup deliberately excludes provider credentials. To preserve the separate test copy's nonsecret Asana import mappings and exact import receipts with its care records, use the explicit owner extension:
+
+```powershell
+npm run backup -- export .local/backups/owner-test.nancy --owner-asana
+```
+
+This requires `BACKUP_SCHEMA=companion_local`, a private `BACKUP_KEY` and a separate administrative `BACKUP_DATABASE_URL` pointing only to loopback port 55432/database `nancy_owner_test`. The encrypted format-3 snapshot includes `owner_asana_tasks` and `owner_asana_receipts` in the same consistent read as the care tables. It excludes `owner_asana_connection`, tokens, live sessions and OAuth attempts. Default care snapshots remain format 1/2 and unchanged.
+
+For a recovery drill, prepare the canonical schema plus `db/owner_asana_test.sql` in a fresh, isolated database named `nancy_owner_restore_*`. Set the private administrative `RESTORE_DATABASE_URL` to that target and `RESTORE_TARGET=isolated-disposable`, then invoke `restore` with the same `--owner-asana` flag. The restore refuses its source, any target containing care/import rows, or a target with an active provider connection. It restores care and mappings/receipts atomically; it never reconnects a provider or restores consent. Verify the saved local task IDs, then separately qualify any owner-only reconnect and repeat import. Restored mappings prevent a source task from being added twice, while an exact retained command receipt can replay its original result.
+
+Older format-2 care backups cannot prove the missing owner import identity. The explicit owner restore refuses them; do not reconnect and re-add sources after such a restore without a reviewed identity reconciliation. This recovery extension does not authorize restoring over Dad's database or promoting a disposable restore target to active use.
+
 ## Verification and limits
 
 The isolation suite checks strict database/profile configuration, independent encrypted cookies, unchanged production defaults, failed-callback cookie cleanup and the locked test entry. Actual local PostgreSQL/HTTP tests check restricted-role denial, synthetic writes and idempotency, absence of test profile/record IDs in the live database, owner-only reasoning eligibility, disabled Outlook and unchanged live runtime/configuration. One bounded synthetic owner-practice Sol-high request and Heart audio qualify that operational route separately from the synthetic regression suite.

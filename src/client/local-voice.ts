@@ -5,6 +5,7 @@ import type {ConversationPurpose} from '../shared/client-navigation';
 import {keepConversationAwake} from './conversation-awake';
 import type {ClientVoiceMetric} from '../shared/client-voice-metrics';
 import type {SafariDetail} from '../shared/safari-study';
+import {ownerVoiceStartupEnabled,waitForOwnerVoiceStartup} from './owner-voice-startup';
 
 export interface VoiceObservation {
   conversation_id:string;turn_id:string|null;metric:ClientVoiceMetric;detail:SafariDetail;
@@ -22,6 +23,8 @@ export interface LocalVoiceOptions {
   onNavigate: (view: string) => void;
   /** Optional owner-study observer; failure must never hold up or cancel voice. No text/audio. */
   onObservation?: (observation:VoiceObservation) => void;
+  /** Owner test build only: explicit browser gesture recovery for audio unlock. */
+  onAudioUnlock?: (resume: (() => void) | null) => void;
 }
 export interface LocalVoiceHandle { stop: () => Promise<void>; sendText: (text: string) => Promise<void>; interrupt: () => void }
 
@@ -78,6 +81,7 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
   // Unlock audio and request the microphone directly from the button gesture.
   const context = new AudioContext();
   const unlocked = context.resume();
+  const ownerLifecycle = ownerVoiceStartupEnabled();
   let closed = false;
   let stream: MediaStream | undefined, source: MediaStreamAudioSourceNode | undefined, processor: ScriptProcessorNode | undefined;
   const streamPromise = navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 } });
@@ -97,6 +101,7 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
   let generation = 0, replyController = new AbortController();
   let interruptBarrier: Promise<void> = Promise.resolve();  let interruptionFailed = false;
   let terminalError: string | undefined;
+  let detachLifecycle = () => {};
   const activity = new SpeechActivityGate(context.sampleRate);
 
   const stopPlayback = () => {
@@ -109,6 +114,7 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     if (closed) return;
     terminalError = errorMessage;
     closed = true; generation++; controller.abort(); replyController.abort(); listening = false;
+    detachLifecycle();
     clearInterval(monitor); stopPlayback(); releaseScreen();
     processor?.disconnect(); source?.disconnect(); merger?.disconnect(); silent?.disconnect();
     stream?.getTracks().forEach(track => track.stop()); chunks = []; preRoll = [];
@@ -277,7 +283,30 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
   });
   try {
     options.onState('connecting', 'Allow microphone and audio access in your browser to start Nancy…');
-    stream = await waitForStartup(); assertOpen();
+    stream = await (ownerLifecycle ? waitForOwnerVoiceStartup({context,stream:streamPromise,initialResume:unlocked,signal,
+      onProgress:message=>options.onState('connecting',message),onAudioUnlock:options.onAudioUnlock}) : waitForStartup()); assertOpen();
+    if (ownerLifecycle) {
+      // Once playback starts, a suspended audio clock may never emit onended.
+      // End this conversation rather than acknowledging an unheard review or
+      // resuming it later without a new explicit Talk gesture.
+      const audioEnded = () => {
+        if (!closed && context.state !== 'running')
+          void stop('Nancy’s audio paused, so voice stopped. Check My Day for saved changes, then tap Talk to Nancy again.');
+      };
+      const microphoneEnded = () => {
+        if (!closed) void stop('The microphone disconnected, so voice stopped. Check My Day for saved changes, then tap Talk to Nancy again.');
+      };
+      const tracks = stream.getAudioTracks();
+      context.addEventListener('statechange', audioEnded);
+      tracks.forEach(track => track.addEventListener('ended', microphoneEnded));
+      detachLifecycle = () => {
+        context.removeEventListener('statechange', audioEnded);
+        tracks.forEach(track => track.removeEventListener('ended', microphoneEnded));
+      };
+      audioEnded();
+      if (tracks.some(track => track.readyState === 'ended')) microphoneEnded();
+      assertOpen();
+    }
     const openingTiming: VoiceTiming = {inputMode: 'opening', inputAt: openingAt, speechEndedAt: null, requestAt: performance.now()};
     const first = options.purpose&&options.purpose!=='general'?await api.conversationStart(signal,options.purpose):await api.conversationStart(signal);
     openingTiming.repliedAt = performance.now();

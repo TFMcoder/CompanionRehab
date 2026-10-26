@@ -43,4 +43,26 @@ describe('guided phone study',()=>{
   await act(async()=>{options.onTranscript('you','Private phrase');});await screen.findByText('Private phrase');await act(async()=>{window.dispatchEvent(new Event('nancy:scope-changed'));});
   await screen.findByText('Sign in to your test copy');expect(stop).toHaveBeenCalled();expect(screen.queryByText('Private phrase')).toBeNull();expect(sessionStorage.getItem('nancy-safari-study-v1')).toBeNull();
  });
+ it.each(['listening','closing'] as const)('assigns a new speech turn from %s to the visible scenario and retains that assignment through reply preparation',async phase=>{
+  render(<SafariStudyPage/>);await screen.findByText('Before you start');fireEvent.click(screen.getByRole('button',{name:'Start Wi-Fi pass'}));
+  fireEvent.click(await screen.findByRole('button',{name:'Talk to Nancy'}));await waitFor(()=>expect(startLocalVoice).toHaveBeenCalled());
+  fireEvent.click(screen.getByRole('button',{name:'Next test without a rating'}));await screen.findByRole('heading',{name:'Choose breakfast'});
+  await act(async()=>{options.onState(phase);options.onState('thinking');});
+  // Changing the visible test while the reply is prepared cannot relabel the
+  // turn already submitted under breakfast.
+  fireEvent.click(screen.getByRole('button',{name:'Next test without a rating'}));
+  await act(async()=>{options.onState('thinking','Preparing Nancy’s reply…');options.onObservation?.({conversation_id:runId,turn_id:runId,
+   metric:voiceTimingMetric({inputMode:'speech',inputAt:0,speechEndedAt:0,requestAt:900,repliedAt:1000},{reply_id:replyId},1200,undefined),
+   detail:{audio_headers_ms:100,audio_download_ms:50,audio_decode_ms:50,audio_preparation_server_ms:75,audio_bytes:10000,sample_rate:48000,context_state:'running'},input_at:0,speech_ended_at:0});});
+  await waitFor(()=>expect(samples).toHaveLength(1));expect(samples[0].scenario_id).toBe('breakfast');
+ });
+ it('keeps an opening observation separate when the tester changes the visible scenario during the greeting',async()=>{
+  render(<SafariStudyPage/>);await screen.findByText('Before you start');fireEvent.click(screen.getByRole('button',{name:'Start Wi-Fi pass'}));
+  fireEvent.click(await screen.findByRole('button',{name:'Talk to Nancy'}));await waitFor(()=>expect(startLocalVoice).toHaveBeenCalled());
+  fireEvent.click(screen.getByRole('button',{name:'Next test without a rating'}));await screen.findByRole('heading',{name:'Choose breakfast'});
+  await act(async()=>{options.onState('connecting','Preparing Nancy’s greeting…');options.onObservation?.({conversation_id:runId,turn_id:null,
+   metric:voiceTimingMetric({inputMode:'opening',inputAt:0,speechEndedAt:null,requestAt:100,repliedAt:200},{reply_id:replyId},300,undefined),
+   detail:{audio_headers_ms:100,audio_download_ms:50,audio_decode_ms:50,audio_preparation_server_ms:75,audio_bytes:10000,sample_rate:48000,context_state:'running'},input_at:0,speech_ended_at:null});});
+  await waitFor(()=>expect(samples).toHaveLength(1));expect(samples[0].scenario_id).toBe('opening');expect(samples[0].metric.input_mode).toBe('opening');
+ });
 });
