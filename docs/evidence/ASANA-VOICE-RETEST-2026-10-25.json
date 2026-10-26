@@ -1,0 +1,174 @@
+{
+  "recorded_at": "2026-10-26T02:57:29.600Z",
+  "participant_local_date": "2026-10-25",
+  "status": "failed_accuracy_and_schedule_display_microphone_blocked",
+  "implementation_revision": "sha256:5a9a3c51961ddbfa4f7b0d999b84662456d9d01cb3f2a0b9dec7fdb85dba55ff",
+  "code_commit": "83068d1a4de7349d8b1db50a8c3aeb079dd7ab58",
+  "scope": "Authorized separate owner copy only; synthetic imported Asana tasks, existing owner Pro route, selected Heart, no API billing. No application, runtime, dependency, permission or voice changes.",
+  "method": {
+    "actual_recorded_speech_submissions": 13,
+    "distinct_synthetic_inputs": 12,
+    "duplicate_completion_requests": 1,
+    "actual_server_conversations": 2,
+    "input": "Locally generated synthetic speech through the deployed authenticated Talk audio endpoint.",
+    "asr": "Actual deployed local ASR",
+    "output": "All native selected Heart parts validated as 24 kHz WAV",
+    "playback_acknowledgement": "Simulated after audio retrieval; no human listening or physical microphone pass.",
+    "initial_empty_harness_launch": "The first noninteractive harness launch reached authentication then EOF, without opening a conversation or submitting speech. The subsequent interactive launch contains the full recorded flow; accounting covers the entire window."
+  },
+  "passing_workflows": {
+    "source_dates": true,
+    "proposal_unaccepted_before_confirmation": true,
+    "accepted_exactly_one_imported_task_and_three_practice_meals": true,
+    "reschedule_review_before_write": true,
+    "rescheduled_local_time": "23:00 America/Toronto on 2026-10-25",
+    "scheduled_instant": "2026-10-26T03:00:00Z",
+    "reschedule_stays_pending_without_actual_time": true,
+    "completion_separately_reviewed_and_confirmed": true,
+    "one_durable_completion_revision": 2,
+    "actual_time_distinct_from_schedule": true,
+    "exact_retry_reuses_reply_without_duplicate": true,
+    "duplicate_title_clarification": true,
+    "fresh_conversation_reads_saved_completion": true,
+    "meals_not_reported_eaten": true,
+    "asana_write_boundary_stated_correctly": true
+  },
+  "failures": [
+    {
+      "id": "unsupported_history",
+      "severity": "P2",
+      "status": "open",
+      "observed": "The source-status answer correctly states Nancy-only changes, then adds an unsupported correction about what Nancy had previously implied. The recent dialogue does not support that assertion.",
+      "check": "provider_history_claim_grounded",
+      "data_mutation": false
+    },
+    {
+      "id": "completed_schedule_display",
+      "severity": "P2",
+      "status": "open",
+      "observed": "After completion the homepage shows No time set and No times planned yet, although the activity record and voice readback retain the reviewed 23:00 schedule.",
+      "source": "src/client/App.tsx:556",
+      "cause": "The timeline uses the activity schedule only while the latest action is rescheduled; reporting completion changes that action while retaining scheduled_at.",
+      "saved_schedule_lost": false
+    }
+  ],
+  "browser": {
+    "normal_talk_clicked": true,
+    "result": "Microphone permission was not granted; immediate explicit failure rather than the previous combined startup timeout.",
+    "physical_capture": "blocked",
+    "human_audibility": "unobserved",
+    "permission_changes": false,
+    "actual_iphone_safari_wifi_cellular": "awaiting_live_test",
+    "completion_and_grocery_dates_visible_in_actual_current_ui": true
+  },
+  "checks": {
+    "recorded_speech_and_sql": {
+      "total": 65,
+      "passed": 64,
+      "failed": [
+        "provider_history_claim_grounded"
+      ]
+    },
+    "separate_ui_schedule_check": "fail",
+    "preservation": {
+      "passed": true,
+      "checks": 152
+    },
+    "full_regression": "Not rerun: application source is byte-identical to the qualified maintenance release. Its existing 1348-pass/two-optional-skip result is prior evidence, not a new execution."
+  },
+  "preservation": {
+    "dad_care_tables": 15,
+    "authorized_new_practice_rows": {
+      "daily_checkins": 1,
+      "day_plan_proposals": 1,
+      "accepted_day_plan_versions": 1,
+      "command_receipts": 3,
+      "domain_events": 5,
+      "activity_records": 1,
+      "append_only_mutations": 2
+    },
+    "protected_files": 76,
+    "both_app_and_supervisor_identities_unchanged": true,
+    "no_restarts": true,
+    "heart_speech_workers_and_settings_unchanged": true,
+    "owner_and_dad_assets_unchanged": true,
+    "installed_dependencies_unchanged": true,
+    "asana_sources": 12,
+    "source_versions_and_three_mappings_unchanged": true,
+    "source_writeback": false,
+    "standard_asana_oauth_refresh_observed": true,
+    "permission_and_binding_changes": false,
+    "owner_tables_checked": 20,
+    "all_preexisting_care_and_receipt_rows_unchanged": true,
+    "integration_row_exceptions": "Read-only sync observation timestamps and the already-bound OAuth credential/refresh timestamp were refreshed. Asana source contents/versions, import mappings and connection authority remained unchanged."
+  },
+  "inference_accounting": {
+    "maximum": 96,
+    "observed_requests": 13,
+    "unknown_events": 0,
+    "closed": true,
+    "model_stage_requests": 10,
+    "connection_warmup_requests": 2,
+    "meal_preparation_requests": 1,
+    "api_billing": false
+  },
+  "timing": {
+    "measurement": "Loopback audio POST response, including ASR and validated response preparation. Not smartphone network or first-audible timing; no speed improvement claimed.",
+    "samples": [
+      {
+        "case": "sources",
+        "response_ms": 4580
+      },
+      {
+        "case": "plan",
+        "response_ms": 9005
+      },
+      {
+        "case": "accept",
+        "response_ms": 698
+      },
+      {
+        "case": "reschedule",
+        "response_ms": 4536
+      },
+      {
+        "case": "confirm_reschedule",
+        "response_ms": 625
+      },
+      {
+        "case": "pending",
+        "response_ms": 2897
+      },
+      {
+        "case": "complete",
+        "response_ms": 4577
+      },
+      {
+        "case": "confirm_complete",
+        "response_ms": 507
+      },
+      {
+        "case": "readback",
+        "response_ms": 3973
+      },
+      {
+        "case": "ambiguous",
+        "response_ms": 3584
+      },
+      {
+        "case": "provider",
+        "response_ms": 5108
+      },
+      {
+        "case": "fresh",
+        "response_ms": 4261
+      }
+    ]
+  },
+  "remaining": [
+    "Fix and retest the two observed defects before claiming this retest passes.",
+    "Actual physical microphone capture, human-audible Heart and iPhone/Safari Wi-Fi/cellular tests remain open.",
+    "Synthetic practice records do not complete genuine-person/day, provider writeback or full-slice acceptance."
+  ],
+  "private_evidence_ref": "Ignored local owner Asana retest bundle: synthetic speech/replies, exact SQL snapshots/receipts, browser screenshots, preservation hashes and closed request ledger. No credential, private care record, provider identifier or private host is published."
+}

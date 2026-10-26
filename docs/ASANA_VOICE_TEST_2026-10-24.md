@@ -1,5 +1,9 @@
 # Imported Asana tasks through the Nancy voice service
 
+**October 26 repair:** The subsequent schedule/history defects are repaired and verified in the owner copy. See [current results](ASANA_VOICE_REPAIR_2026-10-26.md); actual microphone/person/phone gates remain open.
+
+**October 25 retest:** Current-source testing finds an unsupported history statement and loss of the saved schedule in the homepage after completion. The command/receipt paths still work, but this newer retest is not an overall pass. See [results and open defects](ASANA_VOICE_RETEST_2026-10-25.md).
+
 October 24, 2026. The owner authorized planning, rescheduling and completion tests in the separate practice copy, preserving Heart, Dad's setup and no API billing. The recorded-speech functional checkpoint passes. Physical microphone capture and human-audible playback remain awaiting_live_test.
 
 ## What actually ran

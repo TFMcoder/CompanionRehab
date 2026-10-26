@@ -68,9 +68,10 @@ const features=createLocalFeatures(care.pool,{dayContext:(participant,date)=>car
 const speech=new LocalSpeech({latencyTrial,dialogueTrial:dialogue});
 const record=(metric:ConversationTurnMetric|InferenceCallMetric|MealPreparationMetric|ConversationPreparationMetric)=>{const {actor_id,conversation_id,turn_id,outcome,...measurements}=metric;runtimeLog.record({kind:'conversation',actor_id,conversation_id,turn_id,outcome:outcome==='completed'?'ok':outcome==='failed'?'error':'interrupted',measurements:{...measurements,policy_version:telemetryPolicy}});};
 const ownerSessionRenewal=new OwnerSessionRenewal(settings.owner_actor_id);
-const conversation=new ConversationService(care,reasoner,settings.owner_actor_id,undefined,(text,signal)=>speech.synthesize(text,signal),record,record,taskRequests,features,()=>Promise.resolve(false),undefined,new NancySuggestions(care.pool),reasoningProfile,prepareContext,latencyTrial?72:120,quickReads,spokenReplies,mealsAhead,record,dialogue,chatAhead,record,verifiedReferences,warmConnection,quickConversation,ownerSessionRenewal);
+const ownerAsana=await ownerAsanaRuntime(settings,care,ownerTestDirectory);
+const conversation=new ConversationService(care,reasoner,settings.owner_actor_id,undefined,(text,signal)=>speech.synthesize(text,signal),record,record,taskRequests,features,()=>Promise.resolve(false),undefined,new NancySuggestions(care.pool),reasoningProfile,prepareContext,latencyTrial?72:120,quickReads,spokenReplies,mealsAhead,record,dialogue,chatAhead,record,verifiedReferences,warmConnection,quickConversation,ownerSessionRenewal,ownerAsana&&prepareContext?session=>ownerAsana.conversationBoundary(session):undefined);
 const app=await createApp(config,{care,speech,conversation,ownerSessionRenewal,runtimeLog,taskRequests,features,microsoft:null,staticRoot:join(ownerTestDirectory,'client'),revocations:new SessionRevocations(join(ownerTestDirectory,'revoked-sessions.json')),
-  ownerAsana:await ownerAsanaRuntime(settings,care,ownerTestDirectory),
+  ownerAsana,
   safariStudy:new SafariStudy(join(ownerTestDirectory,'safari-study'),settings.owner_actor_id,settings.participant_id,undefined,async samples=>{
     await runtimeLog.flush();return readSafariStages(care.pool,settings.owner_actor_id,samples);
   })});

@@ -128,6 +128,8 @@ export class OwnerAsana {
   if(saved.grant!==a.grant_revision)fail('asana_scope','Sandbox access changed. Reconnect after reviewing access.',403);
   return saved;
  }
+ /** Local adapter capability, not a claim that credentials or source data are current. */
+ async conversationBoundary(session:Session):Promise<{read_only:true}>{await this.scope(session);return {read_only:true};}
  async status(session:Session){const a=await this.scope(session);let connected=false;try{await this.connection(a);connected=true;}catch(error){if(!(error instanceof ApiError)||!['asana_disconnected','asana_scope'].includes(error.code))throw error;}
   if(!connected)return{connected:false,tasks:[],connection_issue:this.connectionIssue};
   const rows=(await this.pool.query('select remote_id,version,source,missing,observed_at,local_task_id,imported_version from companion_local.owner_asana_tasks where binding=$1 order by remote_id',[this.binding])).rows;

@@ -1,0 +1,212 @@
+{
+  "recorded_at": "2026-10-26T05:49:39.920Z",
+  "participant_local_date": "2026-10-26",
+  "status": "owner_repairs_deployed_engineering_pass_physical_acceptance_open",
+  "implementation_revision": "sha256:82a230308b9f9c9d59c39449c5f668612012dd442e3bb7ff8e0a00b54b8b8451",
+  "scope": "Repair the two observed defects only in the separate owner test copy. Preserve selected Heart, Dad, account/grant binding, dependency pins, provider read-only scopes and no API billing.",
+  "repairs": [
+    {
+      "id": "completed_schedule_display",
+      "previous_result": "failed in October 25 actual Current UI",
+      "result": "pass",
+      "implementation": "The owner build continues to display the effective ledger schedule after completion, correction, deferral or voiding, with actual occurrence time separate. Unknown schedules stay unknown and other-day schedules stay on their own day. The default client display path remains unchanged."
+    },
+    {
+      "id": "unsupported_history",
+      "previous_result": "failed in October 25 source-status reply",
+      "result": "pass",
+      "implementation": "Whole-utterance read-only source-capability questions use the actual owner adapter and fixed factual wording. Fresh owner authority and cancellation are rechecked; changed dates, effective-ledger schedule changes, mixed actions and quoted data remain on the full reviewed route. No provider lookup, model-generated account of earlier statements or care write is introduced."
+    }
+  ],
+  "method": {
+    "actual_recorded_speech_submissions": 13,
+    "distinct_synthetic_inputs": 12,
+    "duplicate_completion_requests": 1,
+    "actual_server_conversations": 2,
+    "input": "Locally generated synthetic speech through the actual deployed authenticated Talk audio endpoint.",
+    "asr": "Actual local ASR",
+    "output": "Unchanged native Heart; all reply parts validated as 24 kHz WAV",
+    "playback_acknowledgement": "Simulated after retrieval. This is not a physical-microphone or human-listening pass.",
+    "actual_current_ui_reloaded": true
+  },
+  "verification": {
+    "full_regression": {
+      "passed": 1410,
+      "skipped": 2,
+      "files": 130
+    },
+    "focused_from_full": {
+      "passed": 157,
+      "skipped": 0,
+      "files": 6,
+      "execution": "Subset of the same actual full regression execution, not an additional run or additional passed tests."
+    },
+    "typecheck": "pass",
+    "safe_build": "pass",
+    "isolated_owner_build": "pass",
+    "dependency_pins_unchanged": true,
+    "recorded_speech_sql_and_observed_ui": {
+      "passed": true,
+      "checks": 73
+    },
+    "actual_http_readiness": {
+      "passed": true,
+      "checks": 26
+    },
+    "preservation": {
+      "passed": true,
+      "checks": 163
+    }
+  },
+  "workflow": {
+    "reviewed_one_imported_task_and_three_practice_meals": true,
+    "proposal_unaccepted_until_confirmation": true,
+    "reschedule_review_before_write": true,
+    "scheduled_local_time": "18:00 America/Toronto on 2026-10-26",
+    "scheduled_instant": "2026-10-26T22:00:00.000Z",
+    "pending_schedule_not_completion": true,
+    "completion_separately_reviewed_and_confirmed": true,
+    "one_durable_completed_task_revision": 2,
+    "actual_time_separate_from_scheduled_time": true,
+    "exact_retry_no_duplicate": true,
+    "fresh_conversation_reads_saved_completion": true,
+    "ambiguous_grocery_task_requires_choice": true,
+    "meals_not_reported_eaten": true,
+    "provider_capability_and_history_reply_correct": true,
+    "actual_capability_reply_exact_and_zero_inference": true,
+    "actual_ui_retains_schedule_after_completion": true
+  },
+  "deployment": {
+    "owner_pinned_public_source_files": 513,
+    "owner_only_new_release": true,
+    "owner_client_pages": 3,
+    "owner_child_restarts": 1,
+    "owner_supervisor_preserved": true,
+    "dad_process_supervisor_assets_configuration_unchanged": true,
+    "heart_voice_workers_settings_speed_unchanged": true,
+    "existing_reasoning_account_model_settings_unchanged": true,
+    "shared_original_installed_packages_unchanged": true,
+    "original_owner_pages_and_release_retained_privately": true,
+    "no_provider_permission_change": true,
+    "github_merge_or_push": false
+  },
+  "preservation": {
+    "dad_care_tables": 15,
+    "owner_tables_checked": 20,
+    "all_preexisting_care_rows_preserved": true,
+    "asana_source_versions_and_three_mappings_preserved": true,
+    "authorized_new_practice_rows": {
+      "daily_checkins": 1,
+      "day_plan_proposals": 1,
+      "accepted_day_plan_versions": 1,
+      "command_receipts": 3,
+      "domain_events": 5,
+      "activity_records": 1,
+      "append_only_mutations": 2
+    },
+    "protected_original_files": 76,
+    "reviewed_new_owner_assets": 1,
+    "source_tasks": 12,
+    "source_writeback": false,
+    "standard_bound_asana_credential_refreshed": true,
+    "volatile_field_exceptions": [
+      "Asana sync observation timestamps may advance.",
+      "Bound OAuth credential and its refresh timestamp may change through normal renewal; scope and binding remain checked."
+    ]
+  },
+  "browser": {
+    "normal_talk_clicked": true,
+    "physical_microphone_capture": "not_granted",
+    "human_audibility": "unobserved",
+    "physical_checkpoint": "blocked",
+    "actual_iphone_safari_wifi_cellular": "awaiting_live_test",
+    "permission_changed": false
+  },
+  "accounting": {
+    "maximum": 96,
+    "observed_existing_pro_requests": 12,
+    "unknown_events": 0,
+    "closed": true,
+    "model_stage_requests": 9,
+    "connection_warmup_requests": 2,
+    "meal_preparation_requests": 1,
+    "conversation_preparation_requests": 0,
+    "api_billing": false
+  },
+  "timing": {
+    "measurement": "Loopback audio POST response, including ASR/response preparation. This is not smartphone network or first-audible timing, and no controlled speed improvement is claimed.",
+    "samples": [
+      {
+        "case": "sources",
+        "response_ms": 3494
+      },
+      {
+        "case": "plan",
+        "response_ms": 8857
+      },
+      {
+        "case": "accept",
+        "response_ms": 387
+      },
+      {
+        "case": "reschedule",
+        "response_ms": 4005
+      },
+      {
+        "case": "confirm_reschedule",
+        "response_ms": 484
+      },
+      {
+        "case": "pending",
+        "response_ms": 2739
+      },
+      {
+        "case": "complete",
+        "response_ms": 4422
+      },
+      {
+        "case": "confirm_complete",
+        "response_ms": 359
+      },
+      {
+        "case": "readback",
+        "response_ms": 2885
+      },
+      {
+        "case": "ambiguous",
+        "response_ms": 3014
+      },
+      {
+        "case": "provider",
+        "response_ms": 782
+      },
+      {
+        "case": "fresh",
+        "response_ms": 3111
+      }
+    ]
+  },
+  "historical_failures": {
+    "october25_failure_evidence_preserved": "docs/evidence/ASANA-VOICE-RETEST-2026-10-25.json",
+    "initial_ui_launch": {
+      "tests_executed": 0,
+      "passed": 0,
+      "result": "Sandbox cache rename EPERM prevented the initial UI run; no passing tests were inferred."
+    },
+    "initial_focused_run": {
+      "passed": 156,
+      "failed": 1,
+      "result": "An obsolete expected metric outcome failed after fresh scope validation. The fixture was corrected from failed to interrupted for cancellation caused by scope change, while retaining the scope_changed rejection. Final source is covered by the passing complete suite. Original output remains private."
+    },
+    "initial_readiness_wait": {
+      "passed": false,
+      "result": "The initial bounded loop did not observe a voice-ready configuration. A subsequent readiness check passed without another restart. The precise initial cause is unqualified."
+    }
+  },
+  "remaining": [
+    "Actual physical capture and human-audible Heart/device acceptance remain open; recorded speech and simulated acknowledgements do not complete them.",
+    "iPhone/Safari Wi-Fi/cellular, genuine-person/day, production identity, provider writeback and full-slice gates remain open.",
+    "Only the owner test copy receives these repairs. Dad retains the existing deployed release."
+  ],
+  "private_evidence_ref": "Ignored local owner repair bundle: final full tests and focused subset, source manifest/builds, original pages/release, synthetic recorded speech, exact SQL receipts, actual browser observations, preservation hashes and the closed numeric ledger. No credentials, provider identifiers, private hosts or care/transcript payloads are published."
+}

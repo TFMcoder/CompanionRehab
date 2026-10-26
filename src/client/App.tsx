@@ -175,10 +175,19 @@ function displayedTasks(today: Today) {
 }
 
 declare const __NANCY_OWNER_TASK_DATES__: boolean;
+function ownerTaskDatesEnabled() {
+  return typeof __NANCY_OWNER_TASK_DATES__ !== 'undefined' && __NANCY_OWNER_TASK_DATES__;
+}
+
+function taskLedgerSchedule(activity: ActivityOption | undefined, entry?: ActivityEntry) {
+  // A later report/correction changes last_action, not the agreed schedule.
+  // Keep the qualified default client on its existing display path.
+  return activity?.scheduled_at && (ownerTaskDatesEnabled() || entry?.last_action === 'rescheduled') ? activity.scheduled_at : null;
+}
+
 function taskTiming(task: Today['tasks'][number], today: Today) {
   if (!task.scheduled_time) {
-    const ownerPreview=typeof __NANCY_OWNER_TASK_DATES__!=='undefined'&&__NANCY_OWNER_TASK_DATES__;
-    return ownerPreview&&task.scheduled_date?`${task.scheduled_date===today.local_date?'Today':formatDay(task.scheduled_date,today.profile!.time_zone)} · No time set`:'No time set';
+    return ownerTaskDatesEnabled()&&task.scheduled_date?`${task.scheduled_date===today.local_date?'Today':formatDay(task.scheduled_date,today.profile!.time_zone)} · No time set`:'No time set';
   }
   const date = task.scheduled_date ?? today.local_date;
   return `${date === today.local_date ? 'Today' : formatDay(date, today.profile!.time_zone)} at ${task.scheduled_time}`;
@@ -553,7 +562,7 @@ function DayTimeline({today,calendar}:{today:Today;calendar:CalendarState}) {
  for(const task of displayedTasks(today)){
   const activity=effectiveActivity(today,'task',task.id),entry=effectiveEntry(today,activity);
   const date=task.scheduled_date??today.local_date;
-  const fromLedger=activity?.scheduled_at&&entry?.last_action==='rescheduled'?activity.scheduled_at:null;
+  const fromLedger=taskLedgerSchedule(activity,entry);
   const local=task.scheduled_time?localDateTimeWithOffset(date+'T'+task.scheduled_time,zone):null;
   const instant=fromLedger??(local?.ok?local.value:null);
   if(instant&&dateForInstant(instant,zone)!==today.local_date||!instant&&date!==today.local_date)continue;
@@ -591,8 +600,11 @@ function TasksView({ today, onReview }: { today: Today; onReview: () => void }) 
     const activity = effectiveActivity(today, 'task', task.id);
     const entry = effectiveEntry(today, activity);
     const result = activityDetail(today, activity, today.profile!.time_zone);
-    const timing = entry?.last_action === 'rescheduled' && activity?.scheduled_at ? `Rescheduled for ${displayInstant(activity.scheduled_at, today.profile!.time_zone)}` : taskTiming(task, today);
-    return <li key={task.id} className={activity?.status === 'completed' ? 'activity-complete' : undefined}><div><h3>{task.title}</h3><p>{result ?? ([timing, task.time_hint, task.duration_minutes ? `${task.duration_minutes} min` : null, task.category && task.category !== 'task' ? task.category : null].filter(Boolean).join(' · '))}</p></div><div className="item-tags">{activity?.status === 'completed' ? <span>Done</span> : activity?.status === 'deferred' ? <span>Deferred</span> : activity?.status === 'voided' ? <span>Ready to report</span> : task.urgency && <span>{task.urgency} urgency</span>}{selected.has(task.id) && <span>{today.checkin?.accepted ? 'In accepted plan' : 'In proposed plan'}</span>}</div></li>;
+    const schedule = taskLedgerSchedule(activity, entry);
+    const timing = schedule ? `${entry?.last_action === 'rescheduled' ? 'Rescheduled' : 'Scheduled'} for ${displayInstant(schedule, today.profile!.time_zone)}` : taskTiming(task, today);
+    const reportedDetail = result && ownerTaskDatesEnabled() && schedule && entry?.last_action !== 'rescheduled'
+      ? `${result} · Scheduled for ${displayInstant(schedule, today.profile!.time_zone)}` : result;
+    return <li key={task.id} className={activity?.status === 'completed' ? 'activity-complete' : undefined}><div><h3>{task.title}</h3><p>{reportedDetail ?? ([timing, task.time_hint, task.duration_minutes ? `${task.duration_minutes} min` : null, task.category && task.category !== 'task' ? task.category : null].filter(Boolean).join(' · '))}</p></div><div className="item-tags">{activity?.status === 'completed' ? <span>Done</span> : activity?.status === 'deferred' ? <span>Deferred</span> : activity?.status === 'voided' ? <span>Ready to report</span> : task.urgency && <span>{task.urgency} urgency</span>}{selected.has(task.id) && <span>{today.checkin?.accepted ? 'In accepted plan' : 'In proposed plan'}</span>}</div></li>;
   })}</ul>{today.tasks.length === 0 && <p>No tasks have been added.</p>}
     <h3 className="list-subheading">Meals</h3><ul className="item-list">{mealSlots.map(slot => { const meal = plan?.meals.find(item => item.slot === slot); if (!meal) return null; const activity = effectiveActivity(today, 'meal', meal.option_id, slot); return <li key={slot}><div><h3>{labelForSlot[slot]} · {meal.name}</h3><p>{activityDetail(today, activity, today.profile!.time_zone) ?? mealTiming(activity, today.profile!.time_zone)}</p></div><div className="item-tags"><span>{today.checkin?.accepted ? 'In accepted plan' : 'In proposed plan'}</span></div></li>; })}{(today.activity_ledger?.entries ?? []).filter(item => item.kind === 'meal' && item.unplanned && item.status !== 'voided').map(item => <li key={item.id}><div><h3>{item.title}</h3><p>{activityDetail(today, item, today.profile!.time_zone)}</p></div><div className="item-tags"><span>Reported meal</span></div></li>)}</ul>{!plan && <p>No meals are in today’s plan.</p>}
   </section>;

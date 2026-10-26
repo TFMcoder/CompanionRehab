@@ -1,0 +1,20 @@
+# Owner Asana voice retest, October 25
+
+**October 26 follow-up:** Both defects below are repaired and retested in the separate owner copy. See the [repair results](ASANA_VOICE_REPAIR_2026-10-26.md). The October 25 observations and failure evidence are retained; physical microphone and phone acceptance remain open.
+
+The retest is **not an overall pass**. Reviewed planning, rescheduling and completion work through recorded speech, but an unsupported history statement and a schedule-display defect were observed. The normal browser Talk button reports that microphone permission was not granted; physical capture and human audibility remain awaiting_live_test.
+
+Thirteen synthetic recorded-speech submissions across two actual conversations exercised the deployed local ASR, existing owner Pro reasoning and unchanged native Heart replies. Twelve distinct inputs cover source dates, one-task/three-meal proposal and acceptance, reviewed 23:00 Toronto rescheduling, reviewed completion, saved readback, ambiguous grocery titles, source scope and fresh-conversation readback. The thirteenth request exactly repeats the completion confirmation. Audio playback acknowledgements were simulated after valid WAV retrieval; this is not a person speaking or hearing Nancy.
+
+The plan remained unaccepted until explicit acceptance. Rescheduling remained pending with no actual occurrence time until a separate completion report was reviewed and confirmed. SQL proves one completed activity with its actual time separate from the retained schedule, two activity receipts and no duplicate on retry. Planned meals were not marked eaten. Both grocery dates and all twelve fresh Asana source versions/mappings remain unchanged. These saves are local Nancy changes; the read-only integration does not update Asana.
+
+Two observed defects remain open:
+
+- **Unsupported history statement:** the source-status reply correctly states that changes affect Nancy only, then invents a correction about what Nancy had earlier implied. The relevant accuracy assertion fails.
+- **Schedule display after completion:** the saved activity and Nancy's readback retain 23:00, but Your day shows No time set and No times planned yet. The timeline in [App.tsx](../src/client/App.tsx) uses the ledger schedule only while the latest action is rescheduled. Completion changes that action to reported without clearing the saved schedule. The timeline must continue to use the known schedule while displaying actual completion separately.
+
+The recorded-speech/SQL audit has **64 passing checks and one failed history check**. The separate UI schedule check fails. All **152 preservation checks pass**: Dad's fifteen care tables, all preexisting owner care/receipt rows and Asana source versions/import mappings across twenty checked owner tables, 76 protected files, installed packages, both app/supervisor identities, Current assets and Heart remain unchanged. Only the authorized new synthetic checkin/proposal/accepted-plan/activity/receipt/event rows were added. Read-only sync observation timestamps and the standard Asana OAuth credential/refresh timestamp changed with unchanged scope, binding and source contents. No application source, service restart, permission change or deployment occurred.
+
+The closed engineering ledger records **13 existing-Pro requests out of a maximum of 96**, with zero unknown request counts and no API billing. The same application source remains at the qualified maintenance revision; the prior 1,348-pass/two-optional-skip full suite was not rerun and is not presented as a new result. Observed loopback request durations are retained in the [sanitized evidence](evidence/ASANA-VOICE-RETEST-2026-10-25.json), including a 9.005-second plan request; they are not iPhone first-audible latency measurements.
+
+Actual microphone permission/capture, human listening, iPhone/Safari Wi-Fi/cellular, genuine-day/person, provider writeback and full-slice gates remain open. The two newly observed defects need repair and retest. Original failures and private evidence are preserved.

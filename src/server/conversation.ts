@@ -36,6 +36,7 @@ import {conversationFollowup,canPrepareConversation,validatePreparedConversation
 import {dialogueChatReply,dialogueConversationGuidance,dialogueMealPreparationPolicy,validateDialogueMeals,mealFollowup,mealFollowupReply,type MealThread,type MealFollowup} from './dialogue-replies.js';
 import {verifiedAnswer,verifiedCard,verifiedSourceQuestion,verifiedSourceReply,verifiedReferenceContext,verifiedReferenceGuidance,verifiedReferenceHash,type VerifiedAnswer,type VerifiedReference} from './verified-answers.js';
 import type {OwnerSessionRenewal} from './owner-session-renewal.js';
+import {ownerAsanaBoundaryQuestion,ownerAsanaBoundaryReply} from './owner-asana-boundary.js';
 
 export interface ConversationReply { session_id: string; reply_id: string; text: string; speech_parts: number; changed: boolean; acknowledgement_required?: boolean; navigate?: ClientView; transcript?: string; nutrition_refs?: Array<{ document_id:string; path:string; sha256:string; items:string[] }>;reference_sources?:VerifiedReference[] }
 export interface ConversationTurnMetric {
@@ -231,9 +232,10 @@ export class ConversationService {
     private observeTurn?: (metric: ConversationTurnMetric) => void,
     private observeCall?: (metric: InferenceCallMetric) => void,
     private requests?: RequestConversationService, private features?:LocalFeatures, private microsoftEligible?:(session:Session)=>Promise<boolean>,private microsoft?:MicrosoftService,private suggestions?:NancySuggestions,
-    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false,private spokenReplies=false,private prepareMealsAhead=false,private observeMealPreparation?:(metric:MealPreparationMetric)=>void,private dialogueReplies=false,private prepareChat=false,private observeChatPreparation?:(metric:ConversationPreparationMetric)=>void,private verifiedReferences=false,private warmConnection=false,private quickConversation=false,private ownerSessionRenewal?:OwnerSessionRenewal) {
+    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false,private spokenReplies=false,private prepareMealsAhead=false,private observeMealPreparation?:(metric:MealPreparationMetric)=>void,private dialogueReplies=false,private prepareChat=false,private observeChatPreparation?:(metric:ConversationPreparationMetric)=>void,private verifiedReferences=false,private warmConnection=false,private quickConversation=false,private ownerSessionRenewal?:OwnerSessionRenewal,private ownerAsanaBoundary?:(session:Session)=>Promise<{read_only:true}>) {
     this.expectedReasoning=validateReasoningProfile(expectedReasoning);
     if(ownerSessionRenewal&&ownerSessionRenewal.ownerId!==ownerId)throw new RangeError('Session maintenance must retain the exact owner account.');
+    if(ownerAsanaBoundary&&!prepareContext)throw new RangeError('Asana boundary replies require the owner preparation route.');
     if(prepareChat&&(!dialogueReplies||!prepareMealsAhead||!spokenReplies||!quickReads||!prepareContext||speechPartSize!==72||this.expectedReasoning.model!=='gpt-6-sol'||this.expectedReasoning.effort!=='low'))throw new RangeError('Conversation preparation requires the exact existing owner dialogue trial.');
     if(verifiedReferences&&!prepareChat)throw new RangeError('Verified references require the exact existing owner conversation trial.');
     if(warmConnection&&(!verifiedReferences||!reasoner.warmConnection||!reasoner.releaseConnection))throw new RangeError('Warm connection requires the exact existing owner reference trial.');
@@ -251,7 +253,7 @@ export class ConversationService {
     if(this.microsoft)revision=createHash('sha256').update(revision+':'+await this.microsoft.authorityRevision(session)).digest('hex');
     const experiment=this.expectedReasoning!==selectedReasoning||this.prepareContext||this.speechPartSize!==120||this.quickReads||this.spokenReplies||this.prepareMealsAhead||this.dialogueReplies||this.prepareChat;
     if(experiment&&scope.actor_id!==this.ownerId)throw new ApiError(403,'experiment_owner_only','Reasoning experiments are limited to the owner’s practice copy.');
-    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}${this.spokenReplies?':spoken-v1':''}${this.prepareMealsAhead?':meal-ahead-v1':''}${this.dialogueReplies?':dialogue-v1':''}${this.prepareChat?':chat-ahead-v1':''}${this.verifiedReferences?':references-v1-'+verifiedReferenceHash.slice(0,8):''}${this.warmConnection?':connection-warm-v1':''}${this.quickConversation?':source-pace-v1':''}`:'') });
+    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}${this.spokenReplies?':spoken-v1':''}${this.prepareMealsAhead?':meal-ahead-v1':''}${this.dialogueReplies?':dialogue-v1':''}${this.prepareChat?':chat-ahead-v1':''}${this.verifiedReferences?':references-v1-'+verifiedReferenceHash.slice(0,8):''}${this.warmConnection?':connection-warm-v1':''}${this.quickConversation?':source-pace-v1':''}${this.ownerAsanaBoundary?':asana-boundary-v1':''}`:'') });
     if(experiment&&(binding.route_id!=='chatgpt_plan_owner_practice'||binding.qualification!=='owner_practice'))throw new ApiError(403,'experiment_owner_only','Reasoning experiments require the owner practice connection.');
     return binding;
   }
@@ -776,6 +778,15 @@ export class ConversationService {
         if (!this.care.addGrocery) throw new ApiError(503, 'groceries_unavailable', 'Groceries are not connected yet.');
         await this.care.addGrocery(session, groceryInput.parse({ name: grocery.name, quantity: grocery.quantity, idempotency_key: turnId }));
         reply = this.reply(id, state, `I added ${grocery.name} to your grocery list. What would you like to do next?`, true);
+      } else if (clientRole&&this.prepareContext&&this.ownerAsanaBoundary&&ownerAsanaBoundaryQuestion(text,today)) {
+        // The actual owner-only adapter proves its fixed capability, without a
+        // provider lookup or a model-generated account of earlier statements.
+        const boundary=await this.ownerAsanaBoundary(session);
+        await this.validateScope(session,state);ensureOpen();
+        if(boundary.read_only!==true)throw new ApiError(503,'asana_capability','The sandbox capability could not be verified.');
+        state.review=undefined;state.grocery=undefined;state.activity=undefined;state.request=undefined;state.local=undefined;state.preference=undefined;
+        state.history.push({role:'user',content:text});
+        reply=this.reply(id,state,ownerAsanaBoundaryReply);
       } else {
         // Any intervening topic or ambiguous answer requires a fresh review before committing.
         state.review = undefined; state.grocery = undefined; state.activity=undefined;state.request=undefined;state.local=undefined;state.preference=undefined;

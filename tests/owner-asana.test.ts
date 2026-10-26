@@ -51,6 +51,13 @@ describe('owner-only Asana read/import checkpoint',()=>{
  });
  it.each(['account','workspace','scope'] as const)('rejects a substituted provider %s',async kind=>{if(kind==='account')providerEmail='other@example.invalid';if(kind==='workspace')providerWorkspace='999';if(kind==='scope')tokenScope+=' tasks:write';await expect(connect()).rejects.toThrow();expect((await service.status(session)).connected).toBe(false);});
  it('rejects another actor, client, login, or role before any provider lookup',async()=>{for(const change of [{actor_id:randomUUID()},{client_id:randomUUID()},{login_session_id:randomUUID()},{active_role:'administrator' as const}]){scope={...authority,...change};await expect(service.begin(session)).rejects.toMatchObject({code:'asana_scope'});}expect(fetcher).not.toHaveBeenCalled();});
+ it('exposes only the local read-only capability, even while disconnected, without provider or saved-source reads',async()=>{
+  const query=vi.spyOn(pool,'query');try{expect(await service.conversationBoundary(session)).toEqual({read_only:true});expect(query).not.toHaveBeenCalled();expect(fetcher).not.toHaveBeenCalled();}finally{query.mockRestore();}
+ });
+ it('checks fresh exact owner scope before exposing the local capability',async()=>{
+  for(const change of [{actor_id:randomUUID()},{client_id:randomUUID()},{login_session_id:randomUUID()},{active_role:'administrator' as const}]){scope={...authority,...change};await expect(service.conversationBoundary(session)).rejects.toMatchObject({code:'asana_scope'});}
+  expect(fetcher).not.toHaveBeenCalled();
+ });
  it('rejects changed grants and clears access on disconnect',async()=>{await connect();scope={...authority,grant_revision:'g2'};expect((await service.status(session)).connected).toBe(false);await expect(service.sync(session)).rejects.toMatchObject({code:'asana_scope'});scope={...authority};await service.disconnect(session);expect((await service.status(session)).connected).toBe(false);});
  it('imports paginated tasks once by remote identity and never follows provider next-page URLs',async()=>{await connect();next=true;second=[task('4')];expect(await service.sync(session)).toMatchObject({received:4,added:4,changed:0});expect(await service.sync(session)).toMatchObject({received:4,added:0,changed:0});const s=await service.status(session);expect(s.tasks).toHaveLength(4);expect(s.tasks.filter((t:any)=>t.source.title==='[TEST] Same title')).toHaveLength(4);
   expect((await db.query('select count(*)::int n from companion_local.task_definitions')).rows[0]).toEqual({n:0});expect(fetcher.mock.calls.every(([u])=>new URL(u).hostname==='app.asana.com')).toBe(true);
