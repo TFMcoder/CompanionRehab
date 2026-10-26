@@ -1,0 +1,296 @@
+{
+  "evidence_id": "OUTLOOK-VOICE-2026-10-26",
+  "recorded_at": "2026-10-26T20:51:51.752Z",
+  "participant_local_date": "2026-10-26",
+  "publication_allowed": true,
+  "status": "engineering_voice_and_future_date_planning_checks_passed_actual_person_device_gates_open",
+  "implementation_revision": "sha256:7be4ac25cb9623ec5e6478c7e003c188dcccbf197fc314c16d24700f5fd05f53",
+  "scope": {
+    "existing_exact_caregiver_client_route": true,
+    "profile": "gpt-6-sol low",
+    "connection": "warm-v2",
+    "voice": "Kokoro Heart",
+    "speaking_speed_changed": false,
+    "locked_Current_design": true,
+    "existing_Microsoft_permissions_requested": true,
+    "new_Microsoft_permissions_requested": false,
+    "api_billing": false,
+    "provider_exception_claimed": false,
+    "actual_person_acceptance_claimed": false
+  },
+  "controlled_voice_checks": {
+    "input": "Prepared synthetic speech clips submitted through the actual authenticated public HTTPS conversation/audio route; native local ASR and Heart output.",
+    "passed": 7,
+    "failed": 0,
+    "case_count": 7,
+    "cases": [
+      {
+        "id": "tomorrow",
+        "status": 200,
+        "asr_intent_preserved": true,
+        "accuracy_outcome": "pass",
+        "changed": false,
+        "native_Heart_parts": 4,
+        "response_ms": 6311,
+        "first_native_Heart_available_ms": 7634,
+        "model_calls": 1
+      },
+      {
+        "id": "wednesday",
+        "status": 200,
+        "asr_intent_preserved": true,
+        "accuracy_outcome": "pass",
+        "changed": false,
+        "native_Heart_parts": 3,
+        "response_ms": 10020,
+        "first_native_Heart_available_ms": 10820,
+        "model_calls": 2
+      },
+      {
+        "id": "next_week",
+        "status": 200,
+        "asr_intent_preserved": true,
+        "accuracy_outcome": "pass",
+        "changed": false,
+        "native_Heart_parts": 3,
+        "response_ms": 9530,
+        "first_native_Heart_available_ms": 10380,
+        "model_calls": 2
+      },
+      {
+        "id": "dst_week",
+        "status": 200,
+        "asr_intent_preserved": true,
+        "accuracy_outcome": "pass",
+        "changed": false,
+        "native_Heart_parts": 4,
+        "response_ms": 9862,
+        "first_native_Heart_available_ms": 9977,
+        "model_calls": 2
+      },
+      {
+        "id": "inbox",
+        "status": 200,
+        "asr_intent_preserved": true,
+        "accuracy_outcome": "pass",
+        "changed": false,
+        "native_Heart_parts": 5,
+        "response_ms": 7610,
+        "first_native_Heart_available_ms": 8396,
+        "model_calls": 1
+      },
+      {
+        "id": "today_planning",
+        "status": 200,
+        "asr_intent_preserved": true,
+        "accuracy_outcome": "pass",
+        "changed": false,
+        "native_Heart_parts": 7,
+        "response_ms": 6099,
+        "first_native_Heart_available_ms": 6179,
+        "model_calls": 1
+      },
+      {
+        "id": "future_planning",
+        "status": 200,
+        "asr_intent_preserved": true,
+        "accuracy_outcome": "pass",
+        "changed": false,
+        "native_Heart_parts": 9,
+        "response_ms": 10181,
+        "first_native_Heart_available_ms": 10249,
+        "model_calls": 2
+      }
+    ],
+    "played_acknowledgement": "Simulated application playback acknowledgements; no human listening assertion.",
+    "physical_microphone_used_for_controlled_inputs": false,
+    "human_audibility_observed": false,
+    "phone_Safari_WiFi_cellular_qualified": false
+  },
+  "accuracy": {
+    "correct_tomorrow_and_named_future_day": true,
+    "correct_next_week_inclusive_end": true,
+    "DST_week_elapsed_hours": 169,
+    "all_four_live_future_calendar_ranges_complete_and_empty": true,
+    "live_nonempty_calendar_exercised": false,
+    "only_selected_sources_used": true,
+    "Inbox_lookback_last_seven_days_independent_of_calendar_date": true,
+    "complete_Inbox_results_within_configured_cap": true,
+    "unread_not_treated_as_unanswered": true,
+    "no_Sent_or_complete_thread_claim": true,
+    "freshness_stated_truthfully": true,
+    "valid_cache_reuse_distinguished_from_new_refresh": true,
+    "today_and_future_planning_use_calendar_and_Inbox": true,
+    "no_invented_appointments_or_times": true,
+    "no_inferred_capacity_from_open_calendar": true,
+    "planning_advice_is_optional_and_does_not_claim_a_save": true
+  },
+  "requested_range_proof": {
+    "method": "After each controlled case, read only the approved connection prepared-context ciphertext and decrypt that snapshot in memory; retain only chosen dates, check times, selected-source booleans, counts and completeness. Provider credential-token ciphertext was never selected or decrypted; provider contents were not printed or persisted by the observer.",
+    "observer_provider_calls": 0,
+    "observer_SQL_writes": 0,
+    "provider_credential_token_ciphertext_selected": false,
+    "provider_credential_tokens_decrypted": false,
+    "provider_content_in_public_evidence": false
+  },
+  "synthetic_planning_proof": {
+    "status": "passed",
+    "checks": 23,
+    "actual_PostgreSQL": true,
+    "model_and_Graph": "simulated",
+    "model_profile_flags": "same Sol-low prepared conversation feature bundle",
+    "known_fixture_occupied_time": "14:00–15:00",
+    "fixture_proposed_task_time": "16:00",
+    "proposal_remains_unaccepted": true,
+    "accepted_plans_and_activity_reports_created": false,
+    "future_care_plan_created": false,
+    "external_appointment_promoted_to_care_task": false,
+    "real_provider_requests": 0,
+    "fixture_removed": true,
+    "not_actual_Sol_conflict_reasoning_or_real_busy_calendar_evidence": true
+  },
+  "regression": {
+    "prior_qualified_full_suite": {
+      "passed": 1512,
+      "failed": 0,
+      "optional_skips": 2,
+      "files": 134,
+      "rerun_for_this_operation": false,
+      "source_unchanged": true,
+      "evidence_ref": "docs/evidence/CLIENT-SPEED-ROLLOUT-2026-10-26.json"
+    },
+    "targeted_same_source": {
+      "passed": 56,
+      "failed": 0,
+      "optional_skips": 1,
+      "files": 3,
+      "overlaps_full_suite": true,
+      "do_not_add_to_full_suite_total": true
+    },
+    "production_source_changes": false
+  },
+  "latency": {
+    "method": "Public HTTPS receipt of a pre-recorded clip through ASR/reasoning/connector work until first native Heart WAV is available. Excludes original microphone capture, human listening, phone networks and Safari playback.",
+    "samples_ms": [
+      7634,
+      10820,
+      10380,
+      9977,
+      8396,
+      6179,
+      10249
+    ],
+    "minimum_ms": 6179,
+    "median_ms": 9977,
+    "maximum_ms": 10820,
+    "material_remaining_delay": true,
+    "phone_speed_gain_proven": false,
+    "observation": "Several named-date/week questions used two model rounds, while tomorrow used one. The deterministic prefetch recognizer covers a limited set of forms. Extra date-resolution/retrieval rounds are a measured investigation lead, not an established sole root cause."
+  },
+  "accounting": {
+    "maximum_requests": 48,
+    "observed_requests": 18,
+    "unknown_requests": 0,
+    "unknown_usage_events": 0,
+    "numeric_core_usage_known": true,
+    "numeric_usage": {
+      "input_tokens": 160456,
+      "output_tokens": 703,
+      "total_tokens": 161159
+    },
+    "stage_counts": {
+      "connection_preparation": 2,
+      "model": 15,
+      "meal_preparation": 1
+    },
+    "controlled_driver_requests": 12,
+    "controlled_driver_breakdown": {
+      "model": 11,
+      "static_connection_preparation": 1
+    },
+    "ambient_browser_requests_included": 5,
+    "ambient_browser_breakdown": {
+      "model": 4,
+      "static_connection_preparation": 1
+    },
+    "later_browser_foreground_meal_preparation_requests": 1,
+    "ledger_closed": true,
+    "final_reconciliation_passed": true,
+    "api_billing": false
+  },
+  "ambient_browser_capture": {
+    "uncontrolled_ASR_turns": 13,
+    "provider_requests": 5,
+    "model_requests": 4,
+    "static_connection_preparations": 1,
+    "actual_speaker_identity": "unknown",
+    "excluded_from_controlled_accuracy_score": true,
+    "excluded_from_human_device_acceptance": true,
+    "all_provider_usage_still_included": true,
+    "transcripts_or_care_content_in_public_evidence": false
+  },
+  "operational_preservation": {
+    "status": "passed",
+    "checks_passed": 214,
+    "checks_failed": 0,
+    "protected_files": 73,
+    "all_protected_files_unchanged": true,
+    "client_tables_checked": 66,
+    "owner_tables_checked": 69,
+    "original_care_state_preserved": true,
+    "original_sessions_unchanged": 36,
+    "original_care_grants_unchanged": true,
+    "one_new_engineering_login_closed": true,
+    "selected_calendar_count": 1,
+    "selected_Inbox_count": 1,
+    "same_Microsoft_identity_scope_selection_and_revision": true,
+    "existing_Microsoft_permissions_unchanged": true,
+    "volatile_differences": "Prepared Outlook cache/read timestamps, appended numeric runtime events and the single closed engineering login only.",
+    "both_application_process_identities_unchanged": true,
+    "application_restarts": 0,
+    "Heart_voice_and_speed_unchanged": true,
+    "owner_test_copy_unchanged": true,
+    "provider_mail_or_calendar_mutations": 0
+  },
+  "remaining_gates": [
+    "Controlled physical-person microphone and human-audible Heart acceptance.",
+    "Actual phone Safari Wi-Fi/cellular end-to-end timing.",
+    "Actual nonempty calendar and genuine day planning acceptance.",
+    "Full S01/S06 slice acceptance and broader intended-user qualification.",
+    "Formal Microsoft provider OAuth refresh, revocation and disconnect/recovery qualification; local Nancy login renewal does not prove these."
+  ],
+  "private_evidence_references": {
+    "voice": ".local/outlook-voice-2026-10-26/voice-private.json",
+    "accuracy": ".local/outlook-voice-2026-10-26/audit-private.json",
+    "range_metadata": ".local/outlook-voice-2026-10-26/cache-*.json",
+    "disposable_planning": ".local/outlook-range-review-2026-10-26/plan-probe.json",
+    "targeted_regression": ".local/outlook-range-review-2026-10-26/focused.json",
+    "preservation": ".local/outlook-voice-2026-10-26/preservation.json",
+    "local_session_renewal": ".local/outlook-voice-2026-10-26/session-renewal-after.json",
+    "closed_request_ledger": ".local/outlook-voice-2026-10-26/request-cap.json",
+    "numeric_latency": ".local/outlook-voice-2026-10-26/latency-numeric.json"
+  },
+  "local_care_login_renewal": {
+    "status": "passed",
+    "checks_passed": 7,
+    "checks_failed": 0,
+    "scope": "Only the dedicated newly created engineering Nancy login had its own access expiry guardedly set in the test. Normal authenticated requests rotated its credentials and restored expiry while preserving its identity and original sessions/grants.",
+    "original_sessions_preserved": 36,
+    "provider_OAuth_refresh_revocation_qualified": false
+  },
+  "browser_cleanup": {
+    "normal_page_ready": true,
+    "microphone_stopped": true,
+    "uncontrolled_visible_capture_text_cleared": true,
+    "dedicated_driver_conversation_and_login_closed": true
+  },
+  "reconnect": {
+    "status": "already_completed_on_2026_10_26",
+    "approved_main_calendar_and_Inbox_restored": true,
+    "repeat_tenant_consent_or_signin_required_for_this_handoff": false
+  },
+  "preserved_failures": {
+    "private_harness_failures_retained": true,
+    "notes": "The original synthetic fixture output-shape assertion and guarded session-renewal harness checks remain private. Final matching-source probes and actual renewal pass; failed attempts were not erased or presented as live acceptance."
+  }
+}
