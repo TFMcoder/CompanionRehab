@@ -15,8 +15,12 @@ export interface VoiceObservation {
 export type LocalVoiceState = 'connecting' | 'thinking' | 'listening' | 'speaking' | 'closing' | 'stopped' | 'error';
 export interface LocalVoiceOptions {
   purpose?:ConversationPurpose;
+  inputMode?: 'speech' | 'typed';
   signal?: AbortSignal;
   onReady?: (handle: LocalVoiceHandle) => void;
+  onReview?:(review:ConversationReply['suggestion_review']|null)=>void;
+  onRecipes?:(recipes:NonNullable<ConversationReply['recipes']>)=>void;
+  onArchiveStatus?:(status:'saving'|'off'|'unavailable')=>void;
   onState: (state: LocalVoiceState, message?: string) => void;
   onTranscript: (speaker: 'you' | 'nancy', text: string) => void;
   onChange: () => void;
@@ -26,7 +30,7 @@ export interface LocalVoiceOptions {
   /** Owner test build only: explicit browser gesture recovery for audio unlock. */
   onAudioUnlock?: (resume: (() => void) | null) => void;
 }
-export interface LocalVoiceHandle { stop: () => Promise<void>; sendText: (text: string) => Promise<void>; interrupt: () => void }
+export interface LocalVoiceHandle { stop: () => Promise<void>; sendText: (text: string,reviewId?:string) => Promise<boolean | void>; interrupt: () => void; setTyping?: (typing: boolean) => void }
 
 const endSilenceMs = 900;
 const idleMs = 30_000;
@@ -74,7 +78,8 @@ function base64(bytes: Uint8Array): string {
 
 export async function startLocalVoice(options: LocalVoiceOptions): Promise<LocalVoiceHandle> {
   const openingAt = performance.now();
-  if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia || !window.AudioContext)
+  const typedInput = options.inputMode === 'typed';
+  if (!window.isSecureContext || !window.AudioContext || (!typedInput && !navigator.mediaDevices?.getUserMedia))
     throw new Error('Microphone and audio need HTTPS in a supported browser. You can still use the day views.');
   const controller = new AbortController();
   const signal = options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal;
@@ -84,16 +89,16 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
   const ownerLifecycle = ownerVoiceStartupEnabled();
   let closed = false;
   let stream: MediaStream | undefined, source: MediaStreamAudioSourceNode | undefined, processor: ScriptProcessorNode | undefined;
-  const streamPromise = navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 } });
+  const streamPromise = typedInput ? undefined : navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 } });
   // Keep the microphone handle as soon as it is granted. AudioContext.resume()
   // can remain pending independently, so Stop must release this early grant.
-  void streamPromise.then(acquired => {
+  void streamPromise?.then(acquired => {
     if (closed) acquired.getTracks().forEach(track => track.stop());
     else stream = acquired;
   }).catch(() => undefined);
   let merger: ChannelMergerNode | undefined, silent: GainNode | undefined;
   let playback: AudioBufferSourceNode | undefined, playbackDone: (() => void) | undefined;
-  let sessionId: string | undefined, listening = false, working = false;
+  let sessionId: string | undefined, listening = false, working = false, typing = typedInput;
   const releaseScreen=keepConversationAwake();
   let monitor: ReturnType<typeof setInterval> | undefined;
   let chunks: Float32Array[] = [], preRoll: Float32Array[] = [], utteranceStarted = 0, lastSound = 0, quietStarted = 0, graceStarted = 0;
@@ -134,11 +139,11 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     assertOpen();
     if (ticket !== generation) throw new DOMException('Reply interrupted.', 'AbortError');
   };
-  const startListening = (message = 'Nancy is listening. Speak normally, or type below.') => {
+  const startListening = (message = typedInput ? 'Type your message below. Nancy will reply aloud.' : 'Nancy is listening. Speak normally, or type below.') => {
     if (closed) return;
     chunks = []; preRoll = []; activity.reset(); utteranceStarted = 0; lastSound = 0; graceStarted = 0;
     lastSoundAt = null;
-    quietStarted = Date.now(); listening = true; working = false;
+    quietStarted = Date.now(); listening = !typedInput; working = false;
     options.onState('listening', message);
   };
   const interrupt = () => {
@@ -155,7 +160,11 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
       }
     });
   };
-  const handle: LocalVoiceHandle = { stop, sendText: text => sendText(text), interrupt };
+  const handle: LocalVoiceHandle = { stop, sendText: (text,reviewId) => sendText(text,reviewId), interrupt, setTyping: value => {
+    if (closed) return;
+    typing = value; quietStarted = Date.now(); graceStarted = 0;
+    if (listening && !working) options.onState('listening', 'Nancy is listening. Speak normally, or type below.');
+  } };
   const speak = async (replyId: string, speechParts: number | undefined, ticket: number, opening: boolean, onPlayback?: (detail:SafariDetail) => void) => {
     assertTurn(ticket);
     if (!replyId || !sessionId) throw new Error('Nancy did not return an audio reply.');
@@ -216,6 +225,8 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     if (reply.changed) options.onChange();
     if (typeof reply.text !== 'string' || !reply.text.trim()) throw new Error('Nancy returned an empty reply.');
     options.onTranscript('nancy', reply.text);
+    if(reply.recipes?.length)options.onRecipes?.(reply.recipes);
+    if(reply.archive_status)options.onArchiveStatus?.(reply.archive_status);
     // The saved result is now retained by the UI. Receipt acknowledgement is
     // independent of audio, and must not delay speech or fail the conversation.
     // A lost request leaves the server's exact command available for recovery.
@@ -229,11 +240,35 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
       }
     } : undefined); }
     catch (error) { if (closed || ticket === generation) throw error; return; }
-    if (!closed && ticket === generation) startListening();
+    if (!closed && ticket === generation){options.onReview?.(reply.suggestion_review??null);startListening();}
+  };
+  const requestWithAcknowledgement=async(turnId:string,ticket:number,request:()=>Promise<ConversationReply>)=>{
+    const acknowledgement=new AbortController(),cueSignal=AbortSignal.any([signal,replyController.signal,acknowledgement.signal]);
+    let finished=false,playing=false;
+    const pause=(ms:number)=>new Promise<void>(resolve=>{const timer=setTimeout(resolve,ms);cueSignal.addEventListener('abort',()=>{clearTimeout(timer);resolve();},{once:true});});
+    const cue=(async()=>{
+      await pause(900);
+      while(!finished&&!cueSignal.aborted){
+        const response=await fetch(`/api/conversation/${encodeURIComponent(sessionId!)}/acknowledgement?turn_id=${encodeURIComponent(turnId)}`,{credentials:'same-origin',cache:'no-store',signal:cueSignal});
+        if(finished||cueSignal.aborted)return;
+        if(response.status===204){await pause(700);continue;}
+        if(!response.ok)return;
+        const audio=await context.decodeAudioData(await response.arrayBuffer());assertTurn(ticket);
+        if(finished||cueSignal.aborted)return;
+        playing=true;
+        await new Promise<void>(resolve=>{
+          const node=context.createBufferSource();playback=node;node.buffer=audio;node.connect(context.destination);if(merger)node.connect(merger,0,1);playbackDone=resolve;
+          node.onended=()=>{if(playback===node){playback=undefined;playbackDone=undefined;}node.disconnect();resolve();};node.start();
+        });
+        return;
+      }
+    })().catch(()=>undefined);
+    try{return await request();}
+    finally{finished=true;if(playing)await cue;else acknowledgement.abort();}
   };
   const sendAudio = async () => {
     if (closed || !listening || working || !sessionId || !chunks.length) return;
-    listening = false; working = true; graceStarted = 0;
+    listening = false; working = true; graceStarted = 0; options.onReview?.(null);
     const ticket = ++generation; replyController = new AbortController();
     const turnSignal = AbortSignal.any([signal, replyController.signal]);
     const timing: VoiceTiming = {inputMode: 'speech', inputAt: lastSoundAt ?? performance.now(), speechEndedAt: lastSoundAt, requestAt: performance.now()};
@@ -242,27 +277,30 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     try {
       await interruptBarrier; assertTurn(ticket);
       timing.turnId=crypto.randomUUID();
-      const reply = await api.conversationAudio(sessionId, base64(audio), timing.turnId, turnSignal);
+      const reply = await requestWithAcknowledgement(timing.turnId,ticket,()=>api.conversationAudio(sessionId!, base64(audio), timing.turnId!, turnSignal));
       await applyReply(reply, ticket, false, false, timing);
     } catch {
       if (!closed && !interruptionFailed && ticket === generation) startListening('That turn was not confirmed. Check the displayed plan before trying again.');
     }
   };
-  const sendText = async (text: string) => {
-    const value = text.trim(); if (!value || closed || !sessionId) return;
-    if (working) return;
-    listening = false; working = true; graceStarted = 0;
+  const sendText = async (text: string,reviewId?:string) => {
+    const value = text.trim(); if (!value || value.length > 2000 || closed || !sessionId || working) return false;
+    listening = false; working = true; graceStarted = 0; options.onReview?.(null);
     const ticket = ++generation; replyController = new AbortController();
     const turnSignal = AbortSignal.any([signal, replyController.signal]);
     const timing: VoiceTiming = {inputMode: 'typed', inputAt: performance.now(), speechEndedAt: null, requestAt: performance.now()};
     options.onTranscript('you', value); options.onState('thinking', 'Nancy is thinking…');
+    let received = false;
     try {
       await interruptBarrier; assertTurn(ticket);
       timing.turnId=crypto.randomUUID();
-      await applyReply(await api.conversationTurn(sessionId, value, timing.turnId, turnSignal), ticket, true, false, timing);
+      const reply = await requestWithAcknowledgement(timing.turnId,ticket,()=>api.conversationTurn(sessionId!, value, timing.turnId!, turnSignal,reviewId));
+      received = typeof reply.text === 'string' && !!reply.text.trim();
+      await applyReply(reply, ticket, true, false, timing);
     } catch {
       if (!closed && !interruptionFailed && ticket === generation) startListening('That turn was not confirmed. Check the displayed plan before trying again.');
     }
+    return received;
   };
   window.addEventListener('pagehide', onLeave);
   window.addEventListener('nancy:session-expired',onLeave);
@@ -282,21 +320,21 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     if (signal.aborted) onAbort();
   });
   try {
-    options.onState('connecting', 'Allow microphone and audio access in your browser to start Nancy…');
-    stream = await (ownerLifecycle ? waitForOwnerVoiceStartup({context,stream:streamPromise,initialResume:unlocked,signal,
+    options.onState('connecting', typedInput ? 'Starting Nancy’s sound. You can type without using the microphone…' : 'Allow microphone and audio access in your browser to start Nancy…');
+    stream = await (ownerLifecycle || typedInput ? waitForOwnerVoiceStartup({context,stream:streamPromise,initialResume:unlocked,signal,
       onProgress:message=>options.onState('connecting',message),onAudioUnlock:options.onAudioUnlock}) : waitForStartup()); assertOpen();
-    if (ownerLifecycle) {
+    if (ownerLifecycle || typedInput) {
       // Once playback starts, a suspended audio clock may never emit onended.
       // End this conversation rather than acknowledging an unheard review or
       // resuming it later without a new explicit Talk gesture.
       const audioEnded = () => {
         if (!closed && context.state !== 'running')
-          void stop('Nancy’s audio paused, so voice stopped. Check My Day for saved changes, then tap Talk to Nancy again.');
+          void stop(typedInput ? 'Nancy’s audio paused, so the conversation ended. Check My Day for saved changes, then tap Type to Nancy again.' : 'Nancy’s audio paused, so voice stopped. Check My Day for saved changes, then tap Talk to Nancy again.');
       };
       const microphoneEnded = () => {
         if (!closed) void stop('The microphone disconnected, so voice stopped. Check My Day for saved changes, then tap Talk to Nancy again.');
       };
-      const tracks = stream.getAudioTracks();
+      const tracks = stream?.getAudioTracks() ?? [];
       context.addEventListener('statechange', audioEnded);
       tracks.forEach(track => track.addEventListener('ended', microphoneEnded));
       detachLifecycle = () => {
@@ -314,6 +352,7 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
     sessionId = first.session_id;
     if (closed) { await api.conversationEnd(sessionId).catch(() => undefined); throw new Error('Conversation ended.'); }
     assertOpen();
+    if (stream) {
     source = context.createMediaStreamSource(stream);
     merger = context.createChannelMerger(2);
     processor = context.createScriptProcessor(2048, 2, 1);
@@ -337,8 +376,9 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
       if (utteranceStarted) chunks.push(chunk);
       if (utteranceStarted && ((lastSound && now - lastSound >= endSilenceMs) || now - utteranceStarted >= maxUtteranceMs)) void sendAudio();
     };
+    }
     monitor = setInterval(() => {
-      if (!listening || closed || working || utteranceStarted) return;
+      if (!listening || closed || working || utteranceStarted || typing) return;
       const now = Date.now();
       if (!graceStarted && now - quietStarted >= idleMs) {
         graceStarted = now; options.onState('closing', 'Still there? Nancy will close in 10 seconds. Speak or type to continue.');
@@ -352,7 +392,7 @@ export async function startLocalVoice(options: LocalVoiceOptions): Promise<Local
   } catch (error) {
     await stop();
     const permissionDenied = error !== null && typeof error === 'object' && 'name' in error && error.name === 'NotAllowedError';
-    const message = permissionDenied ? 'Microphone permission was not granted. Check your browser’s permission prompt or settings, then try Talk to Nancy again.'
+    const message = permissionDenied ? typedInput ? 'Sound was not enabled. Tap Type to Nancy again, then Enable sound.' : 'Microphone permission was not granted. Check your browser’s permission prompt or settings, then try Talk to Nancy again.'
       : error instanceof Error ? error.message : 'Nancy could not start. You can use the day views.';
     options.onState('error', message); throw new Error(message);
   }

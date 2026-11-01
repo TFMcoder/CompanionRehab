@@ -2,9 +2,11 @@
 import {readFile} from 'node:fs/promises';
 import {parseEnv} from 'node:util';
 import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {createOwnerOutlookFixture} from './owner-outlook-fixture.js';
 import {createApp} from './app.js';
 import {configFromEnv} from './config.js';
-import {ownerTestDirectory,ownerTestSchema,ownerTestReasoning,ownerTestPreparation,ownerTestSpeech,ownerTestQuickReads,ownerTestSpokenReplies,ownerTestMealsAhead,ownerTestDialogue,ownerTestChatPreparation,ownerTestVerifiedReferences,ownerTestWarmConnection,ownerTestQuickConversation,ownerTestIncrementalConversation,ownerTestTelemetryPolicy} from './owner-test-config.js';
+import {ownerTestDirectory,ownerTestSchema,ownerTestReasoning,ownerTestPreparation,ownerTestSpeech,ownerTestQuickReads,ownerTestSpokenReplies,ownerTestMealsAhead,ownerTestDialogue,ownerTestChatPreparation,ownerTestVerifiedReferences,ownerTestWarmConnection,ownerTestQuickConversation,ownerTestIncrementalConversation,ownerTestTelemetryPolicy,ownerTestOutlookReads,ownerTestSpeechPriority} from './owner-test-config.js';
 import {NANCY_POLICY_VERSION} from './inference-binding.js';
 import {LocalCare} from './local-care.js';
 import {LocalSpeech} from './local-speech.js';
@@ -40,7 +42,8 @@ const verifiedReferences=ownerTestVerifiedReferences(settings,selection);
 const warmConnection=ownerTestWarmConnection(settings,selection);
 const quickConversation=ownerTestQuickConversation(settings,selection);
 const incrementalConversation=ownerTestIncrementalConversation(settings,selection);
-const telemetryPolicy=ownerTestTelemetryPolicy(NANCY_POLICY_VERSION,settings,selection);
+const outlookReads=ownerTestOutlookReads(settings,selection);
+const telemetryPolicy=ownerTestTelemetryPolicy(NANCY_POLICY_VERSION,settings,selection)+(outlookReads?'-fmq2':'');
 if(prepareContext)warmRecipeCatalogue(currentNutritionReference());
 // Read only the existing owner's encryption key and selected speech settings.
 // Do not copy a credential store, rebind an account or load a caregiver route.
@@ -65,12 +68,13 @@ const reasoner=warmConnection?new WarmPlanReasoner(store,settings.owner_actor_id
 if(!await reasoner.available())throw Error('Existing owner reasoning is unavailable.');
 const taskRequests=new TaskRequestService(care.pool);
 const features=createLocalFeatures(care.pool,{dayContext:(participant,date)=>care.preparationFacts(participant,date)});
-const speech=new LocalSpeech({latencyTrial,dialogueTrial:dialogue});
+const speech=new LocalSpeech({latencyTrial,dialogueTrial:dialogue,foregroundPrime:ownerTestSpeechPriority(settings,selection)});
 const record=(metric:ConversationTurnMetric|InferenceCallMetric|MealPreparationMetric|ConversationPreparationMetric)=>{const {actor_id,conversation_id,turn_id,outcome,...measurements}=metric;runtimeLog.record({kind:'conversation',actor_id,conversation_id,turn_id,outcome:outcome==='completed'?'ok':outcome==='failed'?'error':'interrupted',measurements:{...measurements,policy_version:telemetryPolicy}});};
 const ownerSessionRenewal=new OwnerSessionRenewal(settings.owner_actor_id);
 const ownerAsana=await ownerAsanaRuntime(settings,care,ownerTestDirectory);
-const conversation=new ConversationService(care,reasoner,settings.owner_actor_id,undefined,(text,signal)=>speech.synthesize(text,signal),record,record,taskRequests,features,()=>Promise.resolve(false),undefined,new NancySuggestions(care.pool),reasoningProfile,prepareContext,latencyTrial?72:120,quickReads,spokenReplies,mealsAhead,record,dialogue,chatAhead,record,verifiedReferences,warmConnection,quickConversation,ownerSessionRenewal,ownerAsana&&prepareContext?session=>ownerAsana.conversationBoundary(session):undefined);
-const app=await createApp(config,{care,speech,conversation,ownerSessionRenewal,runtimeLog,taskRequests,features,microsoft:null,staticRoot:join(ownerTestDirectory,'client'),revocations:new SessionRevocations(join(ownerTestDirectory,'revoked-sessions.json')),
+const ownerOutlook=outlookReads?await createOwnerOutlookFixture(settings,care):undefined;
+const conversation=new ConversationService(care,reasoner,settings.owner_actor_id,undefined,(text,signal)=>speech.synthesize(text,signal),record,record,taskRequests,features,()=>Promise.resolve(false),ownerOutlook,new NancySuggestions(care.pool),reasoningProfile,prepareContext,latencyTrial?72:120,quickReads,spokenReplies,mealsAhead,record,dialogue,chatAhead,record,verifiedReferences,warmConnection,quickConversation,ownerSessionRenewal,ownerAsana&&prepareContext?session=>ownerAsana.conversationBoundary(session):undefined,undefined,outlookReads,ownerTestSpeechPriority(settings,selection),false,config.origin,outlookReads);
+const app=await createApp(config,{care,speech,conversation,ownerSessionRenewal,runtimeLog,taskRequests,features,microsoft:null,staticRoot:outlookReads?fileURLToPath(new URL('../../client/',import.meta.url)):join(ownerTestDirectory,'client'),ownerOutlookFixture:ownerOutlook,revocations:new SessionRevocations(join(ownerTestDirectory,'revoked-sessions.json')),
   ownerAsana,
   safariStudy:new SafariStudy(join(ownerTestDirectory,'safari-study'),settings.owner_actor_id,settings.participant_id,undefined,async samples=>{
     await runtimeLog.flush();return readSafariStages(care.pool,settings.owner_actor_id,samples);

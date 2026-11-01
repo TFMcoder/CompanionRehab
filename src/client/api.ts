@@ -9,6 +9,7 @@ import type { ProgressCommand, ProgressReceipt, ProgressRange, ProgressWorkspace
 import type { OperationsCommand, OperationsReceipt, OperationsQuery, OperationsWorkspace } from '../shared/operations-contracts';
 import type {PreferenceCommand,PreferenceReceipt,PreferenceWorkspace} from '../shared/preference-contracts';
 import type {MicrosoftStatus,MicrosoftResources,MicrosoftContext,MicrosoftSelection,MicrosoftReadRange,MicrosoftAction,MicrosoftActionReview,MicrosoftActionReceipt} from '../shared/microsoft-contracts';
+import type{ArchiveSettings,ArchiveSummary,ArchivedConversation}from'../shared/conversation-archive-contracts';
 import type {ConversationPurpose} from '../shared/client-navigation';
 
 export class ApiError extends Error {
@@ -60,7 +61,7 @@ async function request<T>(path: string, init?: RequestInit, timeoutMs?: number):
   }
 }
 
-export interface ConversationReply { text: string; reply_id: string; navigate?: string; changed?: boolean; acknowledgement_required?: boolean; transcript?: string; speech_parts?: number }
+export interface ConversationReply { archive_status?:"saving"|"off"|"unavailable"; recipes?:Array<{id:string;title:string;servings:number;href:string;ingredients:Array<{name:string;amount:number;unit:string}>;steps:string[]}>;suggestion_review?:{reply_id:string;confirmation_text:string}; text: string; reply_id: string; navigate?: string; changed?: boolean; acknowledgement_required?: boolean; transcript?: string; speech_parts?: number }
 /** Bind device recovery to the exact login/client/grants that reviewed it. */
 export function scopedRequest<T>(path:string,scopeKey:string,init?:RequestInit):Promise<T> {
   return request<T>(path,{...init,headers:{...init?.headers,'X-Nancy-Scope':scopeKey}});
@@ -70,6 +71,11 @@ export interface GroceryInput { name: string; quantity?: string; idempotency_key
 export interface SessionInfo { authenticated: true; role: AppRole; participant_id: string; scope_key: string; voice_eligible: boolean; voice_connection?: 'owner_practice' | 'caregiver_authorized' | null; voice_unavailable_reason?: string | null; task_requests_available?: boolean; local_features_available?: boolean; microsoft_available?:boolean }
 
 export const api = {
+  archiveSettings:()=>request<ArchiveSettings>('/api/conversation-archive/settings'),
+  archiveChoose:(input:{enabled:boolean;expected_revision:number;confirmed:true;policy_version:'conversation-text-v1';request_id:string})=>request<ArchiveSettings>('/api/conversation-archive/settings',{method:'POST',body:JSON.stringify(input)}),
+  archiveDelete:(input:{expected_revision:number;confirmed:true;request_id:string})=>request<{deleted:number;settings:ArchiveSettings}>('/api/conversation-archive/delete',{method:'POST',body:JSON.stringify(input)}),
+  archiveList:(cursor?:string)=>request<{items:ArchiveSummary[];next_cursor:string|null}>('/api/conversation-archive'+(cursor?'?cursor='+encodeURIComponent(cursor):'')),
+  archivedConversation:(id:string)=>request<ArchivedConversation>('/api/conversation-archive/'+encodeURIComponent(id)),
   microsoftStatus:()=>request<MicrosoftStatus>('/api/microsoft'),
   microsoftConnect:()=>request<{authorization_url:string}>('/api/microsoft/connect',{method:'POST',body:'{}'}),
   microsoftFinish:()=>request<MicrosoftStatus>('/api/microsoft/finish',{method:'POST',body:'{}'},45_000),
@@ -132,7 +138,7 @@ export const api = {
   conversationStart: (signal?: AbortSignal,purpose:ConversationPurpose='general') => request<ConversationStart>("/api/conversation", { method: "POST", body: JSON.stringify(purpose==='general'?{}:{purpose}), signal }, 90_000),
   nancySuggestions:()=>request<{items:Array<{id:string;suggestion:string;created_at:string}>;role:string}>('/api/nancy-suggestions'),
   microsoftCalendar:(range:MicrosoftReadRange)=>request<Pick<MicrosoftContext,'source'|'fetched_at'|'calendars'>>('/api/microsoft/calendar?'+new URLSearchParams(range),undefined,70_000),
-  conversationTurn: (id: string, text: string, turnId: string, signal?: AbortSignal) => request<ConversationReply>(`/api/conversation/${encodeURIComponent(id)}/turn`, { method: "POST", body: JSON.stringify({ text, turn_id: turnId }), signal }, 90_000),
+  conversationTurn: (id: string, text: string, turnId: string, signal?: AbortSignal, reviewId?:string) => request<ConversationReply>(`/api/conversation/${encodeURIComponent(id)}/turn`, { method: "POST", body: JSON.stringify({ text, turn_id: turnId, ...(reviewId?{review_reply_id:reviewId}:{}) }), signal }, 90_000),
   conversationAudio: (id: string, wav: string, turnId: string, signal?: AbortSignal) => request<ConversationReply>(`/api/conversation/${encodeURIComponent(id)}/audio`, { method: "POST", body: JSON.stringify({ wav, turn_id: turnId }), signal }, 90_000),
   conversationPlayed: (id: string, replyId: string, signal?: AbortSignal) => request<{ ok: true }>(`/api/conversation/${encodeURIComponent(id)}/played`, { method: "POST", body: JSON.stringify({ reply_id: replyId }), signal }),
   conversationReceived: (id:string,replyId:string,signal?:AbortSignal) => request<{ok:true}>(`/api/conversation/${encodeURIComponent(id)}/received`,{method:'POST',body:JSON.stringify({reply_id:replyId}),signal}),

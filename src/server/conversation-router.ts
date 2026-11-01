@@ -5,7 +5,7 @@ import type {Session} from './session.js';
 export type ConversationRuntime = Pick<ConversationService,
   'voiceAccess'|'start'|'turn'|'speech'|'preparedAudio'|'played'|'received'|'interrupt'|'cancelTurn'|
   'end'|'endLogin'|'close'|'prepareMeals'|'mealPreparationStatus'|'prepareConversation'|
-  'conversationPreparationStatus'|'speechPartSize'> & {speechPartSizeFor?(session:Session):120|72};
+  'conversationPreparationStatus'|'speechPartSize'> & {progress?:ConversationService['progress'];speechPartSizeFor?(session:Session):120|72|360};
 
 /** One explicitly selected client uses the qualified release; all other actors
  * retain the ordinary service. Revocation never falls back to another route. */
@@ -14,6 +14,7 @@ export class ClientConversationRouter implements ConversationRuntime {
   constructor(private readonly clientActorId:string,private readonly ordinary:ConversationRuntime,private readonly selected:ConversationRuntime){}
   private route(session:Session){return session.user_id===this.clientActorId?this.selected:this.ordinary;}
   speechPartSizeFor(session:Session){const route=this.route(session);return route.speechPartSizeFor?.(session)??route.speechPartSize;}
+  async progress(...args:Parameters<ConversationService['progress']>){return await this.route(args[1]).progress?.(...args)??false;}
   voiceAccess(...args:Parameters<ConversationService['voiceAccess']>){return this.route(args[0]).voiceAccess(...args);}
   start(...args:Parameters<ConversationService['start']>){return this.route(args[0]).start(...args);}
   turn(...args:Parameters<ConversationService['turn']>){return this.route(args[1]).turn(...args);}

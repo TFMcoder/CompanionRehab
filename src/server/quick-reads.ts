@@ -20,7 +20,7 @@ export function quotedRecipeSteps(text:string,preparation:TurnPreparation):strin
 }
 
 /** Trusted read-only response contract; full planning/review/write workflows retain their existing policy. */
-export const quickReadGuidance='\nFor this read-only reply, use at most 45 words unless exact requested facts need more. Answer the latest question directly, without a preamble. For meal suggestions, give exactly one repository option per requested meal slot, at most 55 words including a brief relevant allergy caution. Keep every necessary safety limit, unknown, refusal and accurate number. Do not repeat general source or approval-status explanations. Ask at most one question, only if needed. This length preference never removes a required review detail or authorizes a change.';
+export const quickReadGuidance='\nFor this read-only reply, use at most 45 words unless exact requested facts need more. Answer the latest question directly, without a preamble. For meal suggestions, give exactly one repository option per requested meal slot, enough detail to include supplied recipe yield and quantities. Use confirmed allergy context without repeated questioning. Keep every necessary safety limit, unknown, refusal and accurate number. Do not repeat general source or approval-status explanations. Ask at most one question, only if needed. This length preference never removes a required review detail or authorizes a change.';
 
 /** State the known snapshot boundary; never infer an empty future calendar. */
 export function quickReadReply(text:string,preparation:TurnPreparation,microsoftConfigured:boolean){

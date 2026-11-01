@@ -18,6 +18,31 @@ const accepted = (tasks: Today['tasks'] = []): Today['checkin'] => ({ id: 'check
     meals: [{ slot: 'breakfast', name: 'Oats', option_id: 'oats' }, { slot: 'lunch', name: 'Soup', option_id: 'soup' }, { slot: 'dinner', name: 'Rice', option_id: 'rice' }] } });
 
 describe('fresh daily temporal context', () => {
+  it('at 14:12 separates all three meal reports from accepted choices and uses occurrence time',()=>{
+    const c=dailyContext(state([meal({title:'Synthetic eaten oats',occurred_at:'2026-10-05T12:00:00Z',recorded_at:'2026-10-05T18:00:00Z'})],{checkin:accepted()}),new Date('2026-10-05T18:12:00Z'));
+    expect(c.local_time).toBe('14:12');expect(c.meals).toHaveLength(3);
+    expect(c.meals[0]).toMatchObject({slot:'breakfast',report_status:'reported',reported_food:'Synthetic eaten oats',latest_report:{occurred_at:'2026-10-05T12:00:00.000Z',elapsed_minutes:372},accepted_choice:{name:'Oats'}});
+    expect(c.meals[1]).toEqual({slot:'lunch',report_status:'unknown',latest_report:null,reported_food:null,accepted_choice:{option_id:'soup',name:'Soup'}});
+    expect(c.meals[2].report_status).toBe('unknown');
+  });
+  it('keeps a recent snack distinct from a full meal and honors explicit lunch deferral',()=>{
+    const c=dailyContext(state([meal({id:'snack',title:'Synthetic snack',meal_slot:null,intake_kind:'snack',occurred_at:'2026-10-05T17:50:00Z'}),meal({id:'deferred-lunch',meal_slot:'lunch',status:'deferred',occurred_at:null})]),new Date('2026-10-05T18:12:00Z'));
+    expect(c.meals[1]).toMatchObject({report_status:'deferred',latest_report:null,reported_food:null});expect(c.intake.latest_report?.intake_kind).toBe('snack');expect(c.intake.latest_full_meal).toBeNull();
+  });
+  it('does not resurrect a corrected deferred meal from the legacy projection',()=>{
+    const corrected=meal({id:'lunch',source_id:'soup',meal_slot:'lunch',revision:2,status:'voided',occurred_at:null,last_action:'corrected'});
+    const c=dailyContext(state([corrected],{activity_reports:[{target_id:'soup',local_date:base.local_date,meal_slot:'lunch',status:'deferred',occurred_at:'2026-10-05T17:00:00Z'}]}),new Date('2026-10-05T18:12:00Z'));
+    expect(c.meals[1].report_status).toBe('unknown');
+  });
+  it('does not turn yesterday, future food or stale accepted choices into today’s eaten meals',()=>{
+    const c=dailyContext(state([meal({id:'yesterday',local_date:'2026-10-04',occurred_at:'2026-10-04T12:00:00Z'}),meal({id:'future',meal_slot:'lunch',occurred_at:'2026-10-05T19:00:00Z'})],{local_date:'2026-10-04',checkin:{...accepted()!,local_date:'2026-10-04'}}),new Date('2026-10-05T18:12:00Z'));
+    expect(c.facts_are_current_day).toBe(false);expect(c.meals.every(m=>m.report_status==='unknown'&&m.accepted_choice===null)).toBe(true);
+  });
+  it('uses the correct 14:12 local time and elapsed meal time after the fall clock change',()=>{
+    const entry=meal({local_date:'2026-11-01',occurred_at:'2026-11-01T18:50:00Z',meal_slot:'lunch'});
+    const c=dailyContext(state([entry],{local_date:'2026-11-01'}),new Date('2026-11-01T19:12:00Z'));
+    expect(c.local_time).toBe('14:12');expect(c.meals[1].latest_report?.elapsed_minutes).toBe(22);expect(c.intake.automatic_full_meal).toBe('suppress_recent_full_meal');
+  });
   it.each([
     ['09:59', 'before_morning'], ['10:00', 'morning_routine'], ['12:59', 'morning_routine'],
     ['13:00', 'morning_catchup'], ['14:59', 'morning_catchup'], ['15:00', 'daytime'], ['19:59', 'daytime'], ['20:00', 'evening'],

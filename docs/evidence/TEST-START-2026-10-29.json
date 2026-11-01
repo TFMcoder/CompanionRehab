@@ -1,0 +1,58 @@
+{
+  "evidence_id": "TEST-START-2026-10-29",
+  "publication_allowed": true,
+  "recorded_at": "2026-10-29T16:14:05.345Z",
+  "implementation_revision": "sha256:76dd59157ceb92f71e58bd79b0d3e695f584a43bd620e80e31664675ff77ff93",
+  "status": "running_public_ready_existing_credentials_delivered_user_test_pending",
+  "operation": "Owner requests starting Nancy for Dad immediate test and emailing existing credentials to the registered client mailbox.",
+  "server": {
+    "existing_supervisor_recovered_dependencies_and_started_client": true,
+    "initial_dependency_recovery_and_voice_warmup_observed": true,
+    "final_configured_and_native_voice_ready": true,
+    "public_TLS_addresses_passed": 2,
+    "authenticated_public_checks": 12,
+    "authenticated_HTTP_requests": 6,
+    "Outlook_state": "connected",
+    "app_release_or_profile_changed": false,
+    "Heart_UI_or_account_binding_changed": false,
+    "password_reset": false,
+    "Tailscale_running_with_no_health_errors": true
+  },
+  "credentials_delivery": {
+    "sent": true,
+    "to": "verified existing client mailbox; exact address retained privately",
+    "existing_Nancy_username_and_password_included": true,
+    "includes_existing_HTTPS_link_and_Talk_instructions": true,
+    "other_recipients": 0,
+    "private_send_receipt": ".local/test-start-2026-10-29/email-receipt.json"
+  },
+  "preservation_before_delivery": {
+    "protected_files_unchanged": 1478,
+    "client_tables_unchanged": 64,
+    "owner_tables_unchanged": 67,
+    "original_sessions_preserved": 161,
+    "engineering_login_closed": true,
+    "account_binding_unchanged": true,
+    "all_checks_pass": true
+  },
+  "accounting": {
+    "new_reasoning_requests": 0,
+    "conversation_events": {
+      "client": 0,
+      "owner": 0
+    },
+    "care_or_Outlook_writes": 0,
+    "authorized_Gmail_send": 1,
+    "api_billing": false,
+    "historical_ledger_reopened": false
+  },
+  "live_acceptance": "Dad actual microphone, audible Heart, phone/network speed and genuine-day workflow remain awaiting_live_test. Server readiness and credential delivery do not pass those gates.",
+  "private_evidence_references": {
+    "before-private": ".local/test-start-2026-10-29/before-private.json",
+    "readiness": ".local/test-start-2026-10-29/readiness.json",
+    "public-ingress": ".local/test-start-2026-10-29/public-ingress.json",
+    "preservation-after": ".local/test-start-2026-10-29/preservation-after.json",
+    "inference-audit": ".local/test-start-2026-10-29/inference-audit.json",
+    "email-receipt": ".local/test-start-2026-10-29/email-receipt.json"
+  }
+}

@@ -260,6 +260,8 @@ export interface LocalSpeechOptions {
   /** Explicit startup selection for the isolated owner trial; defaults stay unchanged. */
   latencyTrial?: boolean;
   dialogueTrial?:boolean;
+  /** Fixed public recognition prelude after explicit foreground Talk, owner-only. */
+  foregroundPrime?:boolean;
 }
 
 export function validateSpeechText(text: string) {
@@ -314,8 +316,13 @@ export class LocalSpeech {
   private readonly fixedReplies:Set<string>;
   private readonly dialogueParts:Set<string>;
   private readonly dialogueAudio=new Map<string,Buffer>();
+  private readonly foregroundPrime:boolean;
+  private lastRecognition=0;
+  private recognitionPrime?:{controller:AbortController;done:Promise<void>};
 
   constructor(options: LocalSpeechOptions = {}) {
+    if(options.foregroundPrime!==undefined&&typeof options.foregroundPrime!=='boolean'||options.foregroundPrime&&!options.latencyTrial)throw new RangeError('Foreground priming requires the owner Heart profile.');
+    this.foregroundPrime=options.foregroundPrime===true;
     if(options.latencyTrial!==undefined&&typeof options.latencyTrial!=='boolean')throw new RangeError('Unknown speech trial selection.');
     if(options.dialogueTrial!==undefined&&typeof options.dialogueTrial!=='boolean'||options.dialogueTrial&&!options.latencyTrial)throw new RangeError('Dialogue speech requires the existing Heart latency trial.');
     this.fixedReplies=new Set(options.latencyTrial?[outlookUnavailableReply]:[]);
@@ -371,12 +378,26 @@ export class LocalSpeech {
 
   async transcribe(wav: Buffer, signal?: AbortSignal): Promise<string> {
     validateWav(wav);
+    const prime=this.recognitionPrime;
+    if(prime){prime.controller.abort();await prime.done;}
     const text = await this.asr.request({ type: 'transcribe', wav: wav.toString('base64') }, TRANSCRIPTION_TIMEOUT_MS, signal);
+    this.lastRecognition=Date.now();
     if (text.length > 4000) throw new RangeError('Transcription result is too long.');
     return text;
   }
 
+  /** No capture, provider/model call or transcript retention. Healthy idle checks do not invoke this. */
+  primeRecognition():Promise<void>{
+    if(!this.foregroundPrime||this.recognitionPrime||Date.now()-this.lastRecognition<300000)return this.recognitionPrime?.done??Promise.resolve();
+    const wav=this.getCachedGreeting([...NAVIGATION_PHRASES][0]);
+    if(!wav||this.readiness().asr!=='ready')return Promise.resolve();
+    this.lastRecognition=Date.now();const controller=new AbortController(),job={controller,done:Promise.resolve()};this.recognitionPrime=job;
+    job.done=this.asr.request({type:'transcribe',wav:wav.toString('base64')},TRANSCRIPTION_TIMEOUT_MS,controller.signal).then(()=>{}).catch(()=>{}).finally(()=>{if(this.recognitionPrime===job)this.recognitionPrime=undefined;});
+    return job.done;
+  }
+
   async close() {
+    this.recognitionPrime?.controller.abort();
     this.greetingAudio.clear();
     this.dialogueAudio.clear();
     await Promise.all([this.kokoro.close(), this.asr.close()]);

@@ -1,0 +1,152 @@
+{
+  "recorded_at": "2026-11-01T00:48:21.986Z",
+  "local_test_day": "2026-10-31 America/Toronto",
+  "implementation_revision": "sha256:16223769838411aae47a94fe797e5c9d7c850a538563c4f08a9f347ce5fc355f",
+  "release": "context-archive-v3-2026-10-31",
+  "manifest_sha256": "694f96e23c4e39181fabbc84089c7310680c1ec4256a50ec17fb886f3e5afc4f",
+  "status": "client_software_enabled_collection_off_awaiting_client_opt_in",
+  "retention_choice": "Text until explicitly deleted; no audio",
+  "archive": {
+    "informed_client_opt_in_required": true,
+    "default_off_verified_on_actual_client": true,
+    "earlier_conversations_backfilled": false,
+    "actual_archive_empty": true,
+    "encrypted_private_local_files": true,
+    "scoped_client_and_administrator_read": true,
+    "client_only_recording_and_delete_choice": true,
+    "separate_from_care_facts_operational_logs_and_automatic_memory": true,
+    "text_provenance": [
+      "typed input or ASR transcription",
+      "received/completed/failed/interrupted outcome",
+      "generated reply",
+      "client-reported playback completion or unknown",
+      "nutrition document hashes and claim identifiers"
+    ],
+    "automatic_analysis_upload": false
+  },
+  "saved_suggestions_audit": {
+    "authenticated_service_access_verified": true,
+    "actual_saved_product_feedback_count": 1,
+    "original_saved_suggestion_unchanged_after_deployment": true,
+    "real_private_text_in_public_evidence": false,
+    "confirmed_preference_count": 0,
+    "active_context_note_count": 0,
+    "engineering_health_context_write": false,
+    "fresh_engineering_login_closed": true
+  },
+  "regression": {
+    "passed": 1725,
+    "optional_skips": 2,
+    "files": 142,
+    "typecheck": "passed",
+    "isolated_client_build": "passed",
+    "earlier_full_run": {
+      "passed": 1716,
+      "failed": 1,
+      "failure": "New prefetch attached unrelated default claims to a broad nutrition-index question. Strict relevant-theme filtering repairs the regression; raw run retained."
+    },
+    "clinical_boundary_tests": 4,
+    "previous_reviewed_source_passes": 1721
+  },
+  "actual_disposable_postgresql": {
+    "passed_tests": 27,
+    "overlaps_full_suite": true,
+    "fixture_removed": true,
+    "tested_archive_app_feedback_modules_identical_to_final": 6,
+    "real_care_business_writes": 0
+  },
+  "controlled_reasoning": {
+    "final_source_cases": [
+      {
+        "case": "rice_comparison",
+        "passed": true,
+        "duration_ms": 5602,
+        "recipe_generated": false,
+        "evidence_claims": [
+          "C02",
+          "C04"
+        ],
+        "reply_characters": 242,
+        "no_allergy_question": true
+      },
+      {
+        "case": "cooled_starch",
+        "passed": true,
+        "duration_ms": 4940,
+        "recipe_generated": false,
+        "evidence_claims": [
+          "C11",
+          "C04"
+        ],
+        "reply_characters": 200,
+        "no_allergy_question": true
+      },
+      {
+        "case": "unknown_personal_context",
+        "passed": true,
+        "duration_ms": 3856,
+        "recipe_generated": false,
+        "evidence_claims": [
+          "C02",
+          "C04"
+        ],
+        "reply_characters": 163,
+        "no_allergy_question": true
+      }
+    ],
+    "method": "Typed synthetic engineering facts on the exact existing client/caregiver/account/host/grant Pro route; no actual person, microphone, phone or archive consent. Durations are service-turn reasoning/context time, not audible latency.",
+    "known_requests_all_attempts": 15,
+    "unknown_events": 0,
+    "all_fresh_ledgers_closed": true,
+    "api_billing": false,
+    "initial_overbroad_phrase_assertion_retained": true,
+    "actual_context_not_fabricated_from_reference_scope": true,
+    "recipe_not_generated_for_explanation": true,
+    "ordinary_food_prefetch_withheld_for_medication_symptoms_and_glucose_readings": true
+  },
+  "readiness": {
+    "passed_checks": 15,
+    "http_requests": 22,
+    "new_login_closed": true,
+    "outlook_state": "connected",
+    "initial_public_client_voice_warming": true,
+    "final_both_public_https_200_and_voice_ready": true,
+    "tailscale_running_and_online": true
+  },
+  "preservation": {
+    "passed": true,
+    "protected_files": 2833,
+    "care_tables_unchanged": 131,
+    "original_sessions_preserved": 178,
+    "new_logins_closed": 5,
+    "account_host_grants_and_client_selection_unchanged": true,
+    "microsoft_metadata_changed": false,
+    "heart_voice_speed_preserved": true,
+    "owner_process_release_preserved": true,
+    "client_child_restarts": 2,
+    "schema_migration": false,
+    "credential_copy": false,
+    "root_dependency_install": false,
+    "real_care_or_provider_business_write": false
+  },
+  "pending": [
+    "actual client informed recording choice",
+    "actual person/phone capture, saved-text comparison and privacy controls",
+    "one client-reviewed personal-context save before relying on caregiver-reported health/allergy facts",
+    "genuine-day, provider lifecycle and full-slice acceptance"
+  ],
+  "full_slice_completion": false,
+  "handoff_validation": {
+    "human_actions_regenerated": true,
+    "generated_view_check": "passed",
+    "roadmap_validation": "passed",
+    "slices": 12,
+    "human_actions": 36,
+    "automated_checks": 102,
+    "live_scenarios": 48,
+    "completed_features": 0,
+    "public_boundary_files": 572,
+    "public_boundary_findings": 0,
+    "git_diff_check": "passed"
+  }
+}

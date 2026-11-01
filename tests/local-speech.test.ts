@@ -19,7 +19,7 @@ function fakeWav() {
   return wav;
 }
 
-async function makeService(responseDelay = 5,latencyTrial=false,dialogueTrial=false) {
+async function makeService(responseDelay = 5,latencyTrial=false,dialogueTrial=false,foregroundPrime=false) {
   const dir = await mkdtemp(resolve(tmpdir(), 'nancy-local-speech-'));
   dirs.push(dir);
   const script = resolve(dir, 'fake-worker.mjs');
@@ -50,7 +50,7 @@ createInterface({input:process.stdin}).on('line', line => {
 });
 `, 'utf8');
   const spec = (kind: string) => ({ executable: process.execPath, args: [script, kind], cwd: dir, env: process.env });
-  return new LocalSpeech({ latencyTrial,dialogueTrial,workerSpecs: { kokoro: spec('kokoro'), asr: spec('asr') } });
+  return new LocalSpeech({ latencyTrial,dialogueTrial,foregroundPrime,workerSpecs: { kokoro: spec('kokoro'), asr: spec('asr') } });
 }
 
 // Run lifecycle failures in a real Node process, where an unobserved startup
@@ -251,4 +251,11 @@ describe('LocalSpeech input bounds and worker lifecycle', () => {
       expect(service.readiness()).toEqual({ kokoro: 'ready', asr: 'ready' });
     } finally { await service.close(); }
   });
+});
+
+it('bounds foreground ASR priming and gives actual input priority without changing default readiness',async()=>{
+ const speech=await makeService(25,true,false,true);try{await speech.primeNavigation();const a=speech.primeRecognition(),b=speech.primeRecognition();expect(a).toBe(b);expect(await speech.transcribe(fakeWav())).toBe('Synthetic hello.');await a;expect(speech.readiness()).toEqual({kokoro:'ready',asr:'ready'});await speech.primeRecognition();}finally{await speech.close();}
+});
+it('does not start foreground priming without the exact owner speech option or after close',async()=>{
+ expect(()=>new LocalSpeech({foregroundPrime:true})).toThrow('owner Heart');const speech=await makeService();try{await speech.primeNavigation();await speech.primeRecognition();expect(speech.readiness()).toEqual({kokoro:'ready',asr:'ready'});}finally{await speech.close();}await speech.primeRecognition();
 });

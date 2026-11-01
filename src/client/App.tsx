@@ -1,4 +1,5 @@
 import {ClientHome,NancySuggestionsPanel,type CalendarState} from './ClientHome';
+import {ConversationArchivePanel} from './ConversationArchive';
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { api, ApiError, type SessionInfo } from "./api";
 import { TaskRequests, type TaskRequestService } from './TaskRequests';
@@ -540,7 +541,7 @@ function SupportHome({ session, voiceAvailable, voiceTransport, onCheckVoice, on
         {(session.role==='clinician'||session.role==='administrator')&&<Programs service={programService} scopeKey={session.scope_key} onTalk={()=>void start()}/>}
         {participantDate&&<Progress scopeKey={session.scope_key} localDate={participantDate} visible={true}
           commandAction={(command:ProgressCommand)=>recoverableCommand<ProgressReceipt>('progress',command,()=>api.progressCommand(command))}/>}
-        {session.role==='administrator'&&<><Operations service={operationsService} scopeKey={session.scope_key} onTalk={()=>void start()} refreshVersion={refreshVersion}/><NancySuggestionsPanel scopeKey={session.scope_key} refreshVersion={refreshVersion} administrator/></>}
+        {session.role==='administrator'&&<><Operations service={operationsService} scopeKey={session.scope_key} onTalk={()=>void start()} refreshVersion={refreshVersion}/><NancySuggestionsPanel scopeKey={session.scope_key} refreshVersion={refreshVersion} administrator/><ConversationArchivePanel scopeKey={session.scope_key} administrator/></>}
       </>}</details><PendingCommandsPanel controller={deviceCommands} onReview={reviewPending}/></>}
     {session.role === 'clinician' ? !session.local_features_available&&<section className="request-panel"><h2>Your shared views</h2><p>Clinical dashboards and exports are not available yet.</p></section> : session.task_requests_available === false ? <p>Task requests are not available for this account yet.</p> : <TaskRequests service={requestService} scopeKey={session.scope_key} onTalk={() => void start()} voiceAvailable={eligible && voiceAvailable} showTalk={false} refreshVersion={refreshVersion} onPendingChange={setRequestUnconfirmed} />}
   </main>;

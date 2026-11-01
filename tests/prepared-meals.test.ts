@@ -46,7 +46,7 @@ describe('prepared meal boundaries',()=>{
   expect(()=>validateMealSelection(selection,material,{preferences:'No eggs'})).toThrow();
   expect(()=>validateMealSelection(selection,material,{preferences:'vegetarian'})).toThrow();
   const choices=validateMealSelection(selection,material,{}),text=renderPreparedMeals(choices,['breakfast']);
-  expect(text).toContain(choices.breakfast.title);expect(text).not.toContain(choices.lunch.title);expect(text).toContain('cross-contact');expect(text).not.toMatch(/safe|grams|saved|eaten|C02/);
+  expect(text).toContain(choices.breakfast.title);expect(text).not.toContain(choices.lunch.title);expect(text).toContain('quantities and steps');expect(text).not.toMatch(/safe|grams|saved|eaten|C02/);
  });
  it('binds source hashes and all supplied fact changes into the key',()=>{
   const key=mealPreparationKey('binding',{revision:1},material);

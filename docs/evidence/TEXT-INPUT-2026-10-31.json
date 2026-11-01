@@ -1,0 +1,78 @@
+{
+  "evidence_id": "TEXT-INPUT-2026-10-31",
+  "publication_allowed": true,
+  "recorded_at": "2026-10-31T18:52:11.174Z",
+  "status": "engineering_qualified_candidate_not_deployed_awaiting_person_device_test",
+  "implementation_revision": "sha256:deafb9d1214ce966d96c6009a371bd2add56145ec97220e09161f1ceda6487a9",
+  "scope": "Optional Type to Nancy alongside primary Talk; same authenticated conversation and reviewed commands. Combined candidate retains the personal next-step Outlook repair.",
+  "behavior": {
+    "typed_start_requests_microphone": false,
+    "selected_Heart_reply_voice_changed": false,
+    "replies_displayed_as_text_and_spoken": true,
+    "silent_chat_implemented": false,
+    "explicit_send_required": true,
+    "maximum_message_characters": 2000,
+    "duplicate_send_guard": true,
+    "failed_draft_retained_no_automatic_retry": true,
+    "tab_and_hide_draft_continuity": true,
+    "scope_change_cancels_and_clears_text": true,
+    "review_acknowledged_only_after_audio_completion": true,
+    "explicit_client_approval_still_required": true,
+    "typing_composer_pauses_speech_idle_timeout": true,
+    "typed_start_uses_speech_idle_timeout": false
+  },
+  "validation": {
+    "full_passed": 1616,
+    "optional_skips": 2,
+    "failures": 0,
+    "files": 136,
+    "typecheck": "pass",
+    "isolated_build": "pass with retained owner date/audio-startup selections",
+    "browser": "pass: actual built client with loopback-only disposable HTTP fixture, synthetic replies and silent WAV output",
+    "browser_widths": [
+      320,
+      430
+    ],
+    "horizontal_overflow_observed": false,
+    "fixture_counts": {
+      "starts": 3,
+      "turns": 3,
+      "played": 6,
+      "ended": 3,
+      "otherWrites": 0,
+      "synthetic": true,
+      "provider_requests": 0
+    },
+    "actual_Heart_audibility_qualified": false,
+    "actual_iPhone_keyboard_or_Safari_qualified": false,
+    "new_Pro_or_Graph_requests": 0,
+    "dependency_install": false,
+    "private_test_cache_and_temp": true,
+    "initial_harness_failures_retained": true,
+    "public_boundary": "pass: 550 files, zero findings",
+    "roadmap": "pass: generated human actions match; 12 slices, 36 human actions, 94 automated checks, 44 live scenarios, zero completed features"
+  },
+  "preservation": {
+    "active_manifested_files_unchanged": 1120,
+    "both_active_pointers_and_releases_unchanged": true,
+    "both_application_runs_unchanged": true,
+    "Heart_account_grant_host_bindings_unchanged": true,
+    "real_care_or_provider_writes": 0,
+    "credentials_copied": false,
+    "API_billing_enabled": false
+  },
+  "limits": [
+    "Not deployed to Dad or the owner test copy. Both remain on their earlier pinned releases; Dad still has the separately reproduced next-step Outlook bug.",
+    "Typing currently uses Heart audio replies and the existing audible-review gate; this is not silent text-only operation or an audio-outage fallback. End the typed conversation before starting Talk.",
+    "Browser fixture checks do not qualify real reasoning/Outlook/Heart, physical iPhone keyboard, actual person or full-slice acceptance. Live promotion qualification stays open."
+  ],
+  "private_evidence_references": {
+    "full": ".local/outlook-failure-2026-10-31/text-full-final.json",
+    "earlier_full": ".local/outlook-failure-2026-10-31/text-full.json",
+    "initial_focused": ".local/outlook-failure-2026-10-31/text-focused.json",
+    "corrected_focused": ".local/outlook-failure-2026-10-31/text-focused-2.json",
+    "browser_counts": ".local/outlook-failure-2026-10-31/text-browser-stats.json",
+    "browser_image": ".local/outlook-failure-2026-10-31/text-input-preview.png",
+    "preservation": ".local/outlook-failure-2026-10-31/text-active-preservation.json"
+  }
+}

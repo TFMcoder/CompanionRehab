@@ -9,6 +9,13 @@ export type MicrosoftSelection=z.infer<typeof microsoftSelectionSchema>;
 export const microsoftReadRangeSchema=z.object({start:z.iso.datetime({offset:true}),end:z.iso.datetime({offset:true})}).strict()
  .refine(value=>Date.parse(value.end)>Date.parse(value.start)&&Date.parse(value.end)-Date.parse(value.start)<=7*86400000+3600000);
 export type MicrosoftReadRange=z.infer<typeof microsoftReadRangeSchema>;
+/** On-demand mail search is independent of the seven-day calendar/read snapshot. */
+export const microsoftMailSearchSchema=z.object({
+ query:z.string().trim().min(1).max(160).refine(value=>!/[\u0000-\u001f\u007f]/.test(value)&&/[\p{L}\p{N}]/u.test(value)).optional(),
+ from:z.email().max(320).refine(value=>!/["\\\r\n]/.test(value)).optional(),
+ start:z.iso.datetime({offset:true}).optional(),end:z.iso.datetime({offset:true}).optional(),
+}).strict().refine(value=>!!value.start===!!value.end&&(!value.start||Date.parse(value.end!)>Date.parse(value.start)));
+export type MicrosoftMailSearch=z.infer<typeof microsoftMailSearchSchema>;
 export interface MicrosoftStatus {
  available:boolean;eligible:boolean;state:'not_configured'|'disconnected'|'connected'|'reconnect_required';revision:number;
  selected_calendar_ids:string[];selected_mail_folder_ids:string[];last_read_at:string|null;last_error:string|null;

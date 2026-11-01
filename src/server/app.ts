@@ -33,16 +33,23 @@ import {createMicrosoftRuntime} from './microsoft/runtime.js';
 import type {MicrosoftService} from './microsoft/service.js';
 import {NancySuggestions} from './nancy-suggestions.js';
 import {registerOwnerAsana,type OwnerAsana} from './owner-asana.js';
+import type {OwnerOutlookFixture} from './owner-outlook-fixture.js';
 import type {OwnerSessionRenewal} from './owner-session-renewal.js';
 import type {ClientSessionRenewal} from './client-session-renewal.js';
+import {currentNutritionReference} from './nutrition-reference.js';
+import {recipeCard} from './recipe-handoff.js';
+import {ConversationArchive} from './conversation-archive.js';
+import type {ConversationReply} from './conversation.js';
 
 type RequestService = Pick<TaskRequestService, 'workspace'|'review'|'command'|'receipt'|'authorityRevision'>;
-export async function createApp(config: Config, dependencies: { care?: CareService; voice?: VoiceService; conversation?: ConversationRuntime; speech?: LocalSpeech; clientSpeech?:{actorId:string;speech:LocalSpeech}; taskRequests?: RequestService; features?:LocalFeatures; microsoft?:MicrosoftService|null; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog;safariStudy?:SafariStudy;ownerAsana?:OwnerAsana;ownerSessionRenewal?:OwnerSessionRenewal;clientSessionRenewal?:ClientSessionRenewal } = {}) {
+export async function createApp(config: Config, dependencies: { archive?:ConversationArchive; care?: CareService; voice?: VoiceService; conversation?: ConversationRuntime; speech?: LocalSpeech; clientSpeech?:{actorId:string;speech:LocalSpeech}; taskRequests?: RequestService; features?:LocalFeatures; microsoft?:MicrosoftService|null; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog;safariStudy?:SafariStudy;ownerAsana?:OwnerAsana;ownerOutlookFixture?:OwnerOutlookFixture;ownerSessionRenewal?:OwnerSessionRenewal;clientSessionRenewal?:ClientSessionRenewal } = {}) {
   const app = Fastify({ logger: false, bodyLimit: 100000, trustProxy: false, requestTimeout: 120000, genReqId: () => randomUUID(), requestIdHeader: false });
   const care: CareService = dependencies.care || (config.databaseUrl ? new LocalCare({ connectionString: config.databaseUrl }) : new Supabase(config));
   const voice = dependencies.voice || new VoiceService(config, care);
   const conversation = dependencies.conversation;
   const speech = dependencies.speech;
+  const archive=dependencies.archive;
+  const archiveAttempt=async(work:()=>Promise<unknown>)=>{try{await work();return false;}catch(error){if(error instanceof ApiError&&error.code==='forbidden')return false;/* Shared-role conversations remain available without recording. */if(error instanceof ApiError&&[401,403,409].includes(error.status))throw error;return true;}};
   const speechFor=(session:Session)=>dependencies.clientSpeech?.actorId===session.user_id?dependencies.clientSpeech.speech:speech!;
   if(dependencies.clientSpeech&&(!dependencies.clientSessionRenewal||dependencies.clientSpeech.actorId!==dependencies.clientSessionRenewal.clientActorId))
     throw Error('Selected client speech requires the same exact client session route.');
@@ -51,6 +58,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   const microsoft=Object.hasOwn(dependencies,'microsoft')?dependencies.microsoft??undefined:(care instanceof LocalCare?await createMicrosoftRuntime(config,care.pool):undefined);
   const speaking = new Map<string, AbortController>();
   const audioCache = new Map<string, Buffer>();
+  const acknowledgementAudio=new WeakMap<LocalSpeech,Promise<Buffer>>();
   const root = resolve(dependencies.staticRoot || 'dist/client');
   const sessions = new WeakMap<FastifyRequest, Session>();
   const started = new WeakMap<FastifyRequest, number>();
@@ -157,6 +165,11 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   if(dependencies.safariStudy){
     if(config.sessionCookieName!=='nancy_test_session'||!care.authority||!conversation)throw Error('Owner study requires the isolated authenticated voice runtime.');
     registerSafariStudy(app,{study:dependencies.safariStudy,synthetic:config.synthetic===true,sessions,authority:s=>care.authority!(s),conversation,limit});
+  }
+  if(dependencies.ownerOutlookFixture){
+    const fixture=dependencies.ownerOutlookFixture;
+    if(sessionCookieName!=='nancy_test_session'||!config.synthetic||config.port!==8788||config.origin!==fixture.settings.origin||config.planUserId!==fixture.settings.owner_actor_id||microsoft)throw Error('Practice Outlook requires the isolated owner runtime without a real Microsoft connection.');
+    app.get('/api/owner-outlook-fixture',async request=>fixture.description(sessions.get(request)!));
   }
   if(dependencies.ownerAsana){
     if(config.sessionCookieName!=='nancy_test_session'||!config.synthetic||dependencies.ownerAsana.config.origin!==config.origin)throw Error('Asana sandbox requires the isolated owner test runtime.');
@@ -305,23 +318,47 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     return care.setAppointment(sessions.get(request)!, input);
   });
   const localConversation = () => {
-    if (!conversation || !speech || !localSpeechReady()) throw new ApiError(503, 'voice_unavailable', 'Nancy’s selected voice connection is unavailable. You can use the buttons.');
+    if (!conversation || !speech || !localSpeechReady()) throw new ApiError(503, 'voice_unavailable', 'Nancyâ€™s selected voice connection is unavailable. You can use the buttons.');
     return { conversation, speech };
   };
   const conversationId = (request: FastifyRequest) => uuid.parse((request.params as { id: string }).id);
   app.post('/api/conversation', async request => {
     const {purpose}=z.object({purpose:z.enum(['general','help','suggestions']).default('general')}).strict().parse(request.body);
     limit(request, `conversation:${sessions.get(request)!.user_id}`, 6);
-    return localConversation().conversation.start(sessions.get(request)!,purpose);
+    const session=sessions.get(request)!,started=await localConversation().conversation.start(session,purpose);
+    let archiveState:'saving'|'off'|'unavailable'='off';if(archive){if(await archiveAttempt(async()=>{archiveState=await archive.begin(session,started)?'saving':'off';}))archiveState='unavailable';}
+    void speechFor(session).primeRecognition?.().catch(()=>{});
+    return {...started,archive_status:archiveState};
   });
+  const getArchive=()=>{if(!archive)throw new ApiError(503,'archive_unavailable','Conversation history is unavailable.');return archive;};
+  app.get('/api/conversation-archive/settings',request=>getArchive().settings(sessions.get(request)!));
+  app.post('/api/conversation-archive/settings',request=>{limit(request,`archive-choice:${sessions.get(request)!.user_id}`,8);return getArchive().choose(sessions.get(request)!,request.body);});
+  app.post('/api/conversation-archive/delete',request=>{limit(request,`archive-delete:${sessions.get(request)!.user_id}`,4);return getArchive().deleteAll(sessions.get(request)!,request.body);});
+  app.get('/api/conversation-archive',request=>{const{cursor}=z.object({cursor:z.string().max(80).optional()}).strict().parse(request.query);limit(request,`archive-read:${sessions.get(request)!.user_id}`,30);return getArchive().list(sessions.get(request)!,cursor);});
+  app.get('/api/conversation-archive/:id',request=>{limit(request,`archive-read:${sessions.get(request)!.user_id}`,30);return getArchive().get(sessions.get(request)!,uuid.parse((request.params as {id:string}).id));});
   app.get('/api/nancy-suggestions',async request=>{if(!(care instanceof LocalCare))throw new ApiError(503,'suggestions_unavailable','Suggestions are unavailable.');return new NancySuggestions(care.pool).workspace(sessions.get(request)!);});
   app.post('/api/conversation/:id/turn', async (request, reply) => {
-    const { text, turn_id } = z.object({ text: z.string().trim().min(1).max(2000), turn_id: uuid }).strict().parse(request.body);
+    const { text, turn_id, review_reply_id } = z.object({ text: z.string().trim().min(1).max(2000), turn_id: uuid,review_reply_id:uuid.optional() }).strict().parse(request.body);
     limit(request, `turn:${sessions.get(request)!.user_id}`, 20);
     const id = conversationId(request), session = sessions.get(request)!;
     const active = localConversation().conversation;
     reply.raw.once('close', () => { if (!reply.raw.writableFinished) active.cancelTurn(id, session, turn_id); });
-    return active.turn(id, session, turn_id, text);
+    let warning=false,recorded=false;
+    const capture=async(result?:ConversationReply,outcome:'received'|'completed'|'failed'|'interrupted'='completed')=>{if(archive)warning=await archiveAttempt(async()=>{recorded=await archive.capture(session,id,turn_id,text,'typed',result,outcome);})||warning;};
+    try{const result=await active.turn(id,session,turn_id,async()=>{await capture(undefined,'received');return text;},createHash('sha256').update(text).digest('hex'),review_reply_id);await capture(result);return{...result,...(archive?{archive_status:warning?'unavailable':recorded?'saving':'off'}:{})};}
+    catch(error){await capture(undefined,error instanceof Error&&error.name==='AbortError'?'interrupted':'failed').catch(()=>{});throw error;}
+  });
+  app.get('/api/conversation/:id/acknowledgement',async(request,reply)=>{
+    const {turn_id}=z.object({turn_id:uuid}).strict().parse(request.query);
+    limit(request,`acknowledgement:${sessions.get(request)!.user_id}`,180);
+    const active=localConversation().conversation,id=conversationId(request),session=sessions.get(request)!;
+    if(!await active.progress?.(id,session,turn_id))return reply.code(204).send();
+    const selected=speechFor(session);
+    let audio=acknowledgementAudio.get(selected);
+    if(!audio){audio=selected.synthesize('Okay. Give me a moment.');acknowledgementAudio.set(selected,audio);void audio.catch(()=>acknowledgementAudio.delete(selected));}
+    const wav=await audio;
+    if(!await active.progress?.(id,session,turn_id))return reply.code(204).send();
+    return reply.header('Cache-Control','no-store').type('audio/wav').send(wav);
   });
   app.post('/api/conversation/:id/audio', { bodyLimit: 2100000 }, async (request, reply) => {
     const { wav, turn_id } = z.object({ wav: z.string().min(60).max(2000000).regex(/^[A-Za-z0-9+/]+={0,2}$/), turn_id: uuid }).strict().parse(request.body);
@@ -333,12 +370,15 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
     if (speaking.has(key)) throw new ApiError(409, 'speech_busy', 'Nancy is still listening to the last turn.');
     speaking.set(key, controller);
     reply.raw.once('close', () => { if (!reply.raw.writableFinished) { controller.abort(); conversation.cancelTurn(id, session, turn_id); } });
-    try { return await conversation.turn(id, session, turn_id, async () => {
+    let recognized:string|undefined,warning=false,recorded=false;
+    const capture=async(result?:ConversationReply,outcome:'received'|'completed'|'failed'|'interrupted'='completed')=>{if(archive&&recognized)warning=await archiveAttempt(async()=>{recorded=await archive.capture(session,id,turn_id,recognized!,'speech_transcription',result,outcome);})||warning;};
+    try { const result=await conversation.turn(id, session, turn_id, async () => {
       const asrStarted = performance.now(); let outcome: 'ok'|'error' = 'error';
-      try { const text = await speechFor(session).transcribe(audio, controller.signal); outcome = 'ok'; return text; }
+      try { const text = await speechFor(session).transcribe(audio, controller.signal);outcome='ok';recognized=text;await capture(undefined,'received');return text; }
       finally { dependencies.runtimeLog?.record({kind: 'conversation', outcome, actor_id: session.user_id, conversation_id: id, turn_id,
         measurements: {stage: 'asr', duration_ms: performance.now() - asrStarted}}); }
-    }, createHash('sha256').update(audio).digest('hex')); }
+    }, createHash('sha256').update(audio).digest('hex'));recognized??=result.transcript;await capture(result);return{...result,...(archive?{archive_status:warning?'unavailable':recorded?'saving':'off'}:{})}; }
+    catch(error){await capture(undefined,controller.signal.aborted?'interrupted':'failed').catch(()=>{});throw error;}
     finally { if (speaking.get(key) === controller) speaking.delete(key); }
   });
   app.get('/api/conversation/:id/speech', async (request, reply) => {
@@ -374,7 +414,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   });
   app.post('/api/conversation/:id/played', async request => {
     const { reply_id } = z.object({ reply_id: uuid }).strict().parse(request.body);
-    localConversation().conversation.played(conversationId(request), sessions.get(request)!, reply_id); return { ok: true };
+    const id=conversationId(request),session=sessions.get(request)!;localConversation().conversation.played(id,session,reply_id);if(archive)await archiveAttempt(()=>archive.played(session,id,reply_id));return {ok:true};
   });
   app.post('/api/conversation/:id/received', async request => {
     const {reply_id}=z.object({reply_id:uuid}).strict().parse(request.body);
@@ -392,6 +432,7 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   app.delete('/api/conversation/:id', async request => {
     const id = conversationId(request), session = sessions.get(request)!;
     conversation?.end(id, session);
+    if(archive)await archiveAttempt(()=>archive.end(session,id));
     for (const [key, controller] of speaking) if (key.startsWith(`${session.session_id}:${id}:`)) { controller.abort(); speaking.delete(key); }
     for (const key of audioCache.keys()) if (key.startsWith(`${session.session_id}:${id}:`)) audioCache.delete(key);
     return { ok: true };
@@ -399,6 +440,14 @@ export async function createApp(config: Config, dependencies: { care?: CareServi
   app.post('/api/setup', async request => {
     limit(request, `setup:${sessions.get(request)!.user_id}`, 10);
     return care.setup(sessions.get(request)!, setupSchema.parse(request.body));
+  });
+  app.get('/api/recipes/:id',async(request,reply)=>{
+    await care.today(sessions.get(request)!);
+    const id=z.string().regex(/^[BLSD][0-9]{2}$/).parse((request.params as {id:string}).id);
+    const recipe=currentNutritionReference().getRecipes([id]).items[0];
+    if(!recipe)throw new ApiError(404,'not_found','That recipe is unavailable.');
+    const card=recipeCard(recipe),escape=(value:string)=>value.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]!));
+    return reply.header('Cache-Control','no-store').header('Content-Security-Policy',"default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'").type('text/html; charset=utf-8').send(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escape(card.title)}</title><style>body{font:1.2rem/1.6 system-ui;max-width:42rem;margin:2rem auto;padding:1rem}li{margin:.5rem 0}</style><main><h1>${escape(card.title)}</h1><p>Makes ${card.servings} serving${card.servings===1?'':'s'}. Quantities are for the whole recipe.</p><h2>Ingredients</h2><ul>${card.ingredients.map(item=>`<li>${item.amount} ${escape(item.unit)} ${escape(item.name)}</li>`).join('')}</ul><h2>Steps</h2><ol>${card.steps.map(step=>`<li>${escape(step)}</li>`).join('')}</ol><p>Allergen information: ${escape(card.allergens.join(', ').replaceAll('_',' '))||'not listed'}. Check current product labels and your own instructions.</p><p>Food safety: use a thermometer: poultry and egg dishes 74Â°C; fish 70Â°C; ground beef 71Â°C; reheated leftovers 74Â°C. Refrigerate perishables promptly at 4Â°C or colder. Discard cooked food left out over two hours; use refrigerated leftovers within 2â€“3 days or freeze.</p><p>Source: ${escape(card.source)}. A recipe idea is not a saved meal or a prescribed portion.</p></main></html>`);
   });
   app.post('/api/commands', async request => {
     limit(request, `command:${sessions.get(request)!.user_id}`, 60);

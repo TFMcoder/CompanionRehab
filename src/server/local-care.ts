@@ -220,6 +220,17 @@ export class LocalCare implements CareAccess {
   async role(session: Session): Promise<LocalRole> {
     try { return (await this.context(session)).role; } catch (error) { return mapError(error); }
   }
+  async contactEmail(session:Session):Promise<string>{
+    try{
+      const scope=await this.context(session);
+      if(scope.role!=='client')throw new ApiError(403,'forbidden','Only the client can use their own email address here.');
+      const row=(await this.pool.query('select email from companion_local.accounts where id=$1 and disabled_at is null',[scope.actorId])).rows[0];
+      const fresh=await this.context(session);
+      if(fresh.actorId!==scope.actorId||fresh.participantId!==scope.participantId||fresh.grantRevision!==scope.grantRevision||fresh.role!==scope.role)throw new ApiError(403,'scope_changed','Your access changed.');
+      if(!row?.email)throw new ApiError(404,'not_found','Your email address is unavailable.');
+      return row.email;
+    }catch(error){return mapError(error);}
+  }
   private async clientContext(session: Session, client?: PoolClient) {
     let value = await this.context(session, client);
     if (value.role !== 'client') throw new ApiError(403, 'forbidden', 'This action requires the participant role.');

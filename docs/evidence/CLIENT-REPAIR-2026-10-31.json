@@ -1,0 +1,205 @@
+{
+  "recorded_at": "2026-10-31T21:59:53.483Z",
+  "implementation_revision": "sha256:c5e402530765599d78e93fd64b628508ce75591db5094d91fda230b01a44f1a9",
+  "status": "client_enabled_awaiting_later_person_device_workflow_test",
+  "release": "conversation-repair-2026-10-31",
+  "manifest_sha256": "5281b214beff5e3d5a6c0ca5a1fc7ecdc5b237c0a7a81b2b9eb28b5b9ba2b65c",
+  "authorization": "Owner follow-through instruction and later-test preparation; original exact caregiver/client/account/host/grants preserved. Only sentence speech flow added to the existing qualified software selection.",
+  "regression": {
+    "at": "2026-10-31T21:55:31.238Z",
+    "implementation_revision": "sha256:c5e402530765599d78e93fd64b628508ce75591db5094d91fda230b01a44f1a9",
+    "success": true,
+    "numPassedTests": 1699,
+    "numPendingTests": 2,
+    "numFailedTests": 0,
+    "files": 139,
+    "initial_run_passed": 1691,
+    "initial_environment_failures": 8,
+    "affected_files_rerun": 4,
+    "affected_file_assertions_rechecked": 41,
+    "raw_failure_retained": true,
+    "one_full_run_plus_affected_environment_rerun": true,
+    "typecheck_passed": true,
+    "isolated_client_build_passed": true,
+    "source_and_packaged_hashes_verified": true
+  },
+  "controlled_existing_pro": {
+    "actual_person": false,
+    "synthetic_facts": true,
+    "cases": [
+      {
+        "case": "exact_dinner_and_saved_context",
+        "passed": true,
+        "duration_ms": 5642
+      },
+      {
+        "case": "recipe_continuity_quantities",
+        "passed": true,
+        "duration_ms": 4443
+      },
+      {
+        "case": "medical_admin_after_reported_lunch",
+        "passed": true,
+        "duration_ms": null
+      },
+      {
+        "case": "unknown_lunch_at_1412",
+        "passed": true,
+        "duration_ms": null
+      }
+    ],
+    "initial_failure": {
+      "unknown_food_question_failed": true,
+      "other_cases_passed": [
+        "exact_dinner_and_saved_context",
+        "recipe_continuity_quantities",
+        "medical_admin_after_reported_lunch"
+      ],
+      "raw_failure_retained": true,
+      "repair": "Explicitly resolve the pending factual intake question before asking a second medical administration question; retain known approaching appointment and no assumed missed meal."
+    },
+    "attempts_failed_run": 7,
+    "attempts_passed_run": 7,
+    "unknown_events": 0,
+    "all_ledgers_closed": true,
+    "api_billing": false
+  },
+  "positive_older_mail": {
+    "passed": true,
+    "model_requests": 0,
+    "provider_writes": 0,
+    "care_writes": 0,
+    "older_window_days": 90,
+    "result_state": "fresh",
+    "matches": 20,
+    "complete": false,
+    "older_match_verified": true,
+    "actual_window_ms": 7084800000,
+    "requests": 4,
+    "statuses": [
+      200,
+      200,
+      200,
+      200
+    ],
+    "login_closed": true,
+    "protected_files_unchanged": true
+  },
+  "deployed_voice_benchmark": {
+    "method": "One recorded synthetic-ASR request per case on the freshly restarted exact client route, existing approved Pro/selected Inbox, local24kHz Heart. Timing ends at first fully downloaded native WAV; acknowledgement measured separately. Speech workers were ready. Not a phone, audibility, cold-Windows or matched before/after trial.",
+    "samples": [
+      {
+        "case": "selected real Inbox",
+        "first_useful_heart_ms": 4891,
+        "acknowledgement_ready_ms": 1693,
+        "reasoned_response_ms": 4443,
+        "speech_parts": 2,
+        "model_calls": 1,
+        "input_tokens": 1657,
+        "output_tokens": 47,
+        "complete_literal_message": null
+      },
+      {
+        "case": "full-message request (complete read unqualified)",
+        "first_useful_heart_ms": 4539,
+        "acknowledgement_ready_ms": 1052,
+        "reasoned_response_ms": 4477,
+        "speech_parts": 2,
+        "model_calls": 1,
+        "input_tokens": 1714,
+        "output_tokens": 69,
+        "complete_literal_message": false
+      },
+      {
+        "case": "linked quantified dinner",
+        "first_useful_heart_ms": 3649,
+        "acknowledgement_ready_ms": 1034,
+        "reasoned_response_ms": 2814,
+        "speech_parts": 2,
+        "model_calls": 1,
+        "input_tokens": 2069,
+        "output_tokens": 23,
+        "complete_literal_message": null
+      }
+    ],
+    "known_requests": 4,
+    "unknown_events": 0,
+    "ledger_closed": true,
+    "login_closed": true,
+    "care_writes": 0,
+    "provider_writes": 0,
+    "message_accuracy_limit": "Full-message request did not produce a complete literal reading; its full-message accuracy and speed are not established by this sample. Prior owner controlled literal-read evidence is separate. No reply text was retained."
+  },
+  "readiness": {
+    "passed_checks": 12,
+    "http_requests": 10,
+    "outlook_state": "connected",
+    "engineering_login_closed": true,
+    "public_https_ports": [
+      8443,
+      10000
+    ],
+    "public_https_status": 200,
+    "both_voice_ready": true,
+    "tailscale_state": "Running",
+    "tailscale_self_online": true
+  },
+  "preservation": {
+    "passed": true,
+    "unchanged_protected_files": 1697,
+    "audited_tables": 131,
+    "unchanged_tables": 130,
+    "original_sessions_preserved": 173,
+    "new_engineering_logins_closed": 2,
+    "microsoft_operational_changes": [
+      {
+        "database": "client",
+        "field": "prepared_at"
+      },
+      {
+        "database": "client",
+        "field": "last_read_at"
+      },
+      {
+        "database": "client",
+        "field": "prepared_context_ciphertext"
+      }
+    ],
+    "microsoft_account_resources_grants_and_state_unchanged": true,
+    "original_care_records_preserved": true,
+    "heart_voice_and_speed_preserved": true,
+    "owner_process_and_release_unchanged": true,
+    "client_child_restarts": 1,
+    "old_releases_preserved": true,
+    "credential_copy": false,
+    "migration": false,
+    "root_dependency_install": false
+  },
+  "deployment_helper_failure": {
+    "verification_module_format_failed_before_restart": true,
+    "old_selection_restored": true,
+    "helper_corrected": true,
+    "same_package_verified_and_enabled": true
+  },
+  "later_test_prepared": {
+    "private_guide": "ignored local artifact, no credentials or automatic submission",
+    "person_unavailable_now": true,
+    "client_context_confirmation_pending": true,
+    "real_grocery_save_and_recipe_email_delivery_pending": true,
+    "phone_pacing_and_audibility_pending": true
+  },
+  "full_slice_completion": false,
+  "handoff_validation": {
+    "human_actions_regenerated": true,
+    "generated_view_check": "passed",
+    "roadmap_validation": "passed",
+    "slices": 12,
+    "human_actions": 36,
+    "automated_checks": 100,
+    "live_scenarios": 47,
+    "completed_features": 0,
+    "public_boundary_files_scanned": 563,
+    "public_boundary_findings": 0,
+    "git_diff_check": "passed"
+  }
+}

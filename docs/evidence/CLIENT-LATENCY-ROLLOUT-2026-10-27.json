@@ -1,0 +1,148 @@
+{
+  "evidence_id": "CLIENT-LATENCY-ROLLOUT-2026-10-27",
+  "publication_allowed": true,
+  "recorded_at": "2026-10-28T03:55:05.105Z",
+  "implementation_revision": "sha256:76dd59157ceb92f71e58bd79b0d3e695f584a43bd620e80e31664675ff77ff93",
+  "status": "deployed_locally_public_HTTPS_blocked_by_Tailscale_startup",
+  "authorization": "Current owner explicitly requests merging tested owner improvements into Dad version for testing tomorrow (October28). This supersedes earlier Dad-unchanged scope only for this exact existing caregiver/client/account/host/grants deployment. Existing informed caregiver approval and binding remain in force; no account expansion or provider-issued exception claimed.",
+  "activation": {
+    "release": "device-latency-2026-10-27",
+    "only_added_selection": "latency_mode=outlook-speech-v2",
+    "one_verified_client_child_restart": true,
+    "owner_copy_unchanged": true,
+    "care_database_restore_or_migration": false,
+    "existing_real_calendar_and_Inbox_retained": true,
+    "synthetic_provider_or_care_data_promoted": false,
+    "real_provider_or_care_writes": 0,
+    "locked_Current_assets_byte_identical": true,
+    "Heart_voice_speed_and_CPU_profile_unchanged": true,
+    "existing_Sol_low_warm_v2_and_exact_account_binding_unchanged": true,
+    "pinned_dependencies_copied_without_install": true
+  },
+  "regression": {
+    "passed": 1589,
+    "optional_skips": 2,
+    "failed": 0,
+    "files": 136,
+    "focused_subset": 132,
+    "typecheck": "pass",
+    "isolated_build": "pass",
+    "cache_and_temporary_transform_storage": "private candidate .local only",
+    "public_boundary_scan": "pass",
+    "roadmap_and_generated_human_actions": "pass",
+    "public_boundary_file_count": 543,
+    "roadmap_counts": {
+      "live_scenarios": 43,
+      "human_actions": 36,
+      "automated_checks": 91,
+      "slices": 12,
+      "completed_features": 0
+    }
+  },
+  "actual_disposable_PostgreSQL_HTTP": {
+    "passed": 50,
+    "failed": 0,
+    "requests": 34,
+    "fake_reasoning_calls": 7,
+    "real_provider_calls": 0,
+    "fixture_removed": true,
+    "checks": "Exact client-only route and selected message prefetch, separate proposed/accepted/performed state, explicit approvals, exact retries, schedule retention, renewal and revocation; ordinary-route denial sentinel."
+  },
+  "actual_Pro": {
+    "checks": 29,
+    "passed_checks": 29,
+    "requests": 7,
+    "maximum": 24,
+    "unknown": 0,
+    "closed": true,
+    "usage": {
+      "input_tokens": 5145,
+      "output_tokens": 124,
+      "total_tokens": 5269
+    },
+    "actual_care_context_sent": false,
+    "actual_person_or_login_session": false,
+    "scope": "Direct synthetic engineering scope on existing exact caregiver account/host/grant route. Public facts only; includes full-message policy and complete body/unconfirmed suggestion preservation.",
+    "api_billing": false,
+    "not_a_matched_latency_benchmark": true
+  },
+  "hosting": {
+    "public_HTTPS_verified": false,
+    "state": "NoState",
+    "health": "Tailscale is starting. Please wait.",
+    "public_TLS_error": "ECONNRESET before TLS",
+    "saved_profile_present": true,
+    "administrator_service_restart_denied": true,
+    "interactive_admin_recovery_required": true,
+    "application_rollout_preserved": true
+  },
+  "deployed_readiness": {
+    "transport": "loopback exact approved Host/Origin; not public HTTPS",
+    "public_HTTPS_verified": false,
+    "checks": 12,
+    "passed_checks": 12,
+    "http_requests": 6,
+    "model_requests": 0,
+    "actual_existing_client_login": true,
+    "engineering_login_closed": true,
+    "Outlook_state": "connected",
+    "actual_physical_microphone": false,
+    "actual_phone": false
+  },
+  "preservation": {
+    "passed": true,
+    "protected_files_unchanged": 1304,
+    "expected_client_control_proof_changes": 3,
+    "client_tables_unchanged": 64,
+    "owner_tables_unchanged": 67,
+    "original_sessions_preserved": 159,
+    "new_engineering_sessions": 1,
+    "all_new_sessions_closed": true,
+    "account_host_binding_unchanged": true,
+    "other_client_selection_fields_unchanged": true,
+    "owner_process_and_release_unchanged": true,
+    "old_dependency_cache_unchanged": true
+  },
+  "rollback": {
+    "previous_release": "device-2026-10-26",
+    "pointer_and_selection_retained": true,
+    "guarded_helper": ".local/client-latency-2026-10-27/rollback.ps1",
+    "actual_rollback_executed": false,
+    "database_restore_needed": false
+  },
+  "retained_failures": [
+    "Public readiness failed before login because Tailscale is stuck starting with no active HTTPS routes. Saved-profile resume and desktop-helper launch did not recover it; Windows denied service restart. Local exact-host readiness passes; public access is not qualified.",
+    "First local readiness fetch client did not preserve Host; switched only the private helper to node:http, application remained unchanged.",
+    "Initial preservation probe encountered PostgreSQL starting after an external restart; successful baseline was captured after recovery.",
+    "First focused run hit a Windows temporary-cache rename permission error before running assertions; cache/temp location corrected inside the new candidate, final focused/full results retained.",
+    "First disposable workflow used an already-past 5 PM reschedule time; application rejected it. Same-day future synthetic time passed; both new databases were removed."
+  ],
+  "limits": [
+    "Public HTTPS is currently unavailable: administrator recovery of the existing Tailscale service is required before the phone trial. No new provider sign-in or consent is indicated.",
+    "Owner measurements12.295→4.146s full-message median and9.045→2.950s preparation are historical synthetic-source evidence, not measured improvements on Dad real mailbox or phone.",
+    "Historical18.483s cold outlier is not proved eliminated; rejected extra startup warm-up is excluded.",
+    "Physical intended-person microphone/audibility, iPhone/Safari Wi-Fi/cellular, genuine-day acceptance and full S01/S06 remain awaiting_live_test.",
+    "No new reminder or scheduled test was enabled. Foreground use does not promise closed-browser speech, locked-phone listening or automatic microphone activation."
+  ],
+  "private_evidence_references": {
+    "hosting-blocked": ".local/client-latency-2026-10-27/hosting-blocked.json",
+    "readiness-starting": ".local/client-latency-2026-10-27/readiness-starting.json",
+    "readiness-second": ".local/client-latency-2026-10-27/readiness-second.json",
+    "readiness-public-failed": ".local/client-latency-2026-10-27/readiness-public-failed.json",
+    "readiness-host-header-failed": ".local/client-latency-2026-10-27/readiness-host-header-failed.json",
+    "full-restricted": ".local/client-latency-2026-10-27/full-restricted.json",
+    "before-private": ".local/client-latency-2026-10-27/before-private.json",
+    "focused": ".local/client-latency-2026-10-27/focused.json",
+    "focused-final": ".local/client-latency-2026-10-27/focused-final.json",
+    "full-final": ".local/client-latency-2026-10-27/full-final.json",
+    "http-first": ".local/client-latency-2026-10-27/http-first.json",
+    "http-first-failure": ".local/client-latency-2026-10-27/http-first-failure.json",
+    "http-qualification": ".local/client-latency-2026-10-27/http-qualification.json",
+    "pro-qualification": ".local/client-latency-2026-10-27/pro-qualification.json",
+    "request-cap": ".local/client-latency-2026-10-27/request-cap.json",
+    "preservation-before": ".local/client-latency-2026-10-27/preservation-before.json",
+    "preservation-after": ".local/client-latency-2026-10-27/preservation-after.json",
+    "deployment": ".local/client-latency-2026-10-27/deployment.json",
+    "readiness": ".local/client-latency-2026-10-27/readiness.json"
+  }
+}

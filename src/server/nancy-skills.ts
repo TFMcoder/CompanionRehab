@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import {isNutritionQuestion} from './nutrition-context.js';
 
 export const nancySkillIds = ['planning', 'meals', 'tasks', 'preferences', 'continuity'] as const;
 export type NancySkillId = typeof nancySkillIds[number];
@@ -28,9 +29,10 @@ export function selectNancyGuidance(text: string): NancyGuidance {
   if (/\b(tasks?|requests?|work|working|focus|pause|resume|finish|break|exercise|rehab|capacity|routine|snooze|decline|check-in)\b/.test(input)) selected.add('tasks');
   if (/\b(prefer|prefers|preference|preferences|call me|call you|call myself)\b/.test(input)) selected.add('preferences');
   if (/\b(remember|remembered|handoff|important event|significant|carry forward|unresolved|context note)\b/.test(input)) selected.add('continuity');
+  if(isNutritionQuestion(text))selected.add('meals');
   // Follow-ups such as “yes”, “that one” and unexpected phrasing retain broad guidance.
   if (!selected.size) return { skills: [...nancySkillIds], nutrition: true };
-  const nutrition = /\b(nutrition|nutrients?|healthy|protein|carbohydrates?|recipes?|ingredients?|substitut\w*|allerg\w*)\b/.test(input)
+  const nutrition = isNutritionQuestion(text)||/\b(nutrition|nutrients?|healthy|protein|carbohydrates?|recipes?|ingredients?|substitut\w*|allerg\w*)\b/.test(input)
     || selected.has('meals') && /\b(suggest|recommend|choose|choices|options|cook|make|ideas)\b/.test(input);
   return { skills: ordered(selected), nutrition };
 }

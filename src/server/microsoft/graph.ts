@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import {microsoftActionSchema,type MicrosoftAction} from '../../shared/microsoft-contracts.js';
+import type {MicrosoftMailSearch} from '../../shared/microsoft-contracts.js';
+import {mailSearchQuery} from './mail-search.js';
 
 // Deliberately not a generic Graph client. Care authorization, reviewed intent,
 // durable receipts and refresh/revocation belong to the calling care service.
@@ -285,6 +287,19 @@ export class MicrosoftGraphClient {
     const item = this.#message(raw, folderId, response.etag);
     if (item.id !== messageId) throw new MicrosoftGraphError('invalid_response');
     return { ...item, bodyText: raw.body.content };
+  }
+
+  /** Indexed search in one selected folder, any explicit age; transport/result caps still apply. */
+  async searchMessages(folderId:string,input:MicrosoftMailSearch):Promise<GraphCollection<GraphMessage>> {
+    this.#allow(this.#folders,folderId);
+    const search=mailSearchQuery(input,new Date(this.#now()));
+    await this.verifyIdentity();
+    const result=await this.#collection(makeUrl(`/me/mailFolders/${segment(folderId)}/messages`,{
+      $select:MESSAGE_FIELDS,$search:search.expression,$top:String(this.#limits.pageSize),
+    }),value=>this.#message(value,folderId));
+    const items=result.items.filter(item=>!!item.receivedAt&&Date.parse(item.receivedAt)>=Date.parse(search.range.start)&&Date.parse(item.receivedAt)<Date.parse(search.range.end));
+    if(search.query.from&&items.some(item=>item.from?.address.toLowerCase()!==search.query.from!.toLowerCase()))throw new MicrosoftGraphError('invalid_response');
+    return {...result,items};
   }
 
   /** Only reviewed care-service actions call these fixed /me endpoints. No model-supplied URL or sender. */

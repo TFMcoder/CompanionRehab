@@ -21,6 +21,19 @@ function fixture(){
 }
 beforeEach(()=>{vi.useFakeTimers();vi.spyOn(document,'hasFocus').mockReturnValue(true);});afterEach(()=>{vi.useRealTimers();vi.restoreAllMocks();vi.unstubAllGlobals();});
 describe('owner microphone/audio startup',()=>{
+ it('unlocks typed Heart output without a microphone grant or microphone instructions',async()=>{
+  const context=new Audio(),onProgress=vi.fn(),onAudioUnlock=vi.fn();
+  const ready=waitForOwnerVoiceStartup({context:context as unknown as AudioContext,initialResume:new Promise(()=>{}),signal:new AbortController().signal,onProgress,onAudioUnlock});
+  expect(onProgress).toHaveBeenLastCalledWith('Tap Enable sound to hear Nancy. You can type your messages.');
+  context.resume.mockImplementation(async()=>context.running());onAudioUnlock.mock.calls.at(-1)![0]();
+  await expect(ready).resolves.toBeUndefined();expect(vi.getTimerCount()).toBe(0);expect(onAudioUnlock).toHaveBeenLastCalledWith(null);
+ });
+ it('bounds typed audio unlock and cancels a stale sound gesture',async()=>{
+  const context=new Audio(),controller=new AbortController(),onAudioUnlock=vi.fn();
+  const ready=waitForOwnerVoiceStartup({context:context as unknown as AudioContext,initialResume:new Promise(()=>{}),signal:controller.signal,onProgress:vi.fn(),onAudioUnlock});
+  const result=ready.then(()=>null,error=>error as Error),resume=onAudioUnlock.mock.calls.at(-1)![0];
+  await vi.advanceTimersByTimeAsync(20_000);expect((await result)?.message).toContain('Type to Nancy again');resume();expect(context.resume).not.toHaveBeenCalled();expect(vi.getTimerCount()).toBe(0);
+ });
  it('is disabled in ordinary builds',()=>{expect(ownerVoiceStartupEnabled()).toBe(false);vi.stubGlobal('__NANCY_OWNER_VOICE_STARTUP__',true);expect(ownerVoiceStartupEnabled()).toBe(true);});
  it('uses the real running state when the first resume promise stays pending',async()=>{
   const f=fixture();f.context.running();f.grant(f.microphone);

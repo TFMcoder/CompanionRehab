@@ -1,0 +1,201 @@
+{
+  "recorded_at": "2026-10-31T21:06:07.326Z",
+  "implementation_revision": "sha256:a101f2810eb3812850b377e01a78d746193e51e13e85f27bbd11747d5f83c784",
+  "status": "owner_enabled_awaiting_person_device_and_real_workflow",
+  "full_regression": {
+    "revision": "sha256:a101f2810eb3812850b377e01a78d746193e51e13e85f27bbd11747d5f83c784",
+    "passed": 1695,
+    "optional_skips": 2,
+    "files": 139
+  },
+  "final_qualification": {
+    "full_test_revision": "sha256:a101f2810eb3812850b377e01a78d746193e51e13e85f27bbd11747d5f83c784",
+    "final_revision": "sha256:a101f2810eb3812850b377e01a78d746193e51e13e85f27bbd11747d5f83c784",
+    "typecheck": "passed",
+    "owner_three_page_build": "passed",
+    "focused_tests": 160,
+    "full_final_source": "passed",
+    "post_suite_source_changes": false
+  },
+  "benchmark": {
+    "method": "Synthetic recorded speech, loopback exact Host/Origin, existing approved owner Pro, credential-free selected practice Outlook, selected native24kHz Heart. Fully downloaded first useful WAV part, not audible phone latency.",
+    "before": [
+      {
+        "case": "inbox",
+        "first_useful_heart_ms": 9437,
+        "acknowledgement_ready_ms": null,
+        "reasoned_response_ms": 8053,
+        "speech_parts": 5,
+        "model_calls": 2,
+        "input_tokens": 19202,
+        "output_tokens": 67
+      },
+      {
+        "case": "message",
+        "first_useful_heart_ms": 4243,
+        "acknowledgement_ready_ms": null,
+        "reasoned_response_ms": 3851,
+        "speech_parts": 3,
+        "model_calls": 1,
+        "input_tokens": 1690,
+        "output_tokens": 48
+      }
+    ],
+    "after": [
+      {
+        "case": "inbox",
+        "first_useful_heart_ms": 5389,
+        "acknowledgement_ready_ms": 2293,
+        "reasoned_response_ms": 5357,
+        "speech_parts": 2,
+        "model_calls": 1,
+        "input_tokens": 1597,
+        "output_tokens": 57
+      },
+      {
+        "case": "message",
+        "first_useful_heart_ms": 1674,
+        "acknowledgement_ready_ms": null,
+        "reasoned_response_ms": 717,
+        "speech_parts": 2,
+        "model_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      {
+        "case": "dinner",
+        "first_useful_heart_ms": 3929,
+        "acknowledgement_ready_ms": 1019,
+        "reasoned_response_ms": 2897,
+        "speech_parts": 2,
+        "model_calls": 1,
+        "input_tokens": 2295,
+        "output_tokens": 23
+      },
+      {
+        "case": "existing grocery email request (read-only fixture)",
+        "first_useful_heart_ms": 8187,
+        "acknowledgement_ready_ms": 1019,
+        "reasoned_response_ms": 8154,
+        "speech_parts": 2,
+        "model_calls": 2,
+        "input_tokens": 21828,
+        "output_tokens": 47
+      }
+    ],
+    "live_assessment": {
+      "recorded_at": "2026-10-31T21:00:52.050Z",
+      "qualified_cases_passed": true,
+      "inbox": true,
+      "full_message": true,
+      "linked_quantified_dinner": true,
+      "authenticated_recipe_page": true,
+      "grocery_case": {
+        "original_expectation": "empty list",
+        "actual_state": "preexisting nonempty list",
+        "current_item_count": 1,
+        "empty_branch_exercised_live": false,
+        "source_changed": false,
+        "provider_write": false,
+        "reply_changed": false,
+        "qualified_by_disposable_sql_tests": true
+      },
+      "raw_benchmark_success": false,
+      "harness_expectation_corrected": true,
+      "login_closed": true,
+      "known_requests": 5,
+      "unknown_requests": 0
+    },
+    "intermediate_selection_format_failure": {
+      "requests": 3,
+      "ledger_closed": true
+    },
+    "initial_candidate_failure": {
+      "dinner_card_missing": true,
+      "full_message_first_audio_ms": 7833,
+      "rolled_back": true
+    },
+    "request_accounting": {
+      "first_host_failure_requests": 0,
+      "before_requests": 4,
+      "initial_candidate_requests": 5,
+      "reconciled_harness_requests": 2,
+      "intermediate_format_failure_requests": 3,
+      "final_requests": 5,
+      "unknown_events": 0,
+      "all_ledgers_closed": true
+    },
+    "real_graph_compatibility": {
+      "window_days": 90,
+      "requests": 4,
+      "matches": 0,
+      "passed": true,
+      "positive_older_message_accuracy_verified": false,
+      "source_equivalence": {
+        "identical_modules": 5,
+        "passed": true,
+        "provider_probe_revision": "sha256:86c98a46e9ba92ea28db949cf0a7a771ad94a5f43c596426cd29aaf4b7bca8cf"
+      }
+    }
+  },
+  "preservation": {
+    "files_unchanged": true,
+    "binding_unchanged": true,
+    "databases": {
+      "client": {
+        "tables_unchanged": true,
+        "original_sessions_preserved": true,
+        "new_sessions_closed": true
+      },
+      "owner": {
+        "tables_unchanged": true,
+        "original_sessions_preserved": true,
+        "new_sessions_closed": true
+      }
+    },
+    "dad_run_unchanged": true,
+    "owner_supervisor_unchanged": true,
+    "passed": true
+  },
+  "browser": {
+    "widths": [
+      320,
+      430
+    ],
+    "horizontal_overflow": false,
+    "synthetic_only": true,
+    "heard_review_saved_once": true,
+    "microphone_not_requested_for_typing": true,
+    "native_heart_audibility_verified": false
+  },
+  "changes": [
+    "Bounded older selected-folder email search independent of seven-day calendar/recent snapshot",
+    "Medical appointment administration context without diagnosis or clinical urgency inference",
+    "Natural dinner wording and validated exact source recipe selection",
+    "Recipe cards and authenticated links with exact yield, ingredient quantities and steps",
+    "Recipe continuity and one reviewed missing-ingredient batch with pantry/list comparison, revisions and idempotent partial-save recovery",
+    "Empty-list send refusal and heard create-list offer continuity; grocery email body generated from current saved items",
+    "Self-recipe/grocery email uses current authenticated client address and one heard exact send review; clear natural confirmation accepted",
+    "Save Suggestions uses the reviewed feedback, preference or personal-context command with exact review identifier",
+    "Received-input Heart cue is separate from useful answer and never acknowledges a review",
+    "Owner-only longer speech pieces; short complete authorized Outlook messages quoted without an extra model round"
+  ],
+  "limitations": [
+    "No actual intended-person/iPhone/Safari or human listening acceptance",
+    "One paired sample per Outlook question; provider variability and model answer lengths prevent a distribution-level speed claim",
+    "No real care/provider writes, actual recipe/grocery email delivery or medical scheduling trial",
+    "Private personal-context audit found requested context absent; client review remains required and no real health facts were written",
+    "Full slice, genuine-day and household purchase gates remain open"
+  ],
+  "private_evidence_directory": ".local/feedback-repair-2026-10-31 (ignored; not published)",
+  "final_readiness": {
+    "observed_at": "2026-10-31T21:09:40.074Z",
+    "owner_release": "feedback-v3-2026-10-31",
+    "public_client_ready": true,
+    "public_owner_ready": true,
+    "tailscale_state": "Running",
+    "protected_original_files": 1126,
+    "care_tables_checked": 131,
+    "source_matches_qualified_revision": true
+  }
+}

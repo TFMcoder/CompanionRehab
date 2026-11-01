@@ -1,0 +1,83 @@
+{
+  "evidence_id": "OUTLOOK-PLANNING-FAILURE-2026-10-31",
+  "publication_allowed": true,
+  "recorded_at": "2026-10-31T18:26:05.709Z",
+  "status": "deployed_routing_bug_reproduced_offline_candidate_prepared_not_promoted",
+  "implementation_revision": "sha256:ee65b82a0770f64c7615ccc6eba15db984f1e91ddd87ff9b3bfa049ef956f7d8",
+  "deployed_revision": "sha256:76dd59157ceb92f71e58bd79b0d3e695f584a43bd620e80e31664675ff77ff93",
+  "finding": "Generic personal next-step wording is classified as ordinary conversation by the prepared-context speed path. It loses task/meal context and all tools. Its wording also misses the calendar prefetch trigger. Connection readiness is not proof that this planning question consults Outlook.",
+  "deployed_reproduction": {
+    "question": "What should I do next?",
+    "mode": "conversation",
+    "task_facts_retained": false,
+    "meal_facts_retained": false,
+    "available_tools": [],
+    "real_care_data": false,
+    "network_or_model_requests": 0
+  },
+  "scheduler": {
+    "kind": "Existing Nancy server startup/30-second local job loop; not a separate Codex automation",
+    "matching_Codex_Nancy_Outlook_automations": 0,
+    "read_preparation_enabled": true,
+    "model_disclosure_enabled": true,
+    "actor_and_participant_match": true,
+    "window": "06:00 <= time < 11:00 America/Toronto",
+    "minimum_attempt_spacing_minutes": 5,
+    "snapshot_freshness_minutes": 5,
+    "connection_state": "connected",
+    "selected_calendars": 1,
+    "selected_Inbox_folders": 1,
+    "last_preparation_attempt_at": "2026-10-31T14:57:19.009Z",
+    "last_snapshot_at": "2026-10-31T14:57:19.362Z",
+    "last_successful_read_at": "2026-10-31T18:08:09.507Z",
+    "last_error": null,
+    "full_S04_live_test_completed": false
+  },
+  "candidate": {
+    "planning_question_keeps_full_care_context_and_review_tools": true,
+    "current_day_calendar_prefetch_before_reasoning": true,
+    "selected_calendar_only_and_approved_disclosure_required": true,
+    "cached_broader_range_projected_to_requested_day": true,
+    "unavailable_and_partial_results_keep_limitations": true,
+    "ordinary_story_recipe_and_clinical_questions_not_treated_as_personal_next_step_by_allowlist": true,
+    "accepted_plans_and_actual_reports_remain_separate": true,
+    "deployed": false,
+    "full_regression_run": false,
+    "real_model_or_provider_retest": false
+  },
+  "validation": {
+    "focused_passes": 132,
+    "focused_failures": 0,
+    "files": 3,
+    "typecheck": "pass",
+    "isolated_build": "pass",
+    "new_model_requests": 0,
+    "new_Graph_requests": 0,
+    "dependency_install": false,
+    "private_test_temp_and_cache": true,
+    "initial_test_extractor_failures_retained": true,
+    "public_boundary": "pass: zero findings",
+    "roadmap": "pass"
+  },
+  "preservation": {
+    "active_manifested_files_unchanged": 1120,
+    "both_active_releases_unchanged": true,
+    "Dad_session_not_restarted": true,
+    "Heart_and_Current_not_changed": true,
+    "care_provider_or_permission_writes": 0,
+    "credentials_copied": false
+  },
+  "limits": [
+    "Candidate requires full regression and actual ASR/reasoning/selected-provider/Heart validation before promotion. Dad current release still has the reproduced routing bug.",
+    "Morning snapshot metadata supports successful scheduled preparation, but it does not complete browser-closed coverage, changed-source/expired snapshot/person acceptance in S04-LIVE4.",
+    "Numeric production telemetry supports timing and tool counts; private speech/email content is not logged, so the actual wording is from the user report."
+  ],
+  "private_evidence_references": {
+    "metadata-private": ".local/outlook-failure-2026-10-31/metadata-private.json",
+    "reproduction-before": ".local/outlook-failure-2026-10-31/reproduction-before.json",
+    "focused-initial": ".local/outlook-failure-2026-10-31/focused-initial.json",
+    "focused-harness-guard": ".local/outlook-failure-2026-10-31/focused-harness-guard.json",
+    "focused-final": ".local/outlook-failure-2026-10-31/focused-final.json",
+    "active-preservation": ".local/outlook-failure-2026-10-31/active-preservation.json"
+  }
+}

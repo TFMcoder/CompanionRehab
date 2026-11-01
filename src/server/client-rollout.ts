@@ -15,21 +15,24 @@ export const clientRolloutSchema=z.object({
   profile:z.literal('sol-low'),context_mode:z.literal('prepared-v1'),speech_mode:z.literal('heart-latency-v1'),
   read_mode:z.literal('quick-v1'),reply_mode:z.literal('spoken-v1'),meal_mode:z.literal('ahead-v1'),
   continuation_mode:z.literal('dialogue-v1'),chat_mode:z.literal('ahead-v1'),reference_mode:z.literal('verified-v1'),
-  connection_mode:z.literal('warm-v2'),
+  connection_mode:z.literal('warm-v2'),latency_mode:z.literal('outlook-speech-v2').optional(),speech_flow:z.literal('sentence-v1').optional(),
 }).strict().superRefine((value,context)=>{
   // Actor and participant IDs are different namespaces; an established
   // participant may legitimately reuse an actor UUID. The speaker must still
   // be a different actor from the account owner.
   if(value.owner_actor_id===value.client_actor_id)
     context.addIssue({code:'custom',message:'The actual client speaker must differ from the caregiver account owner.'});
+  if(value.speech_flow&&value.latency_mode!=='outlook-speech-v2')context.addIssue({code:'custom',message:'Sentence flow requires the exact selected latency release.'});
 });
 export type ClientRolloutConfig=z.infer<typeof clientRolloutSchema>;
 export const clientRolloutSettings=Object.freeze({model:'gpt-6-sol' as const,effort:'low' as const,prepareContext:true,speechPartSize:72 as const,
-  quickReads:true,spokenReplies:true,prepareMealsAhead:true,dialogueReplies:true,prepareChat:true,verifiedReferences:true,warmConnection:true,quickConversation:true});
+  quickReads:true,spokenReplies:true,prepareMealsAhead:true,dialogueReplies:true,prepareChat:true,verifiedReferences:true,warmConnection:true,quickConversation:true,outlookReads:false,speechPriority:false,fluidSpeech:false});
+export const clientLatencySettings=Object.freeze({...clientRolloutSettings,outlookReads:true,speechPriority:true});
+export const clientSentenceSettings=Object.freeze({...clientLatencySettings,speechPartSize:360 as const,fluidSpeech:true});
 export interface ClientRolloutAuthorization {
   readonly ownerActorId:string;readonly actorId:string;readonly clientId:string;readonly accountBindingId:string;readonly hostId:string;
   readonly caregiverAuthorizationRef:string;readonly policyHash:string;readonly policyVersion:string;
-  readonly settings:typeof clientRolloutSettings;
+  readonly settings:typeof clientRolloutSettings|typeof clientLatencySettings|typeof clientSentenceSettings;
 }
 export interface ClientRolloutAuthorizer {
   authorizeScope(scope:InferenceScope):Promise<ClientRolloutAuthorization|undefined>;
@@ -70,7 +73,7 @@ export class ClientRolloutPolicy implements ClientRolloutAuthorizer {
     const policyHash=createHash('sha256').update(JSON.stringify(config)).digest('hex');
     return Object.freeze({ownerActorId:this.ownerId,actorId:config.client_actor_id,clientId:config.participant_id,accountBindingId:config.account_binding_id,
       hostId:config.host_id,caregiverAuthorizationRef:config.caregiver_authorization_ref,policyHash,
-      policyVersion:`${NANCY_POLICY_VERSION}:client-rollout-v1:${policyHash}`,settings:clientRolloutSettings});
+      policyVersion:`${NANCY_POLICY_VERSION}:client-rollout-v1:${policyHash}`,settings:config.speech_flow==='sentence-v1'?clientSentenceSettings:config.latency_mode==='outlook-speech-v2'?clientLatencySettings:clientRolloutSettings});
   }
   async authorizeBinding(binding:InferenceBinding):Promise<ClientRolloutAuthorization>{
     const selected=await this.authorizeScope(binding);

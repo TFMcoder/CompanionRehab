@@ -8,6 +8,10 @@ import { bindingRef, NANCY_POLICY_VERSION, type InferenceBinding } from './infer
 import { ApiError } from './errors.js';
 import { commandSchema, groceryInput, planInput, type AppRole, type ClientView, type Today } from '../shared/contracts.js';
 import { priorityContext } from '../shared/priority-context.js';
+import {nutritionQuestionReferences,nutritionQuestionPolicy} from './nutrition-context.js';
+import {medicalAppointmentContext,isMedicalAppointmentRequest} from '../shared/medical-appointments.js';
+import {isMailSearchRequest} from './microsoft/mail-search.js';
+import {microsoftMailSearchSchema} from '../shared/microsoft-contracts.js';
 import { firstCompleteSpeechPart, splitSpeechParts } from '../shared/speech-parts.js';
 import { navigationIntent, navigationReply } from './navigation-intent.js';
 import { activityCommandSchema, activityDate, type ActivityCommand, type ActivityEntry, type ActivityLedger, type ActivityOption } from '../shared/activity-contracts.js';
@@ -21,13 +25,15 @@ import { selectNancyGuidance, addNancyToolGuidance, composeNancyGuidance } from 
 import { handoffTools, prepareHandoff } from './handoff-conversation.js';
 import type {PreferenceCommand} from '../shared/preference-contracts.js';
 import {retainedLocalDayCommandTypes,type LocalDayCommand} from '../shared/local-day-contracts.js';
-import type {MicrosoftService} from './microsoft/service.js';
+import {ownerOutlookFixturePolicy,type OutlookConversation} from './microsoft/conversation-port.js';
 import {microsoftReadRangeSchema,microsoftUnavailable,type MicrosoftActionReview} from '../shared/microsoft-contracts.js';
 import {outlookTools,outlookDayRange,outlookDateRange,requestedOutlookRange,outlookReadback,microsoftConversationPolicy} from './microsoft/conversation.js';
+import {strictOutlookRead,outlookReadFacts,outlookReadPolicy,outlookMessageInSnapshot,outlookDetailTarget,outlookDetailPolicy,quotedOutlookMessage} from './microsoft/fast-read.js';
+import {recipeCard,mentionedRecipes,isGrocerySendRequest,isWholeActionConfirmation,missingRecipeGroceries,menuSelectionPolicy,selectedMenuReply} from './recipe-handoff.js';
 import {mealStarterReferences,mealStarterContext} from './meal-starters.js';
 import {clientDestinations,type ConversationPurpose} from '../shared/client-navigation.js';
 import type {NancySuggestions,NancySuggestionCommand} from './nancy-suggestions.js';
-import {prepareTurnContext,preparedFacts,preparedTools,preparedRecipeFacts,preparedGuidance,preparedSelection,ownerImportedTaskGuidance,type RecipeContinuity} from './prepared-context.js';
+import {isNextStepPlanning,prepareTurnContext,preparedFacts,preparedTools,preparedRecipeFacts,preparedGuidance,preparedSelection,ownerImportedTaskGuidance,type RecipeContinuity} from './prepared-context.js';
 import {preparedFactReply} from './prepared-answers.js';
 import {quickReadReply,quickReadGuidance} from './quick-reads.js';
 import {spokenReplyGuidance,isSpokenConversation,isSimpleMealSuggestion} from './spoken-replies.js';
@@ -39,7 +45,7 @@ import type {SessionRenewal} from './owner-session-renewal.js';
 import {ownerAsanaBoundaryQuestion,ownerAsanaBoundaryReply} from './owner-asana-boundary.js';
 import {clientRolloutSettings,type ClientRolloutAuthorizer} from './client-rollout.js';
 
-export interface ConversationReply { session_id: string; reply_id: string; text: string; speech_parts: number; changed: boolean; acknowledgement_required?: boolean; navigate?: ClientView; transcript?: string; nutrition_refs?: Array<{ document_id:string; path:string; sha256:string; items:string[] }>;reference_sources?:VerifiedReference[] }
+export interface ConversationReply { session_id: string; reply_id: string; text: string; speech_parts: number; changed: boolean; acknowledgement_required?: boolean; navigate?: ClientView; transcript?: string; nutrition_refs?: Array<{ document_id:string; path:string; sha256:string; items:string[] }>;reference_sources?:VerifiedReference[]; recipes?:ReturnType<typeof recipeCard>[]; suggestion_review?:{reply_id:string;confirmation_text:string} }
 export interface ConversationTurnMetric {
   conversation_id: string; turn_id: string; actor_id: string;
   outcome: 'completed' | 'failed' | 'interrupted'; duration_ms: number;
@@ -48,7 +54,7 @@ export interface ConversationTurnMetric {
   nutrition_retrievals: number;
   prepared_meal_hit?:number;
   meal_followup_hit?:number;conversation_quick_hit?:number;prepared_conversation_hit?:number;conversation_followup_routed?:number;
-  verified_reference_hit?:number;verified_reference_context?:number;
+  verified_reference_hit?:number;verified_reference_context?:number;outlook_read_hit?:number;outlook_message_prefetch_hit?:number;
   nutrition_refs: Array<{ document_id: string; sha256: string; items: string[] }>;
   policy_version: string; binding_ref: string;
   input_tokens: number | null; output_tokens: number | null; total_tokens: number | null;
@@ -81,13 +87,16 @@ export interface InferenceCallMetric {
   input_tokens: number | null; output_tokens: number | null; total_tokens: number | null;
   cached_input_tokens: number | null; reasoning_output_tokens: number | null;
 }
-interface Turn { signature: string; reply?: ConversationReply; failed?: boolean;mealKey?:string;chatKey?:string }
+interface Turn { recognized?:boolean; signature: string; reply?: ConversationReply; failed?: boolean;mealKey?:string;chatKey?:string }
 interface PreparedSpeech { text: string; audio: Promise<Buffer | undefined>; controller: AbortController;mealKey?:string;chatKey?:string }
 type PrepareSpeech = (text: string, signal: AbortSignal) => Promise<Buffer>;
 interface Conversation {
   mealThread?:MealThread;
   chatDraft?:PreparedConversationDraft;chatAttempts:number;
   recipeContinuity?:RecipeContinuity;
+  recipeEmailOffer?:{id:string;reply:string;played:boolean};
+  groceryOffer?:{id?:string;reply:string;played:boolean};
+  recipeGroceries?:{items:ReturnType<typeof missingRecipeGroceries>;keys:string[];snapshot:string;reply:string;played:boolean;uncertain:boolean};
   binding: InferenceBinding;
   user: string; login: string; expires: number; busy: boolean; closed: boolean; generation: number;
   active?: { id: string; controller: AbortController };
@@ -108,6 +117,7 @@ interface Conversation {
   unconfirmedLocal?: LocalReview;
   outlook?:{review:MicrosoftActionReview;reply:string;played:boolean};
   suggestion?:{command:NancySuggestionCommand;reply:string;played:boolean};
+  mailSearch?:{context:unknown;expires:number};
   unconfirmedSuggestion?:NancySuggestionCommand;
 }
 const object = (properties: Record<string, unknown> = {}, required = Object.keys(properties)) => ({ type: 'object', properties, required, additionalProperties: false });
@@ -197,6 +207,9 @@ const definitions: OutputItem[] = [
   }))),
   tool('review_day_plan', 'Read the exact proposal. The application obtains explicit confirmation after playback before acceptance.'),
   tool('suggest_grocery', 'Ask whether to add a missing ingredient. The application waits for confirmation before saving.', object({ name: { type: 'string', maxLength: 160 }, quantity: { type: 'string', maxLength: 80 } })),
+  tool('prepare_recipe_groceries','Review all missing ingredients for a recently suggested recipe together, using exact source quantities for its stated yield and comparing saved pantry/list. Requires a client request to build/add groceries. No write until one confirmation after playback.',object({recipe_id:{type:'string',pattern:'^[BLSD][0-9]{2}$'}})),
+  tool('prepare_recipe_email','Prepare a recently suggested recipe for email to the authenticated client’s own registered address, only when the client asks to email it to themselves. Includes exact quantities, yield, steps and a recipe link. The application reads the exact email for one client confirmation; never sends immediately.',object({recipe_id:{type:'string',pattern:'^[BLSD][0-9]{2}$'}})),
+  tool('prepare_grocery_email','Prepare the current unacquired grocery list for email to the authenticated client’s own registered address when requested. The server builds the list contents from current saved items and rejects an empty list. One exact heard email review and confirmation is still required.',object()),
   tool('get_activity_ledger','Read bounded saved actuals and exact activity IDs/revisions for a local date. If an item is omitted, search its title. Calendar/plans are not proof of completion.',object({
     date:{type:'string',description:'YYYY-MM-DD in the participant time zone; omit for today.'},
     search:{type:'string',maxLength:160,description:'Optional words from the activity title; use when the first list omits an item.'},
@@ -232,8 +245,11 @@ export class ConversationService {
   constructor(private care: CareService, private reasoner: Reasoner, private ownerId: string, private now = () => new Date(), private prepareSpeech?: PrepareSpeech,
     private observeTurn?: (metric: ConversationTurnMetric) => void,
     private observeCall?: (metric: InferenceCallMetric) => void,
-    private requests?: RequestConversationService, private features?:LocalFeatures, private microsoftEligible?:(session:Session)=>Promise<boolean>,private microsoft?:MicrosoftService,private suggestions?:NancySuggestions,
-    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72=120,private quickReads=false,private spokenReplies=false,private prepareMealsAhead=false,private observeMealPreparation?:(metric:MealPreparationMetric)=>void,private dialogueReplies=false,private prepareChat=false,private observeChatPreparation?:(metric:ConversationPreparationMetric)=>void,private verifiedReferences=false,private warmConnection=false,private quickConversation=false,private ownerSessionRenewal?:SessionRenewal,private ownerAsanaBoundary?:(session:Session)=>Promise<{read_only:true}>,private clientRollout?:ClientRolloutAuthorizer) {
+    private requests?: RequestConversationService, private features?:LocalFeatures, private microsoftEligible?:(session:Session)=>Promise<boolean>,private microsoft?:OutlookConversation,private suggestions?:NancySuggestions,
+    private expectedReasoning:ReasoningProfile=selectedReasoning,private prepareContext=false,readonly speechPartSize:120|72|360=120,private quickReads=false,private spokenReplies=false,private prepareMealsAhead=false,private observeMealPreparation?:(metric:MealPreparationMetric)=>void,private dialogueReplies=false,private prepareChat=false,private observeChatPreparation?:(metric:ConversationPreparationMetric)=>void,private verifiedReferences=false,private warmConnection=false,private quickConversation=false,private ownerSessionRenewal?:SessionRenewal,private ownerAsanaBoundary?:(session:Session)=>Promise<{read_only:true}>,private clientRollout?:ClientRolloutAuthorizer,private ownerOutlookReads=false,private ownerSpeechPriority=false,private clientLatency=false,private recipeOrigin?:string,private fluidSpeech=false) {
+    if(clientLatency&&(!clientRollout||ownerOutlookReads||ownerSpeechPriority||!prepareContext||!prepareMealsAhead||!dialogueReplies||!prepareChat||expectedReasoning.model!=='gpt-6-sol'||expectedReasoning.effort!=='low'))throw new RangeError('Client latency requires the exact qualified client rollout.');
+    if(ownerSpeechPriority&&(!ownerOutlookReads||!prepareMealsAhead||!dialogueReplies||!prepareChat))throw new RangeError('Speech priority requires the exact owner Outlook/meal preparation route.');
+    if(ownerOutlookReads&&(!prepareContext||this.expectedReasoning.model!=='gpt-6-sol'||this.expectedReasoning.effort!=='low'||clientRollout))throw new RangeError('Outlook read trial requires the separate prepared Sol-low owner route.');
     this.expectedReasoning=validateReasoningProfile(expectedReasoning);
     if(ownerSessionRenewal&&ownerSessionRenewal.ownerId!==ownerId)throw new RangeError('Session maintenance must retain the exact owner account.');
     if(ownerAsanaBoundary&&!prepareContext)throw new RangeError('Asana boundary replies require the owner preparation route.');
@@ -245,6 +261,7 @@ export class ConversationService {
     if(warmConnection&&(!verifiedReferences||!reasoner.warmConnection||!reasoner.releaseConnection))throw new RangeError('Warm connection requires the exact existing owner reference trial.');
     if(quickConversation&&!warmConnection)throw new RangeError('Quick conversation requires the exact warm owner trial.');
     if(![120,72].includes(speechPartSize))throw new RangeError('Unknown speech-part size.');
+    if(fluidSpeech){if(!(ownerOutlookReads&&!clientRollout||clientLatency&&clientRollout))throw new RangeError('Fluid speech requires the qualified owner or exact selected client latency route.');this.speechPartSize=360;}
     this.timer = setInterval(() => { for (const [id, state] of this.sessions){if(state.expires<Date.now())this.endState(id,state);else if(state.chatDraft&&state.chatDraft.expires<=this.now().getTime())this.clearChatDraft(state);}for(const[login,draft]of this.mealDrafts)if(draft.expires<=this.now().getTime())this.clearMealDraft(login); }, 30000); this.timer.unref();
   }
   private async getBinding(session: Session) {
@@ -258,7 +275,9 @@ export class ConversationService {
     const experiment=this.expectedReasoning!==selectedReasoning||this.prepareContext||this.speechPartSize!==120||this.quickReads||this.spokenReplies||this.prepareMealsAhead||this.dialogueReplies||this.prepareChat;
     const rollout=experiment&&scope.actor_id!==this.ownerId?await this.clientRollout?.authorizeScope({...scope,grant_revision:revision,policy_version:NANCY_POLICY_VERSION}):undefined;
     if(experiment&&scope.actor_id!==this.ownerId&&!rollout)throw new ApiError(403,'experiment_owner_only','Reasoning experiments are limited to the owner’s practice copy.');
-    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: rollout?.policyVersion??(NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}${this.spokenReplies?':spoken-v1':''}${this.prepareMealsAhead?':meal-ahead-v1':''}${this.dialogueReplies?':dialogue-v1':''}${this.prepareChat?':chat-ahead-v1':''}${this.verifiedReferences?':references-v1-'+verifiedReferenceHash.slice(0,8):''}${this.warmConnection?':connection-warm-v1':''}${this.quickConversation?':source-pace-v1':''}${this.ownerAsanaBoundary?':asana-boundary-v1':''}`:'')) });
+    if(this.clientLatency&&(!rollout?.settings.outlookReads||!rollout.settings.speechPriority))throw new ApiError(403,'client_rollout_changed','The selected latency release changed. Start a new conversation.');
+    if(rollout&&(rollout.settings.speechPartSize!==this.speechPartSize||rollout.settings.fluidSpeech!==this.fluidSpeech||rollout.settings.outlookReads!==this.clientLatency||rollout.settings.speechPriority!==this.clientLatency))throw new ApiError(403,'client_rollout_changed','The selected speech or latency release changed. Start a new conversation.');
+    const binding=await this.reasoner.bind({ ...scope, grant_revision:revision, policy_version: rollout?.policyVersion??(NANCY_POLICY_VERSION+(experiment?`:owner-test:${this.expectedReasoning.model}:${this.expectedReasoning.effort}${this.prepareContext?':prepared-v1':''}${this.fluidSpeech?':speech-flow-v1':this.speechPartSize!==120?':speech72-v1':''}${this.quickReads?':quick-reads-v1':''}${this.spokenReplies?':spoken-v1':''}${this.prepareMealsAhead?':meal-ahead-v1':''}${this.dialogueReplies?':dialogue-v1':''}${this.prepareChat?':chat-ahead-v1':''}${this.verifiedReferences?':references-v1-'+verifiedReferenceHash.slice(0,8):''}${this.warmConnection?':connection-warm-v1':''}${this.quickConversation?':source-pace-v1':''}${this.ownerAsanaBoundary?':asana-boundary-v1':''}${this.ownerOutlookReads?':outlook-reads-v1':''}${this.ownerSpeechPriority?':speech-priority-v1':''}`:'')) });
     if(rollout)await this.clientRollout!.authorizeBinding(binding);
     else if(experiment&&(binding.route_id!=='chatgpt_plan_owner_practice'||binding.qualification!=='owner_practice'))throw new ApiError(403,'experiment_owner_only','Reasoning experiments require the owner practice connection.');
     return binding;
@@ -381,6 +400,7 @@ export class ConversationService {
         if(!response.completed||response.model!==this.expectedReasoning.model||response.effort!==this.expectedReasoning.effort||response.output.some(item=>!['reasoning','message'].includes(String(item.type))))throw Error('Invalid prepared model response.');
         if(this.dialogueReplies){const selected=validateDialogueMeals(response.text,snapshot.material,snapshot.facts);draft.choices=selected.choices;draft.options=selected.options;}
         else draft.choices=validateMealSelection(response.text,snapshot.material,snapshot.facts);
+        if(!this.ownerSpeechPriority&&!this.clientLatency){
         failure='speech_failed';
         if(!this.prepareSpeech)throw Error('Prepared Heart speech unavailable.');
         const variants=[...mealSlots.map(slot=>[slot] as MealSlot[]),[...mealSlots]];
@@ -391,6 +411,7 @@ export class ConversationService {
         for(const slot of this.dialogueReplies?mealSlots:[])for(const recipe of draft.options?.[slot].slice(1)??[]){
           signal.throwIfAborted();const first=splitSpeechParts(renderPreparedMeals({...draft.choices,[slot]:recipe},[slot]),this.speechPartSize)[0];
           if(!draft.audio.has(first)){const audio=await this.prepareSpeech(first,signal);if(audio.length>1024*1024)throw Error('Prepared audio exceeds bound.');draft.audio.set(first,audio);}
+        }
         }
         failure='context_changed';const fresh=await this.mealSnapshot(session);signal.throwIfAborted();
         if(this.closed||fresh.key!==snapshot.key||this.mealDrafts.get(session.session_id)!==draft||draft.expires<=this.now().getTime())throw Error('Prepared context changed.');
@@ -531,6 +552,9 @@ export class ConversationService {
     if (!state.replies.has(replyId)) throw new ApiError(404, 'reply_expired', 'That reply is no longer available.');
     if (state.review?.reply === replyId) state.review.played = true;
     if (state.grocery?.reply === replyId) state.grocery.played = true;
+    if (state.recipeGroceries?.reply === replyId) state.recipeGroceries.played = true;
+    if(state.recipeEmailOffer?.reply===replyId)state.recipeEmailOffer.played=true;
+    if(state.groceryOffer?.reply===replyId)state.groceryOffer.played=true;
     if (state.activity?.reply === replyId) state.activity.played = true;
     if (state.request?.reply === replyId) state.request.played = true;
     if (state.local?.reply === replyId) state.local.played = true;
@@ -566,7 +590,9 @@ export class ConversationService {
     state.generation++; state.active?.controller.abort(); state.active = undefined; state.busy = false;
     state.outlook=undefined;
     state.suggestion=undefined;
-    state.recipeContinuity=undefined;
+    state.recipeEmailOffer=undefined;
+    state.groceryOffer=undefined;
+    if(!state.recipeGroceries?.uncertain)state.recipeGroceries=undefined;
     this.clearChatDraft(state);
     state.mealThread?.audio.clear();state.mealThread=undefined;
     this.clearPrepared(state);
@@ -579,7 +605,12 @@ export class ConversationService {
     const state = this.sessions.get(id);
     if (state?.user === session.user_id && state.login === session.session_id && state.active?.id === turnId) this.interrupt(id, session);
   }
-  async turn(id: string, session: Session, turnId: string, input: string | (() => Promise<string>), signature?: string) {
+  async progress(id:string,session:Session,turnId:string){
+    const state=this.state(id,session);await this.validateScope(session,state);
+    const turn=state.turns.get(turnId);
+    return !!(state.active?.id===turnId&&state.busy&&turn?.recognized&&!turn.reply&&!turn.failed);
+  }
+  async turn(id: string, session: Session, turnId: string, input: string | (() => Promise<string>), signature?: string,reviewReplyId?:string) {
     const started = performance.now();
     let modelDuration = 0, modelCalls = 0, toolCalls = 0, inputChars = 0, nutritionRetrievals = 0;
     let instructionChars = 0, contextChars = 0, historyChars = 0;
@@ -604,6 +635,7 @@ export class ConversationService {
     const controller = new AbortController(); state.active = { id: turnId, controller };
     const turn: Turn = { signature: fingerprint }; state.turns.set(turnId, turn);
     let preparedMealHit=0,mealFollowupHit=0,conversationQuickHit=0,preparedConversationHit=0,conversationFollowupRouted=0,verifiedReferenceHit=0,verifiedReferenceCount=0;
+    let outlookReadHit=0,outlookMessagePrefetchHit=0;
     let verifiedUsed:VerifiedAnswer|undefined;
     let priorChat:PreparedConversationDraft|undefined,priorChatAudio:Buffer|undefined,chatFollowup:ConversationFollowup|'source'|undefined,chatFresh=false,chatFacts:Record<string,unknown>|undefined,chatEligible=false;
     let followup:MealFollowup|undefined,priorBenignChatOnly=false;
@@ -612,9 +644,15 @@ export class ConversationService {
     let matchingDraft: PreparedSpeech | undefined, promotedDraft: PreparedSpeech | undefined;
     try {
       priorChat=state.chatDraft;const priorText=priorChat&&state.replies.get(priorChat.replyId),priorAudio=priorText&&priorChat!.audio.get(splitSpeechParts(priorText,this.speechPartSize)[0]);if(priorAudio)priorChatAudio=Buffer.from(priorAudio);
-      await this.cancelMealJob();
-      await this.cancelChatJob();
-      const text = z.string().trim().min(1).max(2000).parse(typeof input === 'string' ? input : await input());
+      const readInput=async()=>z.string().trim().min(1).max(2000).parse(typeof input==='string'?input:await input());
+      let text:string;
+      if(this.ownerSpeechPriority||this.clientLatency){
+        const results=await Promise.allSettled([readInput(),this.cancelMealJob(),this.cancelChatJob()]);
+        for(const result of results)if(result.status==='rejected')throw result.reason;
+        text=(results[0] as PromiseFulfilledResult<string>).value;
+      }else{
+        await this.cancelMealJob();await this.cancelChatJob();text=await readInput();
+      }
       chatFollowup=this.prepareChat&&priorChat?conversationFollowup(text)??(this.verifiedReferences&&priorChat.verifiedId&&verifiedSourceQuestion(text)?'source':undefined):undefined;state.chatDraft=undefined;priorChat?.controller.abort();
       priorBenignChatOnly=this.dialogueReplies&&state.history.filter(item=>item.role==='user').every(item=>typeof item.content==='string'&&dialogueChatReply(item.content)!==undefined);
       if(this.dialogueReplies&&state.mealThread){followup=mealFollowup(text,state.mealThread);const slots=preparedMealSlots(text);if(!followup&&slots?.length===1)followup={kind:'repeat',slot:slots[0]};if(!followup&&!dialogueChatReply(text)){state.mealThread.audio.clear();state.mealThread=undefined;}}
@@ -624,10 +662,17 @@ export class ConversationService {
         if (state.closed || !this.sessions.has(id)) throw new ApiError(409, 'conversation_ended', 'The conversation ended. Check any saved changes in My Day.');
         if (state.generation !== generation) throw new ApiError(409, 'turn_interrupted', 'That reply was interrupted. Check My Day for any changes already saved.');
       };
-      ensureOpen(); state.expires = Date.now() + 20 * 60000;
+      ensureOpen();
+      if(reviewReplyId&&!([state.suggestion,state.preference,state.local].some(review=>review?.reply===reviewReplyId&&review.played)))throw new ApiError(409,'review_expired','That review changed. Ask Nancy to read the suggestion again before saving.');
+      turn.recognized=true; state.expires = Date.now() + 20 * 60000;
       const words = text.toLowerCase().replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
       const pendingOutlook=state.outlook;state.outlook=undefined;
       const pendingSuggestion=state.suggestion;state.suggestion=undefined;
+      const pendingRecipeEmail=state.recipeEmailOffer;state.recipeEmailOffer=undefined;
+      const recipeEmailRequested=!!pendingRecipeEmail?.played&&isWholeActionConfirmation(words,'send_mail');
+      const pendingGroceryOffer=state.groceryOffer;state.groceryOffer=undefined;
+      const recipeGroceriesRequested=!!pendingGroceryOffer?.played&&!!pendingGroceryOffer.id&&['yes','yes please','please do','create one'].includes(words);
+      const pendingRecipeGroceries=state.recipeGroceries;state.recipeGroceries=undefined;
       let reply: ConversationReply | undefined;
       const clientRole=state.binding.active_role==='client';
       const allowedViews=navigationViews(state.binding.active_role,!!this.requests,!!this.features,await this.microsoftEligible?.(session)??false);
@@ -665,9 +710,34 @@ export class ConversationService {
         state.unconfirmedSuggestion=pendingSuggestion.command;
         try{await this.suggestions.save(session,pendingSuggestion.command);state.unconfirmedSuggestion=undefined;}catch(error){if(error instanceof ApiError&&error.status<500)state.unconfirmedSuggestion=undefined;throw error;}
         ensureOpen();reply=this.reply(id,state,'Your suggestion for improving Nancy is saved.',true,'suggestions');
-      }else if(clientRole&&this.microsoft&&pendingOutlook?.played&&words===(pendingOutlook.review.action.kind==='send_mail'?'send this email':'create this event')){
+      }else if(clientRole&&this.microsoft&&pendingOutlook?.played&&isWholeActionConfirmation(words,pendingOutlook.review.action.kind)){
         const receipt=await this.microsoft.confirmAction(session,{action_id:pendingOutlook.review.action_id,review_token:pendingOutlook.review.review_token});
         ensureOpen();reply=this.reply(id,state,receipt.message,true,'my_day');
+      }else if(clientRole&&this.features&&pendingRecipeGroceries&&(pendingRecipeGroceries.uncertain||pendingRecipeGroceries.played&&['yes','yes please','add them','add those ingredients','yes add them'].includes(words))){
+        if(pendingRecipeGroceries.uncertain&&words!=='retry these grocery additions'){
+          if(words==='cancel these grocery additions')reply=this.reply(id,state,'I stopped retrying those additions. Check your grocery list for anything already saved.');
+          else{state.recipeGroceries=pendingRecipeGroceries;reply=this.reply(id,state,'Those grocery additions are unconfirmed. Check your list, then say retry these grocery additions or cancel these grocery additions.');}
+        }else{
+          const workspace=await this.features.meals.workspace(session);
+          const snapshot=JSON.stringify([workspace.pantry,workspace.groceries]);
+          if(!pendingRecipeGroceries.uncertain&&snapshot!==pendingRecipeGroceries.snapshot)reply=this.reply(id,state,'Your pantry or list changed. Let’s review the missing ingredients again before adding them.');
+          else{
+            try{
+              for(const [index,item] of pendingRecipeGroceries.items.entries()){
+                await this.validateScope(session,state);ensureOpen();
+                const {item_id,expected_revision,...ingredient}=item;
+                await this.features.meals.command(session,item_id?{type:'update_grocery',item_id,expected_revision:expected_revision!,item:ingredient,idempotency_key:pendingRecipeGroceries.keys[index]!}:{type:'add_grocery',item:ingredient,proposal_id:null,expected_proposal_revision:null,idempotency_key:pendingRecipeGroceries.keys[index]!});
+              }
+              reply=this.reply(id,state,'The reviewed ingredients are on your grocery list.',true,'groceries');
+            }catch(error){
+              pendingRecipeGroceries.uncertain=true;state.recipeGroceries=pendingRecipeGroceries;
+              if(error instanceof ApiError&&[401,403].includes(error.status))throw error;
+              reply=this.reply(id,state,'Those additions are unconfirmed. Some may already be saved. Check your list before saying retry these grocery additions or cancel these grocery additions.',false,'groceries');
+            }
+          }
+        }
+      }else if(clientRole&&isGrocerySendRequest(text)&&!(this.features?(await this.features.meals.workspace(session)).groceries.some(item=>!item.acquired_at):(today.groceries??[]).length)){
+        reply=this.reply(id,state,'Your list seems empty. Would you like to create one?'+(state.recipeContinuity?' I can use the recipe we just discussed.':''),false,'groceries');
       }else if(discardedPreference&&!navigation){
         reply=this.reply(id,state,'The unconfirmed preference request was cancelled. What would you like to do next?');
       }else if(pendingPreference){
@@ -799,6 +869,8 @@ export class ConversationService {
         state.review = undefined; state.grocery = undefined; state.activity=undefined;state.request=undefined;state.local=undefined;state.preference=undefined;
         state.history.push({ role: 'user', content: text });
         const reference = currentNutritionReference();
+        const nextStepPlanning=clientRole&&isNextStepPlanning(text);
+        const mailSearchRequest=clientRole&&isMailSearchRequest(text),medicalRequest=clientRole&&isMedicalAppointmentRequest(text);
         const preparation=this.prepareContext&&clientRole?prepareTurnContext(text,reference,state.recipeContinuity,this.warmConnection,this.quickConversation):undefined;
         const verifiedDirect=this.verifiedReferences&&clientRole?verifiedAnswer(text):undefined;
         if(verifiedDirect&&preparation)preparation.mode='conversation';
@@ -806,20 +878,51 @@ export class ConversationService {
         if(this.dialogueReplies&&followup&&preparation)preparation.mode='meals';
         if(this.dialogueReplies&&dialogueChatReply(text)&&preparation)preparation.mode='conversation';
         if(this.spokenReplies&&preparation?.mode==='full'&&isSpokenConversation(text))preparation.mode='conversation';
-        state.recipeContinuity=preparation?.continuity;
+        if(preparation&&(mailSearchRequest||medicalRequest))preparation.mode='full';
+        state.recipeContinuity=preparation?.continuity??state.recipeContinuity;
         const workspace=this.requests&&(!preparation||preparation.mode==='full')?await this.requests.workspace(session):undefined;
         const activeHandoffs=clientRole?await this.features?.day?.activeHandoffs?.(session):undefined;
         const activeFocus=clientRole?await this.features?.day?.activeFocus?.(session):undefined;
         const outlookStatus=clientRole&&this.microsoft?await this.microsoft.status(session):microsoftUnavailable;
-        const outlookRange=clientRole?requestedOutlookRange(text,today.local_date,today.profile!.time_zone):null;
-        const needsOutlook=/\b(outlook|calendar|schedule|appointments?|meetings?|inbox|emails?|messages?|planning|plan|morning|day)\b/i.test(text);
-        const cachedOutlook=clientRole&&this.microsoft&&outlookStatus.model_disclosure_enabled&&needsOutlook?await this.microsoft.preparedContext(session,outlookRange??outlookDayRange(today.local_date,today.profile!.time_zone)):undefined;
+        const rememberedSearch=clientRole&&outlookStatus.eligible&&outlookStatus.state==='connected'&&outlookStatus.model_disclosure_enabled&&state.mailSearch&&state.mailSearch.expires>this.now().getTime()?state.mailSearch.context:undefined;
+        if(!rememberedSearch)state.mailSearch=undefined;
+        const fastOutlook=(this.ownerOutlookReads||this.clientLatency)&&clientRole&&outlookStatus.eligible&&outlookStatus.state==='connected'&&outlookStatus.model_disclosure_enabled&&(this.clientLatency||state.binding.actor_id===this.ownerId&&state.binding.qualification==='owner_practice')?strictOutlookRead(text,today.local_date,today.profile!.time_zone):null;
+        if(fastOutlook)outlookReadHit=1;
+        const reuseSearchForDetail=!!fastOutlook?.detail&&!!rememberedSearch;
+        const outlookRange=mailSearchRequest||reuseSearchForDetail?null:fastOutlook?.range??(clientRole?requestedOutlookRange(text,today.local_date,today.profile!.time_zone):null)??(nextStepPlanning||medicalRequest?outlookDateRange(today.local_date,today.profile!.time_zone,7):null);
+        const outlookPurpose=fastOutlook?.scope??(nextStepPlanning||medicalRequest?'both':undefined);
+        const needsOutlook=!mailSearchRequest&&!reuseSearchForDetail&&(nextStepPlanning||medicalRequest||/\b(outlook|calendar|schedule|appointments?|meetings?|inbox|emails?|messages?|planning|plan|morning|day)\b/i.test(text));
+        const cachedOutlook=clientRole&&this.microsoft&&outlookStatus.model_disclosure_enabled&&needsOutlook?await this.microsoft.preparedContext(session,outlookRange??outlookDayRange(today.local_date,today.profile!.time_zone),outlookPurpose):undefined;
         const refreshOutlook=outlookRange&&(cachedOutlook?.state!=='prepared'||/\b(refresh|latest|free|available|conflicts?)\b/i.test(text));
-        const outlookContext=clientRole&&this.microsoft?refreshOutlook&&outlookStatus.model_disclosure_enabled?await this.microsoft.conversationContext(session,outlookRange!):cachedOutlook??{source:'microsoft',state:outlookStatus.state}:undefined;
+        let outlookContext:unknown=clientRole&&this.microsoft?refreshOutlook&&outlookStatus.model_disclosure_enabled?await this.microsoft.conversationContext(session,outlookRange!,outlookPurpose):cachedOutlook??{source:'microsoft',state:outlookStatus.state}:undefined;
+        if(reuseSearchForDetail)outlookContext=rememberedSearch;
+        const medicalContext=nextStepPlanning||medicalRequest?medicalAppointmentContext(today,[outlookContext,rememberedSearch],this.now()):undefined;
+        if(nextStepPlanning&&outlookRange&&outlookContext)outlookContext=outlookReadFacts({},outlookContext,{scope:'calendar',range:outlookDayRange(today.local_date,today.profile!.time_zone)}).outlook;
+        if(fastOutlook?.detail&&this.microsoft){
+          const target=outlookDetailTarget(outlookContext,fastOutlook.detail);
+          let detail:unknown,detailStatus=target.status;
+          if(target.status==='ready'){
+            await this.validateScope(session,state);ensureOpen();
+            if(!outlookMessageInSnapshot(outlookContext,target.folder_id,target.message_id))throw new ApiError(403,'outlook_message_scope','Read only an exact message in the current authorized Inbox snapshot.');
+            try{
+              detail=await this.microsoft.conversationMessage(session,target.folder_id,target.message_id);
+              if((detail as {id?:unknown}).id!==target.message_id)throw new ApiError(403,'outlook_message_scope','The returned message did not match the authorized snapshot.');
+              await this.validateScope(session,state);ensureOpen();outlookMessagePrefetchHit=1;
+            }catch(error){if(error instanceof ApiError&&[401,403,409].includes(error.status))throw error;detail=undefined;detailStatus='unavailable';}
+          }
+          outlookContext={...(outlookContext as Record<string,unknown>),message_detail_status:detailStatus,...(detail?{message_detail:detail}:{})};
+        }
+        let disclosedOutlookContext:unknown=outlookContext,outlookReadUsed=false;
+        if(fastOutlook?.detail){const literal=quotedOutlookMessage(outlookContext,today.profile!.time_zone);if(literal)reply=this.reply(id,state,literal);}
+        const messageAllowed=(folder:string,id:string)=>outlookMessageInSnapshot(disclosedOutlookContext,folder,id)||outlookMessageInSnapshot(rememberedSearch,folder,id)||!!medicalContext?.correspondence.some(message=>message.folder_id===folder&&message.id===id);
         let guidance = preparation?preparedSelection(text,preparation.mode):selectNancyGuidance(text);
         const completeChoices=this.spokenReplies&&preparation?.mode==='meals'&&isSimpleMealSuggestion(text);
         const mealChoices=clientRole?mealStarterReferences(text,reference,completeChoices):[];
-        const mealReferences=[...mealChoices,...(preparation?.details?[preparation.details]:[])];
+        const exactMenu=completeChoices&&(this.ownerOutlookReads||this.clientLatency);
+        const menuRecipes=mealChoices.flatMap(result=>result.items.filter((item):item is import('./nutrition-reference.js').NutritionRecipe=>'recipeYaml'in item));
+        const menuSlots=[...new Set(menuRecipes.map(recipe=>recipe.category))];
+        const nutritionEvidence=clientRole&&!mealChoices.length?nutritionQuestionReferences(text,reference):undefined;
+        const mealReferences=[...mealChoices,...(preparation?.details?[preparation.details]:[]),...(nutritionEvidence?[nutritionEvidence]:[])];
         for(const result of mealReferences){nutritionRetrievals++;
           for(const source of result.sources){const prior=references.get(source.documentId);
             const items=result.items.filter(item=>'sourceDocumentId' in item?item.sourceDocumentId===source.documentId:source.documentId==='CR_NUTRITION_EVIDENCE_V1').map(item=>item.id);
@@ -827,7 +930,7 @@ export class ConversationService {
           }
         }
         if(mealReferences.length)guidance={skills:[...new Set([...guidance.skills,'meals' as const])],nutrition:true};
-        const fresh = clientRole ? {...currentFacts(today, this.now()),...(preferenceWorkspace?{confirmed_preferences:preferenceWorkspace.items}:{}),...(activeHandoffs?{active_significant_handoffs:activeHandoffs}:{}),...(activeFocus!==undefined?{active_task_focus:activeFocus}:{}),...(workspace?{task_requests:requestFacts(workspace)}:{})} : workspace?requestFacts(workspace):{};
+        const fresh = clientRole ? {...currentFacts(today, this.now()),...(nutritionEvidence?{repository_nutrition_evidence:nutritionEvidence}:{}),...(medicalContext?{medical_appointment_context:medicalContext}:{}),...(rememberedSearch&&(mailSearchRequest||medicalRequest||reuseSearchForDetail||/\b(email|inbox|message|mail)\b/i.test(text))?{recent_authorized_mail_search:rememberedSearch}:{}),...(preferenceWorkspace?{confirmed_preferences:preferenceWorkspace.items}:{}),...(activeHandoffs?{active_significant_handoffs:activeHandoffs}:{}),...(activeFocus!==undefined?{active_task_focus:activeFocus}:{}),...(workspace?{task_requests:requestFacts(workspace)}:{})} : workspace?requestFacts(workspace):{};
         const priorVerified=this.verifiedReferences&&chatFresh&&priorChat?.verifiedHash===verifiedReferenceHash&&priorChat.verifiedId?verifiedCard(priorChat.verifiedId):undefined;
         const verifiedFacts=this.verifiedReferences&&clientRole?(verifiedDirect?[verifiedDirect]:priorVerified&&chatFollowup?[priorVerified]:verifiedReferenceContext(text)):[];
         verifiedReferenceCount=verifiedFacts.length;
@@ -865,8 +968,9 @@ export class ConversationService {
             const snapshot=await this.mealSnapshot(session,today);ensureOpen();
             if(draft.key===snapshot.key&&draft.expires>this.now().getTime()){
               const answer=renderPreparedMeals(draft.choices,slots),first=splitSpeechParts(answer,this.speechPartSize)[0],audio=draft.audio.get(first);
-              if(audio){
-                reply=this.reply(id,state,answer);preparedMealHit=1;matchingDraft={text:first,audio:Promise.resolve(Buffer.from(audio)),controller:new AbortController(),mealKey:snapshot.key};drafts.push(matchingDraft);
+              if(audio||this.ownerSpeechPriority||this.clientLatency){
+                const audioController=new AbortController(),preparedAudio=audio?Promise.resolve(Buffer.from(audio)):this.prepareSpeech?.(first,AbortSignal.any([controller.signal,audioController.signal])).then(wav=>wav.length<=1024*1024?wav:undefined).catch(()=>undefined)??Promise.resolve(undefined);
+                reply=this.reply(id,state,answer);preparedMealHit=1;matchingDraft={text:first,audio:preparedAudio,controller:audioController,mealKey:snapshot.key};drafts.push(matchingDraft);
                 references.clear();
                 for(const source of snapshot.material.sources)references.set(source.documentId,{document_id:source.documentId,path:source.path,sha256:source.sha256,
                   items:source.documentId==='CR_NUTRITION_EVIDENCE_V1'?['C02','C10']:slots.map(slot=>draft.choices![slot].id)});
@@ -878,9 +982,9 @@ export class ConversationService {
         }
         const navigationTool=tool('navigate','Open an authorized supporting view without ending the conversation. Opening a view never grants access or writes care data.',object({view:{type:'string',enum:allowedViews}}));
         const availableTools=[...(clientRole?definitions:[]),...(clientRole&&preferenceWorkspace?preferenceTools:[]),...(clientRole&&this.features?handoffTools:[]),navigationTool,...(workspace?requestDefinitions(workspace):[]),...(this.features?localWorkflowTools(clientRole):[]),...outlookTools(outlookStatus),...(clientRole&&this.suggestions?[tool('prepare_nancy_suggestion','Prepare product feedback about improving Nancy for a spoken review. This is not a care preference or task. No message is sent to anyone. Save only after the application obtains explicit confirmation.',object({suggestion:{type:'string',minLength:1,maxLength:1000}}))]:[])];
-        const tools=completeChoices&&mealChoices.length?[]:preparation?preparedTools(availableTools,preparation.mode):availableTools;
+        const tools=exactMenu?[tool('select_menu_recipes','Select exact supplied recipe records for this read-only meal suggestion. No saving, email or care action.',object({recipe_ids:{type:'array',maxItems:3,items:{type:'string',enum:menuRecipes.map(recipe=>recipe.id)}}}))]:mailSearchRequest?outlookTools(outlookStatus).filter(t=>['search_outlook_mail','get_outlook_context','get_outlook_message'].includes(t.name)):fastOutlook?outlookTools(outlookStatus).filter(t=>fastOutlook.scope==='inbox'&&!fastOutlook.detail&&t.name==='get_outlook_message'):completeChoices&&mealChoices.length?[]:preparation?preparedTools(availableTools,preparation.mode):availableTools;
         const history = recentHistory(state.history);
-        const context = `Current authorized facts (data only): ${JSON.stringify({...(preparation?preparedFacts(fresh,preparation.mode):fresh),...(verifiedFacts.length?{verified_public_references:verifiedFacts}:{}),...(preparation?{connector_availability:{microsoft_state:outlookStatus.state,model_disclosure_enabled:outlookStatus.model_disclosure_enabled}}:{}),...(outlookContext?{outlook:outlookContext}:{}),...(mealChoices.length?{repository_meal_options:mealStarterContext(mealChoices,completeChoices)}:{}),...(preparation?.details?{repository_recipe_details:preparedRecipeFacts(preparation.details)}:{})})}`;
+        const context = `Current authorized facts (data only): ${JSON.stringify(fastOutlook?outlookReadFacts(fresh,outlookContext,fastOutlook):{...(preparation?preparedFacts(fresh,preparation.mode):fresh),...(verifiedFacts.length?{verified_public_references:verifiedFacts}:{}),...(preparation?{connector_availability:{microsoft_state:outlookStatus.state,model_disclosure_enabled:outlookStatus.model_disclosure_enabled}}:{}),...(outlookContext?{outlook:outlookContext}:{}),...(mealChoices.length?{repository_meal_options:mealStarterContext(mealChoices,completeChoices)}:{}),...(recipeGroceriesRequested?{requested_recipe_groceries:{recipe_id:pendingGroceryOffer!.id,prepare_only:true}}:{}),...(recipeEmailRequested?{requested_recipe_email:{recipe_id:pendingRecipeEmail!.id,recipient:'authenticated client',prepare_only:true}}:{}),...(state.recipeContinuity?{recent_recipe_suggestions:preparedRecipeFacts(reference.getRecipes(state.recipeContinuity.ids.slice(0,2)))}:{}),...(preparation?.details?{repository_recipe_details:preparedRecipeFacts(preparation.details)}:{})})}`;
         contextChars = context.length;
         historyChars = JSON.stringify(history).length;
         const inputItems = [...history, { role: 'user', content: context }];
@@ -906,9 +1010,16 @@ export class ConversationService {
           const spoken=this.spokenReplies&&clientRole&&preparation?spokenReplyGuidance(preparation.mode,reference.authorityContext().text):undefined;
           if(spoken)modelInstructions=this.dialogueReplies&&preparation?.mode==='conversation'?dialogueConversationGuidance:spoken;
           else if(this.quickReads&&clientRole&&preparation&&preparation.mode!=='full')modelInstructions+=quickReadGuidance;
+          if(exactMenu)modelInstructions=menuSelectionPolicy+' Required category order: '+JSON.stringify(menuSlots)+'.';
+          if(nutritionEvidence&&!exactMenu)modelInstructions+='\n'+nutritionQuestionPolicy;
           if(verifiedFacts.length)modelInstructions+='\n'+verifiedReferenceGuidance;
           const importedTaskGuidance=this.prepareContext&&clientRole?ownerImportedTaskGuidance(today.tasks):undefined;
           if(importedTaskGuidance)modelInstructions+='\n'+importedTaskGuidance;
+          if(nextStepPlanning)modelInstructions+='\nThis is personal next-step planning. Use current care tasks, meals, reports, stated energy and the supplied selected-calendar context together. Start with the current participant-local priority_context.local_time and temporal.meals, not a generic task list or the time of the morning snapshot. Review what food is actually reported today, including occurrence times and full-meal/snack/unknown kind; accepted choices and proposed meals do not show that food was eaten. During the afternoon, check lunch status before suggesting discretionary tasks. If lunch is unreported, ask whether and when the client ate; missing records do not mean a skipped meal. If not yet eaten, offer food as a possible first priority, subject to their preference, energy and near commitments. Respect an explicit deferral, recent full-meal suppression and recent unknown-intake clarification; a snack is not proof of a full meal. When a meal was already reported, acknowledge it and use its timing without automatically recommending another. Keep this a short useful next step, asking only the missing question; do not impose food or invent clinical urgency. Reuse the supplied calendar range unless a different date or fresh availability is needed. An unavailable/partial calendar is not free time; disclose the limit. Free time is not capacity. Suggestions and external appointments are not accepted plans or performed activities; existing explicit review and client approval remain required.';
+          if(fastOutlook)modelInstructions=outlookReadPolicy+(fastOutlook.detail?outlookDetailPolicy:'');
+          if(nextStepPlanning||medicalRequest)modelInstructions+='\nPrioritize the practical management of known medical appointments over discretionary chores: arranging or confirming visits, checking a requested change or follow-up, and discussing preparation, travel or support. Use medical_appointment_context as bounded source evidence and review current meals, near commitments, timing, client-stated energy and explicit deferrals together. Do not infer clinical urgency, diagnosis, medical instructions or capacity. An email cue is unverified correspondence, not a booked appointment or proof a reply is owed; read exact details and verify calendar/client facts. Ask one useful question about the next administrative step. Do not create a care task or send/book/cancel anything without the existing explicit client review and authorization. The available external writes are reviewed new email and new invitation only. Sending a request does not establish that a clinic confirmed, cancelled or rescheduled an appointment; no edit/delete capability is implied. If older correspondence is needed, use search_outlook_mail; never pretend the recent seven-day snapshot is the whole history.';
+          if(nextStepPlanning&&priorityContext(today,this.now()).suggestions.some(item=>item.kind==='intake_check'))modelInstructions+='\nThe current factual intake check is unresolved. In this reply, ask whether and when food was eaten (or clarify a recent unknown intake) before asking a medical administration question. You may briefly mention an approaching appointment and its known time so the client can consider both. Do not assume a missed meal or prescribe eating. The missing food report is the one question to resolve first; save other administrative questions for the next turn.';
+          if(this.microsoft?.sourceMode==='owner_fixture'&&(needsOutlook||outlookReadUsed))modelInstructions+='\n'+ownerOutlookFixturePolicy;
           instructionChars = Math.max(instructionChars, modelInstructions.length);
           let streamed = '', draft: PreparedSpeech | undefined;
           const prepare = (delta: string) => {
@@ -927,7 +1038,7 @@ export class ConversationService {
           let callOutcome: InferenceCallMetric['outcome'] = 'failed';
           let callUsage: InferenceUsage | undefined;
           try {
-            response = await this.reasoner.respond(inputItems, modelInstructions, tools, controller.signal, prepare, state.binding);
+            response = await this.reasoner.respond(inputItems, modelInstructions, tools, controller.signal, exactMenu?undefined:prepare, state.binding);
             callUsage = response.usage;
             modelCompleted++; callOutcome = 'completed';
           } catch (error) {
@@ -951,7 +1062,7 @@ export class ConversationService {
           toolCalls += calls.length;
           if (response.output.some(item => !['reasoning', 'message', 'function_call'].includes(String(item.type))) || calls.length > 8) throw new ApiError(503, 'invalid_response', 'Nancy could not safely finish that response.');
           inputItems.push(...response.output);
-          if (calls.length === 1 && calls[0].name === 'navigate') {
+          if (calls.length === 1 && calls[0].name === 'navigate' && tools.some(tool=>tool.name==='navigate')) {
             const call = calls[0];
             if (typeof call.call_id === 'string' && typeof call.arguments === 'string' && call.arguments.length <= 10000 && !call.namespace) {
               let parsed: unknown;
@@ -966,7 +1077,8 @@ export class ConversationService {
             }
           }
           if (!calls.length) {
-            const final = response.output.filter(item => item.type === 'message' && item.role === 'assistant').flatMap(item => Array.isArray(item.content) ? item.content : []).filter(p => p?.type === 'output_text' && typeof p.text === 'string').map(p => p.text).join('') || response.text;
+            let final = response.output.filter(item => item.type === 'message' && item.role === 'assistant').flatMap(item => Array.isArray(item.content) ? item.content : []).filter(p => p?.type === 'output_text' && typeof p.text === 'string').map(p => p.text).join('') || response.text;
+            if(exactMenu){const selected=selectedMenuReply(final,menuRecipes,menuSlots,{preferences:today.profile!.preferences,confirmed_preferences:preferenceWorkspace?.items,active_significant_handoffs:activeHandoffs});final=selected.text;if(selected.recipes.length)state.recipeContinuity={reference,ids:selected.recipes.map(recipe=>recipe.id)};}
             if (!final.trim() || final.length > 1500) throw new ApiError(503, 'invalid_response', 'Nancy could not finish that reply. You can use the buttons.');
             if (draft && draft.text.trim() === splitSpeechParts(final,this.speechPartSize)[0].trim()) matchingDraft = draft;
             reply = this.reply(id, state, final, changed, navigate);chatEligible=!!this.prepareChat&&preparation?.mode==='conversation'&&tools.length===0&&canPrepareConversation(text,final); break;
@@ -982,7 +1094,10 @@ export class ConversationService {
               await this.validateScope(session, state); ensureOpen();
               if(!tools.some(tool=>tool.name===call.name))throw new ApiError(403,'forbidden','That action is not available for your role or sharing permissions.');
               if(clientRole)guidance=addNancyToolGuidance(guidance,String(call.name),args);
-              if(call.name==='prepare_nancy_suggestion'&&clientRole&&this.suggestions){
+              if(call.name==='select_menu_recipes'&&exactMenu){
+                const selected=selectedMenuReply(call.arguments,menuRecipes,menuSlots,{preferences:today.profile!.preferences,confirmed_preferences:preferenceWorkspace?.items,active_significant_handoffs:activeHandoffs});
+                reply=this.reply(id,state,selected.text);if(selected.recipes.length)state.recipeContinuity={reference,ids:selected.recipes.map(recipe=>recipe.id)};break;
+              }else if(call.name==='prepare_nancy_suggestion'&&clientRole&&this.suggestions){
                 const argsForSuggestion=z.object({suggestion:z.string().trim().min(1).max(1000)}).strict().parse(args);
                 const command=await this.suggestions.prepare(session,argsForSuggestion.suggestion,this.key(turnId,call.call_id));ensureOpen();
                 reply=this.reply(id,state,`Your suggestion for improving Nancy: ${command.suggestion} If that is right, say save this suggestion.`,false,'suggestions');state.suggestion={command,reply:reply.reply_id,played:false};break;
@@ -990,12 +1105,47 @@ export class ConversationService {
                 const parsed=z.object({local_date:z.iso.date().optional(),days:z.number().int().min(1).max(7).optional(),start:z.iso.datetime({offset:true}).optional(),end:z.iso.datetime({offset:true}).optional()}).strict().parse(args);
                 if((parsed.start||parsed.end)&&(parsed.local_date||parsed.days)||!!parsed.start!==!!parsed.end)throw new ApiError(400,'invalid_input','Choose a local date and number of days, or both start and end.');
                 const range=parsed.start?microsoftReadRangeSchema.parse({start:parsed.start,end:parsed.end}):outlookDateRange(parsed.local_date??today.local_date,today.profile!.time_zone,parsed.days??1);
-                output=await this.microsoft.conversationContext(session,range);
+                output=await this.microsoft.conversationContext(session,range,fastOutlook?.scope);disclosedOutlookContext=output;outlookReadUsed=true;
+              }else if(call.name==='search_outlook_mail'&&clientRole&&this.microsoft){
+                const query=microsoftMailSearchSchema.parse(args);
+                if(!this.microsoft.conversationMailSearch)output={source:'microsoft',state:'unavailable',warning:'Older email search is unavailable on this source. Do not substitute the recent Inbox or claim no older mail exists.'};
+                else output=await this.microsoft.conversationMailSearch(session,query);
+                await this.validateScope(session,state);ensureOpen();outlookReadUsed=true;
+                if((output as {state?:unknown}).state==='fresh'){disclosedOutlookContext=output;state.mailSearch={context:output,expires:this.now().getTime()+5*60_000};}
+                else state.mailSearch=undefined;
               }else if(call.name==='get_outlook_message'&&clientRole&&this.microsoft){
                 const parsed=z.object({folder_id:z.string().min(1).max(2048),message_id:z.string().min(1).max(2048)}).strict().parse(args);
-                output=await this.microsoft.conversationMessage(session,parsed.folder_id,parsed.message_id);
+                if(!messageAllowed(parsed.folder_id,parsed.message_id))throw new ApiError(403,'outlook_message_scope','Read only an exact message in the current authorized Inbox or search snapshot.');
+                output=await this.microsoft.conversationMessage(session,parsed.folder_id,parsed.message_id);outlookReadUsed=true;
+                if((output as {id?:unknown}).id!==parsed.message_id)throw new ApiError(403,'outlook_message_scope','The returned message did not match the authorized snapshot.');
+              }else if(call.name==='prepare_grocery_email'&&clientRole&&this.microsoft&&this.care.contactEmail){
+                z.object({}).strict().parse(args);
+                if(!isGrocerySendRequest(text)||!/\b(me|myself|my (?:grocer\w*|shopping|email|address))\b/i.test(text))throw new ApiError(400,'grocery_review_required','Ask to email your grocery list to yourself, or specify another recipient.');
+                const rows=this.features?(await this.features.meals.workspace(session)).groceries.filter(item=>!item.acquired_at).map(item=>`${item.name}: ${item.amount!==null?`${item.amount} ${item.unit??''}`.trim():item.legacy_quantity??'quantity unspecified'}`):(today.groceries??[]).map(item=>`${item.name}: ${item.quantity??'quantity unspecified'}`);
+                if(!rows.length){reply=this.reply(id,state,'Your list seems empty. Would you like to create one?',false,'groceries');break;}
+                const body='Your grocery list:\n'+rows.join('\n'),to=await this.care.contactEmail(session);
+                if(body.length>1100){reply=this.reply(id,state,'Your list is too long for one complete spoken email review. Let’s review a smaller list before sending. Nothing has been sent.');break;}
+                const review=await this.microsoft.prepareAction(session,{idempotency_key:this.key(turnId,call.call_id),action:{kind:'send_mail',to:[to],subject:'Your grocery list',body}});ensureOpen();
+                const readback=outlookReadback(review);if(readback.length>1500){reply=this.reply(id,state,'That email is too long for a complete spoken review. Nothing has been sent.');break;}
+                reply=this.reply(id,state,readback);state.outlook={review,reply:reply.reply_id,played:false};break;
+              }else if(call.name==='prepare_recipe_email'&&clientRole&&this.microsoft&&this.care.contactEmail&&this.recipeOrigin){
+                const {recipe_id}=z.object({recipe_id:z.string().regex(/^[BLSD][0-9]{2}$/)}).strict().parse(args);
+                if(!state.recipeContinuity?.ids.includes(recipe_id)||!(/\b(email|mail|send)\b/i.test(text)&&/\b(me|myself|my (?:email|address))\b/i.test(text)||recipeEmailRequested&&pendingRecipeEmail?.id===recipe_id))throw new ApiError(400,'recipe_review_required','Ask to email the selected recipe to yourself, or specify another recipient for a reviewed email.');
+                const card=recipeCard(reference.getRecipes([recipe_id]).items[0]!);
+                const to=await this.care.contactEmail(session);
+                const body=`${card.title}\nMakes ${card.servings} serving${card.servings===1?'':'s'}; quantities are for the whole recipe.\n${card.ingredients.map(item=>`${item.amount} ${item.unit} ${item.name}`).join('\n')}\n${card.steps.join(' ')}\nRecipe: ${new URL(card.href,this.recipeOrigin).href}\nFollow your own food restrictions and approved instructions.`;
+                const review=await this.microsoft.prepareAction(session,{idempotency_key:this.key(turnId,call.call_id),action:{kind:'send_mail',to:[to],subject:card.title,body}});ensureOpen();
+                const readback=outlookReadback(review);
+                if(readback.length>1500){reply=this.reply(id,state,'The recipe email is too long for a complete spoken review. I can prepare a shorter email with its recipe link. Nothing has been sent.');break;}
+                reply=this.reply(id,state,readback);state.outlook={review,reply:reply.reply_id,played:false};break;
               }else if(call.name==='prepare_outlook_action'&&clientRole&&this.microsoft){
                 const parsed=z.object({action:z.unknown()}).strict().parse(args);
+                const action=parsed.action as {kind?:string;subject?:string};
+                if(action.kind==='send_mail'&&(isGrocerySendRequest(text)||/\b(?:grocery|shopping)\s+list\b/i.test(action.subject??''))){
+                  const rows=this.features?(await this.features.meals.workspace(session)).groceries.filter(item=>!item.acquired_at).map(item=>`${item.name}: ${item.amount!==null?`${item.amount} ${item.unit??''}`.trim():item.legacy_quantity??'quantity unspecified'}`):(today.groceries??[]).map(item=>`${item.name}: ${item.quantity??'quantity unspecified'}`);
+                  if(!rows.length){reply=this.reply(id,state,'Your list seems empty. Would you like to create one?',false,'groceries');break;}
+                  parsed.action={...(parsed.action as object),body:'Your grocery list:\n'+rows.join('\n')};
+                }
                 const review=await this.microsoft.prepareAction(session,{idempotency_key:this.key(turnId,call.call_id),action:parsed.action});ensureOpen();
                 const readback=outlookReadback(review);
                 reply=this.reply(id,state,readback.length<=1500?readback:'That message is too long for a complete voice review. Let’s shorten it before sending. Nothing has been sent.',false,navigate);
@@ -1071,6 +1221,18 @@ export class ConversationService {
               else if (call.name === 'navigate') { const requested=z.object({ view: z.string() }).strict().parse(args).view;
                 if(!allowedViews.includes(requested as ClientView))throw new ApiError(403,'forbidden','This view is not available for your role.');
                 navigate=requested as ClientView;output={view:navigate}; }
+              else if(call.name==='prepare_recipe_groceries'&&clientRole&&this.features){
+                const {recipe_id}=z.object({recipe_id:z.string().regex(/^[BLSD][0-9]{2}$/)}).strict().parse(args);
+                if(!(/\b(add|build|create|make|put|grocer\w*|shopping)\b/i.test(text)||recipeGroceriesRequested&&pendingGroceryOffer?.id===recipe_id)||!state.recipeContinuity?.ids.includes(recipe_id))throw new ApiError(400,'recipe_review_required','Choose the recipe you want ingredients for first.');
+                const recipe=reference.getRecipes([recipe_id]).items[0]!;
+                const workspace=await this.features.meals.workspace(session);
+                const items=missingRecipeGroceries(recipe,workspace);
+                if(!recipeCard(recipe).ingredients.length)throw new ApiError(400,'recipe_details_missing','The exact ingredients are unavailable.');
+                if(!items.length){reply=this.reply(id,state,'Those ingredients are already covered by your saved pantry or grocery list. Nothing was added.',false,'groceries');break;}
+                const review=`For ${recipe.title}, making ${recipe.yieldServings} serving${recipe.yieldServings===1?'':'s'}: ${items.map(item=>`${item.item_id?'update the listed amount to':'add'} ${item.amount} ${item.unit} ${item.name}`).join('; ')}. These amounts account for your saved pantry and list. Save these grocery changes?`;
+                reply=this.reply(id,state,review,false,'groceries');
+                state.recipeGroceries={items,keys:items.map((_,index)=>this.key(turnId,`${call.call_id}:${index}`)),snapshot:JSON.stringify([workspace.pantry,workspace.groceries]),reply:reply.reply_id,played:false,uncertain:false};break;
+              }
               else if (call.name === 'suggest_grocery') {
                 const grocery = groceryInput.omit({ idempotency_key: true }).parse(args);
                 reply = this.reply(id, state, `Would you like me to add ${grocery.quantity ? grocery.quantity + ' ' : ''}${grocery.name} to your grocery list?`, changed, navigate);
@@ -1113,6 +1275,14 @@ export class ConversationService {
       }
       reply.transcript = text; turn.reply = reply;turn.mealKey=matchingDraft?.mealKey;turn.chatKey=matchingDraft?.chatKey;
       if(references.size)reply.nutrition_refs=[...references.values()];
+      const recipeReference=currentNutritionReference();
+      const suggested=mentionedRecipes(reply.text,recipeReference,[...references.values()].flatMap(ref=>ref.items));
+      if(suggested.length){state.recipeContinuity={reference:recipeReference,ids:suggested.map(recipe=>recipe.id)};reply.recipes=suggested.map(recipeCard);}
+      if(reply.recipes?.length===1&&reply.text.endsWith('Would you like me to email this recipe to you?'))state.recipeEmailOffer={id:reply.recipes[0]!.id,reply:reply.reply_id,played:false};
+      if(reply.text.startsWith('Your list seems empty. Would you like to create one?'))state.groceryOffer={id:state.recipeContinuity?.ids.length===1?state.recipeContinuity.ids[0]:undefined,reply:reply.reply_id,played:false};
+      if(state.suggestion?.reply===reply.reply_id)reply.suggestion_review={reply_id:reply.reply_id,confirmation_text:'save this suggestion'};
+      else if(state.preference?.reply===reply.reply_id)reply.suggestion_review={reply_id:reply.reply_id,confirmation_text:'save this preference'};
+      else if(state.local?.reply===reply.reply_id&&state.local.family==='day'&&state.local.command.type==='record_significant_handoff')reply.suggestion_review={reply_id:reply.reply_id,confirmation_text:state.local.phrase};
       outcome = 'completed';
       return reply;
     } catch (error) { turn.failed = true; if (controller.signal.aborted) outcome = 'interrupted'; throw error; }
@@ -1132,6 +1302,7 @@ export class ConversationService {
         ...(this.dialogueReplies?{meal_followup_hit:mealFollowupHit,conversation_quick_hit:conversationQuickHit}:{}),
         ...(this.prepareChat?{prepared_conversation_hit:preparedConversationHit,conversation_followup_routed:conversationFollowupRouted}:{}),
         ...(this.verifiedReferences?{verified_reference_hit:verifiedReferenceHit,verified_reference_context:verifiedReferenceCount}:{}),
+        ...((this.ownerOutlookReads||this.clientLatency)?{outlook_read_hit:outlookReadHit,outlook_message_prefetch_hit:outlookMessagePrefetchHit}:{}),
         nutrition_refs: [...references.values()].slice(0, 2).map(ref => ({ document_id: ref.document_id,
           sha256: ref.sha256, items: ref.items.slice(0, 14) })) }); }
       catch { /* Observability must not change a care response. */ }

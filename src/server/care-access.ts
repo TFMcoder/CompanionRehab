@@ -36,6 +36,7 @@ export interface CareAccess {
   discardPreferenceCommand?(session:Session,key:string):Promise<boolean>;
   role?(session: Session): Promise<LocalRole>;
   authority?(session: Session): Promise<CareAuthority>;
+  contactEmail?(session:Session):Promise<string>;
   groceries?(session: Session): Promise<{ items: GroceryItem[] }>;
   addGrocery?(session: Session, input: GroceryInput): Promise<{ item: GroceryItem }>;
   appointments?(session: Session): Promise<{ appointments: Array<{ id: string; title: string; starts_at: string }> }>;

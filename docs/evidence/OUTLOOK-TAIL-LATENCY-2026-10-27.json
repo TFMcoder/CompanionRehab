@@ -1,0 +1,344 @@
+{
+  "evidence_id": "OUTLOOK-TAIL-LATENCY-2026-10-27",
+  "recorded_at": "2026-10-27T04:21:22.229Z",
+  "publication_allowed": true,
+  "status": "enabled_owner_only_synthetic_engineering_qualified_actual_cold_person_provider_gates_open",
+  "implementation_revision": "sha256:ca93411966c54d8d0aee2f68ef4c2c5b6625652f951f54a285b9eb573280e7e3",
+  "activation": {
+    "owner_release": "outlook-speech-2026-10-26",
+    "owner_only": true,
+    "selection_only_change": "outlook_mode:fixture-fast-v1 -> fixture-fast-v2",
+    "model": "existing owner Pro gpt-6-sol low",
+    "voice": "same Kokoro Heart, speaking speed and CPU profile",
+    "one_verified_owner_child_restart": true,
+    "account_or_host_binding_changed": false,
+    "provider_connection_or_credentials_copied": false,
+    "real_provider_or_care_writes": 0,
+    "UI_bundles_unchanged": true,
+    "dependencies_pinned_no_install": true
+  },
+  "changes": [
+    "Strict whole-utterance full-message intent prefetches one unique complete Inbox snapshot match, exact selected folder/message ID and fresh authority; lower-trust body is supplied in one read-only model call. Ambiguous, missing, partial, mismatched and revoked scopes fail closed or clarify without guessing. Mixed/action utterances retain ordinary reviewed workflow.",
+    "Owner-v2 validates prepared meal choices without speculatively synthesizing their audio variants; requested meal speech is generated on demand. ASR may overlap draining canceled background jobs, but reasoning waits for drain and fresh scope.",
+    "Only explicit authorized Talk starts an optional bounded local recognition prelude from existing fixed public navigation audio after idle. No new startup warm-up, microphone activation, model calls or stored transcript. Default runtime behavior is unchanged."
+  ],
+  "regression": {
+    "passed": 1584,
+    "failed": 0,
+    "optional_skips": 2,
+    "files": 136,
+    "focused_subset": 122,
+    "typecheck": "pass",
+    "isolated_build": "pass",
+    "actual_SQL_HTTP_checks": 21,
+    "mocked_reasoning_calls": 4,
+    "real_provider_requests_in_probe": 0,
+    "cache_isolation": true,
+    "public_boundary_scan": {
+      "passed": true,
+      "files_scanned": 541,
+      "findings": 0
+    },
+    "roadmap_validation": "pass: 12 slices, 36 human actions, 89 automated checks, 42 live scenarios, 0 completed features",
+    "generated_human_actions_check": "pass",
+    "git_diff_whitespace_check": "pass"
+  },
+  "full_message": {
+    "method": "Three before, then three after fresh conversations on actual owner HTTPS; same recorded synthetic request, actual native ASR/existing Pro/Heart. Static connection preparation completes outside timed request. Sequential phases, not randomized; no simultaneous test-suite load. First native WAV availability excludes physical capture/playback/audibility.",
+    "before": {
+      "samples": 3,
+      "first_heart_ms": [
+        12295,
+        10665,
+        12784
+      ],
+      "median_ms": 12295,
+      "response_ms": [
+        10383,
+        10359,
+        12369
+      ],
+      "asr_ms": [
+        686,
+        441,
+        454
+      ],
+      "turns": [
+        {
+          "model_calls": 3,
+          "tool_calls": 2,
+          "input_tokens": 29050,
+          "output_tokens": 95,
+          "model_duration_ms": 9460,
+          "message_prefetch_hit": 0
+        },
+        {
+          "model_calls": 3,
+          "tool_calls": 2,
+          "input_tokens": 29041,
+          "output_tokens": 98,
+          "model_duration_ms": 9742,
+          "message_prefetch_hit": 0
+        },
+        {
+          "model_calls": 3,
+          "tool_calls": 2,
+          "input_tokens": 29050,
+          "output_tokens": 97,
+          "model_duration_ms": 11750,
+          "message_prefetch_hit": 0
+        }
+      ],
+      "all_changed_false": true,
+      "all_native_24khz": true
+    },
+    "after": {
+      "samples": 3,
+      "first_heart_ms": [
+        4146,
+        4289,
+        3849
+      ],
+      "median_ms": 4146,
+      "response_ms": [
+        3344,
+        4161,
+        3285
+      ],
+      "asr_ms": [
+        400,
+        377,
+        411
+      ],
+      "turns": [
+        {
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 1628,
+          "output_tokens": 46,
+          "model_duration_ms": 2546,
+          "message_prefetch_hit": 1
+        },
+        {
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 1628,
+          "output_tokens": 46,
+          "model_duration_ms": 3651,
+          "message_prefetch_hit": 1
+        },
+        {
+          "model_calls": 1,
+          "tool_calls": 0,
+          "input_tokens": 1628,
+          "output_tokens": 46,
+          "model_duration_ms": 2748,
+          "message_prefetch_hit": 1
+        }
+      ],
+      "all_changed_false": true,
+      "all_native_24khz": true
+    },
+    "median_reduction_percent": 66.3,
+    "exact_fixture_body_preserved_all_six": true,
+    "read_not_accept_or_performed": true
+  },
+  "preparation": {
+    "method": "One comparison per version; ordinary foreground session endpoint, readiness polling, Talk/static preparation then typed breakfast request and first native Heart. No ASR in this subtest. Existing per-process ten-minute preparation cap is retained; no statistical or phone-cold claim.",
+    "before": {
+      "ready_ms": 9045,
+      "first_requested_meal_audio_ms": 218,
+      "session_entry_to_first_audio_ms": 10332
+    },
+    "after": {
+      "ready_ms": 2950,
+      "first_requested_meal_audio_ms": 1095,
+      "session_entry_to_first_audio_ms": 6129
+    },
+    "all_changed_false": true,
+    "additional_reasoning_when_consuming_prepared_choice": 0,
+    "tradeoff": "On-demand first meal speech is slower than an already rendered clip; entry-to-first-audio is faster in this one comparison."
+  },
+  "rejected_startup_experiment": {
+    "method": "Fresh selected native worker processes, same cached model files/device/Heart/threads; no machine reboot, model or network inference. Three alternating matched pairs.",
+    "pairs": 3,
+    "baseline": [
+      {
+        "pair": 0,
+        "candidate": false,
+        "success": true,
+        "ready_ms": 13269,
+        "asr_ms": 460,
+        "asr_correct": true,
+        "tts_ms": 1326,
+        "request_to_wav_ms": 1787,
+        "boot_to_wav_ms": 15056,
+        "sample_rate": 24000
+      },
+      {
+        "pair": 1,
+        "candidate": false,
+        "success": true,
+        "ready_ms": 11942,
+        "asr_ms": 428,
+        "asr_correct": true,
+        "tts_ms": 1205,
+        "request_to_wav_ms": 1634,
+        "boot_to_wav_ms": 13576,
+        "sample_rate": 24000
+      },
+      {
+        "pair": 2,
+        "candidate": false,
+        "success": true,
+        "ready_ms": 11006,
+        "asr_ms": 465,
+        "asr_correct": true,
+        "tts_ms": 1286,
+        "request_to_wav_ms": 1751,
+        "boot_to_wav_ms": 12757,
+        "sample_rate": 24000
+      }
+    ],
+    "candidate": [
+      {
+        "pair": 0,
+        "candidate": true,
+        "success": true,
+        "ready_ms": 16365,
+        "asr_ms": 307,
+        "asr_correct": true,
+        "tts_ms": 1343,
+        "request_to_wav_ms": 1650,
+        "boot_to_wav_ms": 18015,
+        "sample_rate": 24000
+      },
+      {
+        "pair": 1,
+        "candidate": true,
+        "success": true,
+        "ready_ms": 14140,
+        "asr_ms": 457,
+        "asr_correct": true,
+        "tts_ms": 1219,
+        "request_to_wav_ms": 1676,
+        "boot_to_wav_ms": 15816,
+        "sample_rate": 24000
+      },
+      {
+        "pair": 2,
+        "candidate": true,
+        "success": true,
+        "ready_ms": 14239,
+        "asr_ms": 488,
+        "asr_correct": true,
+        "tts_ms": 1969,
+        "request_to_wav_ms": 2457,
+        "boot_to_wav_ms": 16696,
+        "sample_rate": 24000
+      }
+    ],
+    "deployed": false,
+    "reason": "Extra startup priming worsened median boot-to-WAV 13.576 -> 16.696 seconds; existing workers already warm recognition. Prototype removed. Fresh workers are not a host reboot or idle-phone trial.",
+    "model_or_network_requests": 0
+  },
+  "accounting": {
+    "requests": 22,
+    "unknown_request_events": 0,
+    "unknown_core_usage_events": 0,
+    "usage": {
+      "input_tokens": 102717,
+      "output_tokens": 498,
+      "total_tokens": 103215
+    },
+    "stages": {
+      "connection_preparation": 8,
+      "model": 12,
+      "meal_preparation": 2
+    },
+    "ledgers": [
+      {
+        "reference": ".local/outlook-tail-2026-10-26/before-request-cap.json",
+        "maximum": 24,
+        "closed": true,
+        "observed": 12,
+        "unknown": 0
+      },
+      {
+        "reference": ".local/outlook-tail-2026-10-26/before-preparation-cap.json",
+        "maximum": 12,
+        "closed": true,
+        "observed": 2,
+        "unknown": 0
+      },
+      {
+        "reference": ".local/outlook-tail-2026-10-26/after-request-cap.json",
+        "maximum": 24,
+        "closed": true,
+        "observed": 0,
+        "unknown": 0
+      },
+      {
+        "reference": ".local/outlook-tail-2026-10-26/after-ready-request-cap.json",
+        "maximum": 24,
+        "closed": true,
+        "observed": 6,
+        "unknown": 0
+      },
+      {
+        "reference": ".local/outlook-tail-2026-10-26/after-preparation-cap.json",
+        "maximum": 12,
+        "closed": true,
+        "observed": 2,
+        "unknown": 0
+      }
+    ],
+    "historical_ledgers_reopened": false,
+    "api_billing": false
+  },
+  "preservation": {
+    "passed": true,
+    "protected_files_unchanged": 929,
+    "expected_owner_control_proof_file_changes": 3,
+    "client_tables_unchanged": 64,
+    "owner_tables_unchanged": 67,
+    "original_sessions_preserved": 153,
+    "new_engineering_sessions": 6,
+    "all_new_sessions_closed": true,
+    "binding_unchanged": true,
+    "other_owner_selection_unchanged": true,
+    "Dad_process_and_release_unchanged": true,
+    "previous_dependency_cache_unchanged": true,
+    "both_voice_services_ready": true,
+    "home_and_safari_fixture_labels": true
+  },
+  "retained_failures": {
+    "initial_focused_test_deadlocked_its_own_PGlite_transaction": "Corrected revocation-test ordering, final suite passes.",
+    "post_restart_attempt": "start: voice_unavailable",
+    "failed_attempt_reasoning_requests": 0,
+    "failed_attempt_closed": true,
+    "retry_has_new_ledger": true,
+    "readiness_helper_variable_error": "Corrected reserved PowerShell variable name; final read-only checks pass."
+  },
+  "remaining_gates": [
+    "Historical 18.483-second first-read outlier is not reproduced or proved eliminated. Process startup still waits for existing speech/navigation preparation; extra boot warm-up was rejected. No matched long-idle, machine reboot or physical-phone cold benchmark.",
+    "Real Microsoft mailbox/provider timing and refresh/revocation/disconnect lifecycle are not exercised by owner synthetic fixtures.",
+    "Actual intended-person microphone, human-audible Heart, Safari Wi-Fi/cellular, genuine-day/client acceptance and full S01/S06 stay awaiting_live_test.",
+    "One preparation sample per version and three sequential message samples are engineering observations; mixed/long/partial message and successive-turn latency remain variable."
+  ],
+  "private_evidence_references": {
+    "before-private": ".local/outlook-tail-2026-10-26/before-private.json",
+    "full-final": ".local/outlook-tail-2026-10-26/full-final.json",
+    "focused-priority": ".local/outlook-tail-2026-10-26/focused-priority.json",
+    "http-probe": ".local/outlook-tail-2026-10-26/http-probe.json",
+    "cold-native": ".local/outlook-tail-2026-10-26/cold-native.json",
+    "before-message-private": ".local/outlook-tail-2026-10-26/before-message-private.json",
+    "after-message-private": ".local/outlook-tail-2026-10-26/after-message-private.json",
+    "after-ready-message-private": ".local/outlook-tail-2026-10-26/after-ready-message-private.json",
+    "before-preparation-private": ".local/outlook-tail-2026-10-26/before-preparation-private.json",
+    "after-preparation-private": ".local/outlook-tail-2026-10-26/after-preparation-private.json",
+    "deployment": ".local/outlook-tail-2026-10-26/deployment.json",
+    "preservation-private": ".local/outlook-tail-2026-10-26/preservation-private.json",
+    "readiness-final": ".local/outlook-tail-2026-10-26/readiness-final.json"
+  }
+}

@@ -1,6 +1,6 @@
 import{describe,it,expect,vi}from'vitest';
 import{randomUUID}from'node:crypto';
-import{prepareTurnContext,preparedFacts,preparedTools,preparedRecipeFacts,warmRecipeCatalogue}from'../src/server/prepared-context.js';
+import{isNextStepPlanning,prepareTurnContext,preparedFacts,preparedTools,preparedRecipeFacts,warmRecipeCatalogue}from'../src/server/prepared-context.js';
 import{currentNutritionReference,loadNutritionReference}from'../src/server/nutrition-reference.js';
 import{ConversationService}from'../src/server/conversation.js';
 import type{Reasoner}from'../src/server/plan-reasoner.js';
@@ -105,4 +105,9 @@ describe('owner-only prepared context',()=>{
  it('does not imply an imported connector from an ordinary task title',async()=>{const f=fixture();f.setTasks([{id:randomUUID(),title:'Check Asana',time_hint:null}]);try{
   const opening=await f.service.start(f.session);await f.service.turn(opening.session_id,f.session,randomUUID(),'Did the changes update Asana?');expect(f.respond.mock.calls[0][1]).not.toContain('Imported Asana task copies:');
  }finally{f.service.close();}});
+});
+
+describe('next-step planning routing',()=>{
+ it.each(['What should I do next?','What should I do now?','Nancy, please what should I do next?','What can I do today?','What is next for me?','Help me decide what to do next.'])('keeps full care facts and review capabilities: %s',text=>{expect(isNextStepPlanning(text)).toBe(true);expect(prepareTurnContext(text,reference,undefined,true,true).mode).toBe('full');});
+ it.each(['What comes next in this recipe?','What should I do next with this zipper?','What is next in the story?','What should I do about my medication?','Explain what happens next in an eclipse.'])('does not guess daily planning from unrelated next wording: %s',text=>expect(isNextStepPlanning(text)).toBe(false));
 });

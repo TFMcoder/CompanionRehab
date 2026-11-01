@@ -22,6 +22,7 @@ import {WarmPlanReasoner,PlanSocket} from './chatgpt-plan/warm-connection.js';
 import {reasoningCandidates} from './chatgpt-plan/inference.js';
 import {warmRecipeCatalogue} from './prepared-context.js';
 import {currentNutritionReference} from './nutrition-reference.js';
+import {ConversationArchive} from './conversation-archive.js';
 import type {ConversationTurnMetric,InferenceCallMetric,MealPreparationMetric,ConversationPreparationMetric} from './conversation.js';
 const startedAt = performance.now();
 loadEnvironment();
@@ -45,7 +46,7 @@ if(selection){
 }
 const reasoner=store&&config.planUserId?new PlanReasoner(store,config.planUserId,undefined,undefined,caregiver):undefined;
 const speech=config.voiceTransport==='local'&&care&&reasoner&&await reasoner.available()?new LocalSpeech():undefined;
-const fastSpeech=selection&&speech?new LocalSpeech({latencyTrial:true,dialogueTrial:true}):undefined;
+const fastSpeech=selection&&speech?new LocalSpeech({latencyTrial:true,dialogueTrial:true,foregroundPrime:selection.latency_mode==='outlook-speech-v2'}):undefined;
 const record=(metric:(ConversationTurnMetric|InferenceCallMetric|MealPreparationMetric|ConversationPreparationMetric)&{policy_ref?:string})=>{
   const { actor_id, conversation_id, turn_id, outcome, ...measurements } = metric;
   runtimeLog?.record({ kind: 'conversation', actor_id, conversation_id, turn_id, outcome: outcome === 'completed' ? 'ok' : outcome === 'failed' ? 'error' : 'interrupted', measurements });
@@ -60,10 +61,10 @@ if(selection&&rollout&&care&&store&&fastSpeech&&conversation&&caregiver){
   },()=>new PlanSocket(undefined,false),{actorId:selection.client_actor_id,clientId:selection.participant_id,caregiver,authorizeBinding:async binding=>{await rollout.authorizeBinding(binding);}});
   clientSessionRenewal=new ClientSessionRenewal(config.planUserId!,selection.client_actor_id,config.origin);
   const fast=new ConversationService(care,fastReasoner,config.planUserId!,undefined,(text,signal)=>fastSpeech.synthesize(text,signal),recordFast,recordFast,taskRequests,features,session=>microsoft?.eligible(session)??Promise.resolve(false),microsoft,new NancySuggestions(care.pool),
-    reasoningCandidates['sol-low'],true,72,true,true,true,recordFast,true,true,recordFast,true,true,true,clientSessionRenewal,undefined,rollout);
+    reasoningCandidates['sol-low'],true,72,true,true,true,recordFast,true,true,recordFast,true,true,true,clientSessionRenewal,undefined,rollout,false,false,selection.latency_mode==='outlook-speech-v2',config.origin,selection.speech_flow==='sentence-v1');
   conversation=new ClientConversationRouter(selection.client_actor_id,conversation,fast);
 }
-const app = await createApp(config, { care, speech, clientSpeech:selection&&fastSpeech?{actorId:selection.client_actor_id,speech:fastSpeech}:undefined, conversation, clientSessionRenewal, runtimeLog, taskRequests, features, microsoft, staticRoot:fileURLToPath(new URL('../../dist/client',import.meta.url)) });
+const app = await createApp(config, { archive:care&&config.sessionKey?new ConversationArchive(care.pool,config.sessionKey):undefined,care, speech, clientSpeech:selection&&fastSpeech?{actorId:selection.client_actor_id,speech:fastSpeech}:undefined, conversation, clientSessionRenewal, runtimeLog, taskRequests, features, microsoft, staticRoot:fileURLToPath(new URL('../../dist/client',import.meta.url)) });
 // Durable due jobs survive restarts. Outlook preparation is separately consented,
 // exact-account read-only retrieval; it never calls a model or opens a microphone.
 let schedulerBusy=false;

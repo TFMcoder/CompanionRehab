@@ -1,0 +1,42 @@
+# Dad latency rollout for the October 28 trial — October 27, 2026
+
+**October28 update:** The earlier NoState/public-link blocker is cleared after launching the existing desktop helper. Both public ingress addresses and authenticated readiness pass; no route/account/release change was needed. The new requested trial is October29. Provider Funnel incident/actual device limits remain. See [hosting recheck](HOSTING_RECHECK_2026-10-28.md). Earlier observations below are historical.
+
+
+The owner explicitly requested carrying the tested improvements into Dad's version for tomorrow's test. The client release is now `device-latency-2026-10-27`, revision `sha256:76dd59157ceb92f71e58bd79b0d3e695f584a43bd620e80e31664675ff77ff93`. This supersedes earlier Dad-unchanged instructions only for this exact software rollout. The existing caregiver authorization, actual client speaker, participant, Pro account, host and care grants remain pinned. There is no expanded account route, provider-issued exception claim, billed API fallback or repeated sign-in/consent requirement.
+
+The previous client release `device-2026-10-26` and its selection are retained with a guarded rollback helper. Only one freshly verified client child tree restarted. Neither supervisor nor the owner copy was restarted by this rollout. Existing login sessions and care state remain intact; rollback changes code/settings rather than restoring over care records.
+
+**Public access remains blocked.** The local deployment, login, connected Outlook status and voice checks pass, but the established HTTPS address resets before TLS. Tailscale reports NoState and “Tailscale is starting. Please wait.” Its saved profile remains selected; resume and desktop-helper startup did not recover it. Windows denied the service restart because administrator access is required. No new provider login or consent is indicated. An administrator must recover the existing Tailscale service before the phone trial. No global route reset or new public destination was configured.
+
+## What moved
+
+Strict Outlook date/intent prefetch, purpose-scoped retrieval and smaller relevant context now apply to the selected client route. An explicit full-message request can prefetch one unique message from complete selected Inbox results before one read-only model call. Exact folder/message IDs and returned IDs are checked, with fresh authority and scope validation before disclosure, inference and delivery. Missing, ambiguous, partial or revoked results cannot be guessed. Mixed planning/action requests retain the ordinary reviewed path; client approval still separates proposals, accepted plans and performed activities.
+
+Validated meal choices prepare without speculative audio variants; the requested audio is generated on demand. Foreground ASR can overlap cancellation of background jobs, while reasoning waits for cancellation and fresh authority. An explicit Talk action can prime local recognition from a cached fixed public phrase after idle. It never activates a microphone automatically or creates another remote model call. The slower extra startup-warm-up prototype remains excluded.
+
+The only new selected setting is `latency_mode=outlook-speech-v2`. The existing Sol-low/warm-v2 profile, Heart voice/speed/CPU settings, 72-character speech segmentation, client-only renewal and default routes for other people remain unchanged. Every selected-client binding rechecks the exact rollout file and original caregiver grants. A changed selection invalidates old conversation delivery without an ordinary-route fallback.
+
+Dad retains his real selected Calendar and Inbox: deployed readiness reports **connected**. The owner practice provider, sandbox care records, Asana adapter, test login, banner and Safari study are not enabled in Dad's runtime. The locked Current HTML/JavaScript/CSS are copied byte-for-byte from his prior qualified release. Pinned dependencies are copied into the new isolated release without installation or editing old releases.
+
+## Qualification
+
+The final frozen suite passes **1589 tests, 2 optional skips, across 136 files**. The 132 focused assertions overlap that total. Type checking, an isolated build and public-boundary scanning pass. Test caches and transformation temp files stay inside the candidate's private scratch area.
+
+Actual disposable PostgreSQL/HTTP passes **50 checks** over 34 local requests, with 7 fake model calls and zero real provider calls. It verifies exact client authorization, one-round detail prefetch, client-only acceptance, separate rescheduling/completion approvals, exact retries, retained schedules, renewal and revocation. Both newly generated qualification databases were removed. The first fixture's already-past 5 PM reschedule was correctly rejected; a future synthetic time passed. The failure remains retained.
+
+The first full restricted run had 1,581 passes and eight local-network/directory-alias permission failures, with two optional skips. The unchanged suite was rerun with the needed permissions; that final result is above. The initial focused attempt also hit a temporary-cache rename restriction before assertions; private temp storage fixed the environment. No application safeguard was removed for these retries. A failed private baseline probe during PostgreSQL startup was retried after recovery.
+
+**7 existing-Pro requests** pass 29 bounded checks under the exact existing caregiver/client/account/host/grants binding. Facts are public synthetic engineering inputs, with no real login session, person speech or care context. The checks include complete message-body and unconfirmed-suggestion preservation, selected Sol-low inference, bounded meal IDs/restrictions and known numeric usage. The fresh 24-request ledger is closed, unknown count 0, with **5145 input / 124 output / 5269 total tokens**, and no API billing. Historical closed allowances were not reused. These are inference qualification results, not a matched speed trial.
+
+Post-deployment exact-host loopback readiness passes **12 checks** over 6 requests: exact running entry and Current HTML, voice readiness, existing client login, actual authorized care scope, selected latency policy and truthful Outlook status. The local check uses the approved Host and Origin at 127.0.0.1:8787; it does not prove public DNS/TLS/phone access. No conversation, microphone or model request starts in this check. The new engineering login is closed.
+
+Preservation passes **1304 unchanged protected files**, plus exactly 3 expected client control/proof changes. All records across **64 client and 67 owner tables**, and **159 original login sessions**, retain their hashes. All 1 new engineering logins are closed. The account/host binding, every other client setting, owner process/release, prior dependency cache, Heart and Current assets remain unchanged. There are no real care/provider writes, credentials copied or migrations.
+
+## Tomorrow's trial and limits
+
+After the existing Tailscale service is recovered and the public address is rechecked, use the same Dad HTTPS address and existing login on October 28. Talk to Nancy remains the entry. The actual person/device trial should establish audible Heart, useful conversation, current appointments/Inbox facts, meal/planning usefulness, Stop/recovery and observed timing. Suggestions stay unsaved until the client explicitly accepts a reviewed change. This rollout does not schedule a reminder or an automated test.
+
+The owner fixture benchmark's full-message median **12.295 → 4.146 seconds** and preparation readiness **9.045 → 2.950 seconds** remain historical engineering evidence. They do not establish Dad's real-mailbox or physical-phone speed. On-demand meal audio was slower at request time (0.218 → 1.095 seconds) while total session-entry timing improved in one comparison. The historical 18.483-second cold tail is not proved eliminated. Actual intended-person microphone/audibility, Safari Wi-Fi/cellular, genuine-day acceptance, provider lifecycle and full S01/S06 remain **awaiting_live_test**. No human action or full slice is marked complete.
+
+See the [sanitized evidence](evidence/CLIENT-LATENCY-ROLLOUT-2026-10-27.json), [owner measurements](OUTLOOK_TAIL_LATENCY_2026-10-27.md) and original [exact-client rollout](CLIENT_SPEED_ROLLOUT_2026-10-26.md). Full private evidence, identities and credentials stay outside the public repository.

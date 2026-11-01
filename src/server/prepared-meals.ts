@@ -1,3 +1,4 @@
+import {assertRecipeRestrictions} from './recipe-restrictions.js';
 import {createHash} from 'node:crypto';
 import {z} from 'zod';
 import {mealStarterReferences,mealStarterContext} from './meal-starters.js';
@@ -11,6 +12,8 @@ export class PreparedMealError extends Error{constructor(readonly code:'invalid_
 
 /** Deliberately narrow: new constraints, dates, actions and follow-ups always miss. */
 export function preparedMealSlots(text:string):MealSlot[]|undefined{
+ const natural=/^(?:nancy[, ]+|please )*what (?:should|could|can) i (?:have|eat|make|cook) for (breakfast|lunch|dinner)(?: (?:today|tonight))?[?.! ]*$/i.exec(text.trim());
+ if(natural)return [natural[1]!.toLowerCase() as MealSlot];
  if(/\d/.test(text))return;
  const words=text.toLowerCase().replace(/\bwithout saving(?: anything)?\b/g,' ').replace(/[^a-z ]/g,' ').split(/\s+/).filter(Boolean);
  const allowed=new Set('what which meals meal do you recommend recommends for breakfast lunch and dinner from your repository meal library considering my saved preferences please suggest can could would give me some ideas options today the a of'.split(' '));
@@ -30,20 +33,9 @@ export function mealPreparationKey(binding:string,facts:unknown,material:ReturnT
 export function validateMealSelection(text:string,material:ReturnType<typeof mealPreparationMaterial>,facts:unknown){
  let parsed:z.infer<typeof mealSelectionSchema>;
  try{parsed=mealSelectionSchema.parse(JSON.parse(text));}catch{throw new PreparedMealError('invalid_selection');}
- const preferences=JSON.stringify(facts).toLowerCase();
  const recipes=mealSlots.map(slot=>material.recipes.find(recipe=>recipe.id===parsed[slot]&&recipe.category===slot));
  if(recipes.some(recipe=>!recipe))throw new PreparedMealError('incomplete_selection');
- for(const recipe of recipes as NutritionRecipe[]){
-  const ingredients=recipe.recipeYaml.split('ingredients:\n')[1]?.split('\nsteps:')[0]??'';
-  const avoid=new Set<string>();
-  for(const food of ['peanut','yogurt','milk','egg','fish','shellfish','soy','sesame','wheat','gluten','almond','walnut']){
-   if(new RegExp(`\\b${food}s?\\b`).test(preferences)&&(food==='peanut'||new RegExp(`(?:no|avoid|dislikes?|allerg\\w* to) ${food}|${food} allerg`).test(preferences)))avoid.add(food);
-  }
-  if(/\b(vegetarian|vegan)\b/.test(preferences))for(const food of ['beef','chicken','turkey','pork','salmon','tuna','fish','shrimp','gelatin','parmesan'])avoid.add(food);
-  if(/\bvegan\b/.test(preferences))for(const food of ['egg','milk','yogurt','cheese','butter','honey'])avoid.add(food);
-  const foodText=(recipe.title+' '+ingredients+' '+recipe.allergens.join(' ')).toLowerCase().replaceAll('_',' ');
-  for(const food of avoid)if(new RegExp(`\\b${food}s?\\b`).test(foodText))throw new PreparedMealError('conflicting_selection');
- }
+ try{assertRecipeRestrictions(recipes as NutritionRecipe[],facts);}catch{throw new PreparedMealError('conflicting_selection');}
  return Object.fromEntries(mealSlots.map((slot,i)=>[slot,recipes[i]!])) as Record<MealSlot,NutritionRecipe>;
 }
 /** Speak source titles with a bounded ingredient-based explanation, never invented nutrition values. */
@@ -52,5 +44,5 @@ export function renderPreparedMeals(recipes:Record<MealSlot,NutritionRecipe>,slo
  const names=slots.map(slot=>`For ${slot}, ${recipes[slot].title.replace(/[.!?]+$/,'')}.`).join(' ');
  const ingredients=selected.map(recipe=>recipe.recipeYaml.split('ingredients:\n')[1]?.split('\nsteps:')[0]??'').join(' ');
  const groups=[/wholegrain|whole_grain|oats|quinoa|brown_rice/.test(ingredients)?'whole grains':null,/lentil|bean|chickpea/.test(ingredients)?'beans or lentils':null,/spinach|broccoli|carrot|tomato|zucchini|pepper|mushroom|cucumber/.test(ingredients)?'vegetables':null].filter(Boolean);
- return `${names}${groups.length?' These include '+groups.join(', ')+'.':''} Check ingredients and cross-contact against your food restrictions.`;
+ return `${names}${groups.length?' These include '+groups.join(', ')+'.':''} The recipe cards include quantities and steps.`;
 }

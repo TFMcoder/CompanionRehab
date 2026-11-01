@@ -11,6 +11,23 @@ const ledger = (options: ActivityOption[]): ActivityLedger => ({
   local_date: today.local_date, options, entries: [], recent_entries: [], summary: { tasks_completed: 0, meals_eaten: 0, appointments_attended: 0, deferred: 0 },
 });
 describe('fresh participant-local priorities', () => {
+  it.each(['14:00','14:12','15:59'])('keeps lunch relevant at local %s rather than dropping it after 14:00',clock=>{
+    const state={...today,activity_reports:[{target_id:'breakfast',meal_slot:'breakfast' as const,status:'completed' as const,local_date:today.local_date,occurred_at:'2026-10-05T14:00:00Z'}]};
+    const context=priorityContext(state,new Date(`2026-10-05T${String(Number(clock.slice(0,2))+4)}:${clock.slice(3)}:00Z`));
+    expect(context.local_time).toBe(clock);expect(context.suggestions[0].kind).toBe('lunch');expect(context.suggestions[0].reason).toContain('Ask whether');
+  });
+  it('keeps an unknown-food check before a ledger-only optional task at 14:12',()=>{
+    const state={...today,activity_ledger:ledger([option({id:'optional',kind:'task',title:'Optional laundry',source_id:'laundry'})])};
+    expect(priorityContext(state,new Date('2026-10-05T18:12:00Z')).suggestions.map(s=>s.kind)).toEqual(['intake_check','task']);
+  });
+  it('does not recommend another lunch after a reported full meal or an explicit deferral',()=>{
+    for(const status of ['completed','deferred'] as const){const state={...today,activity_reports:[{target_id:'lunch',meal_slot:'lunch' as const,status,local_date:today.local_date,occurred_at:'2026-10-05T17:50:00Z'}]};
+      expect(priorityContext(state,new Date('2026-10-05T18:12:00Z')).suggestions.some(s=>s.kind==='lunch')).toBe(false);}
+  });
+  it('asks about recent unknown food instead of automatically proposing a full lunch',()=>{
+    const state={...today,activity_reports:[{target_id:'food',meal_slot:'breakfast' as const,status:'completed' as const,local_date:today.local_date,occurred_at:'2026-10-05T17:50:00Z'}]};
+    const c=priorityContext(state,new Date('2026-10-05T18:12:00Z'));expect(c.suggestions[0].kind).toBe('intake_check');expect(c.suggestions[0].reason).toContain('full meal or a snack is unknown');
+  });
   it.each([['09:59', 'before_morning'], ['10:00', 'morning_routine'], ['12:59', 'morning_routine'], ['13:00', 'morning_catchup'], ['14:59', 'morning_catchup'], ['15:00', 'daytime']])('handles morning and optional catch-up bounds at UTC %s', (utc, period) => {
     expect(priorityContext(today, new Date(`2026-10-05T${utc}:00Z`)).period).toBe(period);
   });

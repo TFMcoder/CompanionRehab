@@ -1,0 +1,231 @@
+{
+  "evidence_id": "OUTLOOK-OWNER-ENABLE-2026-10-26",
+  "recorded_at": "2026-10-26T22:20:58.967514Z",
+  "publication_allowed": true,
+  "status": "reviewed_fixed_and_enabled_owner_synthetic_copy_real_person_provider_gates_open",
+  "implementation_revision": "sha256:4993aff70923c6517803d42382c14120aeac85b76ee66abe89a1fbb5af30601f",
+  "review_findings": [
+    {
+      "finding": "A broader prepared week was passed to a single-day question without filtering out unrelated days.",
+      "fix": "Filter half-open overlapping event intervals before model input; retain source range, requested range, completeness/omissions and mark invalid-time exclusions incomplete.",
+      "tests": "Broader cached week, cross-midnight overlap, invalid event times and Inbox recency."
+    },
+    {
+      "finding": "A model could request an invented message ID in a selected folder, beyond the bounded disclosed Inbox snapshot.",
+      "fix": "Require an exact folder/message pair in the current authorized snapshot before the provider call, refresh that allowlist after context retrieval, and reject a mismatched returned ID without disclosing its body.",
+      "tests": "Invented ID, wrong folder, valid ID and mismatched result; actual SQL/HTTP forged identity and scope denials."
+    },
+    {
+      "finding": "Enabling the constructor flag alone would leave the owner runtime without a usable Outlook source.",
+      "fix": "Add an explicitly selected owner-only, read-only synthetic source with fresh SQL authority, no credentials/network/provider writes, dynamic local fixture dates, fixed trusted practice-source guidance and labelled pinned owner pages.",
+      "tests": "Exact private selection, wrong actor/client/role/login, changed grants/profile, incorrect database/role, origin/cookie/synthetic runtime restrictions and disabled real Microsoft routes."
+    }
+  ],
+  "activation": {
+    "owner_release": "outlook-fast-2026-10-26",
+    "owner_only": true,
+    "selection_added_only": "outlook_mode=fixture-fast-v1",
+    "model": "gpt-6-sol low",
+    "voice": "Kokoro Heart",
+    "provider_account_or_binding_changed": false,
+    "real_Microsoft_connection_added": false,
+    "fixture_source_has_credentials_or_network": false,
+    "provider_write_capability": false,
+    "one_verified_owner_child_restart": true,
+    "owner_supervisor_preserved": true,
+    "client_release_unchanged": true,
+    "UI_JS_and_CSS_bundles_unchanged": true,
+    "new_owner_static_root_pinned_to_qualified_release": true,
+    "owner_home_and_Safari_practice_notice": true
+  },
+  "regression": {
+    "passed": 1566,
+    "failed": 0,
+    "optional_skips": 2,
+    "files": 136,
+    "focused_from_same_final_run": 63,
+    "focused_files": 3,
+    "typecheck": "pass",
+    "isolated_build": "pass",
+    "test_and_Vite_caches_isolated": true,
+    "root_dependency_install": false,
+    "actual_owner_PostgreSQL_HTTP_checks": 18,
+    "mocked_reasoning_calls_in_HTTP_probe": 3,
+    "real_inference_requests_in_HTTP_probe": 0
+  },
+  "deployed_retest": {
+    "transport": "Actual established owner HTTPS audio/speech endpoints, recorded synthetic input, native ASR/Heart and existing owner Pro. No physical microphone or human listening.",
+    "source": "Dynamic labelled synthetic practice calendar/Inbox; real Microsoft API remains not configured in this copy.",
+    "distinct_initial_questions": 8,
+    "exact_retry": 1,
+    "fresh_warm_read": 1,
+    "accuracy_passed_submissions": 10,
+    "changed_false_for_all_submissions": true,
+    "all_first_parts_native_24khz": true,
+    "exact_retry_added_inference": false,
+    "simple_read_turns_with_numeric_hit": 6,
+    "all_simple_read_turns_model_calls": 1,
+    "simple_read_median_input_tokens": 1537.5,
+    "initial_batch": {
+      "distinct_questions": 8,
+      "exact_retries": 1,
+      "median_first_heart_ms": 4883.5,
+      "minimum_first_heart_ms": 3648,
+      "maximum_first_heart_ms": 18483,
+      "fast_read_median_ms": 4691,
+      "fast_read_samples": 5,
+      "cases": [
+        {
+          "id": "tomorrow",
+          "replay": false,
+          "first_heart_ms": 18483,
+          "response_ms": 10756
+        },
+        {
+          "id": "weekday",
+          "replay": false,
+          "first_heart_ms": 6302,
+          "response_ms": 4029
+        },
+        {
+          "id": "week",
+          "replay": false,
+          "first_heart_ms": 4691,
+          "response_ms": 4201
+        },
+        {
+          "id": "inbox",
+          "replay": false,
+          "first_heart_ms": 3767,
+          "response_ms": 3732
+        },
+        {
+          "id": "message",
+          "replay": false,
+          "first_heart_ms": 12399,
+          "response_ms": 12045
+        },
+        {
+          "id": "advice",
+          "replay": false,
+          "first_heart_ms": 4603,
+          "response_ms": 4528
+        },
+        {
+          "id": "unread",
+          "replay": false,
+          "first_heart_ms": 3648,
+          "response_ms": 3611
+        },
+        {
+          "id": "unread",
+          "replay": true,
+          "first_heart_ms": 38,
+          "response_ms": 19
+        },
+        {
+          "id": "general",
+          "replay": false,
+          "first_heart_ms": 5076,
+          "response_ms": 4964
+        }
+      ]
+    },
+    "warm_read": {
+      "first_heart_ms": 5027,
+      "response_ms": 3235
+    },
+    "full_message_reads": {
+      "model_calls": 3,
+      "tool_calls": 2,
+      "first_audio_ms": 12399,
+      "snapshot_ID_guard_passed": true
+    },
+    "cold_first_read": {
+      "first_audio_ms": 18483,
+      "asr_ms": 7841,
+      "model_ms": 2510,
+      "first_audio_request_ms": 7725,
+      "warm_comparison_asr_ms": 548,
+      "warm_comparison_model_ms": 2565,
+      "cause_inside_speech_stages_fully_instrumented": false
+    },
+    "no_controlled_before_after_speed_claim": true
+  },
+  "accounting": {
+    "requests": 14,
+    "unknown_core_usage_events": 0,
+    "usage": {
+      "input_tokens": 52775,
+      "output_tokens": 625,
+      "total_tokens": 53400
+    },
+    "stages": {
+      "model": 11,
+      "connection_preparation": 1,
+      "meal_preparation": 1,
+      "conversation_preparation": 1
+    },
+    "ledgers": [
+      {
+        "maximum": 64,
+        "observed": 12,
+        "closed": true
+      },
+      {
+        "maximum": 12,
+        "observed": 2,
+        "closed": true
+      }
+    ],
+    "unknown_request_events": 0,
+    "historical_ledgers_reopened": false,
+    "foreground_meal_and_chat_preparation_included": true,
+    "api_billing": false
+  },
+  "preservation": {
+    "passed": true,
+    "protected_files_unchanged": 354,
+    "expected_owner_file_changes": 3,
+    "client_tables_unchanged": 64,
+    "owner_tables_unchanged": 67,
+    "original_sessions_preserved": 148,
+    "new_engineering_sessions": 5,
+    "new_engineering_sessions_all_closed": true,
+    "account_host_binding_digest_unchanged": true,
+    "all_other_owner_reasoning_selection_fields_unchanged": true,
+    "Dad_process_release_settings_and_UI_unchanged": true,
+    "Heart_code_and_speech_segmentation_unchanged": true,
+    "credential_storage_and_plan_reasoner_code_unchanged": true,
+    "dependency_pins_unchanged": true,
+    "previous_dependency_cache_unchanged": true,
+    "real_care_or_provider_writes": 0,
+    "live_migrations": 0,
+    "real_Microsoft_credentials_copied": false
+  },
+  "retained_failures": {
+    "initial_staging_loader_path_error": true,
+    "initial_HTTP_probe_cookie_handling_error": true,
+    "application_correctly_cleared_forged_cookie": true,
+    "two_failed_probe_logins_closed_after_exact_three_probe_session_guard": true,
+    "no_application_repair_needed_for_harness_errors": true
+  },
+  "remaining_gates": [
+    "Real Microsoft provider and mailbox latency; owner source is deliberately synthetic.",
+    "Physical intended-person microphone, audible Heart, Safari Wi-Fi/cellular and genuine day acceptance.",
+    "Cold ASR/audio-availability tail remains; full-message retrieval still uses the ordinary larger-context tool path.",
+    "Mixed questions and single-cache-slot successive-turn latency remain separately qualified work.",
+    "Full S01/S06 and provider lifecycle gates remain awaiting_live_test."
+  ],
+  "private_evidence_references": {
+    "before": ".local/outlook-enable-2026-10-26/before-private.json",
+    "full_tests": ".local/outlook-enable-2026-10-26/full-final.json",
+    "SQL_HTTP": ".local/outlook-enable-2026-10-26/http-probe.json",
+    "deployment": ".local/outlook-enable-2026-10-26/deployment.json",
+    "voice": ".local/outlook-enable-2026-10-26/voice-private.json",
+    "warm_voice": ".local/outlook-enable-2026-10-26/warm-voice-private.json",
+    "preservation": ".local/outlook-enable-2026-10-26/preservation-private.json",
+    "readiness": ".local/outlook-enable-2026-10-26/readiness-final.json",
+    "engineering_login_cleanup": ".local/outlook-enable-2026-10-26/probe-login-cleanup.json"
+  }
+}

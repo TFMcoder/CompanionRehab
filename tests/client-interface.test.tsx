@@ -10,7 +10,7 @@ import {startLocalVoice} from '../src/client/local-voice';
 import {clientBackend,clientDay,clientResponse} from './helpers/client-interface-fixture';
 import type {ActivityEntry} from '../src/shared/activity-contracts';
 afterEach(()=>{cleanup();vi.resetAllMocks();vi.unstubAllGlobals();window.history.replaceState(null,'','/');});
-function voice(){let options!:Parameters<typeof startLocalVoice>[0];const handle={stop:vi.fn(async()=>{}),interrupt:vi.fn(),sendText:vi.fn(async()=>{})};vi.mocked(startLocalVoice).mockImplementation(async input=>{options=input;input.onReady?.(handle);input.onState('listening');return handle;});return {handle,options:()=>options};}
+function voice(){let options!:Parameters<typeof startLocalVoice>[0];const handle={stop:vi.fn(async()=>{}),interrupt:vi.fn(),sendText:vi.fn(async():Promise<boolean|void>=>{})};vi.mocked(startLocalVoice).mockImplementation(async input=>{options=input;input.onReady?.(handle);input.onState('listening');return handle;});return {handle,options:()=>options};}
 function taskActivityDay(status:ActivityEntry['status'],last_action:ActivityEntry['last_action'],scheduled_at:string|null='2026-10-20T03:00:00Z'){
  const today=structuredClone(clientDay),task={...today.tasks[0],scheduled_date:null,scheduled_time:null};today.tasks=[task];
  const entry:ActivityEntry={id:'saved-task-activity',kind:'task',title:task.title,local_date:today.local_date,source_id:task.id,meal_slot:null,plan_id:null,scheduled_at,status,revision:last_action==='rescheduled'?1:2,unplanned:false,occurred_at:status==='completed'?'2026-10-20T02:51:00Z':null,recorded_at:'2026-10-20T02:00:00Z',updated_at:'2026-10-20T02:51:00Z',notes:'',portion:null,last_action};
@@ -18,6 +18,51 @@ function taskActivityDay(status:ActivityEntry['status'],last_action:ActivityEntr
  return today;
 }
 describe('October 19 client interface contract',()=>{
+ it('enables Save Suggestions only for the current heard review and sends its exact review identifier once',async()=>{
+  const v=voice();clientBackend();render(<App/>);fireEvent.click(await screen.findByRole('button',{name:'Suggestions for Nancy'}));
+  expect(screen.getByRole('button',{name:'Save Suggestions'})).toBeDisabled();
+  fireEvent.click(screen.getByRole('button',{name:'Tell Nancy my suggestion'}));await screen.findByRole('button',{name:'Stop voice'});
+  act(()=>v.options().onReview?.({reply_id:'synthetic-review',confirmation_text:'save this preference'}));
+  const save=screen.getByRole('button',{name:'Save Suggestions'});expect(save).toBeEnabled();fireEvent.click(save);fireEvent.click(save);
+  await waitFor(()=>expect(v.handle.sendText).toHaveBeenCalledWith('save this preference','synthetic-review'));expect(v.handle.sendText).toHaveBeenCalledTimes(1);expect(save).toBeDisabled();
+ });
+ it('keeps typing disabled when the current account is not eligible for Nancy',async()=>{
+  clientBackend({override:path=>path==='/api/auth/session'?clientResponse({authenticated:true,role:'client',participant_id:clientDay.profile!.id,scope_key:'ineligible',voice_eligible:false,task_requests_available:false,local_features_available:false,microsoft_available:false}):undefined});render(<App/>);
+  expect(await screen.findByRole('button',{name:'Type to Nancy'})).toBeDisabled();expect(screen.queryByRole('textbox')).not.toBeInTheDocument();expect(startLocalVoice).not.toHaveBeenCalled();
+ });
+ it('offers optional typing with microphone-free startup, explicit send, and the same conversation across tabs',async()=>{
+  const v=voice(),backend=clientBackend();render(<App/>);fireEvent.click(await screen.findByRole('button',{name:'Type to Nancy'}));
+  const input=await screen.findByRole('textbox',{name:'Your message to Nancy'});expect(input).toHaveFocus();expect(input).toHaveAttribute('maxlength','2000');
+  expect(v.options().inputMode).toBe('typed');expect(screen.getByRole('button',{name:'End conversation'})).toBeInTheDocument();
+  fireEvent.change(input,{target:{value:'  What should I do next?  '}});fireEvent.click(screen.getByRole('button',{name:'Tasks'}));expect(input).toHaveValue('  What should I do next?  ');
+  expect(v.handle.sendText).not.toHaveBeenCalled();fireEvent.click(screen.getByRole('button',{name:'Send message'}));await waitFor(()=>expect(input).toHaveValue(''));
+  expect(v.handle.sendText).toHaveBeenCalledWith('What should I do next?');expect(startLocalVoice).toHaveBeenCalledOnce();
+  expect(backend.fetch.mock.calls.some(([url,init])=>String(url)==='/api/commands'&&init?.method==='POST')).toBe(false);
+ });
+ it('opens typing during voice without starting another conversation and retains drafts when hidden',async()=>{
+  const v=voice();clientBackend();render(<App/>);fireEvent.click(await screen.findByRole('button',{name:'Talk to Nancy'}));await screen.findByRole('button',{name:'Stop voice'});
+  fireEvent.click(screen.getByRole('button',{name:'Type to Nancy'}));fireEvent.change(screen.getByRole('textbox'),{target:{value:'A draft'}});fireEvent.click(screen.getByRole('button',{name:'Hide typing'}));
+  expect(screen.queryByRole('textbox')).not.toBeInTheDocument();fireEvent.click(screen.getByRole('button',{name:'Type to Nancy'}));expect(screen.getByRole('textbox')).toHaveValue('A draft');
+  expect(startLocalVoice).toHaveBeenCalledOnce();expect(v.handle.stop).not.toHaveBeenCalled();expect(v.options().inputMode).toBe('speech');
+ });
+ it('prevents duplicate sends, preserves a failed draft, and never retries it automatically',async()=>{
+  const v=voice();let settle!:(value:boolean)=>void;v.handle.sendText.mockImplementation(()=>new Promise(resolve=>{settle=resolve;}));
+  clientBackend();render(<App/>);fireEvent.click(await screen.findByRole('button',{name:'Type to Nancy'}));const input=await screen.findByRole('textbox');fireEvent.change(input,{target:{value:'save this change'}});
+  fireEvent.click(screen.getByRole('button',{name:'Send message'}));fireEvent.submit(screen.getByRole('form',{name:'Message Nancy'}));expect(v.handle.sendText).toHaveBeenCalledOnce();
+  await act(async()=>settle(false));expect(input).toHaveValue('save this change');expect(screen.getByRole('alert')).toHaveTextContent('not confirmed');expect(v.handle.sendText).toHaveBeenCalledOnce();
+ });
+ it('keeps a new draft written while the previous message is being answered',async()=>{
+  const v=voice();let settle!:()=>void;v.handle.sendText.mockImplementation(()=>new Promise<void>(resolve=>{settle=resolve;}));clientBackend();render(<App/>);
+  fireEvent.click(await screen.findByRole('button',{name:'Type to Nancy'}));const input=await screen.findByRole('textbox');fireEvent.change(input,{target:{value:'First message'}});fireEvent.click(screen.getByRole('button',{name:'Send message'}));
+  fireEvent.change(input,{target:{value:'Next message'}});await act(async()=>settle());expect(input).toHaveValue('Next message');
+ });
+ it('clears typed drafts and cancels late messages when the authenticated scope changes',async()=>{
+  const v=voice(),backend=clientBackend();let settle!:()=>void;v.handle.sendText.mockImplementation(()=>new Promise<void>(resolve=>{settle=resolve;}));render(<App/>);
+  fireEvent.click(await screen.findByRole('button',{name:'Type to Nancy'}));fireEvent.change(await screen.findByRole('textbox'),{target:{value:'Private old scope'}});fireEvent.click(screen.getByRole('button',{name:'Send message'}));
+  const old=v.options();backend.state.scope='new-scope';act(()=>window.dispatchEvent(new Event('nancy:scope-changed')));await waitFor(()=>expect(v.handle.stop).toHaveBeenCalled());
+  await act(async()=>{old.onTranscript('nancy','Late private reply');settle();});expect(screen.queryByRole('textbox')).not.toBeInTheDocument();expect(screen.queryByText('Late private reply')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button',{name:'Type to Nancy'}));expect(await screen.findByRole('textbox')).toHaveValue('');
+ });
  it('keeps the reviewed owner schedule across a voice-confirmed completion and shows actual time separately',async()=>{
   vi.stubGlobal('__NANCY_OWNER_TASK_DATES__',true);const v=voice(),backend=clientBackend({today:taskActivityDay('pending','rescheduled')});render(<App/>);
   const timeline=await screen.findByRole('region',{name:'Your day'});expect(within(timeline).getByRole('heading',{name:'Fold laundry'}).closest('li')).toHaveTextContent('11:00 p.m.');expect(within(timeline).queryByText(/Task done/)).not.toBeInTheDocument();

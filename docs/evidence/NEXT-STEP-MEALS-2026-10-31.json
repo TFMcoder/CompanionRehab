@@ -1,0 +1,84 @@
+{
+  "evidence_id": "NEXT-STEP-MEALS-2026-10-31",
+  "publication_allowed": true,
+  "recorded_at": "2026-10-31T19:11:05.248Z",
+  "implementation_revision": "sha256:38a649c57a39f4ff42780860b6f869e5c939d64730c420266738c03f447e2509",
+  "status": "engineering_qualified_inactive_candidate_awaiting_live_retest",
+  "finding": [
+    "Lunch suggestion window ended at 14:00, omitting an ordinary 14:12 afternoon lunch check.",
+    "Compact daily context exposed only breakfast status; all three meals now have bounded factual summaries.",
+    "A ledger-only task could be inserted before an unknown-intake check, hiding food when suggestions were capped at two."
+  ],
+  "behavior": {
+    "current_participant_local_clock_per_turn": true,
+    "meal_slots": [
+      "breakfast",
+      "lunch",
+      "dinner"
+    ],
+    "meal_report_statuses": [
+      "reported",
+      "deferred",
+      "unknown"
+    ],
+    "actual_occurrence_time_and_food_kind": true,
+    "accepted_choice_separate_from_eaten_report": true,
+    "lunch_considered_until_local_hour": 16,
+    "meal_window_is_soft_preference": true,
+    "food_check_before_discretionary_ledger_task": true,
+    "recent_full_meal_suppression_preserved": true,
+    "recent_unknown_food_clarification_preserved": true,
+    "explicit_deferral_respected": true,
+    "corrected_legacy_deferral_not_resurrected": true,
+    "no_implied_fasting_or_clinical_urgency": true,
+    "existing_client_review_and_approval_preserved": true
+  },
+  "validation": {
+    "full_passed": 1629,
+    "optional_skips": 2,
+    "failures": 0,
+    "files": 136,
+    "focused_passed": 79,
+    "focused_files": 3,
+    "focused_is_subset_of_full": true,
+    "typecheck": "pass",
+    "isolated_build": "pass; retained date/audio-startup selections; identical client bundles",
+    "coverage": [
+      "14:00,14:12,15:59 local lunch checks",
+      "14:12 unknown lunch with an accepted choice and optional task",
+      "fresh meal status and clock at14:20 on the next question",
+      "full meal versus snack versus unknown intake and deferral",
+      "correction/void precedence over legacy deferral",
+      "prior-day and future reports, stale choices and fall DST",
+      "exact caregiver authorization, calendar prefetch and write boundaries"
+    ],
+    "new_model_requests": 0,
+    "new_Graph_requests": 0,
+    "real_care_writes": 0,
+    "actual_ASR_Pro_Heart_retest": false,
+    "actual_person_or_phone_acceptance": false,
+    "dependency_install": false,
+    "initial_staging_and_timestamp_assertion_failures_retained": true,
+    "public_boundary": "pass: 552 files, zero findings",
+    "roadmap": "pass: generated human actions match; 12 slices, 36 human actions, 96 automated checks, 45 live scenarios, zero completed features"
+  },
+  "preservation": {
+    "active_manifested_files_unchanged": 1120,
+    "both_active_pointers_releases_and_runs_unchanged": true,
+    "prior_typing_candidate_preserved": true,
+    "Heart_UI_account_host_grant_binding_unchanged": true,
+    "credentials_copied": false,
+    "migration_or_API_billing": false
+  },
+  "limits": [
+    "Neither running copy changed. Dad still has the old next-step routing/meal-context behavior and does not yet have the pending typing feature.",
+    "Tests verify current facts, priority ordering, instructions and authorization with simulated model/Outlook. They do not prove actual model wording, speech capture, audible Heart, physical phone timing or genuine-client acceptance.",
+    "No latency claim or model token benchmark is inferred; this adds a fixed three-slot food summary without another model/router request or persistent snapshot."
+  ],
+  "private_evidence_references": {
+    "focused_initial": ".local/next-step-meals-2026-10-31/focused.json",
+    "focused_final": ".local/next-step-meals-2026-10-31/focused-final.json",
+    "full": ".local/next-step-meals-2026-10-31/full.json",
+    "preservation": ".local/next-step-meals-2026-10-31/active-preservation.json"
+  }
+}

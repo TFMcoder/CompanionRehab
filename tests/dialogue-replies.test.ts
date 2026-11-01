@@ -7,14 +7,14 @@ import{ownerTestDialogue,ownerTestTelemetryPolicy}from'../src/server/owner-test-
 const choice={breakfast:['B02','B04'],lunch:['L03','L01'],dinner:['D01','D03']};
 const response=(text:string):CompletedTurn=>({completed:true,model:'gpt-6-sol',effort:'low',text,output:[]});
 const services:ConversationService[]=[];afterEach(()=>{services.splice(0).forEach(s=>s.close());});
-function fixture(enabled=true,other=false){
+function fixture(enabled=true,other=false,priority=false){
  const owner=randomUUID(),session={user_id:other?randomUUID():owner,session_id:randomUUID(),issued_at:1,expires_at:9999999999,access_token:'synthetic',refresh_token:'synthetic'}as Session;
  let now=new Date('2026-10-22T15:00:00Z'),grant='one';
  const today={profile:{id:session.user_id,display_name:'Synthetic',time_zone:'America/Toronto',preferences:'Self-reported type 2 diabetes; peanut allergy; no yogurt',revision:1},role:'client',local_date:'2026-10-22',tasks:[],meal_options:[],checkin:null};
  const care={authorize:vi.fn(async()=>session),authority:async()=>({...await testAuthority(session),grant_revision:grant}),today:vi.fn(async()=>structuredClone(today)),command:vi.fn()}as unknown as CareService;
  const respond=vi.fn<Reasoner['respond']>(async()=>response(JSON.stringify(enabled?choice:{breakfast:'B02',lunch:'L03',dinner:'D01'}))),prepare=vi.fn(async()=>Buffer.from('synthetic Heart'));
  const metrics:any[]=[],preparations:any[]=[];
- const service=new ConversationService(care,{bind:async scope=>({...scope,route_id:'chatgpt_plan_owner_practice',qualification:'owner_practice',account_binding_id:'test'}),respond},owner,()=>now,prepare,m=>metrics.push(m),undefined,undefined,undefined,undefined,undefined,undefined,reasoningCandidates['sol-low'],true,72,true,true,true,m=>preparations.push(m),enabled);services.push(service);
+ const service=new ConversationService(care,{bind:async scope=>({...scope,route_id:'chatgpt_plan_owner_practice',qualification:'owner_practice',account_binding_id:'test'}),respond},owner,()=>now,prepare,m=>metrics.push(m),undefined,undefined,undefined,undefined,undefined,undefined,reasoningCandidates['sol-low'],true,72,true,true,true,m=>preparations.push(m),enabled,priority,undefined,false,false,false,undefined,undefined,undefined,priority,priority);services.push(service);
  const turn=async(id:string,text:string)=>service.turn(id,session,randomUUID(),text);
  const open=async()=>{await service.prepareMeals(session);const opening=await service.start(session);return opening.session_id;};
  return{service,session,today,care,respond,prepare,metrics,preparations,turn,open,revoke:()=>{grant='two';},expire:()=>{now=new Date(now.getTime()+600001);}};
@@ -80,4 +80,18 @@ it('reuses the exact first Heart part for a repeated source-detail question and 
 });
 it('does not permit a different actor to use the experiment',async()=>{
  const f=fixture(true,true);await expect(f.service.start(f.session)).rejects.toMatchObject({code:'experiment_owner_only'});expect(f.respond).not.toHaveBeenCalled();
+});
+
+it('keeps validated prepared meal choices without speculative audio in owner speech-priority mode',async()=>{
+ const f=fixture(true,false,true),id=await f.open();expect(f.respond).toHaveBeenCalledTimes(1);expect(f.prepare).not.toHaveBeenCalled();
+ const reply=await f.turn(id,'Recommend breakfast.');expect(f.respond).toHaveBeenCalledTimes(1);expect(f.prepare).toHaveBeenCalledTimes(1);expect(f.metrics.at(-1).prepared_meal_hit).toBe(1);expect(reply.changed).toBe(false);
+ const audio=await f.service.preparedAudio(id,f.session,reply.reply_id,splitSpeechParts(reply.text,72)[0],new AbortController().signal);expect(audio).toEqual(Buffer.from('synthetic Heart'));expect(f.care.command).not.toHaveBeenCalled();
+});
+it('revalidates stale owner-priority meal choices before reusing them',async()=>{
+ const f=fixture(true,false,true),id=await f.open();f.expire();f.respond.mockResolvedValue(response('{"recipe_ids":["B02"]}'));const reply=await f.turn(id,'Recommend breakfast.');expect(reply.recipes?.[0].id).toBe('B02');expect(f.respond).toHaveBeenCalledTimes(2);expect(f.metrics.at(-1).prepared_meal_hit).toBe(0);expect(f.care.command).not.toHaveBeenCalled();
+});
+it('decodes owner input while cancelled speculative preparation drains, but waits before reasoning',async()=>{
+ const f=fixture(true,false,true);let release!:(r:CompletedTurn)=>void;const held=new Promise<CompletedTurn>(resolve=>{release=resolve;});f.respond.mockImplementationOnce(()=>held).mockResolvedValue(response('A zipper joins two rows of teeth.'));
+ const preparation=f.service.prepareMeals(f.session);await vi.waitFor(()=>expect(f.respond).toHaveBeenCalledTimes(1));const id=(await f.service.start(f.session)).session_id,input=vi.fn(async()=> 'How does a zipper work?');const turn=f.service.turn(id,f.session,randomUUID(),input);
+ await vi.waitFor(()=>expect(input).toHaveBeenCalledTimes(1));expect(f.respond).toHaveBeenCalledTimes(1);release(response(JSON.stringify(choice)));await preparation;await turn;expect(f.respond).toHaveBeenCalledTimes(2);expect(f.care.command).not.toHaveBeenCalled();
 });

@@ -1,0 +1,97 @@
+{
+  "evidence_id": "HOSTING-RECHECK-2026-10-28",
+  "recorded_at": "2026-10-28T19:21:18.588Z",
+  "publication_allowed": true,
+  "status": "original_public_route_recovered_readiness_passes_provider_incident_caveat",
+  "implementation_revision": "sha256:76dd59157ceb92f71e58bd79b0d3e695f584a43bd620e80e31664675ff77ff93",
+  "planned_user_trial_local_date": "2026-10-29",
+  "recovery": {
+    "initial_state": "NoState; starting, later coordination-server synchronization warning",
+    "local_Nancy_services_ready_initially": true,
+    "desktop_helper_initially_not_running": true,
+    "action": "Launch existing Tailscale desktop app using computer-use skill; then CLI reported Running, original exact hostname online and empty health errors.",
+    "fresh_login_or_consent": false,
+    "account_or_host_binding_changed": false,
+    "Funnel_config_changed": false,
+    "original_443_8443_10000_routes_intact": true,
+    "application_restarts_or_release_changes": 0,
+    "new_software_installed": false,
+    "unattended_mode_changed": false
+  },
+  "public_readiness": {
+    "checks": 12,
+    "passed_checks": 12,
+    "http_requests": 6,
+    "transport": "public DNS ingress pinned, original HTTPS SNI/Host, normal TLS verification",
+    "normal_TLS_SNI_Host_validation": true,
+    "public_HTTPS_verified": true,
+    "existing_client_login": true,
+    "exact_client_care_and_performance_route": true,
+    "Current_page_matches_pinned_release": true,
+    "native_Heart_ready": true,
+    "Outlook_state": "connected",
+    "engineering_login_closed": true,
+    "physical_microphone": false,
+    "human_audibility": false,
+    "actual_phone": false
+  },
+  "public_ingress": {
+    "public_resolver_used": true,
+    "private_tailnet_resolution_not_used": true,
+    "final_addresses_tested": 2,
+    "all_final_TLS_config_voice_checks_pass": true,
+    "initial_addresses_passed": 1,
+    "initial_addresses_failed": 1,
+    "initial_failure": "One public edge reset TLS (ECONNRESET); subsequent checks passed on both public addresses. Initial probe also read a closed response socket too late; capture timing corrected without app changes.",
+    "provider_status_checked": "https://status.tailscale.com/",
+    "provider_report": "Funnel public DNS incident ongoing at time of inspection. Our DNS resolved and one TLS edge initially failed; this does not establish the incident caused that reset.",
+    "provider_cause_proven": false
+  },
+  "preservation": {
+    "passed": true,
+    "protected_files_unchanged": 1478,
+    "unexpected_changes": 0,
+    "client_tables_unchanged": 64,
+    "owner_tables_unchanged": 67,
+    "original_sessions_preserved": 160,
+    "new_engineering_logins": 1,
+    "all_new_logins_closed": true,
+    "binding_unchanged": true,
+    "client_selection_unchanged": true,
+    "both_process_identities_unchanged": true,
+    "both_releases_unchanged": true,
+    "Heart_and_UI_unchanged": true,
+    "old_dependency_cache_unchanged": true
+  },
+  "accounting": {
+    "reasoning_requests_started": 0,
+    "conversation_events_since_baseline": {
+      "client": 0,
+      "owner": 0
+    },
+    "care_or_provider_writes": 0,
+    "api_billing": false,
+    "historical_request_ledgers_reopened": false
+  },
+  "regression": {
+    "application_source_changes": false,
+    "prior_1589_tests_2_optional_skips_retained_not_rerun": true,
+    "public_boundary_scan": "pass: 545 public files, zero findings",
+    "generated_human_actions": "pass",
+    "roadmap_validation": "pass: 12 slices, 36 human actions, 91 automated checks, 43 live scenarios, zero completed features"
+  },
+  "remaining_limits": [
+    "Tailscale reports an ongoing Funnel DNS incident; both public addresses now pass, but provider reliability overnight is not guaranteed.",
+    "Keep the existing computer powered on, awake, connected and signed into Windows with Tailscale running. No unattended-before-login or new reboot guarantee is established.",
+    "Physical intended-person microphone, human-audible Heart, Safari Wi-Fi/cellular, genuine-day acceptance, cold tail, real mailbox latency and full S01/S06 remain awaiting_live_test."
+  ],
+  "private_evidence_references": {
+    "before-private": ".local/hosting-recheck-2026-10-28/before-private.json",
+    "readiness": ".local/hosting-recheck-2026-10-28/readiness.json",
+    "public-ingress-first": ".local/hosting-recheck-2026-10-28/public-ingress-first.json",
+    "public-ingress": ".local/hosting-recheck-2026-10-28/public-ingress.json",
+    "preservation-after": ".local/hosting-recheck-2026-10-28/preservation-after.json",
+    "inference-audit": ".local/hosting-recheck-2026-10-28/inference-audit.json",
+    "runtime-final": ".local/hosting-recheck-2026-10-28/runtime-final.json"
+  }
+}

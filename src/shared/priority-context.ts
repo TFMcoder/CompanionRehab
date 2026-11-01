@@ -1,6 +1,7 @@
 import type { PriorityContext, Today } from './contracts.js';
 import type { ActivityKind, ActivityOption } from './activity-contracts.js';
 import { dailyContext } from './daily-context.js';
+import {isMedicalAppointmentTask} from './medical-appointments.js';
 
 function localDate(instant: string, zone: string) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(instant));
@@ -34,7 +35,7 @@ export function priorityContext(today: Today, now = new Date()): PriorityContext
   };
   const reports = (today.activity_reports || []).filter(report => report.local_date === today.local_date);
   const resolved = new Set(reports.filter(report => report.status === 'completed' || report.status === 'deferred').map(report => report.target_id));
-  const mealResolved = (slot: 'breakfast' | 'lunch' | 'dinner') => reports.some(report => report.meal_slot === slot && (report.status === 'completed' || report.status === 'deferred'));
+  const mealResolved = (slot: 'breakfast' | 'lunch' | 'dinner') => temporal.meals.some(meal => meal.slot === slot && meal.report_status !== 'unknown');
   const breakfastEaten = temporal.morning.breakfast_status === 'reported';
   const appointmentCandidates = (today.appointments || []).flatMap(appointment => {
     const option = activity('appointment', appointment.id);
@@ -57,7 +58,8 @@ export function priorityContext(today: Today, now = new Date()): PriorityContext
     reason: 'There has been no recent food report during the preferred day window. Ask whether and when food was eaten; missing reports do not prove fasting or that the person was awake.' });
   const canSuggestMeal = temporal.intake.automatic_full_meal === 'eligible' && !temporal.intake.check_needed;
   let mealNeedsReview = false;
-  const mealSlot = hour >= 11 && hour < 14 ? 'lunch' : hour >= 17 && hour < 20 ? 'dinner' : undefined;
+  // Lunch remains relevant throughout the afternoon; 14:00 is not a cutoff.
+  const mealSlot = hour >= 11 && hour < 16 ? 'lunch' : hour >= 17 && hour < 20 ? 'dinner' : undefined;
   if (mealSlot) {
     const meal = today.checkin?.accepted?.meals.find(m => m.slot === mealSlot);
     if (!mealResolved(mealSlot) && pending(activity('meal', meal?.option_id, mealSlot))) {
@@ -106,18 +108,19 @@ export function priorityContext(today: Today, now = new Date()): PriorityContext
     return (aTime || '99:99').localeCompare(bTime || '99:99') || rank[a.urgency || 'medium'] - rank[b.urgency || 'medium'];
   });
   const quietTaskWindow = temporal.task_window.after_finish_target || period === 'before_morning';
-  const feasibleTask = quietTaskWindow ? undefined : scheduled.find(candidate => {
+  const feasibleTasks = quietTaskWindow ? [] : scheduled.filter(candidate => {
     const option = ledger?.options.find(item => item.id === candidate.key);
     const source = option?.source_id ?? (candidate.key.startsWith('task:') ? candidate.key.slice(5) : null);
     return temporal.task_timing.find(item => item.task_id === source)?.duration_fits_before_finish_target !== false;
   });
+  const feasibleTask = feasibleTasks.find(candidate=>isMedicalAppointmentTask(candidate.title))??feasibleTasks[0];
   if (feasibleTask) {
     const { title, scheduledAt, fallbackTime, ledgerOnly } = feasibleTask;
     const time = scheduledAt ? localTime(scheduledAt, zone) : fallbackTime;
-    const suggestion = { kind: 'task', label: title, reason: time ? `Planned for ${time}; ask about its current status.` : 'From the accepted plan; check timing and readiness.' };
+    const suggestion = { kind: 'task', label: title, reason: (time ? `Planned for ${time}; ask about its current status.` : 'From the accepted plan; check timing and readiness.')+(isMedicalAppointmentTask(title)?' Review this medical appointment task before discretionary chores, with client choice and no inferred clinical urgency.':'') };
     if (!suggestions.some(existing => existing.label === title)) {
       if (ledgerOnly) {
-        const firstRoutine = suggestions.findIndex(existing => !['appointment', 'breakfast', 'lunch', 'dinner'].includes(existing.kind));
+        const firstRoutine = suggestions.findIndex(existing => !['appointment', 'breakfast', 'lunch', 'dinner', 'intake_check'].includes(existing.kind));
         suggestions.splice(firstRoutine < 0 ? suggestions.length : firstRoutine, 0, suggestion);
       } else suggestions.push(suggestion);
     }

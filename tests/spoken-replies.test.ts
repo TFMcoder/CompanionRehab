@@ -7,7 +7,7 @@ import type{CareService}from'../src/server/care-access.js';import type{Reasoner}
 it('limits the policy replacement to two read-only modes',()=>{
  for(const mode of ['full','recipe','schedule']as const)expect(spokenReplyGuidance(mode,'authority')).toBeUndefined();
  expect(spokenReplyGuidance('conversation','authority')).toContain('Do not merely echo');
- const meals=spokenReplyGuidance('meals','UNIQUE NUTRITION AUTHORITY')!;expect(meals).toContain('UNIQUE NUTRITION AUTHORITY');expect(meals).toContain('cross-contact');expect(meals).toContain('prescribed target');
+ const meals=spokenReplyGuidance('meals','UNIQUE NUTRITION AUTHORITY')!;expect(meals).toContain('UNIQUE NUTRITION AUTHORITY');expect(meals).toContain('without re-asking');expect(meals).toContain('prescribed target');
 });
 it('is off by default and rejects incomplete or mismatched private activation',()=>{
  const config={owner_actor_id:randomUUID(),participant_id:randomUUID(),origin:'https://synthetic.example:10000'}as any;
@@ -33,7 +33,7 @@ function fixture(enabled=true,other=false,caregiver=false){
 it('keeps fresh preferences, nutrition sources and read-only tools; full actions retain their policy',async()=>{
  const f=fixture();try{const opening=await f.service.start(f.session);
   await f.service.turn(opening.session_id,f.session,randomUUID(),'What meals do you recommend for breakfast, lunch and dinner?');
-  const call=f.respond.mock.calls[0];expect(call[1]).toContain('usually 35–45 words');expect(call[5]?.policy_version).toContain(':spoken-v1');expect(call[2]).toEqual([]);expect(JSON.stringify(call[0])).toContain('peanut allergy');expect(JSON.stringify(call[0])).toContain('carb_sources');expect(JSON.stringify(call[0])).toContain('ingredient_names');expect(JSON.stringify(call[0])).toContain('B05');
+  const call=f.respond.mock.calls[0];expect(call[1]).toContain('exact recipe yield and quantities');expect(call[5]?.policy_version).toContain(':spoken-v1');expect(call[2]).toEqual([]);expect(JSON.stringify(call[0])).toContain('peanut allergy');expect(JSON.stringify(call[0])).toContain('carb_sources');expect(JSON.stringify(call[0])).toContain('ingredient_names');expect(JSON.stringify(call[0])).toContain('B05');
   f.changePreference();await f.service.turn(opening.session_id,f.session,randomUUID(),'Why does sleep help memory?');const next=f.respond.mock.calls[1];expect(next[1]).toContain('15–28 words');const fresh=next[0].find(item=>typeof item.content==='string'&&item.content.startsWith('Current authorized facts'));expect(JSON.stringify(fresh)).toContain('Milk allergy');expect(JSON.stringify(fresh)).not.toContain('peanut allergy');expect(next[2]).toEqual([]);
   await f.service.turn(opening.session_id,f.session,randomUUID(),'Remember my new breakfast preference.');expect(f.respond.mock.calls[2][1]).not.toContain('15–28 words');expect(f.respond.mock.calls[2][2].length).toBeGreaterThan(0);expect(f.command).not.toHaveBeenCalled();
   await f.service.turn(opening.session_id,f.session,randomUUID(),'Recommend breakfast, lunch, dinner and snacks.');expect(f.respond.mock.calls[3][2].map(tool=>tool.name)).toEqual(['get_nutrition_reference']);

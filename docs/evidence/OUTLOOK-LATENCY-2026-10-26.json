@@ -1,0 +1,319 @@
+{
+  "evidence_id": "OUTLOOK-LATENCY-2026-10-26",
+  "recorded_at": "2026-10-26T21:37:29.158407Z",
+  "publication_allowed": true,
+  "status": "owner_only_default_off_candidate_engineering_qualified_not_promoted",
+  "implementation_revision": "sha256:a9b0e25652af91344c169be359115d76ab3c224ad37288729878b387d29dde3b",
+  "source_hashes": {
+    "src/server/conversation.ts": "da61323fb335ebb22fe6e1e8fc81bcae76f9c22d424e81c3530554888cef3cbc",
+    "src/server/microsoft/fast-read.ts": "9379b0e32d5b86a96e48fa275c571a0e447485228f20b3c8e1da59aead5312b9",
+    "src/server/microsoft/preparation.ts": "c9b85de939874054a73724293d68207c607e2f46371b7a7aae1beba8947641a1",
+    "src/server/microsoft/service.ts": "4113a83e803c12d72d8792aaf3e0e34922a52142f52be1f48f701ddf7c46b745",
+    "tests/outlook-fast-read.test.ts": "31de0daef84b39eb7c515c0c8a6e01877825450207cddbe66eb550c4be6da2c0"
+  },
+  "scope": {
+    "model": "gpt-6-sol",
+    "effort": "low",
+    "voice": "Kokoro Heart",
+    "connection_profile": "existing owner warm-v2; connector requests use the existing bound HTTP reasoning path",
+    "Current_unchanged": true,
+    "caregiver_route_unchanged": true,
+    "new_Microsoft_connection_or_credentials": false,
+    "api_billing": false,
+    "live_data_or_host_migration": false,
+    "fixture_schema_initialized": true,
+    "deployed": false
+  },
+  "implementation": {
+    "whole_utterance_read_allowlist": true,
+    "participant_local_weekday_week_and_DST_ranges": true,
+    "calendar_only_or_Inbox_only_reads": true,
+    "scope_aware_encrypted_snapshot_reuse": true,
+    "unrelated_care_facts_and_tool_schemas_omitted": true,
+    "core_policy_safety_context_history_and_authorization_preserved": true,
+    "calendar_prefetch_removes_redundant_read_tool": true,
+    "exact_message_detail_tool_remains_for_Inbox": true,
+    "ambiguous_mixed_action_and_planning_path_preserved": true,
+    "no_consent_or_disconnected_path_preserved": true,
+    "client_rollout_combination_rejected": true
+  },
+  "method": {
+    "input": "Prepared synthetic native Heart clips, retranscribed on each turn by actual local ASR.",
+    "server": "Actual authenticated audio and speech HTTP handlers exercised with app.inject, real PostgreSQL and existing owner-bound Sol-low. No public HTTPS/phone network timing.",
+    "Outlook": "Injected synthetic Graph at the existing MicrosoftService boundary; no real Microsoft requests or credential copying.",
+    "clock": "Fixed October 26 noon Toronto; complete/partial/empty and positive busy fixtures.",
+    "first_audio": "Clip received through ASR/reasoning/tool execution until final-authorized first native 24 kHz WAV is available. Streaming synthesis may overlap reasoning; stage medians are not additive.",
+    "warmup": "Static connection preparation awaited before timed turn and counted separately. Native speech workers warm; connector snapshots cleared between arms.",
+    "comparison": "Alternating arm order; reverse order for the quiet repeat. First HTTP batch overlapped regression work; quiet repeat had no concurrent regression run. Single example per case/arm in each batch; no percentile or statistical-significance claim.",
+    "final_guard_review": "After the first HTTP batch and during the quiet repeat, review added the connected/eligible/disclosure gate to keep nonconsenting/disconnected turns on their original path. Connected benchmark branch, policy, payload and tools are unchanged; final regressions exercise the final guard.",
+    "phone_capture_playback_or_human_audibility": false
+  },
+  "quiet_repeat": {
+    "baseline": {
+      "candidate": false,
+      "n": 7,
+      "first_heart_median": 6406,
+      "first_heart_min": 4096,
+      "first_heart_max": 7478,
+      "model_calls": 12,
+      "input_tokens_per_call_median": 2981.0,
+      "input_tokens_per_turn_median": 5578,
+      "asr_median": 670.6783999999989,
+      "model_ms_per_turn_median": 4844,
+      "source_ms_per_turn_median": 29
+    },
+    "candidate": {
+      "candidate": true,
+      "n": 7,
+      "first_heart_median": 4338,
+      "first_heart_min": 3628,
+      "first_heart_max": 5325,
+      "model_calls": 7,
+      "input_tokens_per_call_median": 1280,
+      "input_tokens_per_turn_median": 1280,
+      "asr_median": 664.3306000000011,
+      "model_ms_per_turn_median": 3225,
+      "source_ms_per_turn_median": 28
+    },
+    "median_reduction_percent": 32.28,
+    "pairs": [
+      {
+        "case_id": "tomorrow",
+        "baseline_ms": 4096,
+        "candidate_ms": 4845
+      },
+      {
+        "case_id": "weekday",
+        "baseline_ms": 7452,
+        "candidate_ms": 4871
+      },
+      {
+        "case_id": "next_week",
+        "baseline_ms": 6150,
+        "candidate_ms": 5325
+      },
+      {
+        "case_id": "dst_week",
+        "baseline_ms": 4462,
+        "candidate_ms": 4338
+      },
+      {
+        "case_id": "inbox",
+        "baseline_ms": 7478,
+        "candidate_ms": 3928
+      },
+      {
+        "case_id": "empty",
+        "baseline_ms": 6406,
+        "candidate_ms": 3628
+      },
+      {
+        "case_id": "partial",
+        "baseline_ms": 6507,
+        "candidate_ms": 4026
+      }
+    ],
+    "all_scored_accurate": true
+  },
+  "first_HTTP_batch": {
+    "stats": [
+      {
+        "candidate": false,
+        "n": 7,
+        "first_heart_median": 7460,
+        "first_heart_min": 4493,
+        "first_heart_max": 9634,
+        "model_calls": 12,
+        "input_tokens_per_call_median": 2993.0,
+        "input_tokens_per_turn_median": 5602,
+        "asr_median": 686.4393999999957,
+        "model_ms_per_turn_median": 5041,
+        "source_ms_per_turn_median": 27
+      },
+      {
+        "candidate": true,
+        "n": 7,
+        "first_heart_median": 4356,
+        "first_heart_min": 3987,
+        "first_heart_max": 5072,
+        "model_calls": 7,
+        "input_tokens_per_call_median": 1280,
+        "input_tokens_per_turn_median": 1280,
+        "asr_median": 686.1190999999963,
+        "model_ms_per_turn_median": 3021,
+        "source_ms_per_turn_median": 14
+      }
+    ],
+    "pairs": [
+      {
+        "case_id": "tomorrow",
+        "baseline_ms": 7070,
+        "candidate_ms": 4356
+      },
+      {
+        "case_id": "weekday",
+        "baseline_ms": 7460,
+        "candidate_ms": 4802
+      },
+      {
+        "case_id": "next_week",
+        "baseline_ms": 7593,
+        "candidate_ms": 4765
+      },
+      {
+        "case_id": "dst_week",
+        "baseline_ms": 4493,
+        "candidate_ms": 5072
+      },
+      {
+        "case_id": "inbox",
+        "baseline_ms": 7674,
+        "candidate_ms": 4128
+      },
+      {
+        "case_id": "empty",
+        "baseline_ms": 6589,
+        "candidate_ms": 3987
+      },
+      {
+        "case_id": "partial",
+        "baseline_ms": 9634,
+        "candidate_ms": 4176
+      }
+    ],
+    "scored_turns": 20,
+    "accuracy_passed": 20,
+    "unoptimized_mixed_advice_pairs": 3,
+    "concurrent_regressions": true
+  },
+  "accuracy": {
+    "scored_HTTP_turns": 34,
+    "passed": 34,
+    "failed": 0,
+    "candidate_passed": 17,
+    "baseline_passed": 17,
+    "automated_source_metadata_and_manual_answer_checks": 254,
+    "known_14_to_15_appointment": true,
+    "proposed_14_30_task_overlap_explained": true,
+    "appointment_email_not_a_confirmed_booking": true,
+    "unread_not_unanswered": true,
+    "169_elapsed_hour_seven_local_day_interval": true,
+    "empty_and_partial_distinguished": true,
+    "changed_false_for_every_scored_turn": true,
+    "no_accepted_plans_or_actual_reports_in_each_owned_fixture": true,
+    "provider_injection_followed": false,
+    "native_first_parts_24khz": 34
+  },
+  "regression": {
+    "passed": 1549,
+    "failed": 0,
+    "optional_skips": 2,
+    "files": 135,
+    "new_fast_read_tests": 37,
+    "typecheck": "pass",
+    "isolated_Current_build": "pass",
+    "results_cache_disabled_for_final_full_suite": true,
+    "initial_focused_passes": 64,
+    "focused_count_overlaps_full_suite": true
+  },
+  "accounting": {
+    "attempts": 128,
+    "model_requests": 74,
+    "static_preparation_requests": 54,
+    "unknown_core_usage_events": 0,
+    "numeric_core_usage": {
+      "input_tokens": 238227,
+      "output_tokens": 3090,
+      "total_tokens": 241317
+    },
+    "optional_usage_unknowns_preserved": {
+      "cached_input_tokens": 0,
+      "reasoning_output_tokens": 0
+    },
+    "ledgers": [
+      {
+        "name": "preliminary screen",
+        "used": 48,
+        "cap": 80,
+        "closed": true
+      },
+      {
+        "name": "HTTP comparison",
+        "used": 47,
+        "cap": 80,
+        "closed": true
+      },
+      {
+        "name": "quiet repeat",
+        "used": 33,
+        "cap": 40,
+        "closed": true
+      }
+    ],
+    "prior_closed_ledgers_reopened": false,
+    "real_Microsoft_requests": 0,
+    "api_billing": false
+  },
+  "preservation": {
+    "protected_runtime_source_assets_settings_and_pointer_files": 354,
+    "protected_file_checks_passed": 354,
+    "protected_file_checks_failed": 0,
+    "both_original_application_and_supervisor_identities_preserved": true,
+    "both_readiness_endpoints_configured_and_voice_ready": true,
+    "application_restarts_initiated": 0,
+    "live_care_or_owner_practice_database_opened_by_trial": false,
+    "real_care_records_sessions_or_provider_writes_initiated": false,
+    "row_by_row_live_care_audit_performed": false,
+    "owned_fixture_databases_created_and_removed": 3,
+    "root_dependency_install": false,
+    "package_files_with_observed_write_since_start": 0,
+    "exception": {
+      "generated_test_cache_files_updated": 1,
+      "location": "owner pinned dependency node_modules/.vite/vitest/.../results.json",
+      "cause": "Vitest results cache followed the candidate dependency junction.",
+      "runtime_source_settings_assets_or_package_file_change": false,
+      "corrective_action": "Stopped only the verified own test process tree; final full suite uses --no-cache and the generated-cache digest is unchanged after that final execution.",
+      "original_cache_digest_captured": false,
+      "exact_release_directory_immutability_claimed": false
+    }
+  },
+  "preliminary_and_failed_attempts": {
+    "first_screen_turns": 20,
+    "first_screen_requests_counted": 48,
+    "included_in_final_accuracy_or_latency": false,
+    "exclusion_reasons": [
+      "Earlier candidate policy/tools",
+      "Ambiguous relative date in an older synthetic email; final fixture uses an explicit date",
+      "Concurrent regressions"
+    ],
+    "initial_harness_failures_retained": true,
+    "initial_incomplete_staging_and_type_errors_resolved": true,
+    "earlier_1545_pass_full_run_not_final_revision_qualification": true,
+    "interrupted_final_run_not_reported_as_pass": true,
+    "first_cache_disabled_full_run": {
+      "passed": 1548,
+      "failed": 1,
+      "optional_skips": 2,
+      "cause": "Test incorrectly expected no tools on the preserved no-disclosure path; the authorized local activity-ledger read correctly remains. Test corrected without application behavior change."
+    }
+  },
+  "limitations": [
+    "Only explicit whole-utterance forms qualify; next-Wednesday ambiguity, mixed actions and planning retain the original path.",
+    "Tomorrow was 0.749 seconds slower in the quiet candidate repeat; single-round latency remains variable.",
+    "Mixed planning/advice latency is not optimized by this candidate.",
+    "Scoped snapshots share the existing single cache slot; subsequent mixed-source questions may need a fresh combined read, and successive-turn latency remains unqualified.",
+    "Synthetic Graph omits actual Microsoft network/provider latency and does not qualify provider lifecycle recovery.",
+    "No actual phone/Safari capture, network, playback or human-audible measurement; genuine-day and full S01/S06 gates remain awaiting_live_test.",
+    "No release has been activated. The candidate is owner-only; promotion needs a concrete exact-route review and separate qualification."
+  ],
+  "private_evidence_references": {
+    "preliminary": ".local/outlook-latency-2026-10-26/benchmark-private.json",
+    "HTTP": ".local/outlook-latency-2026-10-26/http-benchmark-private.json",
+    "quiet_repeat": ".local/outlook-latency-2026-10-26/repeat-benchmark-private.json",
+    "accuracy": ".local/outlook-latency-2026-10-26/accuracy-audit-private.json",
+    "full_regression": ".local/outlook-latency-2026-10-26/full-final-verified.json",
+    "preservation": ".local/outlook-latency-2026-10-26/preservation-files.json",
+    "readiness": ".local/outlook-latency-2026-10-26/readiness-final.json",
+    "failures_and_cache_exception": ".local/outlook-latency-2026-10-26/initial-failures.json"
+  }
+}

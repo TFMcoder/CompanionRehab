@@ -7,6 +7,8 @@ import {MicrosoftGraphClient,MicrosoftGraphError} from './graph.js';
 import {sealMicrosoftSecret,openMicrosoftSecret} from './credential-storage.js';
 import {MicrosoftOAuthError,type MicrosoftTokenSet} from './oauth.js';
 import {outlookDateRange} from './conversation.js';
+import {mailSearchQuery} from './mail-search.js';
+import type {MicrosoftMailSearch} from '../../shared/microsoft-contracts.js';
 import {compactMicrosoftContext,recentInboxRange,usablePreparedContext,preparationFreshMs,type PreparedMicrosoftContext} from './preparation.js';
 import {microsoftSelectionSchema,microsoftReadRangeSchema,microsoftPrepareSchema,microsoftConfirmSchema,type MicrosoftAction,type MicrosoftActionReview,type MicrosoftActionReceipt,type MicrosoftActionState,type MicrosoftSelection,type MicrosoftReadRange,type MicrosoftStatus} from '../../shared/microsoft-contracts.js';
 
@@ -16,7 +18,7 @@ export interface MicrosoftOAuth {
  exchangeCode(input:{code:string;codeVerifier:string;nonce:string},signal?:AbortSignal):Promise<MicrosoftTokenSet>;
  refreshTokens(previous:MicrosoftTokenSet,signal?:AbortSignal):Promise<MicrosoftTokenSet>;
 }
-type Graph=Pick<MicrosoftGraphClient,'verifyIdentity'|'listCalendars'|'listMailFolders'|'calendarView'|'listMessages'> & Partial<Pick<MicrosoftGraphClient,'getMessage'|'getCalendarEvent'|'createMailDraft'|'sendCreatedDraft'|'inspectCreatedMessage'|'createCalendarEvent'>>;
+type Graph=Pick<MicrosoftGraphClient,'verifyIdentity'|'listCalendars'|'listMailFolders'|'calendarView'|'listMessages'> & Partial<Pick<MicrosoftGraphClient,'searchMessages'|'getMessage'|'getCalendarEvent'|'createMailDraft'|'sendCreatedDraft'|'inspectCreatedMessage'|'createCalendarEvent'>>;
 type PreparedAction={action:MicrosoftAction;scope:string;expires_at:string;time_zone:string;account:string;calendar_name:string|null};
 type ActionPhase='claim'|'provider'|'accepted'|'verified'|'unknown'|'failed';
 const phases:ActionPhase[]=['claim','provider','accepted','verified','unknown','failed'];
@@ -192,10 +194,10 @@ export class MicrosoftService {
    await db.query('update companion_local.microsoft_connections set selected_calendar_ids=$2,selected_mail_folder_ids=$3,revision=revision+1,updated_at=$4 where id=$1',[row.id,selection.calendar_ids,selection.mail_folder_ids,this.now()]);
   });return this.status(session);
  }
- private async readSelected(graph:Graph,row:Row,range:MicrosoftReadRange,mailRange=range){
+ private async readSelected(graph:Graph,row:Row,range:MicrosoftReadRange,mailRange=range,scope:import('./fast-read.js').OutlookReadScope='both'){
   const [calendarResults,mailResults]=await Promise.all([
-   Promise.allSettled(row.selected_calendar_ids.map(async id=>({id,result:await graph.calendarView(id,range)}))),
-   Promise.allSettled(row.selected_mail_folder_ids.map(async id=>({id,result:await graph.listMessages(id,mailRange)}))),
+   Promise.allSettled((scope==='inbox'?[]:row.selected_calendar_ids).map(async id=>({id,result:await graph.calendarView(id,range)}))),
+   Promise.allSettled((scope==='calendar'?[]:row.selected_mail_folder_ids).map(async id=>({id,result:await graph.listMessages(id,mailRange)}))),
   ]);
   // Drain every read before releasing the transaction used by their authorization checks.
   for(const result of [...calendarResults,...mailResults])if(result.status==='rejected')throw result.reason;
@@ -208,24 +210,24 @@ export class MicrosoftService {
   await db.query('update companion_local.microsoft_connections set prepared_context_ciphertext=$2,prepared_at=$3,prepared_revision=$4 where id=$1',[row.id,this.seal(row.id+':prepared',context),context.fetched_at,row.revision]);
  }
  /** No provider request on the ordinary reply path. Fresh authority is checked even for cached data. */
- async preparedContext(session:Session,input:MicrosoftReadRange){
+ async preparedContext(session:Session,input:MicrosoftReadRange,scope:import('./fast-read.js').OutlookReadScope='both'){
   const range=microsoftReadRangeSchema.parse(input),status=await this.status(session);
   if(!status.eligible||!status.model_disclosure_enabled)return {source:'microsoft',state:status.state==='connected'?'not_authorized':status.state};
   const ctx=await this.authority(this.pool,session),row=await this.row(this.pool,ctx);
   if(!row||!this.matches(row,ctx)||row.state!=='connected'||row.prepared_revision!==row.revision||!row.prepared_context_ciphertext)return {source:'microsoft',state:'not_prepared',requested_range:range};
   try{const context=this.open<PreparedMicrosoftContext>(row.id+':prepared',row.prepared_context_ciphertext);
-   if(!usablePreparedContext(context,range,this.now()))return {source:'microsoft',state:'not_prepared',requested_range:range};
+   if(!usablePreparedContext(context,range,this.now(),scope))return {source:'microsoft',state:'not_prepared',requested_range:range};
    await this.recheck(this.pool,session,ctx);
    const current=await this.row(this.pool,ctx);
    if(!current||current.state!=='connected'||current.revision!==row.revision||!this.matches(current,ctx))throw authorizationError();
    return {...context,state:'prepared',requested_range:range};
   }catch(error){if(error instanceof ApiError)throw error;return {source:'microsoft',state:'not_prepared',requested_range:range};}
  }
- async conversationContext(session:Session,input:MicrosoftReadRange){
+ async conversationContext(session:Session,input:MicrosoftReadRange,scope:import('./fast-read.js').OutlookReadScope='both'){
   const status=await this.status(session);
   if(!status.eligible||!status.model_disclosure_enabled)return {source:'microsoft',state:status.state==='connected'?'not_authorized':status.state};
   const range=microsoftReadRangeSchema.parse(input),mailRange=recentInboxRange(this.now());
-  try{return await this.connected(session,async(graph,row,db)=>{const context=compactMicrosoftContext(await this.readSelected(graph,row,range,mailRange),range,mailRange);await this.savePrepared(db,row,context);return context;},8000);
+  try{return await this.connected(session,async(graph,row,db)=>{const context=compactMicrosoftContext(await this.readSelected(graph,row,range,mailRange,scope),range,mailRange,scope);await this.savePrepared(db,row,context);return context;},8000);
   }catch(error){if(error instanceof ApiError&&[401,403].includes(error.status))throw error;return {source:'microsoft',state:'unavailable',fetched_at:null,warning:'Do not infer availability or an empty Inbox from this failed read.'};}
  }
  /** Quiet read-only preparation under existing exact durable consent; never creates a login or calls a model. */
@@ -256,6 +258,21 @@ export class MicrosoftService {
  async conversationMessage(session:Session,folderId:string,messageId:string){
   if(!this.config.modelUseApproved)throw new ApiError(403,'microsoft_disclosure_disabled','Outlook conversation use is not enabled.');
   return this.connected(session,async(graph,row)=>{if(!row.selected_mail_folder_ids.includes(folderId)||!graph.getMessage)throw authorizationError();const item=await graph.getMessage(folderId,messageId);return {source:'microsoft',fetched_at:item.fetchedAt,id:item.id,subject:item.subject,from:item.from,to:item.to,body_text:item.bodyText.slice(0,5000),body_truncated:item.bodyText.length>5000};});
+ }
+ /** On-demand history, without replacing the separate recent/morning snapshot. */
+ async conversationMailSearch(session:Session,input:MicrosoftMailSearch){
+  const search=mailSearchQuery(input,this.now()),status=await this.status(session);
+  if(!status.eligible||!status.model_disclosure_enabled)return {source:'microsoft',state:'not_authorized' as const};
+  try{return await this.connected(session,async(graph,row)=>{
+   if(!graph.searchMessages)throw new ApiError(503,'microsoft_search_unavailable','Older email search is unavailable.');
+   const mail_folders=await Promise.all(row.selected_mail_folder_ids.map(async id=>{const result=await graph.searchMessages!(id,{...search.query,...search.range});
+    if(result.items.some(item=>item.folderId!==id))throw authorizationError();
+    return {id,result:{...result,items:result.items.filter(item=>!!item.receivedAt&&Date.parse(item.receivedAt)>=Date.parse(search.range.start)&&Date.parse(item.receivedAt)<Date.parse(search.range.end))}};
+   }));
+   const context=compactMicrosoftContext({source:'microsoft',fetched_at:this.now().toISOString(),calendars:[],mail_folders,model_disclosure_enabled:true},search.range,search.range,'inbox',20);
+   return {...context,range:undefined,operation:'mail_search' as const,search:{...search.query,...search.range},
+    limitations:[...context.limitations,'On-demand indexed search, at most twenty disclosed matches. This is not an exhaustive mailbox or attachment search; refine the words, sender or dates if capped. No read status establishes a reply or an outstanding action.']};
+  },8000);}catch(error){if(error instanceof ApiError&&[401,403].includes(error.status))throw error;return {source:'microsoft',state:'unavailable' as const,operation:'mail_search' as const,search:{...search.query,...search.range},warning:'Older email search did not complete. Do not call the selected Inbox empty or claim no matching appointment exists.'};}
  }
  private actionScope(ctx:LocalAuthority,row:Row){return hash(canonicalJson([ctx.grant,row.id,row.revision,this.fingerprint,this.config.reviewedWritesApproved===true]));}
  private actionEnabled(){if(!this.config.reviewedWritesApproved)throw new ApiError(403,'microsoft_writes_disabled','Reviewed Outlook actions are not enabled.');}

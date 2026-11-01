@@ -1,4 +1,4 @@
-import { dateInZone, type MealSlot, type Today } from './contracts.js';
+import { dateInZone, mealSlots, type MealSlot, type Today } from './contracts.js';
 import type { ActivityEntry, ActivityOption, IntakeKind } from './activity-contracts.js';
 import { localDateTimeWithOffset } from './local-time.js';
 import { defaultIntakeTiming } from './intake-timing.js';
@@ -20,6 +20,9 @@ export interface DailyContext {
   facts_local_date: string; facts_are_current_day: boolean; period: DayPeriod;
   rhythm: Omit<typeof dailyRhythm, 'full_meal_spacing_minutes' | 'intake_report_check_minutes'> & { full_meal_spacing_minutes: number; intake_report_check_minutes: number };
   morning: { catchup_available: boolean; unfinished: boolean; breakfast_status: 'reported' | 'deferred' | 'unknown' };
+  meals: { slot: MealSlot; report_status: 'reported' | 'deferred' | 'unknown';
+    latest_report: IntakeObservation | null; reported_food: string | null;
+    accepted_choice: { option_id: string; name: string } | null }[];
   intake: {
     latest_report: IntakeObservation | null; latest_full_meal: IntakeObservation | null;
     automatic_full_meal: 'eligible' | 'suppress_recent_full_meal' | 'clarify_recent_unknown_intake';
@@ -54,6 +57,8 @@ export function dailyContext(today: Today, now: Date): DailyContext {
   const timing = today.intake_timing ?? defaultIntakeTiming;
   const local_date = dateInZone(now, zone), local_time = timeInZone(now, zone), clockMinutes = minutes(local_time);
   const rows = currentActivity(today);
+  const shadowsLegacy = (report: NonNullable<Today['activity_reports']>[number]) => rows.some(row => row.kind === 'meal' && row.revision > 0
+    && (row.id === report.target_id || row.source_id === report.target_id && row.meal_slot === report.meal_slot && row.local_date === report.local_date));
   const observations: IntakeObservation[] = [];
   for (const row of rows) {
     if (row.kind !== 'meal' || row.status !== 'completed' || !('occurred_at' in row)) continue;
@@ -66,8 +71,7 @@ export function dailyContext(today: Today, now: Date): DailyContext {
   for (const report of today.activity_reports ?? []) {
     if (!report.meal_slot || report.status !== 'completed') continue;
     // A newer saved correction must not be undone by a legacy projection.
-    if (rows.some(row => row.kind === 'meal' && row.revision > 0 && (row.id === report.target_id
-      || row.source_id === report.target_id && row.meal_slot === report.meal_slot && row.local_date === report.local_date))) continue;
+    if (shadowsLegacy(report)) continue;
     const occurred = Date.parse(report.occurred_at);
     if (!Number.isFinite(occurred) || occurred > now.getTime() || dateInZone(new Date(occurred), zone) !== report.local_date) continue;
     observations.push({ activity_id: report.target_id, occurred_at: new Date(occurred).toISOString(), recorded_at: null,
@@ -78,10 +82,16 @@ export function dailyContext(today: Today, now: Date): DailyContext {
   const recentFull = fullMeal && fullMeal.elapsed_minutes < timing.full_meal_spacing_minutes ? fullMeal : null;
   const recentUnknown = observations.find(item => item.intake_kind === 'unknown' && item.elapsed_minutes < timing.full_meal_spacing_minutes) ?? null;
   const spacingSource = recentFull ?? recentUnknown;
-  const breakfastReported = observations.some(item => item.meal_slot === 'breakfast' && dateInZone(new Date(item.occurred_at), zone) === local_date);
-  const breakfastDeferred = rows.some(row => row.kind === 'meal' && row.meal_slot === 'breakfast' && row.local_date === local_date && row.status === 'deferred')
-    || (today.activity_reports ?? []).some(report => report.meal_slot === 'breakfast' && report.local_date === local_date && report.status === 'deferred');
-  const breakfast_status = breakfastReported ? 'reported' : breakfastDeferred ? 'deferred' : 'unknown';
+  const meals: DailyContext['meals'] = mealSlots.map(slot => {
+    const reported = observations.find(item => item.meal_slot === slot && dateInZone(new Date(item.occurred_at), zone) === local_date) ?? null;
+    const deferred = rows.some(row => row.kind === 'meal' && row.meal_slot === slot && row.local_date === local_date && row.status === 'deferred')
+      || (today.activity_reports ?? []).some(report => report.meal_slot === slot && report.local_date === local_date && report.status === 'deferred' && !shadowsLegacy(report));
+    const choice = today.local_date === local_date && today.checkin?.local_date === local_date ? today.checkin.accepted?.meals.find(meal => meal.slot === slot) : undefined;
+    return { slot, report_status: reported ? 'reported' : deferred ? 'deferred' : 'unknown', latest_report: reported,
+      reported_food: reported ? rows.find(row => row.id === reported.activity_id)?.title ?? null : null,
+      accepted_choice: choice ? { option_id: choice.option_id, name: choice.name } : null };
+  });
+  const breakfast_status = meals.find(meal => meal.slot === 'breakfast')!.report_status;
   const pendingRoutine = (today.checkin?.accepted?.tasks ?? today.tasks).some(task => {
     if (!['exercise', 'rehab'].includes(task.category ?? '') || (!today.checkin?.accepted && task.scheduled_date && task.scheduled_date !== local_date)) return false;
     const actual = today.activity_ledger?.options.find(row => row.kind === 'task' && row.source_id === task.id);
@@ -112,7 +122,7 @@ export function dailyContext(today: Today, now: Date): DailyContext {
   return {
     current_instant: now.toISOString(), time_zone: zone, local_date, local_time, facts_local_date: today.local_date,
     facts_are_current_day: today.local_date === local_date, period, rhythm: { ...dailyRhythm, full_meal_spacing_minutes: timing.full_meal_spacing_minutes, intake_report_check_minutes: timing.intake_report_check_minutes },
-    morning: { catchup_available, unfinished, breakfast_status },
+    morning: { catchup_available, unfinished, breakfast_status }, meals,
     intake: { latest_report: latest, latest_full_meal: fullMeal,
       automatic_full_meal: recentFull ? 'suppress_recent_full_meal' : recentUnknown ? 'clarify_recent_unknown_intake' : 'eligible',
       meal_spacing_until: spacingSource ? new Date(Date.parse(spacingSource.occurred_at) + timing.full_meal_spacing_minutes * 60_000).toISOString() : null,

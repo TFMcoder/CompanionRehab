@@ -40,6 +40,24 @@ function next(url: URL, change?: (value: URL) => void): string {
 }
 
 describe('Microsoft Graph identity and resource scope', () => {
+  it('searches old selected-folder mail with literal terms, exact date filtering and no whole-mailbox endpoint',async()=>{
+    const start='2020-01-01T05:00:00Z',end='2020-02-01T05:00:00Z';
+    const {client,fetch}=setup(standard(url=>{
+      expect(url.pathname).toBe(`/v1.0/me/mailFolders/${folder.id}/messages`);expect(url.searchParams.has('$filter')).toBe(false);expect(url.searchParams.has('$orderby')).toBe(false);
+      expect(JSON.parse(url.searchParams.get('$search')!)).toBe('received>=2020-01-01 AND received<2020-02-02 AND "clinic" AND from:"synthetic@example.invalid"');
+      return json({value:[{...message,id:'old-in-range',receivedDateTime:'2020-01-15T12:00:00Z'},{...message,id:'outside-exact-start',receivedDateTime:'2020-01-01T02:00:00Z'}]});
+    }));
+    const result=await client.searchMessages(folder.id,{query:'clinic',from:me.mail,start,end});expect(result.items.map(m=>m.id)).toEqual(['old-in-range']);expect(result.complete).toBe(true);expect(fetch.mock.calls.every(([url])=>!String(url).includes('/users/'))).toBe(true);
+  });
+  it('keeps historical search constrained to the selected folder and original query on pagination',async()=>{
+    const {client}=setup(standard(url=>json({value:[message],'@odata.nextLink':next(url,u=>u.searchParams.set('$search','"different"'))})));
+    await expect(client.searchMessages(folder.id,{query:'clinic'})).rejects.toMatchObject({code:'unsafe_pagination'});
+    await expect(client.searchMessages('other-folder',{query:'clinic'})).rejects.toMatchObject({code:'resource_denied'});
+  });
+  it('reports bounded historical result truncation rather than implying all history was read',async()=>{
+    const {client}=setup(standard(url=>json({value:[message],'@odata.nextLink':next(url)})),{limits:{maxPages:1}});
+    const result=await client.searchMessages(folder.id,{query:'clinic'});expect(result.complete).toBe(false);expect(result.truncation).toBe('pages');
+  });
   it('creates a plain-text draft and sends only the returned immutable id through fixed own-account endpoints',async()=>{
     const {client,fetch}=setup(standard((url,init)=>{
       expect(init.method).toBe('POST');expect(new Headers(init.headers).get('content-type')).toBe('application/json');

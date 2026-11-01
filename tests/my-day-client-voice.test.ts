@@ -44,6 +44,66 @@ describe('local Nancy voice', () => {
     vi.spyOn(api, 'conversationInterrupt').mockResolvedValue({ ok: true });
   });
   afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+  it('acknowledges a delayed received turn without marking its review heard or enabling Save Suggestions early',async()=>{
+    const onReview=vi.fn(),options={inputMode:'typed' as const,onReview,onState:vi.fn(),onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()};
+    const starting=startLocalVoice(options);await vi.waitFor(()=>expect(options.onState).toHaveBeenCalledWith('speaking','Nancy is speaking. Your turn is next.'));context.source!.onended?.();const handle=await starting;
+    let complete!:(value:Awaited<ReturnType<typeof api.conversationTurn>>)=>void;
+    vi.spyOn(api,'conversationTurn').mockImplementation(()=>new Promise(resolve=>{complete=resolve;}));
+    const original=context.source,turn=handle.sendText('Remember that I prefer quieter replies.');
+    await vi.waitFor(()=>expect(context.source).not.toBe(original),{timeout:3000});const cue=context.source;
+    expect(api.conversationPlayed).toHaveBeenCalledTimes(1);expect(onReview).not.toHaveBeenCalledWith(expect.objectContaining({reply_id:'r2'}));
+    complete({reply_id:'r2',text:'Review your preference.',suggestion_review:{reply_id:'r2',confirmation_text:'save this preference'}});
+    await Promise.resolve();expect(context.source).toBe(cue);cue!.onended?.();await vi.waitFor(()=>expect(context.source).not.toBe(cue));
+    expect(api.conversationPlayed).toHaveBeenCalledTimes(1);context.source!.onended?.();await turn;
+    expect(onReview).toHaveBeenLastCalledWith({reply_id:'r2',confirmation_text:'save this preference'});expect(api.conversationPlayed).toHaveBeenLastCalledWith('s1','r2',expect.any(AbortSignal));await handle.stop();
+  });
+  it('starts typed input without any microphone API and keeps Heart playback and exact reply acknowledgement',async()=>{
+    Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:undefined});
+    const onState=vi.fn(),onTranscript=vi.fn();
+    const starting=startLocalVoice({inputMode:'typed',onState,onTranscript,onChange:vi.fn(),onNavigate:vi.fn()});
+    await vi.waitFor(()=>expect(onState).toHaveBeenCalledWith('speaking','Nancy is speaking. Your turn is next.'));
+    expect(api.conversationPlayed).not.toHaveBeenCalled();context.source!.onended?.();const handle=await starting;
+    expect(onState).toHaveBeenLastCalledWith('listening','Type your message below. Nancy will reply aloud.');
+    vi.spyOn(api,'conversationTurn').mockResolvedValue({text:'Please review the proposed change.',reply_id:'r2'});
+    const previous=context.source,turn=handle.sendText('  What should I do next?  ');
+    await vi.waitFor(()=>expect(context.source).not.toBe(previous));
+    expect(api.conversationTurn).toHaveBeenCalledWith('s1','What should I do next?',expect.any(String),expect.any(AbortSignal),undefined);
+    expect(onTranscript).toHaveBeenCalledWith('nancy','Please review the proposed change.');
+    expect(api.conversationPlayed).toHaveBeenCalledTimes(1);
+    expect(await handle.sendText('save this change')).toBe(false);
+    context.source!.onended?.();expect(await turn).toBe(true);expect(api.conversationPlayed).toHaveBeenLastCalledWith('s1','r2',expect.any(AbortSignal));
+    await handle.stop();expect(stopTrack).not.toHaveBeenCalled();expect(api.conversationEnd).toHaveBeenCalledOnce();
+  });
+  it('does not time out a typed conversation as microphone silence and rejects oversized or blank messages',async()=>{
+    vi.useFakeTimers();
+    const onState=vi.fn(),starting=startLocalVoice({inputMode:'typed',onState,onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()});
+    await vi.waitFor(()=>expect(onState).toHaveBeenCalledWith('speaking','Nancy is speaking. Your turn is next.'));context.source!.onended?.();const handle=await starting;
+    expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();await vi.advanceTimersByTimeAsync(120_000);
+    expect(api.conversationEnd).not.toHaveBeenCalled();const turn=vi.spyOn(api,'conversationTurn');
+    expect(await handle.sendText('   ')).toBe(false);expect(await handle.sendText('a'.repeat(2001))).toBe(false);expect(turn).not.toHaveBeenCalled();await handle.stop();
+  });
+  it('retains an unconfirmed typed turn as a failure without an automatic retry',async()=>{
+    const onState=vi.fn(),starting=startLocalVoice({inputMode:'typed',onState,onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()});
+    await vi.waitFor(()=>expect(onState).toHaveBeenCalledWith('speaking','Nancy is speaking. Your turn is next.'));context.source!.onended?.();const handle=await starting;
+    vi.spyOn(api,'conversationTurn').mockRejectedValue(new Error('Synthetic connection loss'));
+    expect(await handle.sendText('Save this change')).toBe(false);expect(api.conversationTurn).toHaveBeenCalledOnce();
+    expect(api.conversationPlayed).toHaveBeenCalledTimes(1);await handle.stop();
+  });
+  it('ends paused typed output without acknowledging unheard review and offers typing recovery',async()=>{
+    const onState=vi.fn(),starting=startLocalVoice({inputMode:'typed',onState,onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()});
+    const result=starting.catch(error=>error as Error);
+    await vi.waitFor(()=>expect(onState).toHaveBeenCalledWith('speaking','Nancy is speaking. Your turn is next.'));
+    context.state='suspended';context.dispatchEvent(new Event('statechange'));
+    expect((await result as Error).message).toContain('Type to Nancy again');expect(api.conversationPlayed).not.toHaveBeenCalled();
+    expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();expect(api.conversationEnd).toHaveBeenCalledOnce();
+  });
+  it('pauses the speech idle timer while the typing composer is open, then restores it on hide',async()=>{
+    vi.useFakeTimers();
+    const starting=startLocalVoice({onState:vi.fn(),onTranscript:vi.fn(),onChange:vi.fn(),onNavigate:vi.fn()});
+    await vi.waitFor(()=>expect(context.source).toBeDefined());context.source!.onended?.();const handle=await starting;
+    handle.setTyping?.(true);await vi.advanceTimersByTimeAsync(120_000);expect(api.conversationEnd).not.toHaveBeenCalled();
+    handle.setTyping?.(false);await vi.advanceTimersByTimeAsync(40_250);expect(api.conversationEnd).toHaveBeenCalledOnce();await handle.stop();
+  });
   it.each(['suspended','interrupted','closed'])('ends the owner conversation when greeting audio becomes %s without acknowledging unheard playback',async state=>{
     vi.stubGlobal('__NANCY_OWNER_VOICE_STARTUP__',true);
     const onState=vi.fn();
