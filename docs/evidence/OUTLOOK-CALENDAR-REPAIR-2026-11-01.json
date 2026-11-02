@@ -4,7 +4,7 @@
   "implementation_revision": "sha256:f1fb0a7b17c5a245a2af9c1c02313c17f20e8b3beec75b3c3a792eee8d1ffbe9",
   "release": "calendar-shared-v1-2026-11-01",
   "manifest_sha256": "89a4a2d0e6e67eeab89ad0a8468957c375c6682a3ec2c5a91a89922108443fd9",
-  "status": "secondary_calendar_software_deployed_isolated_oauth_open_password_update_required_target_events_unverified",
+  "status": "secondary_calendar_software_deployed_oauth_closed_incomplete_password_expired_target_events_unverified",
   "original_date_repair": {
     "implementation_revision": "sha256:86322887b7d6360ce78a5ed44c6578c9ee9995817fca84a191378b4c19b44d81",
     "release": "calendar-read-v1-2026-11-01",
@@ -150,7 +150,7 @@
     "root_dependency_installs": 0
   },
   "secondary_account_increment": {
-    "status": "software_deployed_live_schema_021_applied_isolated_oauth_open_password_update_required",
+    "status": "software_deployed_live_schema_021_applied_oauth_closed_incomplete_password_expired",
     "included_in_deployed_release": true,
     "activated": true,
     "activation_scope": "Secondary software/configuration only; no authenticated secondary connection or target-event access yet.",
@@ -309,7 +309,7 @@
       "private_registration_identity_recorded": true,
       "actual_application_oauth_completed": false,
       "actual_application_oauth_started": true,
-      "current_oauth_step": "Microsoft requires Update your password for the exact approved signer. The displayed first-sign-in or expiry alternatives do not establish the exact cause; no password was changed.",
+      "current_oauth_step": "Explicitly approved read-only administrator inspection confirms password expiry through Microsoft error50055. The first OAuth ledger is closed incomplete; human recovery and a fresh separately recorded flow are required. No password/authentication/access change or target-event verification occurred.",
       "target_events_read": false,
       "provider_permissions_changed": true,
       "completed_registration_or_consent_should_be_repeated": false,
@@ -406,7 +406,7 @@
       "limitations": [
         "Source correspondence was measured at reconciliation time; test JSON has no embedded execution-time source-hash receipt.",
         "Final v9 typecheck and actual disposable PostgreSQL/migration/backup checks pass; these do not establish live migration or provider acceptance.",
-        "Guarded deployment and runtime/preservation checks pass; application OAuth is open but incomplete, with no exact-target event access established."
+        "Guarded deployment and runtime/preservation checks pass; the first OAuth ledger is closed incomplete after confirmed password expiry, with no exact-target event access established."
       ]
     }
   },
@@ -520,15 +520,30 @@
       "private_evidence_sha256": "cc4e45dafb85b769f97bf202ded711e3df8408af3cd65b843dcca6ae7bfa0ddb"
     },
     "isolated_oauth": {
-      "status": "open_password_update_required",
-      "current_prompt": "Update your password",
-      "displayed_possible_reasons": ["first sign-in", "password expired"],
-      "exact_reason_verified": false,
+      "status": "closed_incomplete_password_expired",
+      "initial_prompt": "Update your password",
+      "initial_displayed_possible_reasons": ["first sign-in", "password expired"],
+      "exact_reason_verified": true,
+      "confirmed_reason": "password expired",
+      "provider_error_code": 50055,
+      "provider_event_status": "Interrupted",
+      "provider_reason_explicitly_confirms_password_expiry": true,
       "password_changed": false,
+      "authentication_or_access_changed": false,
       "human_account_step_required": true,
-      "oauth_may_expire_before_human_completion": true,
-      "read_only_administrator_cause_inspection_performed": false,
-      "read_only_administrator_cause_inspection_scope_approval": "pending",
+      "required_human_step": "Password change or forgotten-password recovery directly with Microsoft.",
+      "first_oauth_binding_lifetime_minutes": 10,
+      "first_oauth_binding_lifetime_elapsed": true,
+      "first_oauth_ledger_closed": true,
+      "post_oauth_verifier_run": false,
+      "after_recovery_requires_fresh_separately_recorded_oauth_flow": true,
+      "closed_ledger_replay_allowed": false,
+      "read_only_administrator_cause_inspection_performed": true,
+      "read_only_administrator_cause_inspection_scope_approval": "explicitly_approved_and_fulfilled",
+      "inspection_provider_calendar_reads": 0,
+      "inspection_private_evidence_pattern": ".local/calendar-repair-2026-11-01/final-qualification-prep-v9/account-password-expired-result-*.json",
+      "inspection_private_evidence_sha256": "1183f01ebbfd15ce95b0ae9c5405ed9796f422d4e62db58c77b62a72a6db501f",
+      "closed_ledger_private_evidence_ref": ".local/calendar-repair-2026-11-01/final-qualification-prep-v9/oauth-read-verification-ledger.json",
       "exact_approved_signer": true,
       "direct_completion_requested_by_user": true,
       "completed": false,
@@ -538,7 +553,7 @@
     "actual_person_device_or_full_slice_acceptance_claimed": false
   },
   "pending": [
-    "Complete the opened isolated OAuth flow at the Microsoft-required password-update step for the exact approved signer, then verify exact-target sharing/access and genuine missing-appointment visibility",
+    "Human password recovery for the exact approved signer, then a fresh separately recorded isolated OAuth flow and exact-target verification; never replay the closed ledger or repeat completed consent",
     "Actual person, phone, microphone, audible timing and workflow acceptance",
     "Separate conversation-end HTTP 500 observation",
     "Current confirmed-context review where still missing and client-owned archive opt-in",
@@ -551,7 +566,7 @@
   "private_evidence_directory": ".local/calendar-repair-2026-11-01/",
   "handoff_validation": {
     "status": "passed",
-    "checked_at": "2026-11-02T01:23:25.313Z",
+    "checked_at": "2026-11-02T01:32:00.433Z",
     "human_actions_render_check": true,
     "roadmap_validation": true,
     "git_diff_whitespace_check": true,
@@ -562,7 +577,7 @@
     "completed_features": 0,
     "scope": "Documentation structure and metadata only; no application, provider, SQL or native-worker test performed for this documentation update."
   },
-  "updated_at": "2026-11-02T01:23:12.399Z",
+  "updated_at": "2026-11-02T01:31:14.558Z",
   "runtime_only_host_restart": {
     "started_at": "2026-11-01T23:52:24.0662681Z",
     "completed_at": "2026-11-01T23:55:37.9120483Z",
