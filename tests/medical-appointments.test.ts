@@ -4,6 +4,28 @@ import {priorityContext} from '../src/shared/priority-context.js';
 import type {Today} from '../src/shared/contracts.js';
 const now=new Date('2026-10-26T18:12:00Z'),base:Today={profile:{id:'synthetic',display_name:'Synthetic',time_zone:'America/Toronto',preferences:'',revision:1},local_date:'2026-10-26',tasks:[],meal_options:[],checkin:null};
 describe('medical appointment administration context',()=>{
+ it('keeps same-ID appointments from separate approved accounts distinct and labels their source',()=>{
+  const event={id:'same-event',subject:'Clinic visit',start:'2026-10-28T14:00:00Z',end:'2026-10-28T15:00:00Z'};
+  const source={source:'microsoft',state:'fresh',fetched_at:now.toISOString(),coverage_complete:true,calendars:[
+   {id:'same-calendar',source_key:'primary',source_label:'Primary approved account',complete:true,events:[event]},
+   {id:'same-calendar',source_key:'secondary',source_label:'Additional approved account',complete:true,events:[{...event,subject:'Dentist appointment',start:'2026-10-28T16:00:00Z',end:'2026-10-28T17:00:00Z'}]},
+  ]};
+  const context=medicalAppointmentContext(base,[source,source],now);
+  expect(context.calendar_entries).toHaveLength(2);
+  expect(context.calendar_entries[0]).toMatchObject({source_key:'primary',source_label:'Primary approved account',id:'same-event',title:'Clinic visit'});
+  expect(context.calendar_entries[1]).toMatchObject({source_key:'secondary',source_label:'Additional approved account',id:'same-event',title:'Dentist appointment'});
+  expect(context.source_checks[0].calendars_complete).toBe(true);
+ });
+ it('never marks appointment coverage complete when only an empty primary calendar was checked',()=>{
+  const coverage=[{source_key:'primary',label:'Primary approved account',state:'fresh',available:true},{source_key:'secondary',label:'Additional approved account',state:'not_authorized',available:false}];
+  const source={source:'microsoft',state:'fresh',fetched_at:now.toISOString(),coverage_complete:false,calendar_coverage:coverage,calendars:[{id:'cal',complete:true,events:[]}]};
+  const context=medicalAppointmentContext(base,[source],now);
+  expect(context.calendar_entries).toEqual([]);expect(context.source_checks[0]).toMatchObject({calendars_complete:false,calendar_coverage:coverage,mail_complete:null});
+ });
+ it('keeps missing-source coverage incomplete even when no calendar results are available',()=>{
+  const source={source:'microsoft',state:'unavailable',coverage_complete:false,calendars:[]};
+  expect(medicalAppointmentContext(base,[source],now).source_checks[0].calendars_complete).toBe(false);
+ });
  it.each(['Call clinic to confirm appointment','Book dentist appointment','Prepare travel for physiotherapy session','Arrange specialist follow-up'])('recognizes an administrative task: %s',title=>expect(isMedicalAppointmentTask(title)).toBe(true));
  it.each(['Read medical newsletter','Buy a gift for my doctor','Discuss the history of therapy','Medical webinar booking'])('does not treat general material as appointment administration: %s',title=>expect(isMedicalAppointmentTask(title)).toBe(false));
  it('keeps possible appointment email distinct from a calendar entry, a reply obligation and clinical urgency',()=>{

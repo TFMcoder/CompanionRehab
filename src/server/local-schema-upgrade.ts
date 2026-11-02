@@ -18,6 +18,11 @@ const milestones:Milestone[]=[
     ],indexes:['microsoft_connections_pkey','microsoft_connections_participant_id_actor_id_key','microsoft_oauth_pending_pkey','microsoft_oauth_pending_state_hash_key','microsoft_oauth_pending_login_session_id_key','microsoft_oauth_expiry']},
   {file:'019_trusted_device.sql',tables:[],columns:[['sessions','remember_device']]},
   {file:'020_microsoft_preparation.sql',tables:[],columns:['prepared_context_ciphertext','prepared_at','prepared_revision','preparation_attempt_at'].map(column=>['microsoft_connections',column])},
+  {file:'021_microsoft_calendar_source.sql',tables:['microsoft_calendar_connections','microsoft_calendar_oauth_pending'],
+    columns:[
+      ...'id participant_id actor_id grant_fingerprint configuration_fingerprint tenant_id object_id state token_ciphertext selected_calendar_ids selected_mail_folder_ids revision connected_at updated_at last_read_at last_error prepared_context_ciphertext prepared_at prepared_revision preparation_attempt_at'.split(' ').map(column=>['microsoft_calendar_connections',column]),
+      ...'id state_hash browser_hash actor_id participant_id login_session_id grant_fingerprint configuration_fingerprint pending_ciphertext stage created_at expires_at'.split(' ').map(column=>['microsoft_calendar_oauth_pending',column]),
+    ],indexes:['microsoft_calendar_connections_pkey','microsoft_calendar_connections_participant_id_actor_id_key','microsoft_calendar_oauth_pending_pkey','microsoft_calendar_oauth_pending_state_hash_key','microsoft_calendar_oauth_pending_login_session_id_key','microsoft_calendar_oauth_expiry']},
 ];
 export interface LocalSchemaUpgradePlan {through:string;pending:string[]}
 type Check=(name:string,condition:boolean)=>void;

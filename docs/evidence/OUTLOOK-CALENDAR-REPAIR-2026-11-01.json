@@ -1,0 +1,672 @@
+{
+  "recorded_at": "2026-11-01T22:56:59.581Z",
+  "local_test_day": "2026-11-01",
+  "implementation_revision": "sha256:f1fb0a7b17c5a245a2af9c1c02313c17f20e8b3beec75b3c3a792eee8d1ffbe9",
+  "release": "calendar-shared-v1-2026-11-01",
+  "manifest_sha256": "89a4a2d0e6e67eeab89ad0a8468957c375c6682a3ec2c5a91a89922108443fd9",
+  "status": "secondary_calendar_software_deployed_isolated_oauth_open_password_update_required_target_events_unverified",
+  "original_date_repair": {
+    "implementation_revision": "sha256:86322887b7d6360ce78a5ed44c6578c9ee9995817fca84a191378b4c19b44d81",
+    "release": "calendar-read-v1-2026-11-01",
+    "manifest_sha256": "5763fca03cddcd7e0699ee8ec254485a58b104ad421e911fd6a8bfe8b8804723"
+  },
+  "diagnosis": {
+    "previous_exact_undated_intent_matched": false,
+    "original_exchange_archived": false,
+    "archive_reconstruction": false,
+    "primary_selected_and_default_alias_match": true,
+    "provider_identity_matches_bound_application_account": true,
+    "selected_primary_raw_week_events": 0,
+    "selected_primary_raw_monday_events": 0,
+    "provider_results_complete": true,
+    "next_page": false,
+    "application_parser_dropped_events": false,
+    "week": {
+      "start": "2026-11-01T00:00:00-04:00",
+      "end_exclusive": "2026-11-08T00:00:00-05:00",
+      "hours": 169,
+      "time_zone": "America/Toronto"
+    },
+    "monday": {
+      "start": "2026-11-02T00:00:00-05:00",
+      "end_exclusive": "2026-11-03T00:00:00-05:00"
+    },
+    "owner_reported_source": "second same-tenant calendar/account",
+    "same_tenant_public_metadata_verified": true,
+    "secondary_account_authenticated": false,
+    "secondary_calendar_accessed": false,
+    "private_ledger_state": "closed",
+    "secondary_distinct_directory_identity_verified": true,
+    "secondary_mailbox_type_verified": false,
+    "later_directory_check": "Owner-approved authenticated directory inspection; no secondary calendar access or established mailbox type."
+  },
+  "behavior": {
+    "undated_default": "next seven participant-local calendar days beginning today",
+    "explicit_date_scope_preserved": true,
+    "fresh_selected_source_per_new_calendar_turn": true,
+    "deterministic_bounded_readback": true,
+    "range_and_source_named": true,
+    "all_day_status_preserved": true,
+    "empty_claim_requires_complete_selected_result": true,
+    "unavailable_partial_truncated_and_unselected_limits_explicit": true,
+    "owner_fixture_synthetic_provenance": true,
+    "duplicate_turn_receipt_and_scope_revocation_preserved": true
+  },
+  "qualification": {
+    "scope": "Original date-repair release; final secondary-release qualification is recorded separately below.",
+    "success": true,
+    "final_qualified_regression_inventory": {
+      "passed": 1756,
+      "optional_skips": 2,
+      "files": 143
+    },
+    "method": "Earlier full candidate run plus verified source deltas and final affected-file rechecks; not a fresh single full run of the final release.",
+    "base_full_source_revision": "sha256:f0f5aab941f2dc871dd88c1488b1c40af3ec3fffb2dfdcaf5bed171534116f7a",
+    "base_full_passed": 1754,
+    "final_affected_files": 8,
+    "final_affected_assertions": 203,
+    "final_owner_fixture_assertions": 12,
+    "final_source_delta_verified": true,
+    "final_typecheck": true,
+    "final_isolated_build": true,
+    "initial_harness_and_type_failures_retained": true,
+    "actual_disposable_postgresql": {
+      "passed": 87,
+      "overlaps_regression": true,
+      "synthetic_records_only": true,
+      "fixture_removed": true,
+      "tested_modules_unchanged_in_final": true
+    }
+  },
+  "deployed_read": {
+    "scope": "Original date-repair release and its closed two-turn primary-source ledger.",
+    "final_assessment": "pass",
+    "actual_https_typed_turns": 2,
+    "range_cases": [
+      "undated upcoming local week",
+      "explicit tomorrow"
+    ],
+    "selected_primary_source": true,
+    "model_calls": 0,
+    "outlook_read_hits": [
+      1,
+      1
+    ],
+    "turn_durations_ms": [
+      399,
+      743
+    ],
+    "first_metrics_assertion": "failed before asynchronous log flush; original report retained",
+    "reconciliation": "Read-only assessment of the same closed ledger; no repeated turns",
+    "separate_conversation_end_http_status": 500,
+    "logout_http_status": 200,
+    "engineering_login_closed": true,
+    "actual_microphone_or_phone_latency_measured": false
+  },
+  "runtime": {
+    "scope": "Original date-repair rollout; later secondary deployment runtime admission is separate.",
+    "observed_at": "2026-11-01T22:54:15.008Z",
+    "status": "passed_after_warmup",
+    "initial_warmup_report_retained": true,
+    "client_release": "calendar-read-v1-2026-11-01",
+    "owner_release": "feedback-v3-2026-10-31",
+    "owner_implementation_revision": "sha256:a101f2810eb3812850b377e01a78d746193e51e13e85f27bbd11747d5f83c784",
+    "owner_manifest_sha256": "d5ce31ba0e77c63ebb49f3b171dd795bee63e1c19e93ef843fab37aab5071316",
+    "both_source_and_pinned_dependencies_valid": true,
+    "both_fresh_process_and_listener_verified": true,
+    "both_public_tls_config_and_voice_ready": true,
+    "served_current_layout_verified": true,
+    "tailscale_running_online": true,
+    "client_supervised_restarts": 1,
+    "owner_restarted": false
+  },
+  "preservation": {
+    "scope": "Original date-repair rollout; subsequent schema021 and secondary deployment preservation are separate.",
+    "passed": true,
+    "protected_files": 1739,
+    "care_tables": 131,
+    "original_sessions": 187,
+    "all_original_sessions_unchanged": true,
+    "care_business_state_preserved": true,
+    "all_tables_bytewise_unchanged": false,
+    "expected_connector_changed_fields": [
+      "last_read_at",
+      "prepared_at",
+      "prepared_context_ciphertext"
+    ],
+    "account_resource_grant_state_unchanged": true,
+    "account_host_binding_unchanged": true,
+    "client_selection_unchanged": true,
+    "owner_runtime_unchanged": true,
+    "archive_choice_and_ciphertext_unchanged": true,
+    "archive_collection_enabled": false,
+    "new_engineering_logins": 1,
+    "new_engineering_logins_closed": true,
+    "care_business_writes": 0,
+    "provider_business_writes": 0,
+    "migrations": 0,
+    "new_provider_permissions": 0,
+    "credential_copies": 0,
+    "root_dependency_installs": 0
+  },
+  "secondary_account_increment": {
+    "status": "software_deployed_live_schema_021_applied_isolated_oauth_open_password_update_required",
+    "included_in_deployed_release": true,
+    "activated": true,
+    "activation_scope": "Secondary software/configuration only; no authenticated secondary connection or target-event access yet.",
+    "application_sign_in_started": true,
+    "application_sign_in_completed": false,
+    "new_provider_permissions": true,
+    "identity_type_dependency": "Mailbox type and exact-target sharing/access remain under verification. Proposed shared mode uses the existing approved signer, distinct target and separate app registration; it does not require assuming a secondary personal sign-in.",
+    "directory_verification": {
+      "distinct_same_tenant_identity": true,
+      "mail_matches_reported_source": true,
+      "mailbox_type": "unknown",
+      "reported_source_listed_as_primary_account_alias": false
+    },
+    "exchange_admin_ui": {
+      "outcome": "parse_error",
+      "reloads": 1,
+      "mailbox_type_retrieved": false
+    },
+    "existing_permission_probe": {
+      "at": "2026-11-01T23:05:07.103Z",
+      "target": "exact reported secondary default-calendar metadata",
+      "http_status": 403,
+      "provider_error_code": "ErrorAccessDenied",
+      "primary_permission_unchanged": true,
+      "calendar_events_read": false,
+      "model_calls": 0,
+      "care_business_writes": 0,
+      "provider_business_writes": 0,
+      "permission_changes": 0,
+      "selection_changes": 0,
+      "ledger_closed": true,
+      "new_engineering_logins": 1,
+      "new_engineering_logins_closed": true,
+      "login_accounting": "Additional diagnostic login after the date-repair preservation snapshot; separate from the rollout login."
+    },
+    "candidate_v7": {
+      "implementation_revision": "sha256:a483fc08c430086dff8dbbceb407a030a364d797c74a0720c9a379b6538429a0",
+      "full_regression": {
+        "passed": 1817,
+        "failed": 2,
+        "optional_skips": 2,
+        "success": false
+      },
+      "failure_causes": [
+        "Obsolete no-consent model-call expectation",
+        "Outdated backup excluded-credential-table inventory"
+      ],
+      "source_expectations_corrected": true,
+      "actual_disposable_postgresql": {
+        "passed": 286,
+        "failed": 1,
+        "success": false,
+        "failure": "Same obsolete no-consent model-call expectation",
+        "migration_backup_checks_passed": 16,
+        "migration_backup_checks_total": 16,
+        "fixtures": 3,
+        "all_fixtures_removed": true
+      },
+      "final_v8_focused_and_reconciliation": "Later v8 full/final v9 affected-file and source-bound reconciliation completed; final v9 typecheck and actual disposable SQL/migration/backup checks now pass. Historical v7 failures retained.",
+      "running_database_migrated": false
+    },
+    "engineering_qualification": {
+      "v8_full_run": "completed_with_retained_environment_failures",
+      "v9_distinct_app_and_canonical_key_material_checks": "passed_in_affected_file_run",
+      "final_source_reconciliation": "completed_1890_pass_2_optional_skips_not_a_new_full_run",
+      "final_v9_typecheck": "passed_node_24_22_2",
+      "final_v9_actual_postgresql": {
+        "calendar_assertions": 25,
+        "migration_backup_assertions": 16,
+        "status": "passed",
+        "failed_assertions": 0,
+        "synthetic_fixtures": 3,
+        "all_fixture_identities_verified_before_removal": true,
+        "all_fixtures_removed": true,
+        "care_business_writes": 0,
+        "provider_calls": 0,
+        "model_calls": 0
+      },
+      "new_calendar_candidate_runtime_pass_claimed": true,
+      "runtime_evidence_scope": "Later guarded promotion attempt2 and post-promotion admission, separate from synthetic qualification."
+    },
+    "provider_constraint": {
+      "verified_at": "2026-11-01T23:24:34.171Z",
+      "same_app_proposal": "superseded_do_not_execute",
+      "reason": "Microsoft access tokens can retain previously consented scopes for the resource despite a narrower request; requested scope alone does not isolate primary and secondary tokens for the same app.",
+      "secondary_effect": "Inherited primary Mail/Write scope must fail the strict read-only validator.",
+      "primary_effect": "New shared-read consent on the existing app can cause subsequent primary refresh to fail on an unexpected scope and enter reconnect-required cleanup.",
+      "add_shared_scope_to_primary_app": false,
+      "relax_scope_validators": false,
+      "new_provider_consent_applied": true,
+      "sources": [
+        {
+          "title": "Microsoft resources and scopes: consent lifetime",
+          "url": "https://learn.microsoft.com/en-us/entra/msal/javascript/browser/resources-and-scopes#consent-lifetime"
+        },
+        {
+          "title": "Microsoft application authorization",
+          "url": "https://learn.microsoft.com/en-us/entra/architecture/authorize-applications-resources-workloads"
+        },
+        {
+          "title": "Microsoft delegated grant resource",
+          "url": "https://learn.microsoft.com/en-us/graph/api/resources/oauth2permissiongrant?view=graph-rest-1.0"
+        },
+        {
+          "title": "Microsoft shared calendar access",
+          "url": "https://learn.microsoft.com/en-us/graph/outlook-get-shared-events-calendars"
+        }
+      ],
+      "consent_scope": "New isolated registration only; never add the shared scope to primary or relax either validator."
+    },
+    "revised_registration_proposal": {
+      "status": "created_assigned_and_admin_consent_granted_oauth_pending",
+      "distinct_app_and_service_principal_required": true,
+      "same_exact_approved_signer": true,
+      "exact_configured_calendar_owner": true,
+      "same_tenant_actor_participant_and_callback": true,
+      "delegated_graph_scopes": [
+        "User.Read",
+        "Calendars.Read.Shared"
+      ],
+      "oidc_scopes": [
+        "openid",
+        "profile",
+        "offline_access"
+      ],
+      "mail_or_write_permissions": false,
+      "application_permissions": false,
+      "separate_certificate_and_private_key_material": true,
+      "runtime_key_reuse_guard": "Canonical SPKI DER public-key comparison; alternate-PEM regression passed in the v9 affected-file check. Final typecheck and actual disposable database qualification now pass.",
+      "private_configuration_binds": [
+        "application_id",
+        "tenant",
+        "signer_object_id",
+        "calendar_owner_object_id",
+        "actor",
+        "participant",
+        "callback"
+      ],
+      "proposal_records_before_activation": [
+        "service_principal_object_id",
+        "certificate_fingerprint"
+      ],
+      "primary_registration_and_grants_unchanged": true,
+      "grants_mailbox_sharing": false,
+      "actual_target_access_verified": false,
+      "activated": false,
+      "registration_created": true,
+      "assignment_required": true,
+      "assigned_signers": 1,
+      "only_exact_existing_approved_signer_assigned": true,
+      "connection_creation_explicitly_approved": true,
+      "organization_wide_admin_consent_separately_explicitly_approved": true,
+      "portal_all_five_delegated_scopes_granted": true,
+      "admin_consent_completed_at": "2026-11-01T23:52:51.9471066+00:00",
+      "separate_callback": true,
+      "private_registration_identity_recorded": true,
+      "actual_application_oauth_completed": false,
+      "actual_application_oauth_started": true,
+      "current_oauth_step": "Microsoft requires Update your password for the exact approved signer. The displayed first-sign-in or expiry alternatives do not establish the exact cause; no password was changed.",
+      "target_events_read": false,
+      "provider_permissions_changed": true,
+      "completed_registration_or_consent_should_be_repeated": false,
+      "approval_and_portal_proof_retained_privately": true
+    },
+    "permission_accounting": "New delegated consent applies only to the separately created read-only app. The earlier date-repair and diagnostic probe permission_changes=0 statements remain scoped to those closed ledgers; primary registration/grants are unchanged.",
+    "candidate_v8": {
+      "implementation_revision": "sha256:6a2a8a6ec9a90622c66d4d3e9a63e1ce8ca58522303064e4cad88ed992a2099d",
+      "full_regression": {
+        "passed": 1868,
+        "failed": 9,
+        "optional_skips": 2,
+        "files": 153,
+        "success": false
+      },
+      "failure_causes": [
+        "Restricted loopback connections",
+        "Junction/symlink permission failures"
+      ],
+      "failed_reports_retained": true,
+      "affected_cases_later_rechecked": true
+    },
+    "candidate_v9": {
+      "release_id": "calendar-shared-v1-2026-11-01",
+      "implementation_revision": "sha256:f1fb0a7b17c5a245a2af9c1c02313c17f20e8b3beec75b3c3a792eee8d1ffbe9",
+      "manifest_sha256": "89a4a2d0e6e67eeab89ad0a8468957c375c6682a3ec2c5a91a89922108443fd9",
+      "packaged": true,
+      "selected": true,
+      "activated": true,
+      "qualification_complete": true,
+      "qualification_scope": "Synthetic engineering preparation; live schema021 migration is separately recorded. No software deployment, application OAuth or target-event visibility is established by this qualification receipt.",
+      "package_source_files": 597,
+      "installed_packages": 186,
+      "dependency_mismatches": 0,
+      "root_install": false,
+      "frontend_build": {
+        "reused_from": "candidate-v8",
+        "inputs_and_assets_hash_bound": true,
+        "new_final_build_claimed": false
+      },
+      "focused": {
+        "files": 6,
+        "passed": 68,
+        "failed": 0,
+        "optional_skips": 0
+      },
+      "speech_source_checks": {
+        "unique_passed": 55,
+        "files": 6,
+        "initial_passed": 49,
+        "initial_failed": 6,
+        "retry_files": 2,
+        "retry_passed": 17,
+        "source_hashes_match_final": true,
+        "new_cuda_or_selector_run": false
+      },
+      "reconciled_inventory": {
+        "passed": 1890,
+        "failed": 0,
+        "optional_skips": 2,
+        "files": 154,
+        "assertions": 1892
+      },
+      "method": "Replace six complete v8 files with v9 affected-file results and replace/add six complete speech files after the retained two-file retry. Raw run totals are not added.",
+      "is_new_full_run": false,
+      "final_qualification_admission": {
+        "status": "passed",
+        "at": "2026-11-02T00:30:04.631Z",
+        "private_evidence_ref": ".local/calendar-repair-2026-11-01/final-qualification-prep-v9/qualification-admission.json",
+        "all_six_referenced_proof_hashes_verified": true,
+        "final_typecheck": {
+          "passed": true,
+          "node": "24.22.2",
+          "openssl": "3.5.9",
+          "exit_code": 0,
+          "input_manifest_sha256": "e8ce036304918ffb1bb7dc8bb09b063ef2712b09bfd17e3fbb7aac6afc026c86",
+          "receipt_sha256": "c5b3c3fdbfce4d3c1fc75b1b28e2b103178e9f6bd9396e690f47ba1fbf93d7ac"
+        },
+        "actual_disposable_postgresql": {
+          "passed_tests": 25,
+          "failed_tests": 0,
+          "migration_backup_checks_passed": 16,
+          "fixtures": 3,
+          "all_fixture_identities_verified_before_removal": true,
+          "all_fixtures_removed": true,
+          "receipt_sha256": "a799c2c929e3c0ef8e7a216b6fd95c9e51f6e4c22cbe62379a2547a56b68d02b"
+        },
+        "package_verified": true,
+        "package_source_files": 597,
+        "installed_packages": 186,
+        "activation": false,
+        "provider_acceptance": false
+      },
+      "limitations": [
+        "Source correspondence was measured at reconciliation time; test JSON has no embedded execution-time source-hash receipt.",
+        "Final v9 typecheck and actual disposable PostgreSQL/migration/backup checks pass; these do not establish live migration or provider acceptance.",
+        "Guarded deployment and runtime/preservation checks pass; application OAuth is open but incomplete, with no exact-target event access established."
+      ]
+    }
+  },
+  "live_schema_021_migration": {
+    "status": "passed",
+    "implementation_revision": "sha256:f1fb0a7b17c5a245a2af9c1c02313c17f20e8b3beec75b3c3a792eee8d1ffbe9",
+    "started_at": "2026-11-02T00:52:15.870Z",
+    "finished_at": "2026-11-02T00:57:40.393Z",
+    "applied": true,
+    "only_021_pending_before_apply": true,
+    "encrypted_backup_roundtrip": true,
+    "restored_tuples": 205286,
+    "restored_care_tables_verified": true,
+    "restore_fixture_removed": true,
+    "whole_care_and_owner_preserved": true,
+    "owner_untouched": true,
+    "primary_bytewise_unchanged_at_check": true,
+    "observed_primary_operational_changed_fields": [],
+    "provider_calls": 0,
+    "model_calls": 0,
+    "care_business_writes": 0,
+    "private_evidence_ref": ".local/calendar-repair-2026-11-01/final-qualification-prep-v9/migration-result.json",
+    "private_evidence_sha256": "b47e301dcf704693fc7c000e3565b711c377b3a9167e96039a635aeaa8bcf6fd",
+    "operational_impact": {
+      "care_table_locks_held_for_minutes": true,
+      "some_care_requests_temporarily_waited": true,
+      "observation": "CPU and database observations are consistent with CPU-heavy preservation comparison while relation locks remained held; the exact executing JavaScript instruction was not observed.",
+      "limit": "The real restore/preservation path held locks materially longer than tiny synthetic fixtures; maintenance was not disruption-free.",
+      "private_evidence_ref": ".local/calendar-repair-2026-11-01/final-qualification-prep-v9/migration-activity-observations.json"
+    },
+    "later_preservation_admission": {
+      "status": "passed",
+      "observed_at": "2026-11-02T01:05:48.619Z",
+      "care_preserved": true,
+      "primary_identity_grants_configuration_state_resources_revision_preserved": true,
+      "primary_rows_bytewise_unchanged_at_check": true,
+      "observed_primary_operational_changed_fields": [],
+      "owner_run_preserved": true,
+      "client_run_expected": true,
+      "archive_choice_preserved": true,
+      "sessions_preserved": true,
+      "protected_files_unchanged": true,
+      "account_binding_preserved": true,
+      "new_engineering_sessions_closed": true,
+      "provider_calls": 0,
+      "model_calls": 0,
+      "care_business_writes": 0,
+      "private_evidence_ref": ".local/calendar-repair-2026-11-01/final-qualification-prep-v9/preservation-admission.json",
+      "private_evidence_sha256": "2de5e2bb5d98d090da36c130d3550972fb39ee19487182153b6ee3ad978cc3aa"
+    },
+    "software_deployment_pass_claimed": false,
+    "application_oauth_pass_claimed": false,
+    "target_event_visibility_claimed": false,
+    "actual_person_device_acceptance_claimed": false
+  },
+  "secondary_software_deployment": {
+    "status": "passed",
+    "release": "calendar-shared-v1-2026-11-01",
+    "implementation_revision": "sha256:f1fb0a7b17c5a245a2af9c1c02313c17f20e8b3beec75b3c3a792eee8d1ffbe9",
+    "manifest_sha256": "89a4a2d0e6e67eeab89ad0a8468957c375c6682a3ec2c5a91a89922108443fd9",
+    "owner_release": "feedback-v3-2026-10-31",
+    "attempt": 2,
+    "selected_at": "2026-11-02T01:12:50.3237365Z",
+    "runtime_admission_at": "2026-11-02T01:14:12.2625015Z",
+    "preservation_admission_at": "2026-11-02T01:14:13.134Z",
+    "both_normal_tls_configured_local_voice_ready": true,
+    "initial_post_restart_warmup_observation_retained": true,
+    "owner_run_unchanged": true,
+    "speech_worker_paths_unchanged": true,
+    "separate_speech_dependency_candidate_activated": false,
+    "heart_current_and_exact_sol_low_route_preserved": true,
+    "care_preserved": true,
+    "sessions_preserved": true,
+    "archive_choice_preserved": true,
+    "protected_configuration_preserved": true,
+    "account_binding_preserved": true,
+    "primary_identity_grants_configuration_state_resources_revision_preserved": true,
+    "primary_rows_bytewise_unchanged_at_check": true,
+    "observed_primary_operational_changed_fields": [],
+    "first_attempt": {
+      "status": "failed_retained_closed",
+      "at": "2026-11-02T01:06:12.4084564Z",
+      "reason": "Atomic environment-file replacement failed before applying the change.",
+      "environment_mutation_attempted": true,
+      "environment_change_applied": false,
+      "release_pointer_mutation_attempted": false,
+      "process_stop_attempted": false,
+      "exact_pre_stop_state_restored": true,
+      "care_restore": false,
+      "private_evidence_ref": ".local/calendar-repair-2026-11-01/final-qualification-prep-v9/promotion-failed.json"
+    },
+    "whole_workflow_model_calls": null,
+    "whole_workflow_provider_calls": null,
+    "accounting_limit": "Whole-workflow counts are unknown because existing authenticated browser preparation may call providers/models. Helper-scoped zero counts do not establish complete workflow totals.",
+    "supervisor_environment_observed_directly": false,
+    "environment_limit": "Environment inheritance was assessed from the verified scheduled launch chain, caller/User/Machine settings and reviewed env files; process memory was not inspected.",
+    "private_receipts": [
+      {"ref": ".local/calendar-repair-2026-11-01/final-qualification-prep-v9/promotion-attempt2-result.json", "sha256": "057963eb271908b7146c5d1f3536ba31a1dec4943c94f4982e12f5b5432e8d0c"},
+      {"ref": ".local/calendar-repair-2026-11-01/final-qualification-prep-v9/post-promotion-runtime-admission.json", "sha256": "20706c564c9e629290e5b998bdf43c06db47e96072d3e3c8c6c34f0606f972d9"},
+      {"ref": ".local/calendar-repair-2026-11-01/final-qualification-prep-v9/post-promotion-admission.json", "sha256": "a1a5ac4df9f5b822b16fc79b0972107875d73efa2b514ecb2c7f6e919dcba937"}
+    ],
+    "served_health": {
+      "status": "passed",
+      "at": "2026-11-02T01:17:34.1521704Z",
+      "both_served_html_match_own_immutable_release_index": true,
+      "both_anonymous_care_requests_http_status": 401,
+      "both_normal_tls": true,
+      "helper_provider_calls": 0,
+      "helper_model_calls": 0,
+      "private_evidence_pattern": ".local/calendar-repair-2026-11-01/final-qualification-prep-v9/served-health-*.json",
+      "private_evidence_sha256": "cc4e45dafb85b769f97bf202ded711e3df8408af3cd65b843dcca6ae7bfa0ddb"
+    },
+    "isolated_oauth": {
+      "status": "open_password_update_required",
+      "current_prompt": "Update your password",
+      "displayed_possible_reasons": ["first sign-in", "password expired"],
+      "exact_reason_verified": false,
+      "password_changed": false,
+      "human_account_step_required": true,
+      "oauth_may_expire_before_human_completion": true,
+      "read_only_administrator_cause_inspection_performed": false,
+      "read_only_administrator_cause_inspection_scope_approval": "pending",
+      "exact_approved_signer": true,
+      "direct_completion_requested_by_user": true,
+      "completed": false,
+      "target_events_verified": false,
+      "existing_isolated_admin_consent_preserved": true
+    },
+    "actual_person_device_or_full_slice_acceptance_claimed": false
+  },
+  "pending": [
+    "Complete the opened isolated OAuth flow at the Microsoft-required password-update step for the exact approved signer, then verify exact-target sharing/access and genuine missing-appointment visibility",
+    "Actual person, phone, microphone, audible timing and workflow acceptance",
+    "Separate conversation-end HTTP 500 observation",
+    "Current confirmed-context review where still missing and client-owned archive opt-in",
+    "Genuine full-message, grocery, recipe-email and medical appointment usefulness",
+    "Separate speech dependency release qualification/promotion; exact configured CUDA/float16 replacement ASR and read-only selector checks now pass, with no selector or ACL activation",
+    "Full S01 and S06 acceptance"
+  ],
+  "human_action_status_changed": false,
+  "full_slice_completion": false,
+  "private_evidence_directory": ".local/calendar-repair-2026-11-01/",
+  "handoff_validation": {
+    "status": "passed",
+    "checked_at": "2026-11-02T01:23:25.313Z",
+    "human_actions_render_check": true,
+    "roadmap_validation": true,
+    "git_diff_whitespace_check": true,
+    "slices": 12,
+    "human_actions": 36,
+    "automated_checks": 106,
+    "live_scenarios": 49,
+    "completed_features": 0,
+    "scope": "Documentation structure and metadata only; no application, provider, SQL or native-worker test performed for this documentation update."
+  },
+  "updated_at": "2026-11-02T01:23:12.399Z",
+  "runtime_only_host_restart": {
+    "started_at": "2026-11-01T23:52:24.0662681Z",
+    "completed_at": "2026-11-01T23:55:37.9120483Z",
+    "status": "passed",
+    "direct_user_approval": true,
+    "node": "24.22.2",
+    "openssl": "3.5.9",
+    "tailscale": "1.104.4",
+    "client_release": "calendar-read-v1-2026-11-01",
+    "owner_release": "feedback-v3-2026-10-31",
+    "both_supervisors_apps_and_speech_restarted": true,
+    "fresh_process_and_entry_and_listener_proof": true,
+    "task_definitions_preserved": true,
+    "both_normal_tls_config_voice_current_and_anonymous_boundary": true,
+    "care_tables": 131,
+    "original_sessions_at_this_later_baseline": 189,
+    "changed_care_tables": 0,
+    "all_original_sessions_preserved": true,
+    "protected_configuration_preserved": true,
+    "account_host_grants_binding_preserved": true,
+    "archive_choice_and_ciphertext_preserved": true,
+    "heart_and_current_preserved": true,
+    "qualified_sol_low_route_preserved": true,
+    "asr_cuda_configuration_preserved": true,
+    "release_pointer_changes": 0,
+    "helper_logins": 0,
+    "helper_model_calls": 0,
+    "helper_care_business_writes": 0,
+    "calendar_candidate_activated": false,
+    "speech_dependency_candidate_activated": false,
+    "warmup_retries_retained": true,
+    "scope_limit": "Runtime-only host adoption, separate from original date-repair rollout and later isolated provider registration/consent; no human acceptance inferred.",
+    "private_evidence_directory": ".local/security-remediation-2026-11-01/"
+  },
+  "separate_speech_security_preparation": {
+    "status": "exact_configured_cuda_asr_qualified_not_activated",
+    "current_asr_device": "cuda",
+    "current_compute_type": "float16",
+    "candidate_asr_qualified_device": "cuda",
+    "candidate_asr_qualified_compute_type": "float16",
+    "prior_cpu_and_memory_hold_evidence": {
+      "retained": true,
+      "qualified_device": "cpu",
+      "qualified_compute_type": "int8",
+      "cuda_worker_launches_before_memory_hold": 0,
+      "new_selector_tests_before_memory_hold": 0,
+      "memory_hold_preceded_launch": true
+    },
+    "configured_cuda_qualification": {
+      "observed_at": "2026-11-02T00:14:12.541975+00:00",
+      "private_evidence_ref": ".local/security-remediation-2026-11-01/nancy-candidate-v1/evidence/python-cuda-result.json",
+      "private_evidence_sha256": "60576608392261daaf12ad4eed9156de264286f0f90279731f89cf94b5b892e0",
+      "exact_configured_device_model_and_revision": true,
+      "baseline": {
+        "python": "3.14.7",
+        "openssl": "3.5.7",
+        "checks": 9,
+        "passed": true,
+        "worker_exit_code": 0,
+        "worker_absent_after_exit": true
+      },
+      "patched_candidate": {
+        "python": "3.14.10",
+        "openssl": "3.5.9",
+        "checks": 9,
+        "passed": true,
+        "worker_exit_code": 0,
+        "worker_absent_after_exit": true
+      },
+      "total_checks_passed": 18,
+      "expected_phrase_matches": 6,
+      "all_expected_phrase_matches": true,
+      "workers_closed_by_own_harness_without_force_kill": true,
+      "live_workers_stopped": false,
+      "provider_calls": 0,
+      "model_network_calls": 0,
+      "care_writes": 0,
+      "offline_local_files_only": true,
+      "model_downloads": 0,
+      "original_and_copied_worker_and_model_cache_preserved": true,
+      "selector_read_only_validation": {
+        "passed": true,
+        "workers_started": false,
+        "active_configuration_changed": false,
+        "prior_12_case_test_source_unchanged": true
+      },
+      "limitations": [
+        "Synthetic engineering qualification only; actual person/device acceptance remains open.",
+        "Silence retains the same bounded three-character output in both runtimes; no silence-recognition improvement is claimed.",
+        "Observed timings are not a performance guarantee.",
+        "No calendar SQL, broad tests, root dependency installation or live activation occurred."
+      ]
+    },
+    "native_dependency_versions": {
+      "libvips": "8.18.7",
+      "libvips_npm_wrapper_package": "1.3.4",
+      "sharp": "0.35.5",
+      "native_version_private_evidence_ref": ".local/security-remediation-2026-11-01/nancy-candidate-v1/evidence/kokoro-native-sharp.json",
+      "package_version_private_evidence_ref": ".local/security-remediation-2026-11-01/nancy-candidate-v1/evidence/kokoro-lock-diff.json"
+    },
+    "cpu_fallback_allowed": false,
+    "speech_only_baseline_overlays_frozen": true,
+    "selector_activated": false,
+    "model_cache_acl_changes": 0,
+    "cache_acl_proposal_read_only": true
+  }
+}

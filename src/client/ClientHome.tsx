@@ -11,6 +11,7 @@ import {initialClientLayout,useFocusDock} from './client-layout';
 import './client-home.css';
 import {MicrosoftConnection,type MicrosoftClientService} from './MicrosoftConnection';
 const outlookSetupService:MicrosoftClientService={status:api.microsoftStatus,connect:api.microsoftConnect,finish:api.microsoftFinish,resources:api.microsoftResources,select:api.microsoftSelect,context:api.microsoftContext,disconnect:api.microsoftDisconnect};
+const additionalCalendarSetupService:MicrosoftClientService={status:api.microsoftCalendarSourceStatus,connect:api.microsoftCalendarSourceConnect,finish:api.microsoftCalendarSourceFinish,resources:api.microsoftCalendarSourceResources,select:api.microsoftCalendarSourceSelect,context:api.microsoftCalendarSourceContext,disconnect:api.microsoftCalendarSourceDisconnect};
 
 export interface ClientHomeProps {
  today:Today;scopeKey:string;localFeaturesAvailable:boolean;microsoftAvailable:boolean;voiceEligible:boolean;voiceAvailable:boolean;voiceTransport?:AppConfig['voice_transport'];
@@ -18,7 +19,7 @@ export interface ClientHomeProps {
  renderTasks(onTalk:()=>void):ReactNode;renderMeals(onTalk:()=>void):ReactNode;renderDay(calendar:CalendarState):ReactNode;
  reminders(active:boolean,onTalk:()=>void,onActivity:(active:boolean)=>void):ReactNode;pending?:ReactNode;
 }
-export interface CalendarState {events:Array<{id:string;subject:string;start:string;end:string;isAllDay:boolean;isCancelled:boolean}>;state:'off'|'loading'|'fresh'|'partial'|'unavailable';fetchedAt:string|null}
+export interface CalendarState {events:Array<{id:string;subject:string;start:string;end:string;isAllDay:boolean;isCancelled:boolean;sourceKey?:'primary'|'secondary';calendarId?:string;sourceLabel?:string}>;state:'off'|'loading'|'fresh'|'partial'|'unavailable';fetchedAt:string|null}
 function dayRange(date:string,zone:string){const next=new Date(date+'T12:00:00Z');next.setUTCDate(next.getUTCDate()+1);const start=localDateTimeWithOffset(date+'T00:00',zone),end=localDateTimeWithOffset(next.toISOString().slice(0,10)+'T00:00',zone);if(!start.ok||!end.ok)throw Error('Day unavailable.');return {start:start.value,end:end.value};}
 const faq=[
  ['How do I start?','Tap Talk to Nancy and say what you need. You do not need to open a tab first. If speaking is difficult, choose Type to Nancy and send a message instead. Nancy still replies aloud.'],
@@ -61,7 +62,7 @@ export function ClientHome(props:ClientHomeProps){
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;epoch.current++;controller.current?.abort();void handle.current?.stop();handle.current=null;};},[]);
  useEffect(()=>{
   let current=true;setCalendar({events:[],state:props.microsoftAvailable?'loading':'off',fetchedAt:null});if(!props.microsoftAvailable)return;
-  void api.microsoftCalendar(dayRange(today.local_date,today.profile!.time_zone)).then(data=>{if(current)setCalendar({events:data.calendars.flatMap(c=>c.result.items),state:data.calendars.some(c=>!c.result.complete)?'partial':'fresh',fetchedAt:data.fetched_at});}).catch(()=>{if(current)setCalendar({events:[],state:'unavailable',fetchedAt:null});});return()=>{current=false;};
+  void api.microsoftCalendar(dayRange(today.local_date,today.profile!.time_zone)).then(data=>{if(current)setCalendar({events:data.calendars.flatMap(c=>c.result.items.map(event=>({...event,sourceKey:c.source_key,calendarId:c.id,sourceLabel:c.source_label}))),state:data.calendars.some(c=>!c.result.complete)?'partial':'fresh',fetchedAt:data.fetched_at});}).catch(()=>{if(current)setCalendar({events:[],state:'unavailable',fetchedAt:null});});return()=>{current=false;};
  },[scopeKey,today.local_date,today.profile!.time_zone,props.microsoftAvailable,refreshVersion]);
  useEffect(()=>{const marker=new URL(window.location.href).searchParams.get('microsoft');if(!marker)return;
   if(props.microsoftAvailable)setOutlookSetup(true);else setIssue('Outlook is not available for this account.');
@@ -106,7 +107,7 @@ export function ClientHome(props:ClientHomeProps){
    <div className="client-text-actions"><small id="nancy-text-count">{draft.length}/2000</small><button type="button" className="text-button" onClick={()=>setTextOpen(false)}>Hide typing</button><button type="submit" className="primary-button" disabled={!draft.trim()||textBusy}>Send message</button></div>
    {textIssue&&<p role="alert">{textIssue}</p>}
   </form>}
-  {outlookSetup&&props.microsoftAvailable&&<section className="client-card" aria-label="Outlook setup"><h2>Outlook connection</h2><p>Use the approved Microsoft account and select its calendar and Inbox. Your caregiver can help with this step.</p><MicrosoftConnection service={outlookSetupService} scopeKey={scopeKey} localDate={today.local_date} timeZone={today.profile!.time_zone}/><button className="secondary-button" onClick={()=>{setOutlookSetup(false);setRefreshVersion(v=>v+1);const url=new URL(window.location.href);url.searchParams.delete('setup');url.searchParams.delete('microsoft');window.history.replaceState(null,'',url.pathname+url.search+url.hash);}}>Done with Outlook setup</button></section>}
+  {outlookSetup&&props.microsoftAvailable&&<section className="client-card" aria-label="Outlook setup"><h2>Outlook connections</h2><p>Use each approved Microsoft account for its named connection. Your caregiver can help with this step.</p><MicrosoftConnection service={outlookSetupService} scopeKey={scopeKey} localDate={today.local_date} timeZone={today.profile!.time_zone}/><MicrosoftConnection service={additionalCalendarSetupService} calendarOnly scopeKey={scopeKey} localDate={today.local_date} timeZone={today.profile!.time_zone}/><button className="secondary-button" onClick={()=>{setOutlookSetup(false);setRefreshVersion(v=>v+1);const url=new URL(window.location.href);url.searchParams.delete('setup');url.searchParams.delete('microsoft');window.history.replaceState(null,'',url.pathname+url.search+url.hash);}}>Done with Outlook setup</button></section>}
   <nav className="client-tabs" aria-label="My Day views">{clientTabs.map(([id,label])=><button key={id} aria-current={view===id?'page':undefined} onClick={()=>setView(id)}>{label}</button>)}</nav>
   {issue&&<p role="status">{issue}</p>}
   {active&&archiveStatus==='saving'&&<p role="status">This conversation’s text is being saved on this computer for later review.</p>}

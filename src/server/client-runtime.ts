@@ -11,7 +11,8 @@ import { RuntimeLog } from './telemetry.js';
 import { TaskRequestService } from './task-requests.js';
 import { createLocalFeatures } from './local-features.js';
 import {startSpeechWarmup} from './speech-startup.js';
-import {createMicrosoftRuntime} from './microsoft/runtime.js';
+import {createMicrosoftRuntime,createSecondaryMicrosoftRuntime} from './microsoft/runtime.js';
+import {MicrosoftCalendarSources} from './microsoft/calendar-sources.js';
 import {resolveCaregiverInference} from './caregiver-inference.js';
 import {NancySuggestions} from './nancy-suggestions.js';
 import {resolve} from 'node:path';
@@ -32,6 +33,8 @@ const runtimeLog = care ? new RuntimeLog(care.pool) : undefined;
 const taskRequests = care ? new TaskRequestService(care.pool) : undefined;
 const features=care?createLocalFeatures(care.pool,{dayContext:(participant,date)=>care.preparationFacts(participant,date)}):undefined;
 const microsoft=care?await createMicrosoftRuntime(config,care.pool):undefined;
+const secondaryMicrosoft=care?await createSecondaryMicrosoftRuntime(config,care.pool):undefined;
+const outlook=microsoft&&secondaryMicrosoft?new MicrosoftCalendarSources(microsoft,secondaryMicrosoft):microsoft;
 const store=config.sessionKey&&config.planUserId?new PlanStore(defaultPlanPath,config.sessionKey):undefined;
 const caregiver=care&&config.planUserId?resolveCaregiverInference(config.caregiverVoiceConfig,config.planUserId,care.pool):undefined;
 const rollout=care&&config.planUserId&&caregiver?new ClientRolloutPolicy(resolve('.local/runtime/client-rollout.json'),config.planUserId,caregiver):undefined;
@@ -52,7 +55,7 @@ const record=(metric:(ConversationTurnMetric|InferenceCallMetric|MealPreparation
   runtimeLog?.record({ kind: 'conversation', actor_id, conversation_id, turn_id, outcome: outcome === 'completed' ? 'ok' : outcome === 'failed' ? 'error' : 'interrupted', measurements });
 };
 const recordFast=(metric:ConversationTurnMetric|InferenceCallMetric|MealPreparationMetric|ConversationPreparationMetric)=>record({...metric,policy_ref:selectedPolicyRef});
-let conversation:ConversationRuntime|undefined=speech&&care&&reasoner?new ConversationService(care,reasoner,config.planUserId!,undefined,(text,signal)=>speech.synthesize(text,signal),record,record,taskRequests,features,session=>microsoft?.eligible(session)??Promise.resolve(false),microsoft,new NancySuggestions(care.pool)):undefined;
+let conversation:ConversationRuntime|undefined=speech&&care&&reasoner?new ConversationService(care,reasoner,config.planUserId!,undefined,(text,signal)=>speech.synthesize(text,signal),record,record,taskRequests,features,session=>microsoft?.eligible(session)??Promise.resolve(false),outlook,new NancySuggestions(care.pool)):undefined;
 let clientSessionRenewal:ClientSessionRenewal|undefined;
 if(selection&&rollout&&care&&store&&fastSpeech&&conversation&&caregiver){
   const fastReasoner=new WarmPlanReasoner(store,config.planUserId!,selection.participant_id,metric=>{
@@ -60,15 +63,15 @@ if(selection&&rollout&&care&&store&&fastSpeech&&conversation&&caregiver){
     runtimeLog?.record({kind:'conversation',actor_id,conversation_id,outcome:outcome==='completed'?'ok':outcome==='interrupted'?'interrupted':'error',measurements:{...measurements,policy_version:'nancy-2026-10-26-client-sol-low-w2',policy_ref:selectedPolicyRef}});
   },()=>new PlanSocket(undefined,false),{actorId:selection.client_actor_id,clientId:selection.participant_id,caregiver,authorizeBinding:async binding=>{await rollout.authorizeBinding(binding);}});
   clientSessionRenewal=new ClientSessionRenewal(config.planUserId!,selection.client_actor_id,config.origin);
-  const fast=new ConversationService(care,fastReasoner,config.planUserId!,undefined,(text,signal)=>fastSpeech.synthesize(text,signal),recordFast,recordFast,taskRequests,features,session=>microsoft?.eligible(session)??Promise.resolve(false),microsoft,new NancySuggestions(care.pool),
+  const fast=new ConversationService(care,fastReasoner,config.planUserId!,undefined,(text,signal)=>fastSpeech.synthesize(text,signal),recordFast,recordFast,taskRequests,features,session=>microsoft?.eligible(session)??Promise.resolve(false),outlook,new NancySuggestions(care.pool),
     reasoningCandidates['sol-low'],true,72,true,true,true,recordFast,true,true,recordFast,true,true,true,clientSessionRenewal,undefined,rollout,false,false,selection.latency_mode==='outlook-speech-v2',config.origin,selection.speech_flow==='sentence-v1');
   conversation=new ClientConversationRouter(selection.client_actor_id,conversation,fast);
 }
-const app = await createApp(config, { archive:care&&config.sessionKey?new ConversationArchive(care.pool,config.sessionKey):undefined,care, speech, clientSpeech:selection&&fastSpeech?{actorId:selection.client_actor_id,speech:fastSpeech}:undefined, conversation, clientSessionRenewal, runtimeLog, taskRequests, features, microsoft, staticRoot:fileURLToPath(new URL('../../dist/client',import.meta.url)) });
+const app = await createApp(config, { archive:care&&config.sessionKey?new ConversationArchive(care.pool,config.sessionKey):undefined,care, speech, clientSpeech:selection&&fastSpeech?{actorId:selection.client_actor_id,speech:fastSpeech}:undefined, conversation, clientSessionRenewal, runtimeLog, taskRequests, features, microsoft, secondaryMicrosoft, staticRoot:fileURLToPath(new URL('../../dist/client',import.meta.url)) });
 // Durable due jobs survive restarts. Outlook preparation is separately consented,
 // exact-account read-only retrieval; it never calls a model or opens a microphone.
 let schedulerBusy=false;
-const runLocalJobs=async(trigger:'scheduler'|'startup'='scheduler')=>{if(!features||schedulerBusy)return;schedulerBusy=true;try{await features.day.tick(trigger);await features.support.refreshNotifications();await microsoft?.prepareMorning();}catch{console.error('Local preparation or reminder maintenance failed; it will be checked again.');}finally{schedulerBusy=false;}};
+const runLocalJobs=async(trigger:'scheduler'|'startup'='scheduler')=>{if(!features||schedulerBusy)return;schedulerBusy=true;try{await features.day.tick(trigger);await features.support.refreshNotifications();await microsoft?.prepareMorning();await secondaryMicrosoft?.prepareMorning();}catch{console.error('Local preparation or reminder maintenance failed; it will be checked again.');}finally{schedulerBusy=false;}};
 const scheduler=setInterval(()=>{void runLocalJobs();},30_000);scheduler.unref();
 let stopSpeechWarmup=()=>{};
 let stopFastSpeechWarmup=()=>{};

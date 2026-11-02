@@ -4,7 +4,7 @@ import { localCareMigrations } from './local-migrations.js';
 export const backupTables = ['participant_profiles', 'role_grants', 'task_definitions', 'meal_options', 'daily_checkins', 'day_plan_proposals', 'accepted_day_plan_versions', 'command_receipts', 'domain_events'] as const;
 // Restore in dependency order. Request decisions must follow task/plan records;
 // help follows requests, and administrator flags follow both requests and help.
-// Microsoft OAuth attempts and connections are deliberately excluded with live sessions:
+// Both primary and secondary Microsoft OAuth attempts/connections are excluded with live sessions:
 // restoration must start disconnected, without resurrecting provider consent or credentials.
 export const localBackupTables = ['accounts', 'participant_profiles', 'role_grants', 'task_definitions', 'meal_options', 'daily_checkins', 'day_plan_proposals', 'accepted_day_plan_versions', 'command_receipts', 'domain_events', 'appointments', 'append_only_mutations', 'activity_records', 'actuation_targets', 'external_resource_links', 'actuation_intents', 'runtime_events',
   'request_access', 'request_day_capacity', 'request_constraints', 'task_requests', 'request_help', 'request_flags', 'request_receipts',
@@ -45,11 +45,11 @@ export function schemaHash(schema: BackupSchema = 'private', withoutActivityReco
 function snapshotShape(snapshot:Snapshot) {
   const schema=snapshot.schema||'private';
   if(schema!=='private'&&schema!=='companion_local')throw new Error('Backup schema does not match this revision.');
-  const prior=schema==='companion_local'?['012_operations.sql','013_activity_recovery.sql','014_intake_kind.sql','015_preferences.sql','016_daily_continuity.sql','017_food_focus.sql','018_microsoft.sql','019_trusted_device.sql'].find(file=>snapshot.schema_hash===schemaHash(schema,false,file)):undefined;
+  const prior=schema==='companion_local'?['012_operations.sql','013_activity_recovery.sql','014_intake_kind.sql','015_preferences.sql','016_daily_continuity.sql','017_food_focus.sql','018_microsoft.sql','019_trusted_device.sql','020_microsoft_preparation.sql'].find(file=>snapshot.schema_hash===schemaHash(schema,false,file)):undefined;
   if(!prior&&snapshot.schema_hash!==schemaHash(schema))throw new Error('Backup schema does not match this revision.');
   if(snapshot.format===3){
     const owner=snapshot.owner_asana;
-    if(schema!=='companion_local'||snapshot.schema_hash!==schemaHash('companion_local')||!owner||owner.format!==1||owner.schema_hash!==ownerAsanaSchemaHash()
+    if(schema!=='companion_local'||(snapshot.schema_hash!==schemaHash('companion_local')&&prior!=='020_microsoft_preparation.sql')||!owner||owner.format!==1||owner.schema_hash!==ownerAsanaSchemaHash()
       ||!owner.tables||Object.keys(owner.tables).length!==ownerAsanaBackupTables.length||!ownerAsanaBackupTables.every(t=>Array.isArray(owner.tables[t])))
       throw Error('Owner Asana backup extension does not match this revision.');
   }else if(snapshot.owner_asana!==undefined)throw Error('Owner Asana recovery requires an explicit format-3 backup.');

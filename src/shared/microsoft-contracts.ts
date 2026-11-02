@@ -6,6 +6,7 @@ export const microsoftSelectionSchema=z.object({
  expected_revision:z.number().int().positive(),calendar_ids:z.array(resourceId).max(5),mail_folder_ids:z.array(resourceId).max(5),
 }).strict().refine(value=>new Set(value.calendar_ids).size===value.calendar_ids.length&&new Set(value.mail_folder_ids).size===value.mail_folder_ids.length);
 export type MicrosoftSelection=z.infer<typeof microsoftSelectionSchema>;
+export const microsoftCalendarSelectionSchema=microsoftSelectionSchema.refine(value=>value.mail_folder_ids.length===0,'This connection reads calendars only.');
 export const microsoftReadRangeSchema=z.object({start:z.iso.datetime({offset:true}),end:z.iso.datetime({offset:true})}).strict()
  .refine(value=>Date.parse(value.end)>Date.parse(value.start)&&Date.parse(value.end)-Date.parse(value.start)<=7*86400000+3600000);
 export type MicrosoftReadRange=z.infer<typeof microsoftReadRangeSchema>;
@@ -20,11 +21,12 @@ export interface MicrosoftStatus {
  available:boolean;eligible:boolean;state:'not_configured'|'disconnected'|'connected'|'reconnect_required';revision:number;
  selected_calendar_ids:string[];selected_mail_folder_ids:string[];last_read_at:string|null;last_error:string|null;
  model_disclosure_enabled:boolean;reviewed_writes_enabled?:boolean;
+ access_mode?:'calendar_read'|'calendar_read_shared';source_label?:string;
 }
 export const microsoftUnavailable:MicrosoftStatus={available:false,eligible:false,state:'not_configured',revision:0,
  selected_calendar_ids:[],selected_mail_folder_ids:[],last_read_at:null,last_error:null,model_disclosure_enabled:false};
 export interface MicrosoftResources {calendars:GraphCollection<GraphCalendar>;mail_folders:GraphCollection<GraphMailFolder>}
-export interface MicrosoftContext {source:'microsoft';fetched_at:string;calendars:Array<{id:string;result:GraphCollection<GraphCalendarEvent>}>;mail_folders:Array<{id:string;result:GraphCollection<GraphMessage>}>;model_disclosure_enabled:boolean}
+export interface MicrosoftContext {source:'microsoft';fetched_at:string;calendars:Array<{id:string;source_key?:'primary'|'secondary';source_label?:string;result:GraphCollection<GraphCalendarEvent>}>;mail_folders:Array<{id:string;result:GraphCollection<GraphMessage>}>;model_disclosure_enabled:boolean}
 
 const addresses=z.array(z.email().max(320)).min(1).max(10).refine(items=>new Set(items.map(x=>x.toLowerCase())).size===items.length);
 const subject=z.string().trim().min(1).max(200).refine(value=>!/[\r\n\u0000]/.test(value));

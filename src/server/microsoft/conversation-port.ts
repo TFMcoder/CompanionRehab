@@ -1,7 +1,15 @@
 import type {MicrosoftService} from './service.js';
+import type {PreparedMicrosoftContext} from './preparation.js';
+
+/** A missing source is represented explicitly rather than as an empty snapshot. */
+export type OutlookContext={source:string;state:string;fetched_at?:string|null;requested_range?:PreparedMicrosoftContext['range'];
+ calendar_coverage?:Array<{source_key:string;label:string;state:string;available:boolean}>;coverage_complete?:boolean}
+ & Partial<Omit<PreparedMicrosoftContext,'source'|'state'|'fetched_at'>>;
 
 /** The conversation can read/prepare only these bounded operations. */
-export type OutlookConversation=Pick<MicrosoftService,'authorityRevision'|'status'|'preparedContext'|'conversationContext'|'conversationMessage'|'prepareAction'|'confirmAction'|'actionReceipt'> & Partial<Pick<MicrosoftService,'conversationMailSearch'>> & {
+export type OutlookConversation=Pick<MicrosoftService,'authorityRevision'|'status'|'conversationMessage'|'prepareAction'|'confirmAction'|'actionReceipt'> & Partial<Pick<MicrosoftService,'conversationMailSearch'>> & {
+ preparedContext(...args:Parameters<MicrosoftService['preparedContext']>):Promise<OutlookContext>;
+ conversationContext(...args:Parameters<MicrosoftService['conversationContext']>):Promise<OutlookContext>;
  readonly sourceMode?:'owner_fixture';
 };
 

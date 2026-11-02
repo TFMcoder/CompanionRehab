@@ -52,7 +52,7 @@ for(const path of ['.local/runtime/local-care.env','.env.local']){try{source={..
 source={...source,...Object.fromEntries(Object.entries(process.env).filter((entry):entry is [string,string]=>typeof entry[1]==='string'))};
 if(source.NANCY_PLAN_USER_ID!==settings.owner_actor_id)throw Error('Test login must retain the existing actual owner identity.');
 for(const [key,value] of Object.entries(source))if(/^NANCY_(ASR|KOKORO)_/.test(key)&&typeof value==='string')process.env[key]=value;
-delete process.env.OPENAI_API_KEY;delete process.env.NANCY_MICROSOFT_CONFIG;delete process.env.NANCY_CAREGIVER_VOICE_CONFIG;
+delete process.env.OPENAI_API_KEY;delete process.env.NANCY_MICROSOFT_CONFIG;delete process.env.NANCY_MICROSOFT_CALENDAR_CONFIG;delete process.env.NANCY_CAREGIVER_VOICE_CONFIG;
 const liveKey=Buffer.from(source.SESSION_KEY??'','base64');
 const sessionKey=Buffer.from(settings.session_key,'base64');
 if(liveKey.length!==32||sessionKey.equals(liveKey))throw Error('Independent test-session configuration is required.');
@@ -74,7 +74,7 @@ const ownerSessionRenewal=new OwnerSessionRenewal(settings.owner_actor_id);
 const ownerAsana=await ownerAsanaRuntime(settings,care,ownerTestDirectory);
 const ownerOutlook=outlookReads?await createOwnerOutlookFixture(settings,care):undefined;
 const conversation=new ConversationService(care,reasoner,settings.owner_actor_id,undefined,(text,signal)=>speech.synthesize(text,signal),record,record,taskRequests,features,()=>Promise.resolve(false),ownerOutlook,new NancySuggestions(care.pool),reasoningProfile,prepareContext,latencyTrial?72:120,quickReads,spokenReplies,mealsAhead,record,dialogue,chatAhead,record,verifiedReferences,warmConnection,quickConversation,ownerSessionRenewal,ownerAsana&&prepareContext?session=>ownerAsana.conversationBoundary(session):undefined,undefined,outlookReads,ownerTestSpeechPriority(settings,selection),false,config.origin,outlookReads);
-const app=await createApp(config,{care,speech,conversation,ownerSessionRenewal,runtimeLog,taskRequests,features,microsoft:null,staticRoot:outlookReads?fileURLToPath(new URL('../../client/',import.meta.url)):join(ownerTestDirectory,'client'),ownerOutlookFixture:ownerOutlook,revocations:new SessionRevocations(join(ownerTestDirectory,'revoked-sessions.json')),
+const app=await createApp(config,{care,speech,conversation,ownerSessionRenewal,runtimeLog,taskRequests,features,microsoft:null,secondaryMicrosoft:null,staticRoot:outlookReads?fileURLToPath(new URL('../../client/',import.meta.url)):join(ownerTestDirectory,'client'),ownerOutlookFixture:ownerOutlook,revocations:new SessionRevocations(join(ownerTestDirectory,'revoked-sessions.json')),
   ownerAsana,
   safariStudy:new SafariStudy(join(ownerTestDirectory,'safari-study'),settings.owner_actor_id,settings.participant_id,undefined,async samples=>{
     await runtimeLog.flush();return readSafariStages(care.pool,settings.owner_actor_id,samples);

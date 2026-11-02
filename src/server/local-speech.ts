@@ -6,6 +6,7 @@ import { navigationReply } from './navigation-intent.js';
 import {outlookUnavailableReply} from '../shared/fixed-speech.js';
 import {dialogueChatReplies} from './dialogue-replies.js';
 import {splitSpeechParts} from '../shared/speech-parts.js';
+import {speechDependencyPaths} from './speech-runtime-config.js';
 
 const MAX_TEXT_CHARS = 1500;
 const MAX_WAV_BYTES = 10 * 1024 * 1024;
@@ -255,7 +256,7 @@ class WarmWorker {
 }
 
 export interface LocalSpeechOptions {
-  /** Test seam for a fake line worker; production callers should use the pinned defaults. */
+  /** Test seam for a fake line worker; production uses pinned defaults or an explicit reviewed runtime selection. */
   workerSpecs?: { kokoro: ChildSpec; asr: ChildSpec };
   /** Explicit startup selection for the isolated owner trial; defaults stay unchanged. */
   latencyTrial?: boolean;
@@ -286,8 +287,7 @@ export function validateWav(wav: Buffer) {
 
 function defaultWorkerSpecs(latencyTrial=false): { kokoro: ChildSpec; asr: ChildSpec } {
   const root = resolve(process.cwd());
-  const runtime = resolve(root, '.local/speech/kokoro-runtime');
-  const python = resolve(root, '.local/speech/runtime/venv/Scripts/python.exe');
+  const {kokoroRuntime:runtime,pythonExecutable:python}=speechDependencyPaths(root);
   const commonEnv: NodeJS.ProcessEnv = {
     SystemRoot: process.env.SystemRoot,
     PATH: process.env.PATH,

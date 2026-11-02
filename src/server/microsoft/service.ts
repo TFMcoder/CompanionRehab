@@ -5,14 +5,14 @@ import {localAuthority,localTransaction,canonicalJson,saveLocalCommand,previousL
 import type {Session} from '../session.js';
 import {MicrosoftGraphClient,MicrosoftGraphError} from './graph.js';
 import {sealMicrosoftSecret,openMicrosoftSecret} from './credential-storage.js';
-import {MicrosoftOAuthError,type MicrosoftTokenSet} from './oauth.js';
+import {MicrosoftOAuthError,MICROSOFT_CALENDAR_READ_SCOPES,MICROSOFT_CALENDAR_READ_SHARED_SCOPES,type MicrosoftTokenSet} from './oauth.js';
 import {outlookDateRange} from './conversation.js';
 import {mailSearchQuery} from './mail-search.js';
 import type {MicrosoftMailSearch} from '../../shared/microsoft-contracts.js';
 import {compactMicrosoftContext,recentInboxRange,usablePreparedContext,preparationFreshMs,type PreparedMicrosoftContext} from './preparation.js';
 import {microsoftSelectionSchema,microsoftReadRangeSchema,microsoftPrepareSchema,microsoftConfirmSchema,type MicrosoftAction,type MicrosoftActionReview,type MicrosoftActionReceipt,type MicrosoftActionState,type MicrosoftSelection,type MicrosoftReadRange,type MicrosoftStatus} from '../../shared/microsoft-contracts.js';
 
-export interface MicrosoftServiceConfig {tenantId:string;clientId:string;expectedObjectId:string;actorId:string;participantId:string;redirectUri:string;encryptionKey:Buffer;modelUseApproved?:boolean;reviewedWritesApproved?:boolean;preparationApproved?:boolean}
+export interface MicrosoftServiceConfig {tenantId:string;clientId:string;expectedObjectId:string;actorId:string;participantId:string;redirectUri:string;encryptionKey:Buffer;modelUseApproved?:boolean;reviewedWritesApproved?:boolean;preparationApproved?:boolean;accessMode?:'calendar_read'|'calendar_read_shared';calendarOwnerId?:string;sourceLabel?:string}
 export interface MicrosoftOAuth {
  beginAuthorization():{authorizationUrl:string;state:string;nonce:string;codeVerifier:string;expiresAt:string};
  exchangeCode(input:{code:string;codeVerifier:string;nonce:string},signal?:AbortSignal):Promise<MicrosoftTokenSet>;
@@ -41,23 +41,39 @@ function connectionFailure(stage:MicrosoftConnectionStage,error:unknown):Microso
 /** One app-specific connection, scoped to the approved client. The provider identity never establishes local care authority. */
 export class MicrosoftService {
  private fingerprint:string;
+ private readonly calendarRead:boolean;
+ private readonly connectionName:'microsoft_connections'|'microsoft_calendar_connections';
+ private readonly connections:string;
+ private readonly pending:string;
  constructor(private pool:Pool,private config:MicrosoftServiceConfig,private oauth:MicrosoftOAuth,private options:{clock?:()=>Date;operationTimeoutMs?:number;reportConnectionFailure?:(failure:MicrosoftConnectionFailure)=>void;graph?:(token:string,calendars:string[],folders:string[],signal?:AbortSignal,beforeRequest?:()=>Promise<void>)=>Graph}={}) {
   if(config.encryptionKey.length!==32)throw new Error('Microsoft encryption key must contain 32 bytes.');
-  this.config=config={...config,tenantId:config.tenantId.toLowerCase(),clientId:config.clientId.toLowerCase(),expectedObjectId:config.expectedObjectId.toLowerCase(),actorId:config.actorId.toLowerCase(),participantId:config.participantId.toLowerCase()};
-  this.fingerprint=hash(canonicalJson([config.tenantId,config.clientId,config.expectedObjectId,config.actorId,config.participantId,config.redirectUri]));
+  if(config.accessMode!==undefined&&!['calendar_read','calendar_read_shared'].includes(config.accessMode))throw new Error('Invalid Microsoft access mode.');
+  if(config.sourceLabel!==undefined&&(typeof config.sourceLabel!=='string'||!config.sourceLabel.trim()||config.sourceLabel.length>160||/[\u0000-\u001f\u007f]/.test(config.sourceLabel)))throw new Error('Invalid Microsoft source label.');
+  if(typeof config.expectedObjectId!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(config.expectedObjectId))throw new Error('An exact Microsoft account identity is required.');
+  if(config.accessMode==='calendar_read_shared'?typeof config.calendarOwnerId!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(config.calendarOwnerId)||config.calendarOwnerId.toLowerCase()===config.expectedObjectId.toLowerCase():config.calendarOwnerId!==undefined)throw new Error('An exact distinct shared calendar owner is required.');
+  this.calendarRead=config.accessMode==='calendar_read'||config.accessMode==='calendar_read_shared';
+  // Closed table choices keep the original single-account store safe for older releases.
+  this.connectionName=this.calendarRead?'microsoft_calendar_connections':'microsoft_connections';
+  this.connections='companion_local.'+this.connectionName;
+  this.pending='companion_local.'+(this.calendarRead?'microsoft_calendar_oauth_pending':'microsoft_oauth_pending');
+  this.config=config={...config,tenantId:config.tenantId.toLowerCase(),clientId:config.clientId.toLowerCase(),expectedObjectId:config.expectedObjectId.toLowerCase(),actorId:config.actorId.toLowerCase(),participantId:config.participantId.toLowerCase(),...(config.calendarOwnerId?{calendarOwnerId:config.calendarOwnerId.toLowerCase()}:{})};
+  this.fingerprint=hash(canonicalJson([config.tenantId,config.clientId,config.expectedObjectId,config.actorId,config.participantId,config.redirectUri,...(config.accessMode==='calendar_read_shared'?['calendar_read_shared',config.calendarOwnerId]:this.calendarRead?['calendar_read']:[])]));
  }
  private now(){return this.options.clock?.()??new Date();}
- private context(id:string){return {connectionId:id,actorId:this.config.actorId,participantId:this.config.participantId,tenantId:this.config.tenantId,objectId:this.config.expectedObjectId};}
+ private context(id:string){return {connectionId:this.config.accessMode==='calendar_read_shared'?'calendar_read_shared:'+this.config.calendarOwnerId+':'+id:this.calendarRead?'calendar_read:'+id:id,actorId:this.config.actorId,participantId:this.config.participantId,tenantId:this.config.tenantId,objectId:this.config.expectedObjectId};}
+ private emptyFolders(){return {items:[],fetchedAt:this.now().toISOString(),complete:true,truncation:null};}
+ private mailEnabled(){if(this.calendarRead)throw new ApiError(403,'microsoft_mail_disabled','This Outlook connection only reads selected calendars.');}
+ private readScope(scope:import('./fast-read.js').OutlookReadScope){if(this.calendarRead&&scope==='inbox')this.mailEnabled();return this.calendarRead?'calendar' as const:scope;}
  private seal(id:string,value:unknown){return sealMicrosoftSecret(JSON.stringify(value),this.config.encryptionKey,this.context(id));}
  private open<T>(id:string,value:string):T{return JSON.parse(openMicrosoftSecret(value,this.config.encryptionKey,this.context(id))) as T;}
- private graph(token:string,calendars:string[]=[],folders:string[]=[],signal?:AbortSignal,beforeRequest?:()=>Promise<void>):Graph{return this.options.graph?.(token,calendars,folders,signal,beforeRequest)??new MicrosoftGraphClient({accessToken:token,expectedAccountId:this.config.expectedObjectId,allowedCalendarIds:calendars,allowedMailFolderIds:folders,clock:()=>this.now(),signal,beforeRequest});}
+ private graph(token:string,calendars:string[]=[],folders:string[]=[],signal?:AbortSignal,beforeRequest?:()=>Promise<void>):Graph{return this.options.graph?.(token,calendars,folders,signal,beforeRequest)??new MicrosoftGraphClient({accessToken:token,expectedAccountId:this.config.expectedObjectId,allowedCalendarIds:calendars,allowedMailFolderIds:folders,accessMode:this.config.accessMode,calendarOwnerId:this.config.calendarOwnerId,clock:()=>this.now(),signal,beforeRequest});}
  private eligibleScope(ctx:LocalAuthority){return ctx.role==='client'&&ctx.actor===this.config.actorId&&ctx.participant===this.config.participantId;}
  async eligible(session:Session){return this.eligibleScope(await localAuthority(this.pool,session,this.now()));}
  private async authority(db:LocalDb,session:Session){const ctx=await localAuthority(db,session,this.now());if(!this.eligibleScope(ctx))throw authorizationError();return ctx;}
  private async recheck(db:LocalDb,session:Session,ctx:LocalAuthority,lock=false){const next=lock?await localAuthority(db,session,this.now(),true):await this.authority(db,session);if(!this.eligibleScope(next)||next.actor!==ctx.actor||next.participant!==ctx.participant||next.role!==ctx.role||next.grant!==ctx.grant)throw authorizationError();}
  private async erase(db:LocalDb,actor:string,participant?:string){
-  await db.query('delete from companion_local.microsoft_oauth_pending where actor_id=$1'+(participant?' and participant_id=$2':''),participant?[actor,participant]:[actor]);
-  await db.query("update companion_local.microsoft_connections set token_ciphertext=null,prepared_context_ciphertext=null,prepared_at=null,prepared_revision=null,state='reconnect_required',selected_calendar_ids='{}',selected_mail_folder_ids='{}',last_read_at=null,last_error='authorization_changed',revision=revision+1,updated_at=$2 where actor_id=$1 and state='connected'"+(participant?' and participant_id=$3':''),participant?[actor,this.now(),participant]:[actor,this.now()]);
+  await db.query(`delete from ${this.pending} where actor_id=$1`+(participant?' and participant_id=$2':''),participant?[actor,participant]:[actor]);
+  await db.query(`update ${this.connections} set token_ciphertext=null,prepared_context_ciphertext=null,prepared_at=null,prepared_revision=null,state='reconnect_required',selected_calendar_ids='{}',selected_mail_folder_ids='{}',last_read_at=null,last_error='authorization_changed',revision=revision+1,updated_at=$2 where actor_id=$1 and state='connected'`+(participant?' and participant_id=$3':''),participant?[actor,this.now(),participant]:[actor,this.now()]);
  }
  private async checked<T>(session:Session,work:(ctx:LocalAuthority)=>Promise<T>):Promise<T>{
   try{return await work(await this.authority(this.pool,session));}
@@ -77,17 +93,17 @@ export class MicrosoftService {
   if(!ctx||row&&!this.matches(row,ctx))await this.erase(this.pool,actor,this.config.participantId);
  }
  /** Clear a pending authorization on logout or rejected local-session authorization; persistent tokens are invalidated separately after fresh scope checks. */
- async endLogin(session:Session){await this.pool.query('delete from companion_local.microsoft_oauth_pending where login_session_id=$1 and actor_id=$2',[session.session_id,session.user_id]);}
+ async endLogin(session:Session){await this.pool.query(`delete from ${this.pending} where login_session_id=$1 and actor_id=$2`,[session.session_id,session.user_id]);}
  async invalidateSession(session:Session){await this.endLogin(session);await this.reconcileAuthorization(session.user_id);}
- private async row(db:LocalDb,ctx:LocalAuthority,lock=false):Promise<Row|undefined>{return (await db.query('select * from companion_local.microsoft_connections where participant_id=$1 and actor_id=$2'+(lock?' for update':''),[ctx.participant,ctx.actor])).rows[0];}
+ private async row(db:LocalDb,ctx:LocalAuthority,lock=false):Promise<Row|undefined>{return (await db.query(`select * from ${this.connections} where participant_id=$1 and actor_id=$2`+(lock?' for update':''),[ctx.participant,ctx.actor])).rows[0];}
  private matches(row:Row,ctx:LocalAuthority){return row.grant_fingerprint===ctx.grant&&row.configuration_fingerprint===this.fingerprint&&row.tenant_id===this.config.tenantId&&row.object_id===this.config.expectedObjectId;}
- private statusOf(row?:Row):MicrosoftStatus{return {available:true,eligible:true,state:row?.state??'disconnected',revision:row?.revision??0,selected_calendar_ids:row?.selected_calendar_ids??[],selected_mail_folder_ids:row?.selected_mail_folder_ids??[],last_read_at:time(row?.last_read_at??null),last_error:row?.last_error??null,model_disclosure_enabled:this.config.modelUseApproved===true&&row?.state==='connected',...(this.config.reviewedWritesApproved?{reviewed_writes_enabled:row?.state==='connected'}:{})};}
+ private statusOf(row?:Row,eligible=true):MicrosoftStatus{return {available:true,eligible,state:row?.state??'disconnected',revision:row?.revision??0,selected_calendar_ids:row?.selected_calendar_ids??[],selected_mail_folder_ids:row?.selected_mail_folder_ids??[],last_read_at:time(row?.last_read_at??null),last_error:row?.last_error??null,model_disclosure_enabled:this.config.modelUseApproved===true&&row?.state==='connected',...(this.calendarRead?{access_mode:this.config.accessMode,reviewed_writes_enabled:false}:this.config.reviewedWritesApproved?{reviewed_writes_enabled:row?.state==='connected'}:{}),...(eligible&&this.config.sourceLabel?{source_label:this.config.sourceLabel}:{})};}
  /** Conversation binding changes on selection, disconnect, reconnect or disclosure/action consent changes. */
- async authorityRevision(session:Session){const status=await this.status(session);return hash(canonicalJson([status.eligible,status.state,status.revision,this.config.modelUseApproved===true,this.config.reviewedWritesApproved===true]));}
+ async authorityRevision(session:Session){const status=await this.status(session);return hash(canonicalJson([status.eligible,status.state,status.revision,this.config.modelUseApproved===true,!this.calendarRead&&this.config.reviewedWritesApproved===true]));}
  async status(session:Session):Promise<MicrosoftStatus>{
   try{
   const ctx=await localAuthority(this.pool,session,this.now());
-  if(!this.eligibleScope(ctx)){await this.reconcileAuthorization(ctx.actor);return {...this.statusOf(),eligible:false};}
+  if(!this.eligibleScope(ctx)){await this.reconcileAuthorization(ctx.actor);return this.statusOf(undefined,false);}
   let row=await this.row(this.pool,ctx);
   if(row&&row.state==='connected'&&!this.matches(row,ctx)){await this.erase(this.pool,ctx.actor,ctx.participant);row=await this.row(this.pool,ctx);}
   return this.statusOf(row);
@@ -98,24 +114,30 @@ export class MicrosoftService {
   await localTransaction(this.pool,async db=>{
    await this.recheck(db,session,ctx);
    const previous=await this.row(db,ctx,true);if(previous&&!this.matches(previous,ctx))await this.erase(db,ctx.actor,ctx.participant);
-   await db.query('delete from companion_local.microsoft_oauth_pending where login_session_id=$1 or expires_at<=$2',[session.session_id,now]);
-   await db.query(`insert into companion_local.microsoft_oauth_pending(id,state_hash,browser_hash,actor_id,participant_id,login_session_id,grant_fingerprint,configuration_fingerprint,pending_ciphertext,stage,created_at,expires_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9,'authorizing',$10,$11)`,
+   await db.query(`delete from ${this.pending} where login_session_id=$1 or expires_at<=$2`,[session.session_id,now]);
+   await db.query(`insert into ${this.pending}(id,state_hash,browser_hash,actor_id,participant_id,login_session_id,grant_fingerprint,configuration_fingerprint,pending_ciphertext,stage,created_at,expires_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9,'authorizing',$10,$11)`,
     [id,hash(start.state),hash(browserBinding),ctx.actor,ctx.participant,session.session_id,ctx.grant,this.fingerprint,this.seal(id,{codeVerifier:start.codeVerifier,nonce:start.nonce}),now,new Date(Math.min(Date.parse(start.expiresAt),now.getTime()+600000))]);
   });return {authorization_url:start.authorizationUrl,browserBinding};
  });}
+ /** Routing hint only: callback still checks the exact browser binding and live care authority. */
+ async ownsCallbackState(state:string):Promise<boolean>{
+  if(typeof state!=='string'||!state||state.length>512)return false;
+  const result=await this.pool.query(`select id from ${this.pending} where state_hash=$1 and actor_id=$2 and participant_id=$3 and configuration_fingerprint=$4 and stage='authorizing' and expires_at>$5`,[hash(state),this.config.actorId,this.config.participantId,this.fingerprint,this.now()]);
+  return result.rows.length===1;
+ }
  /** Only the short-lived Lax cookie is accepted here. No Graph access occurs until authenticated same-origin finish. */
  async callback(input:{state:string;code?:string;error?:string},browserBinding?:string):Promise<void>{
   if(!browserBinding||!input.state||input.state.length>512||browserBinding.length>128)throw new ApiError(400,'microsoft_authorization_expired','Start the Microsoft connection again.');
   const accepted=await localTransaction(this.pool,async db=>{
-   const pending=(await db.query('select * from companion_local.microsoft_oauth_pending where state_hash=$1 for update',[hash(input.state)])).rows[0] as Pending|undefined;
+   const pending=(await db.query(`select * from ${this.pending} where state_hash=$1 for update`,[hash(input.state)])).rows[0] as Pending|undefined;
    if(!pending||pending.browser_hash!==hash(browserBinding)||pending.stage!=='authorizing'||new Date(pending.expires_at)<=this.now())throw new ApiError(400,'microsoft_authorization_expired','Start the Microsoft connection again.');
    const active=(await db.query(`select s.role,g.id,g.granted_at from companion_local.sessions s join companion_local.accounts a on a.id=s.actor_id join companion_local.role_grants g on g.actor_id=s.actor_id and g.participant_id=s.participant_id and g.role=s.role where s.id=$1 and s.actor_id=$2 and s.participant_id=$3 and s.expires_at>$4 and s.revoked_at is null and a.disabled_at is null and g.revoked_at is null`,[pending.login_session_id,pending.actor_id,pending.participant_id,this.now()])).rows[0];
-   if(!active||active.role!=='client'||hash(canonicalJson([active.id,active.granted_at,active.role]))!==pending.grant_fingerprint||pending.configuration_fingerprint!==this.fingerprint){await db.query('delete from companion_local.microsoft_oauth_pending where id=$1',[pending.id]);return false;}
+   if(!active||active.role!=='client'||hash(canonicalJson([active.id,active.granted_at,active.role]))!==pending.grant_fingerprint||pending.configuration_fingerprint!==this.fingerprint){await db.query(`delete from ${this.pending} where id=$1`,[pending.id]);return false;}
    // Provider denial is consumed without recording its potentially sensitive description.
-   if(input.error||!input.code){await db.query('delete from companion_local.microsoft_oauth_pending where id=$1',[pending.id]);return false;}
+   if(input.error||!input.code){await db.query(`delete from ${this.pending} where id=$1`,[pending.id]);return false;}
    if(input.code.length>16000)throw new ApiError(400,'invalid_input','The Microsoft response was invalid.');
    const prior=this.open<{codeVerifier:string;nonce:string}>(pending.id,pending.pending_ciphertext);
-   await db.query("update companion_local.microsoft_oauth_pending set stage='returned',pending_ciphertext=$2 where id=$1",[pending.id,this.seal(pending.id,{...prior,code:input.code})]);
+   await db.query(`update ${this.pending} set stage='returned',pending_ciphertext=$2 where id=$1`,[pending.id,this.seal(pending.id,{...prior,code:input.code})]);
    return true;
   });
   if(!accepted)throw new ApiError(400,'microsoft_connection_cancelled','The Microsoft connection was not completed. Start again when ready.');
@@ -124,7 +146,7 @@ export class MicrosoftService {
   if(!browserBinding)throw new ApiError(400,'microsoft_authorization_expired','Start the Microsoft connection again.');
   // Claim before the remote exchange: uncertain/failed exchanges require fresh authorization, never code replay.
   const pending=await localTransaction(this.pool,async db=>{
-   const row=(await db.query("update companion_local.microsoft_oauth_pending set stage='exchanging' where login_session_id=$1 and actor_id=$2 and stage='returned' returning *",[session.session_id,ctx.actor])).rows[0] as Pending|undefined;
+   const row=(await db.query(`update ${this.pending} set stage='exchanging' where login_session_id=$1 and actor_id=$2 and stage='returned' returning *`,[session.session_id,ctx.actor])).rows[0] as Pending|undefined;
    return row;
   });
   if(!pending||pending.browser_hash!==hash(browserBinding)||pending.participant_id!==ctx.participant||pending.grant_fingerprint!==ctx.grant||pending.configuration_fingerprint!==this.fingerprint||new Date(pending.expires_at)<=this.now()){if(pending)await this.endLogin(session);throw new ApiError(400,'microsoft_authorization_expired','Start the Microsoft connection again.');}
@@ -137,16 +159,20 @@ export class MicrosoftService {
   await localTransaction(this.pool,async db=>{
    await db.query('select id from companion_local.participant_profiles where id=$1 for update',[ctx.participant]);
    await this.recheck(db,session,ctx,true);
-   const claim=(await db.query('delete from companion_local.microsoft_oauth_pending where id=$1 and expires_at>$2 returning id',[pending.id,this.now()])).rows[0];
+   const claim=(await db.query(`delete from ${this.pending} where id=$1 and expires_at>$2 returning id`,[pending.id,this.now()])).rows[0];
    if(!claim)throw new ApiError(409,'microsoft_connection_cancelled','This Microsoft connection was cancelled.');
    const current=await this.row(db,ctx,true),id=current?.id??randomUUID();
-   await db.query(`insert into companion_local.microsoft_connections(id,participant_id,actor_id,grant_fingerprint,configuration_fingerprint,tenant_id,object_id,state,token_ciphertext,connected_at,updated_at) values($1,$2,$3,$4,$5,$6,$7,'connected',$8,$9,$9)
-    on conflict(participant_id,actor_id) do update set grant_fingerprint=excluded.grant_fingerprint,configuration_fingerprint=excluded.configuration_fingerprint,tenant_id=excluded.tenant_id,object_id=excluded.object_id,state='connected',token_ciphertext=excluded.token_ciphertext,selected_calendar_ids='{}',selected_mail_folder_ids='{}',revision=microsoft_connections.revision+1,connected_at=excluded.connected_at,updated_at=excluded.updated_at,last_read_at=null,last_error=null`,
+   await db.query(`insert into ${this.connections}(id,participant_id,actor_id,grant_fingerprint,configuration_fingerprint,tenant_id,object_id,state,token_ciphertext,connected_at,updated_at) values($1,$2,$3,$4,$5,$6,$7,'connected',$8,$9,$9)
+    on conflict(participant_id,actor_id) do update set grant_fingerprint=excluded.grant_fingerprint,configuration_fingerprint=excluded.configuration_fingerprint,tenant_id=excluded.tenant_id,object_id=excluded.object_id,state='connected',token_ciphertext=excluded.token_ciphertext,selected_calendar_ids='{}',selected_mail_folder_ids='{}',revision=${this.connectionName}.revision+1,connected_at=excluded.connected_at,updated_at=excluded.updated_at,last_read_at=null,last_error=null`,
     [id,ctx.participant,ctx.actor,ctx.grant,this.fingerprint,this.config.tenantId,this.config.expectedObjectId,this.seal(id,tokens),this.now()]);
   });return this.status(session);
   }finally{clearTimeout(timer);}
  });}
- private validateTokens(tokens:MicrosoftTokenSet){if(tokens.identity.tenantId!==this.config.tenantId||tokens.identity.objectId!==this.config.expectedObjectId||!tokens.accessToken||!tokens.refreshToken||!Number.isFinite(Date.parse(tokens.expiresAt)))throw authorizationError();}
+ private validateTokens(tokens:MicrosoftTokenSet){
+  if(tokens.identity.tenantId!==this.config.tenantId||tokens.identity.objectId!==this.config.expectedObjectId||!tokens.accessToken||!tokens.refreshToken||!Number.isFinite(Date.parse(tokens.expiresAt)))throw authorizationError();
+  const shared=this.config.accessMode==='calendar_read_shared',scopes=shared?MICROSOFT_CALENDAR_READ_SHARED_SCOPES:MICROSOFT_CALENDAR_READ_SCOPES;
+  if(this.calendarRead&&(!Array.isArray(tokens.scopes)||!['User.Read',shared?'Calendars.Read.Shared':'Calendars.Read'].every(scope=>tokens.scopes.includes(scope))||tokens.scopes.some(scope=>![...scopes,'email'].includes(scope))))throw authorizationError();
+ }
  private async connected<T>(session:Session,work:(graph:Graph,row:Row,db:PoolClient)=>Promise<T>,readTimeoutMs?:number):Promise<T>{return this.checked(session,ctx=>this.withConnection(ctx,(db,lock=false)=>this.recheck(db,session,ctx,lock),work,readTimeoutMs));}
  private async withConnection<T>(ctx:LocalAuthority,check:(db:LocalDb,lock?:boolean)=>Promise<void>,work:(graph:Graph,row:Row,db:PoolClient)=>Promise<T>,readTimeoutMs?:number):Promise<T>{
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),Math.max(1,Math.min(readTimeoutMs??45000,this.options.operationTimeoutMs??45000)));timer.unref();
@@ -165,36 +191,38 @@ export class MicrosoftService {
      throw new ApiError(403,'microsoft_reconnect_required','Microsoft needs you to reconnect.');
     }
     await check(db);
-    await db.query('update companion_local.microsoft_connections set token_ciphertext=$2,updated_at=$3 where id=$1',[row.id,this.seal(row.id,tokens),this.now()]);
+    await db.query(`update ${this.connections} set token_ciphertext=$2,updated_at=$3 where id=$1`,[row.id,this.seal(row.id,tokens),this.now()]);
    }
    await check(db);
    let result:T;
    try{result=await work(this.graph(tokens.accessToken,row.selected_calendar_ids,row.selected_mail_folder_ids,controller.signal,()=>check(db)),row,db);}
    catch(error){if(error instanceof MicrosoftGraphError||error instanceof ApiError&&![401,403].includes(error.status)){await check(db,true);return {error} as const;}throw error;}
    await check(db,true);
-   await db.query('update companion_local.microsoft_connections set last_read_at=$2,last_error=null where id=$1',[row.id,this.now()]);
+   await db.query(`update ${this.connections} set last_read_at=$2,last_error=null where id=$1`,[row.id,this.now()]);
    return {value:result} as const;
   }).then(outcome=>{if('error'in outcome)throw outcome.error;return outcome.value;});}catch(error){
    if(error instanceof ApiError){if(error.code==='microsoft_reconnect_required')await this.erase(this.pool,ctx.actor,ctx.participant);throw error;}
    const code=error&&typeof error==='object'&&'code'in error?String(error.code):'';
    if(/identity|account|unauthorized|authentication|invalid_token|access_denied|forbidden/.test(code)||error instanceof MicrosoftGraphError&&[401,403].includes(error.status??0)){await this.erase(this.pool,ctx.actor,ctx.participant);throw new ApiError(403,'microsoft_reconnect_required','Microsoft needs you to reconnect.');}
    // Diagnostics must not wait behind another connector operation after a read timed out.
-   await this.pool.query("update companion_local.microsoft_connections set last_error='provider_unavailable' where id in (select id from companion_local.microsoft_connections where actor_id=$1 and participant_id=$2 and state='connected' for update skip locked)",[ctx.actor,ctx.participant]);
+   await this.pool.query(`update ${this.connections} set last_error='provider_unavailable' where id in (select id from ${this.connections} where actor_id=$1 and participant_id=$2 and state='connected' for update skip locked)`,[ctx.actor,ctx.participant]);
    throw new ApiError(502,'microsoft_unavailable','Microsoft is unavailable. Previously read information may be out of date.');
   }finally{clearTimeout(timer);}
  }
- async resources(session:Session){return this.connected(session,async graph=>({calendars:await graph.listCalendars(),mail_folders:await graph.listMailFolders()}));}
+ async resources(session:Session){return this.connected(session,async graph=>({calendars:await graph.listCalendars(),mail_folders:this.calendarRead?this.emptyFolders():await graph.listMailFolders()}));}
  async calendarContext(session:Session,input:MicrosoftReadRange){const range=microsoftReadRangeSchema.parse(input);return this.connected(session,async(graph,row)=>{const calendars=[];for(const id of row.selected_calendar_ids)calendars.push({id,result:await graph.calendarView(id,range)});return {source:'microsoft' as const,fetched_at:this.now().toISOString(),calendars};},8000);}
  async select(session:Session,input:MicrosoftSelection):Promise<MicrosoftStatus>{
   const selection=microsoftSelectionSchema.parse(input);
+  if(this.calendarRead&&selection.mail_folder_ids.length)this.mailEnabled();
   await this.connected(session,async(graph,row,db)=>{
    if(row.revision!==selection.expected_revision)throw new ApiError(409,'microsoft_selection_changed','The connection changed. Reload and choose again.');
-   const calendars=await graph.listCalendars(),folders=await graph.listMailFolders();
+   const calendars=await graph.listCalendars(),folders=this.calendarRead?this.emptyFolders():await graph.listMailFolders();
    if(selection.calendar_ids.some(id=>!calendars.items.some(item=>item.id===id))||selection.mail_folder_ids.some(id=>!folders.items.some(item=>item.id===id)))throw new ApiError(400,'microsoft_resource_unavailable','Choose resources listed for the connected account.');
-   await db.query('update companion_local.microsoft_connections set selected_calendar_ids=$2,selected_mail_folder_ids=$3,revision=revision+1,updated_at=$4 where id=$1',[row.id,selection.calendar_ids,selection.mail_folder_ids,this.now()]);
+   await db.query(`update ${this.connections} set selected_calendar_ids=$2,selected_mail_folder_ids=$3,revision=revision+1,updated_at=$4 where id=$1`,[row.id,selection.calendar_ids,selection.mail_folder_ids,this.now()]);
   });return this.status(session);
  }
  private async readSelected(graph:Graph,row:Row,range:MicrosoftReadRange,mailRange=range,scope:import('./fast-read.js').OutlookReadScope='both'){
+  scope=this.readScope(scope);
   const [calendarResults,mailResults]=await Promise.all([
    Promise.allSettled((scope==='inbox'?[]:row.selected_calendar_ids).map(async id=>({id,result:await graph.calendarView(id,range)}))),
    Promise.allSettled((scope==='calendar'?[]:row.selected_mail_folder_ids).map(async id=>({id,result:await graph.listMessages(id,mailRange)}))),
@@ -207,10 +235,11 @@ export class MicrosoftService {
  async read(session:Session,input:MicrosoftReadRange){const range=microsoftReadRangeSchema.parse(input);return this.connected(session,(graph,row)=>this.readSelected(graph,row,range));}
  private async savePrepared(db:LocalDb,row:Row,context:PreparedMicrosoftContext){
   const json=JSON.stringify(context);if(json.length>64000)return;
-  await db.query('update companion_local.microsoft_connections set prepared_context_ciphertext=$2,prepared_at=$3,prepared_revision=$4 where id=$1',[row.id,this.seal(row.id+':prepared',context),context.fetched_at,row.revision]);
+  await db.query(`update ${this.connections} set prepared_context_ciphertext=$2,prepared_at=$3,prepared_revision=$4 where id=$1`,[row.id,this.seal(row.id+':prepared',context),context.fetched_at,row.revision]);
  }
  /** No provider request on the ordinary reply path. Fresh authority is checked even for cached data. */
  async preparedContext(session:Session,input:MicrosoftReadRange,scope:import('./fast-read.js').OutlookReadScope='both'){
+  scope=this.readScope(scope);
   const range=microsoftReadRangeSchema.parse(input),status=await this.status(session);
   if(!status.eligible||!status.model_disclosure_enabled)return {source:'microsoft',state:status.state==='connected'?'not_authorized':status.state};
   const ctx=await this.authority(this.pool,session),row=await this.row(this.pool,ctx);
@@ -224,6 +253,7 @@ export class MicrosoftService {
   }catch(error){if(error instanceof ApiError)throw error;return {source:'microsoft',state:'not_prepared',requested_range:range};}
  }
  async conversationContext(session:Session,input:MicrosoftReadRange,scope:import('./fast-read.js').OutlookReadScope='both'){
+  scope=this.readScope(scope);
   const status=await this.status(session);
   if(!status.eligible||!status.model_disclosure_enabled)return {source:'microsoft',state:status.state==='connected'?'not_authorized':status.state};
   const range=microsoftReadRangeSchema.parse(input),mailRange=recentInboxRange(this.now());
@@ -246,21 +276,23 @@ export class MicrosoftService {
   const range=outlookDateRange(`${part('year')}-${part('month')}-${part('day')}`,ctx.zone,7),mailRange=recentInboxRange(this.now());
   try{return await this.withConnection(ctx,check,async(graph,current,db)=>{
    if(!due(current))return {state:'not_due'};
-   await db.query('update companion_local.microsoft_connections set preparation_attempt_at=$2 where id=$1',[current.id,this.now()]);
-   const context=compactMicrosoftContext(await this.readSelected(graph,current,range,mailRange),range,mailRange);await this.savePrepared(db,current,context);
+   await db.query(`update ${this.connections} set preparation_attempt_at=$2 where id=$1`,[current.id,this.now()]);
+   const scope=this.readScope('both'),context=compactMicrosoftContext(await this.readSelected(graph,current,range,mailRange,scope),range,mailRange,scope);await this.savePrepared(db,current,context);
    return {state:'prepared',calendar_count:context.calendars.length,folder_count:context.mail_folders.length};
   },10000);}catch{
    await this.reconcileAuthorization(ctx.actor);
-   await this.pool.query('update companion_local.microsoft_connections set preparation_attempt_at=$2 where id=$1 and revision=$3',[row.id,this.now(),row.revision]);
+   await this.pool.query(`update ${this.connections} set preparation_attempt_at=$2 where id=$1 and revision=$3`,[row.id,this.now(),row.revision]);
    return {state:'unavailable'};
   }
  }
  async conversationMessage(session:Session,folderId:string,messageId:string){
+  this.mailEnabled();
   if(!this.config.modelUseApproved)throw new ApiError(403,'microsoft_disclosure_disabled','Outlook conversation use is not enabled.');
   return this.connected(session,async(graph,row)=>{if(!row.selected_mail_folder_ids.includes(folderId)||!graph.getMessage)throw authorizationError();const item=await graph.getMessage(folderId,messageId);return {source:'microsoft',fetched_at:item.fetchedAt,id:item.id,subject:item.subject,from:item.from,to:item.to,body_text:item.bodyText.slice(0,5000),body_truncated:item.bodyText.length>5000};});
  }
  /** On-demand history, without replacing the separate recent/morning snapshot. */
  async conversationMailSearch(session:Session,input:MicrosoftMailSearch){
+  this.mailEnabled();
   const search=mailSearchQuery(input,this.now()),status=await this.status(session);
   if(!status.eligible||!status.model_disclosure_enabled)return {source:'microsoft',state:'not_authorized' as const};
   try{return await this.connected(session,async(graph,row)=>{
@@ -275,7 +307,7 @@ export class MicrosoftService {
   },8000);}catch(error){if(error instanceof ApiError&&[401,403].includes(error.status))throw error;return {source:'microsoft',state:'unavailable' as const,operation:'mail_search' as const,search:{...search.query,...search.range},warning:'Older email search did not complete. Do not call the selected Inbox empty or claim no matching appointment exists.'};}
  }
  private actionScope(ctx:LocalAuthority,row:Row){return hash(canonicalJson([ctx.grant,row.id,row.revision,this.fingerprint,this.config.reviewedWritesApproved===true]));}
- private actionEnabled(){if(!this.config.reviewedWritesApproved)throw new ApiError(403,'microsoft_writes_disabled','Reviewed Outlook actions are not enabled.');}
+ private actionEnabled(){if(this.calendarRead||!this.config.reviewedWritesApproved)throw new ApiError(403,'microsoft_writes_disabled','Reviewed Outlook actions are not enabled.');}
  private async prepared(db:LocalDb,ctx:LocalAuthority,id:string):Promise<PreparedAction>{
   const record=(await db.query("select actor_id,result,event_type from companion_local.append_only_mutations where participant_id=$1 and command_id=$2",[ctx.participant,id])).rows[0];
   if(!record||record.actor_id!==ctx.actor||record.event_type!=='microsoft_action_prepared')throw new ApiError(404,'microsoft_action_missing','That Outlook review is not available.');
@@ -346,7 +378,7 @@ export class MicrosoftService {
    const rows=await this.phaseRows(db,ctx,parsed.action_id);if(rows.length)return {claimed:false,data};
    if(data.scope!==this.actionScope(ctx,row)||Date.parse(data.expires_at)<=this.now().getTime())throw new ApiError(409,'microsoft_review_expired','Review this Outlook action again.');
    await this.recheck(db,session,ctx,true);
-   await db.query('update companion_local.microsoft_connections set prepared_context_ciphertext=null,prepared_at=null,prepared_revision=null where id=$1',[row.id]);
+   await db.query(`update ${this.connections} set prepared_context_ciphertext=null,prepared_at=null,prepared_revision=null where id=$1`,[row.id]);
    await this.phase(db,ctx,parsed.action_id,'claim','submitting');return {claimed:true,data};
   });
   if(!claim.claimed)return {...await this.actionReceipt(session,parsed.action_id,true),replayed:true};
@@ -354,7 +386,7 @@ export class MicrosoftService {
   try{
    await this.connected(session,async(graph,row,db)=>{
     const ctx=await this.authority(db,session);if(claim.data.scope!==this.actionScope(ctx,row))throw authorizationError();
-    await db.query('update companion_local.microsoft_connections set prepared_context_ciphertext=null,prepared_at=null,prepared_revision=null where id=$1',[row.id]);
+    await db.query(`update ${this.connections} set prepared_context_ciphertext=null,prepared_at=null,prepared_revision=null where id=$1`,[row.id]);
     // Do not roll back the durable provider identifier if a later send is uncertain.
     if(claim.data.action.kind==='send_mail'){
      if(!graph.createMailDraft)throw new ApiError(503,'microsoft_write_unavailable','Outlook sending is not available.');
@@ -381,8 +413,8 @@ export class MicrosoftService {
  async disconnect(session:Session):Promise<MicrosoftStatus>{return this.checked(session,async ctx=>{
   await localTransaction(this.pool,async db=>{
    await this.recheck(db,session,ctx);const row=await this.row(db,ctx,true);
-   await db.query('delete from companion_local.microsoft_oauth_pending where actor_id=$1 and participant_id=$2',[ctx.actor,ctx.participant]);
-   if(row)await db.query("update companion_local.microsoft_connections set state='disconnected',token_ciphertext=null,prepared_context_ciphertext=null,prepared_at=null,prepared_revision=null,preparation_attempt_at=null,selected_calendar_ids='{}',selected_mail_folder_ids='{}',last_read_at=null,last_error=null,revision=revision+1,updated_at=$2 where id=$1",[row.id,this.now()]);
+   await db.query(`delete from ${this.pending} where actor_id=$1 and participant_id=$2`,[ctx.actor,ctx.participant]);
+   if(row)await db.query(`update ${this.connections} set state='disconnected',token_ciphertext=null,prepared_context_ciphertext=null,prepared_at=null,prepared_revision=null,preparation_attempt_at=null,selected_calendar_ids='{}',selected_mail_folder_ids='{}',last_read_at=null,last_error=null,revision=revision+1,updated_at=$2 where id=$1`,[row.id,this.now()]);
   });return this.status(session);
  });}
 }

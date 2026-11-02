@@ -128,7 +128,7 @@ describe('new local feature encrypted backup and empty-target restore', () => {
   it('includes durable care tables, excluding live sessions and provider authorization state', async () => {
     // Restoring a backup must never revive OAuth codes, credentials, or a connected state.
     // The restored client explicitly reconnects and selects resources again.
-    const excluded=['sessions','microsoft_connections','microsoft_oauth_pending'];
+    const excluded=['sessions','microsoft_connections','microsoft_oauth_pending','microsoft_calendar_connections','microsoft_calendar_oauth_pending'];
     const tables = (await source.query(`select table_name from information_schema.tables
       where table_schema='companion_local' and table_type='BASE TABLE' order by table_name`)).rows
       .map(row => row.table_name as string).filter(name => !excluded.includes(name));

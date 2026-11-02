@@ -19,4 +19,5 @@ export const localCareMigrations = [
   '018_microsoft.sql',
   '019_trusted_device.sql',
   '020_microsoft_preparation.sql',
+  '021_microsoft_calendar_source.sql',
 ] as const;

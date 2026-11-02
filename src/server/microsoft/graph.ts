@@ -76,6 +76,9 @@ export class MicrosoftGraphError extends Error {
 export interface MicrosoftGraphOptions {
   accessToken: string;
   expectedAccountId: string;
+  accessMode?: 'calendar_read' | 'calendar_read_shared';
+  /** Separately reviewed exact UUID; never a request-supplied address or path. */
+  calendarOwnerId?: string;
   allowedCalendarIds?: readonly string[];
   allowedMailFolderIds?: readonly string[];
   fetch?: typeof fetch;
@@ -187,6 +190,8 @@ type RawResponse = { value: unknown; status: number; bytes: number; etag: string
 export class MicrosoftGraphClient {
   readonly #token: string;
   readonly #accountId: string;
+  readonly #calendarRead: boolean;
+  readonly #calendarOwnerId?: string;
   readonly #calendars: ReadonlySet<string>;
   readonly #folders: ReadonlySet<string>;
   readonly #fetch: typeof fetch;
@@ -195,11 +200,18 @@ export class MicrosoftGraphClient {
   readonly #beforeRequest?: () => Promise<void>;
   readonly #limits: GraphLimits;
   #identity?: Promise<GraphIdentity>;
+  #sharedCalendar?: Promise<GraphCalendar>;
 
   constructor(options: MicrosoftGraphOptions) {
     if (!options.accessToken || /[\r\n]/.test(options.accessToken) || options.accessToken.length > 32_000) throw new MicrosoftGraphError('invalid_input');
     this.#token = options.accessToken;
     this.#accountId = parse(opaqueId, options.expectedAccountId, 'invalid_input');
+    if(options.accessMode!==undefined&&!['calendar_read','calendar_read_shared'].includes(options.accessMode))throw new MicrosoftGraphError('invalid_input');
+    this.#calendarRead=options.accessMode==='calendar_read'||options.accessMode==='calendar_read_shared';
+    if(options.accessMode==='calendar_read_shared'){
+      this.#calendarOwnerId=parse(z.uuid(),options.calendarOwnerId,'invalid_input').toLowerCase();
+      if(this.#calendarOwnerId===this.#accountId.toLowerCase())throw new MicrosoftGraphError('invalid_input');
+    }else if(options.calendarOwnerId!==undefined)throw new MicrosoftGraphError('invalid_input');
     this.#calendars = new Set((options.allowedCalendarIds ?? []).map(id => parse(opaqueId, id, 'invalid_input')));
     this.#folders = new Set((options.allowedMailFolderIds ?? []).map(id => parse(opaqueId, id, 'invalid_input')));
     this.#fetch = options.fetch ?? globalThis.fetch;
@@ -226,6 +238,7 @@ export class MicrosoftGraphClient {
   }
 
   async listCalendars(): Promise<GraphCollection<GraphCalendar>> {
+    if(this.#calendarOwnerId)return {items:[await this.#targetCalendar()],fetchedAt:this.#now(),complete:true,truncation:null};
     const identity = await this.verifyIdentity();
     const result = await this.#collection(makeUrl('/me/calendars', { $select: CALENDAR_FIELDS, $top: String(this.#limits.pageSize) }), value => this.#calendar(value));
     // /me can include shared calendars. An allowlist alone is not ownership proof.
@@ -233,6 +246,7 @@ export class MicrosoftGraphClient {
   }
 
   async listMailFolders(parentFolderId?: string): Promise<GraphCollection<GraphMailFolder>> {
+    this.#mailEnabled();
     await this.verifyIdentity();
     const path = parentFolderId ? `/me/mailFolders/${segment(parentFolderId)}/childFolders` : '/me/mailFolders';
     return this.#collection(makeUrl(path, { $select: FOLDER_FIELDS, $top: String(this.#limits.pageSize) }), value => {
@@ -245,7 +259,7 @@ export class MicrosoftGraphClient {
     this.#allow(this.#calendars, calendarId);
     const bounded = range(dates);
     await this.#verifyCalendar(calendarId);
-    return this.#collection(makeUrl(`/me/calendars/${segment(calendarId)}/calendarView`, {
+    return this.#collection(makeUrl(`${this.#calendarRoot()}/calendars/${segment(calendarId)}/calendarView`, {
       startDateTime: bounded.start, endDateTime: bounded.end, $select: CALENDAR_VIEW_FIELDS, $top: String(this.#limits.pageSize),
     }), value => {
       const item = this.#event(value, calendarId);
@@ -258,13 +272,14 @@ export class MicrosoftGraphClient {
     this.#allow(this.#calendars, calendarId);
     segment(eventId);
     await this.#verifyCalendar(calendarId);
-    const response = await this.#request(makeUrl(`/me/calendars/${segment(calendarId)}/events/${segment(eventId)}`, { $select: EVENT_FIELDS }));
+    const response = await this.#request(makeUrl(`${this.#calendarRoot()}/calendars/${segment(calendarId)}/events/${segment(eventId)}`, { $select: EVENT_FIELDS }));
     const item = this.#event(response.value, calendarId, response.etag);
     if (item.id !== eventId) throw new MicrosoftGraphError('invalid_response');
     return item;
   }
 
   async listMessages(folderId: string, dates: GraphDateRange): Promise<GraphCollection<GraphMessage>> {
+    this.#mailEnabled();
     this.#allow(this.#folders, folderId);
     const bounded = range(dates);
     await this.verifyIdentity();
@@ -279,6 +294,7 @@ export class MicrosoftGraphClient {
   }
 
   async getMessage(folderId: string, messageId: string): Promise<GraphMessageDetail> {
+    this.#mailEnabled();
     this.#allow(this.#folders, folderId);
     segment(messageId);
     await this.verifyIdentity();
@@ -291,6 +307,7 @@ export class MicrosoftGraphClient {
 
   /** Indexed search in one selected folder, any explicit age; transport/result caps still apply. */
   async searchMessages(folderId:string,input:MicrosoftMailSearch):Promise<GraphCollection<GraphMessage>> {
+    this.#mailEnabled();
     this.#allow(this.#folders,folderId);
     const search=mailSearchQuery(input,new Date(this.#now()));
     await this.verifyIdentity();
@@ -304,6 +321,7 @@ export class MicrosoftGraphClient {
 
   /** Only reviewed care-service actions call these fixed /me endpoints. No model-supplied URL or sender. */
   async createMailDraft(action:Extract<MicrosoftAction,{kind:'send_mail'}>):Promise<{id:string}> {
+    this.#mailEnabled();
     const input=parse(microsoftActionSchema,action,'invalid_input');
     if(input.kind!=='send_mail')throw new MicrosoftGraphError('invalid_input');
     await this.verifyIdentity();
@@ -311,11 +329,13 @@ export class MicrosoftGraphClient {
     return parse(z.object({id:opaqueId,isDraft:z.literal(true)}),response.value);
   }
   async sendCreatedDraft(id:string):Promise<void> {
+    this.#mailEnabled();
     await this.verifyIdentity();
     await this.#request(makeUrl(`/me/messages/${segment(id)}/send`),{method:'POST',expectedStatus:202,body:{},empty:true});
   }
   /** ID comes exclusively from an encrypted receipt for a draft this service created. */
   async inspectCreatedMessage(id:string):Promise<{id:string;subject:string;to:string[];sent_at:string|null;is_draft:boolean}> {
+    this.#mailEnabled();
     await this.verifyIdentity();
     const response=await this.#request(makeUrl(`/me/messages/${segment(id)}`,{$select:'id,subject,toRecipients,sentDateTime,isDraft'}));
     const item=parse(z.object({id:opaqueId,subject:shortText,toRecipients:recipientsSchema,sentDateTime:nullableText,isDraft:z.boolean()}),response.value);
@@ -323,6 +343,7 @@ export class MicrosoftGraphClient {
     return {id:item.id,subject:item.subject,to:item.toRecipients.map(r=>r.emailAddress.address),sent_at:optionalInstant(item.sentDateTime),is_draft:item.isDraft};
   }
   async createCalendarEvent(action:Extract<MicrosoftAction,{kind:'create_event'}>,transactionId:string):Promise<{id:string}> {
+    if(this.#calendarRead)throw new MicrosoftGraphError('resource_denied');
     const input=parse(microsoftActionSchema,action,'invalid_input');
     if(input.kind!=='create_event'||!input.calendar_id)throw new MicrosoftGraphError('invalid_input');
     parse(z.uuid(),transactionId,'invalid_input');this.#allow(this.#calendars,input.calendar_id);
@@ -332,6 +353,8 @@ export class MicrosoftGraphClient {
   }
 
   #now(): string { return this.#clock().toISOString(); }
+  #mailEnabled():void { if(this.#calendarRead)throw new MicrosoftGraphError('resource_denied'); }
+  #calendarRoot():string { return this.#calendarOwnerId?`/users/${this.#calendarOwnerId}`:'/me'; }
   #allow(allowed: ReadonlySet<string>, id: string): void {
     parse(opaqueId, id, 'invalid_input');
     if (!allowed.has(id)) throw new MicrosoftGraphError('resource_denied');
@@ -339,7 +362,31 @@ export class MicrosoftGraphClient {
   #isOwnCalendar(calendar: GraphCalendar, identity: GraphIdentity): boolean {
     return !!calendar.owner && [identity.mail, identity.userPrincipalName].some(value => value && value.toLowerCase() === calendar.owner!.address.toLowerCase());
   }
+  async #targetCalendar():Promise<GraphCalendar> {
+    if(!this.#calendarOwnerId)throw new MicrosoftGraphError('resource_denied');
+    this.#sharedCalendar??=(async()=>{
+      const signer=await this.verifyIdentity();
+      // This documented shortcut identifies only the configured owner's primary
+      // calendar, without requesting directory access or enumerating other owners.
+      // https://learn.microsoft.com/en-us/graph/outlook-get-shared-events-calendars
+      const response=await this.#request(makeUrl(`${this.#calendarRoot()}/calendar`,{$select:CALENDAR_FIELDS}));
+      const calendar=this.#calendar(response.value,response.etag);
+      if(!calendar.owner||!z.email().safeParse(calendar.owner.address).success||this.#isOwnCalendar(calendar,signer))throw new MicrosoftGraphError('resource_denied');
+      return Object.freeze({...calendar,owner:Object.freeze({...calendar.owner})});
+    })();
+    return this.#sharedCalendar;
+  }
   async #verifyCalendar(id: string): Promise<GraphCalendar> {
+    if(this.#calendarOwnerId){
+      const target=await this.#targetCalendar();
+      if(target.id!==id)throw new MicrosoftGraphError('resource_denied');
+      // Verify the selected ID still resolves to the same owner under the exact
+      // target before any event content is retrieved.
+      const response=await this.#request(makeUrl(`${this.#calendarRoot()}/calendars/${segment(id)}`,{$select:CALENDAR_FIELDS}));
+      const selected=this.#calendar(response.value,response.etag);
+      if(selected.id!==id||!selected.owner||selected.owner.address.toLowerCase()!==target.owner!.address.toLowerCase())throw new MicrosoftGraphError('resource_denied');
+      return selected;
+    }
     const identity = await this.verifyIdentity();
     const response = await this.#request(makeUrl(`/me/calendars/${segment(id)}`, { $select: CALENDAR_FIELDS }));
     const calendar = this.#calendar(response.value, response.etag);
@@ -393,6 +440,7 @@ export class MicrosoftGraphClient {
   }
 
   async #request(url: URL, options: { timeoutMs?: number; maxBytes?: number;method?:'POST';body?:unknown;expectedStatus?:number;empty?:boolean } = {}): Promise<RawResponse> {
+    if(this.#calendarRead&&options.method)throw new MicrosoftGraphError('resource_denied');
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), Math.max(1, options.timeoutMs ?? this.#limits.requestTimeoutMs));
     const signal = this.#signal ? AbortSignal.any([controller.signal, this.#signal]) : controller.signal;

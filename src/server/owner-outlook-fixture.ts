@@ -36,7 +36,7 @@ export class OwnerOutlookFixture implements OutlookConversation {
   const now=this.clock(),today=dateInZone(now,zone),tomorrow=shift(today,1),weekday=new Date(today+'T12:00:00Z').getUTCDay();
   const wednesday=shift(today,(3-weekday+7)%7),nextMonday=shift(today,((8-weekday)%7)||7),nextTuesday=shift(nextMonday,1);
   const at=(date:string,time:string)=>{const result=localDateTimeWithOffset(date+'T'+time,zone);if(!result.ok)throw Error('Practice fixture time is unavailable');return result.value;};
-  const event=(id:string,date:string,time:string,end:string,subject:string)=>({id,subject,start:at(date,time),end:at(date,end),cancelled:false,location:null});
+  const event=(id:string,date:string,time:string,end:string,subject:string)=>({id,subject,start:at(date,time),end:at(date,end),all_day:false,cancelled:false,location:null});
   return{now,today,tomorrow,events:[event('practice-clinic-'+tomorrow,tomorrow,'14:00','15:00','Practice clinic visit'),event('practice-library-'+wednesday,wednesday,'10:00','11:00','Practice library visit'),event('practice-followup-'+nextTuesday,nextTuesday,'14:00','15:00','Practice follow-up')],preview:`Practice only: Could we meet on ${tomorrow} at 14:30 ${zone}? This is a suggestion, not a confirmed booking.`};
  }
  async preparedContext(session:Session,input:MicrosoftReadRange,_scope:OutlookReadScope='both'){

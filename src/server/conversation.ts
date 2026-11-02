@@ -28,7 +28,7 @@ import {retainedLocalDayCommandTypes,type LocalDayCommand} from '../shared/local
 import {ownerOutlookFixturePolicy,type OutlookConversation} from './microsoft/conversation-port.js';
 import {microsoftReadRangeSchema,microsoftUnavailable,type MicrosoftActionReview} from '../shared/microsoft-contracts.js';
 import {outlookTools,outlookDayRange,outlookDateRange,requestedOutlookRange,outlookReadback,microsoftConversationPolicy} from './microsoft/conversation.js';
-import {strictOutlookRead,outlookReadFacts,outlookReadPolicy,outlookMessageInSnapshot,outlookDetailTarget,outlookDetailPolicy,quotedOutlookMessage} from './microsoft/fast-read.js';
+import {strictOutlookRead,outlookReadFacts,outlookReadPolicy,outlookMessageInSnapshot,outlookDetailTarget,outlookDetailPolicy,quotedOutlookMessage,outlookCalendarReply} from './microsoft/fast-read.js';
 import {recipeCard,mentionedRecipes,isGrocerySendRequest,isWholeActionConfirmation,missingRecipeGroceries,menuSelectionPolicy,selectedMenuReply} from './recipe-handoff.js';
 import {mealStarterReferences,mealStarterContext} from './meal-starters.js';
 import {clientDestinations,type ConversationPurpose} from '../shared/client-navigation.js';
@@ -886,14 +886,17 @@ export class ConversationService {
         const outlookStatus=clientRole&&this.microsoft?await this.microsoft.status(session):microsoftUnavailable;
         const rememberedSearch=clientRole&&outlookStatus.eligible&&outlookStatus.state==='connected'&&outlookStatus.model_disclosure_enabled&&state.mailSearch&&state.mailSearch.expires>this.now().getTime()?state.mailSearch.context:undefined;
         if(!rememberedSearch)state.mailSearch=undefined;
-        const fastOutlook=(this.ownerOutlookReads||this.clientLatency)&&clientRole&&outlookStatus.eligible&&outlookStatus.state==='connected'&&outlookStatus.model_disclosure_enabled&&(this.clientLatency||state.binding.actor_id===this.ownerId&&state.binding.qualification==='owner_practice')?strictOutlookRead(text,today.local_date,today.profile!.time_zone):null;
+        const readIntent=(this.ownerOutlookReads||this.clientLatency)&&clientRole&&outlookStatus.eligible&&(this.clientLatency||state.binding.actor_id===this.ownerId&&state.binding.qualification==='owner_practice')?strictOutlookRead(text,today.local_date,today.profile!.time_zone):null;
+        const fastOutlook=readIntent&&(readIntent.scope==='calendar'||outlookStatus.state==='connected'&&outlookStatus.model_disclosure_enabled)?readIntent:null;
         if(fastOutlook)outlookReadHit=1;
         const reuseSearchForDetail=!!fastOutlook?.detail&&!!rememberedSearch;
         const outlookRange=mailSearchRequest||reuseSearchForDetail?null:fastOutlook?.range??(clientRole?requestedOutlookRange(text,today.local_date,today.profile!.time_zone):null)??(nextStepPlanning||medicalRequest?outlookDateRange(today.local_date,today.profile!.time_zone,7):null);
         const outlookPurpose=fastOutlook?.scope??(nextStepPlanning||medicalRequest?'both':undefined);
         const needsOutlook=!mailSearchRequest&&!reuseSearchForDetail&&(nextStepPlanning||medicalRequest||/\b(outlook|calendar|schedule|appointments?|meetings?|inbox|emails?|messages?|planning|plan|morning|day)\b/i.test(text));
         const cachedOutlook=clientRole&&this.microsoft&&outlookStatus.model_disclosure_enabled&&needsOutlook?await this.microsoft.preparedContext(session,outlookRange??outlookDayRange(today.local_date,today.profile!.time_zone),outlookPurpose):undefined;
-        const refreshOutlook=outlookRange&&(cachedOutlook?.state!=='prepared'||/\b(refresh|latest|free|available|conflicts?)\b/i.test(text));
+        // A direct calendar check asks for the provider's current view, even
+        // when an earlier empty snapshot is still within the cache lifetime.
+        const refreshOutlook=outlookRange&&(fastOutlook?.scope==='calendar'||cachedOutlook?.state!=='prepared'||/\b(refresh|latest|free|available|conflicts?)\b/i.test(text));
         let outlookContext:unknown=clientRole&&this.microsoft?refreshOutlook&&outlookStatus.model_disclosure_enabled?await this.microsoft.conversationContext(session,outlookRange!,outlookPurpose):cachedOutlook??{source:'microsoft',state:outlookStatus.state}:undefined;
         if(reuseSearchForDetail)outlookContext=rememberedSearch;
         const medicalContext=nextStepPlanning||medicalRequest?medicalAppointmentContext(today,[outlookContext,rememberedSearch],this.now()):undefined;
@@ -913,6 +916,10 @@ export class ConversationService {
           outlookContext={...(outlookContext as Record<string,unknown>),message_detail_status:detailStatus,...(detail?{message_detail:detail}:{})};
         }
         let disclosedOutlookContext:unknown=outlookContext,outlookReadUsed=false;
+        if(fastOutlook?.scope==='calendar'){
+          await this.validateScope(session,state);ensureOpen();
+          reply=this.reply(id,state,outlookCalendarReply(outlookContext,fastOutlook,today.profile!.time_zone,this.now()));
+        }
         if(fastOutlook?.detail){const literal=quotedOutlookMessage(outlookContext,today.profile!.time_zone);if(literal)reply=this.reply(id,state,literal);}
         const messageAllowed=(folder:string,id:string)=>outlookMessageInSnapshot(disclosedOutlookContext,folder,id)||outlookMessageInSnapshot(rememberedSearch,folder,id)||!!medicalContext?.correspondence.some(message=>message.folder_id===folder&&message.id===id);
         let guidance = preparation?preparedSelection(text,preparation.mode):selectNancyGuidance(text);

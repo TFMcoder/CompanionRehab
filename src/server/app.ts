@@ -29,7 +29,8 @@ import { createLocalFeatures, registerLocalFeatures, type LocalFeatures } from '
 import { registerClientVoiceMetrics } from './client-voice-metrics.js';
 import {registerSafariStudy,type SafariStudy} from './safari-study.js';
 import {registerMicrosoftRoutes,microsoftCallbackPath} from './microsoft/routes.js';
-import {createMicrosoftRuntime} from './microsoft/runtime.js';
+import {createMicrosoftRuntime,createSecondaryMicrosoftRuntime} from './microsoft/runtime.js';
+import {MicrosoftCalendarSources} from './microsoft/calendar-sources.js';
 import type {MicrosoftService} from './microsoft/service.js';
 import {NancySuggestions} from './nancy-suggestions.js';
 import {registerOwnerAsana,type OwnerAsana} from './owner-asana.js';
@@ -42,7 +43,7 @@ import {ConversationArchive} from './conversation-archive.js';
 import type {ConversationReply} from './conversation.js';
 
 type RequestService = Pick<TaskRequestService, 'workspace'|'review'|'command'|'receipt'|'authorityRevision'>;
-export async function createApp(config: Config, dependencies: { archive?:ConversationArchive; care?: CareService; voice?: VoiceService; conversation?: ConversationRuntime; speech?: LocalSpeech; clientSpeech?:{actorId:string;speech:LocalSpeech}; taskRequests?: RequestService; features?:LocalFeatures; microsoft?:MicrosoftService|null; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog;safariStudy?:SafariStudy;ownerAsana?:OwnerAsana;ownerOutlookFixture?:OwnerOutlookFixture;ownerSessionRenewal?:OwnerSessionRenewal;clientSessionRenewal?:ClientSessionRenewal } = {}) {
+export async function createApp(config: Config, dependencies: { archive?:ConversationArchive; care?: CareService; voice?: VoiceService; conversation?: ConversationRuntime; speech?: LocalSpeech; clientSpeech?:{actorId:string;speech:LocalSpeech}; taskRequests?: RequestService; features?:LocalFeatures; microsoft?:MicrosoftService|null; secondaryMicrosoft?:MicrosoftService|null; staticRoot?: string; revocations?: SessionRevocations; runtimeLog?: RuntimeLog;safariStudy?:SafariStudy;ownerAsana?:OwnerAsana;ownerOutlookFixture?:OwnerOutlookFixture;ownerSessionRenewal?:OwnerSessionRenewal;clientSessionRenewal?:ClientSessionRenewal } = {}) {
   const app = Fastify({ logger: false, bodyLimit: 100000, trustProxy: false, requestTimeout: 120000, genReqId: () => randomUUID(), requestIdHeader: false });
   const care: CareService = dependencies.care || (config.databaseUrl ? new LocalCare({ connectionString: config.databaseUrl }) : new Supabase(config));
   const voice = dependencies.voice || new VoiceService(config, care);
@@ -56,6 +57,9 @@ export async function createApp(config: Config, dependencies: { archive?:Convers
   const taskRequests = dependencies.taskRequests ?? (care instanceof LocalCare ? new TaskRequestService(care.pool) : undefined);
   const features=dependencies.features??(care instanceof LocalCare?createLocalFeatures(care.pool):undefined);
   const microsoft=Object.hasOwn(dependencies,'microsoft')?dependencies.microsoft??undefined:(care instanceof LocalCare?await createMicrosoftRuntime(config,care.pool):undefined);
+  const secondaryMicrosoft=Object.hasOwn(dependencies,'secondaryMicrosoft')?dependencies.secondaryMicrosoft??undefined:dependencies.microsoft===null?undefined:(care instanceof LocalCare?await createSecondaryMicrosoftRuntime(config,care.pool):undefined);
+  const calendarReader=microsoft&&secondaryMicrosoft?new MicrosoftCalendarSources(microsoft,secondaryMicrosoft):microsoft;
+  const microsoftSessions=[microsoft,secondaryMicrosoft].filter((service):service is MicrosoftService=>!!service);
   const speaking = new Map<string, AbortController>();
   const audioCache = new Map<string, Buffer>();
   const acknowledgementAudio=new WeakMap<LocalSpeech,Promise<Buffer>>();
@@ -128,11 +132,11 @@ export async function createApp(config: Config, dependencies: { archive?:Convers
     if (request.url.startsWith('/api/') && !['/api/config', '/api/auth/login'].includes(request.url)&&!microsoftCallback) {
       if (missingConfig(config).length) throw new ApiError(503, 'not_configured', 'The care service has not been connected yet.');
       const current = openSession(request.cookies[sessionCookieName], config.sessionKey!);
-      if (!current || revoked.has(current.session_id)) {if(current)await microsoft?.invalidateSession(current);throw new ApiError(401, 'unauthorized', 'Please sign in.');}
+      if (!current || revoked.has(current.session_id)) {if(current)await Promise.all(microsoftSessions.map(service=>service.invalidateSession(current)));throw new ApiError(401, 'unauthorized', 'Please sign in.');}
       const incomingAccess=current.access_token,incomingRefresh=current.refresh_token;
       const renewal=renewalFor(current);
       let session:Session;
-      try{session=renewal?await renewal.authorize(care,current):await care.authorize(current);}catch(error){await microsoft?.invalidateSession(current);throw error;}
+      try{session=renewal?await renewal.authorize(care,current):await care.authorize(current);}catch(error){await Promise.all(microsoftSessions.map(service=>service.invalidateSession(current)));throw error;}
       if(renewal){
         // Coalesced renewal results may share an object. Give every HTTP request
         // its own mutable token holder and reviewed-authority boundary.
@@ -168,7 +172,7 @@ export async function createApp(config: Config, dependencies: { archive?:Convers
   }
   if(dependencies.ownerOutlookFixture){
     const fixture=dependencies.ownerOutlookFixture;
-    if(sessionCookieName!=='nancy_test_session'||!config.synthetic||config.port!==8788||config.origin!==fixture.settings.origin||config.planUserId!==fixture.settings.owner_actor_id||microsoft)throw Error('Practice Outlook requires the isolated owner runtime without a real Microsoft connection.');
+    if(sessionCookieName!=='nancy_test_session'||!config.synthetic||config.port!==8788||config.origin!==fixture.settings.origin||config.planUserId!==fixture.settings.owner_actor_id||microsoft||secondaryMicrosoft)throw Error('Practice Outlook requires the isolated owner runtime without a real Microsoft connection.');
     app.get('/api/owner-outlook-fixture',async request=>fixture.description(sessions.get(request)!));
   }
   if(dependencies.ownerAsana){
@@ -225,7 +229,7 @@ export async function createApp(config: Config, dependencies: { archive?:Convers
     revoked.revoke(session.session_id, (session.issued_at+sessionLifetimeSeconds(session))*1000);
     await voice.endLogin(session.session_id);
     conversation?.endLogin(session.session_id);
-    await microsoft?.endLogin(session);
+    await Promise.all(microsoftSessions.map(service=>service.endLogin(session)));
     for (const [key, controller] of speaking) if (key.startsWith(session.session_id + ':')) { controller.abort(); speaking.delete(key); }
     for (const key of audioCache.keys()) if (key.startsWith(session.session_id + ':')) audioCache.delete(key);
     reply.clearCookie(sessionCookieName, cookieOptions);
@@ -248,7 +252,7 @@ export async function createApp(config: Config, dependencies: { archive?:Convers
   app.get('/api/priority-context', async request => priorityContext(await care.today(sessions.get(request)!)));
   registerLocalFeatures(app,{features,sessions,care,speech,voiceOwner:config.planUserId,voiceAccess:async session=>(await voiceAccess(session))?.binding_ref??null,limit});
   registerClientVoiceMetrics(app,{sessions,conversation,runtimeLog:dependencies.runtimeLog,limit});
-  registerMicrosoftRoutes(app,{service:microsoft,sessions,origin:config.origin,limit,bindingCookieName:sessionCookieName==='nancy_test_session'?'nancy_test_microsoft_binding':'nancy_microsoft_binding'});
+  registerMicrosoftRoutes(app,{service:microsoft,secondaryService:secondaryMicrosoft,calendarReader,sessions,origin:config.origin,limit,bindingCookieName:sessionCookieName==='nancy_test_session'?'nancy_test_microsoft_binding':'nancy_microsoft_binding'});
   const requestsService=()=>{
     if(!taskRequests)throw new ApiError(503,'requests_unavailable','Task requests are not available on this care connection.');
     return taskRequests;

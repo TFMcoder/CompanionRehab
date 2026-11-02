@@ -4,11 +4,18 @@ import { createLocalJWKSet, jwtVerify, SignJWT, type JSONWebKeySet, type JWTPayl
 export const MICROSOFT_DELEGATED_SCOPES = Object.freeze([
   'openid', 'profile', 'offline_access', 'User.Read', 'Calendars.ReadWrite', 'Mail.ReadWrite', 'Mail.Send',
 ]);
+export const MICROSOFT_CALENDAR_READ_SCOPES = Object.freeze([
+  'openid', 'profile', 'offline_access', 'User.Read', 'Calendars.Read',
+]);
+export const MICROSOFT_CALENDAR_READ_SHARED_SCOPES = Object.freeze([
+  'openid', 'profile', 'offline_access', 'User.Read', 'Calendars.Read.Shared',
+]);
 const graphScopes = ['User.Read', 'Calendars.ReadWrite', 'Mail.ReadWrite', 'Mail.Send'];
+const calendarGraphScopes = ['User.Read', 'Calendars.Read'];
+const sharedCalendarGraphScopes = ['User.Read', 'Calendars.Read.Shared'];
 // Entra can return this default OIDC scope even when it was not requested.
 // Accept only this response addition; request scopes and account authority stay unchanged.
 // https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md
-const tokenResponseScopes = [...MICROSOFT_DELEGATED_SCOPES, 'email'];
 const guid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const authority = 'https://login.microsoftonline.com';
 const responseLimit = 256 * 1024;
@@ -17,10 +24,12 @@ const maxTokenLength = 64 * 1024;
 export interface MicrosoftOAuthConfig {
   tenantId: string;
   clientId: string;
+  /** Exact authenticated signer; a shared calendar's owner is bound separately by the care service. */
   expectedObjectId: string;
   redirectUri: string;
   certificate: { privateKeyPem: string; certificatePem: string };
   allowLoopbackHttpForTests?: boolean;
+  accessMode?: 'calendar_read' | 'calendar_read_shared';
 }
 
 export interface MicrosoftTokenSet {
@@ -65,7 +74,7 @@ export class MicrosoftOAuthError extends Error {
     this.providerCodes = Object.freeze(Array.isArray(diagnostic?.providerCodes)
       ? diagnostic.providerCodes.filter(value => Number.isSafeInteger(value) && value > 0 && value <= 1_000_000_000).slice(0, 4) : []);
     this.scopeCheck = diagnostic?.scopeCheck ? Object.freeze({
-      missing_graph_scopes: Object.freeze(graphScopes.filter(scope => diagnostic.scopeCheck!.missingGraphScopes.includes(scope))),
+      missing_graph_scopes: Object.freeze([...new Set([...graphScopes, ...calendarGraphScopes, ...sharedCalendarGraphScopes])].filter(scope => diagnostic.scopeCheck!.missingGraphScopes.includes(scope))),
       unexpected_scope_count: Number.isInteger(diagnostic.scopeCheck.unexpectedScopeCount) && diagnostic.scopeCheck.unexpectedScopeCount >= 0 && diagnostic.scopeCheck.unexpectedScopeCount <= 2048 ? diagnostic.scopeCheck.unexpectedScopeCount : null,
       email_returned: diagnostic.scopeCheck.emailReturned === true,
     }) : null;
@@ -81,13 +90,21 @@ function tokenString(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0 && value.length <= maxTokenLength && !/[\u0000-\u0020\u007f]/.test(value);
 }
 
-function delegatedScopes(value: unknown): string[] {
+function scopeProfile(accessMode: MicrosoftOAuthConfig['accessMode']) {
+  if (accessMode === 'calendar_read_shared') return { requested: MICROSOFT_CALENDAR_READ_SHARED_SCOPES, required: sharedCalendarGraphScopes };
+  if (accessMode === 'calendar_read') return { requested: MICROSOFT_CALENDAR_READ_SCOPES, required: calendarGraphScopes };
+  return { requested: MICROSOFT_DELEGATED_SCOPES, required: graphScopes };
+}
+
+function delegatedScopes(value: unknown, accessMode: MicrosoftOAuthConfig['accessMode']): string[] {
+  const { required, requested } = scopeProfile(accessMode);
+  const tokenResponseScopes = [...requested, 'email'];
   if (typeof value !== 'string' || !value || value.length > 2048) throw new MicrosoftOAuthError('invalid_scopes');
   const scopes = [...new Set(value.trim().split(/\s+/).map(scope => scope.startsWith('https://graph.microsoft.com/')
     ? scope.slice('https://graph.microsoft.com/'.length) : scope))];
-  if (scopes.some(scope => !tokenResponseScopes.includes(scope)) || graphScopes.some(scope => !scopes.includes(scope)))
+  if (scopes.some(scope => !tokenResponseScopes.includes(scope)) || required.some(scope => !scopes.includes(scope)))
     throw new MicrosoftOAuthError('invalid_scopes', { scopeCheck: {
-      missingGraphScopes: graphScopes.filter(scope => !scopes.includes(scope)),
+      missingGraphScopes: required.filter(scope => !scopes.includes(scope)),
       unexpectedScopeCount: scopes.filter(scope => !tokenResponseScopes.includes(scope)).length,
       emailReturned: scopes.includes('email'),
     } });
@@ -97,6 +114,7 @@ function delegatedScopes(value: unknown): string[] {
 /** Fixed tenant endpoints and a configured exact callback avoid discovery or redirect injection. */
 export function validateMicrosoftOAuthConfig(config: MicrosoftOAuthConfig): void {
   try {
+    if (config.accessMode !== undefined && config.accessMode !== 'calendar_read' && config.accessMode !== 'calendar_read_shared') throw new Error();
     if (![config.tenantId, config.clientId, config.expectedObjectId].every(value => typeof value === 'string' && guid.test(value)))
       throw new Error();
     const callback = new URL(config.redirectUri);
@@ -115,6 +133,8 @@ export function createMicrosoftOAuthClient(config: MicrosoftOAuthConfig, options
   // Copy identifiers so a mutable config cannot change authority between token rounds.
   const tenantId = config.tenantId.toLowerCase(), clientId = config.clientId.toLowerCase();
   const objectId = config.expectedObjectId.toLowerCase(), redirectUri = config.redirectUri;
+  const accessMode = config.accessMode;
+  const requestedScopes = scopeProfile(accessMode).requested;
   const tokenEndpoint = `${authority}/${tenantId}/oauth2/v2.0/token`;
   const issuer = `${authority}/${tenantId}/v2.0`;
   const jwksEndpoint = `${authority}/${tenantId}/discovery/v2.0/keys`;
@@ -228,7 +248,7 @@ export function createMicrosoftOAuthClient(config: MicrosoftOAuthConfig, options
 
   async function requestTokens(grant: Record<string, string>, signal?: AbortSignal) {
     if (signal?.aborted) throw new MicrosoftOAuthError('provider_unavailable');
-    const body = new URLSearchParams({ ...grant, client_id: clientId, scope: MICROSOFT_DELEGATED_SCOPES.join(' '),
+    const body = new URLSearchParams({ ...grant, client_id: clientId, scope: requestedScopes.join(' '),
       client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer', client_assertion: await assertion() });
     return jsonRequest(tokenEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' }, body }, signal);
   }
@@ -239,7 +259,7 @@ export function createMicrosoftOAuthClient(config: MicrosoftOAuthConfig, options
       || typeof data.expires_in !== 'number' || !Number.isInteger(data.expires_in) || data.expires_in <= 0 || data.expires_in > 172_800)
       throw new MicrosoftOAuthError('invalid_token_response');
     return { accessToken: data.access_token, refreshToken, expiresAt: new Date(now() + data.expires_in * 1000).toISOString(),
-      scopes: delegatedScopes(data.scope), identity };
+      scopes: delegatedScopes(data.scope, accessMode), identity };
   }
 
   return {
@@ -248,7 +268,7 @@ export function createMicrosoftOAuthClient(config: MicrosoftOAuthConfig, options
       const codeVerifier = randomBytes(64).toString('base64url');
       const url = new URL(`${authority}/${tenantId}/oauth2/v2.0/authorize`);
       url.search = new URLSearchParams({ client_id: clientId, response_type: 'code', response_mode: 'query', redirect_uri: redirectUri,
-        scope: MICROSOFT_DELEGATED_SCOPES.join(' '), state, nonce, prompt: 'select_account', code_challenge_method: 'S256',
+        scope: requestedScopes.join(' '), state, nonce, prompt: 'select_account', code_challenge_method: 'S256',
         code_challenge: createHash('sha256').update(codeVerifier).digest('base64url') }).toString();
       return { authorizationUrl: url.toString(), state, nonce, codeVerifier, expiresAt: new Date(now() + 10 * 60_000).toISOString() };
     },
@@ -262,7 +282,7 @@ export function createMicrosoftOAuthClient(config: MicrosoftOAuthConfig, options
       if (!previous?.identity || previous.identity.tenantId !== tenantId || previous.identity.objectId !== objectId)
         throw new MicrosoftOAuthError('identity_not_allowed');
       if (!tokenString(previous.refreshToken)) throw new MicrosoftOAuthError('invalid_token_response');
-      delegatedScopes(previous.scopes.join(' '));
+      delegatedScopes(previous.scopes.join(' '), accessMode);
       const data = await requestTokens({ grant_type: 'refresh_token', refresh_token: previous.refreshToken }, signal);
       // An ID token is optional on refresh; when supplied, its signed account must still match.
       const identity = data.id_token === undefined ? { tenantId, objectId } : await verifyIdentity(data.id_token, undefined, signal);
